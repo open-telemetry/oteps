@@ -68,26 +68,26 @@ If the rationale behind a change of state cannot be easily inferred - e.g., if a
 ### Submitting a new RFC
 
 1. If you haven't done so yet, [fork](https://help.github.com/en/articles/fork-a-repo) the [repo](https://github.com/open-telemetry/rfcs)
-1. Copy [`0000-template.md`] to `text/0000-my-rfc.md`, where `my-rfc` is a title relevant to your proposal. Leave the number as is for now.
+1. Copy [`0000-template.md`](./0000-template.md) to `text/0000-my-rfc.md`, where `my-rfc` is a title relevant to your proposal. Leave the number as is for now.
 1. Fill in the template. Do not omit things you think may be obvious to readers; it's better to be too explicit than to leave ambiguity! In particular, assume that no one else cares yet about the proposal, and that your are writing this to **convince** them that they should :)
 1. Submit a [pull request](https://github.com/open-telemetry/compare). Assuming that your RFC follows the template and there are no significant omissions, the pull request will be accepted and your RFC will be assigned a number
-  * TODO: Should this be automated?
+    * TODO: Should this be automated?
 1. A new "work-in-progress" (WIP) pull request will be created with that updates the RFC's status to `approved`
-  * TODO: This should probably be automated
+    * TODO: This should probably be automated
 1. In the WIP pull request, your proposed RFC will now be up for feedback from the OpenTelemetry community. Others may suggest changes, raise concerns, or add new pull requests building on top of yours
 1. Aim to address the discussion! While you are the champion of the RFC, the community collectively owns the result. We're all in this together :)
-  * Please make changes as new commits, documenting the reasoning for each in the commit message. Try to avoid squashing, rebasing, force-pushing, etc. at this point, as doing so may mess with the historical discussion on GitHub
+    * Please make changes as new commits, documenting the reasoning for each in the commit message. Try to avoid squashing, rebasing, force-pushing, etc. at this point, as doing so may mess with the historical discussion on GitHub
 1. Once the value and trade-offs of the change have been sufficiently discussed, a non-author member of the relevant SIG will remove "WIP" from the PR's title and propose a "motion for final comment period" (FCP)
-  * By this point, no **new** points should have been raised in the discussion for **at least three business days**
-  * If substantial new points (e.g., a significant trade-off) are raised *during* the FCP, the FCP should be cancelled and discussion renewed
+    * By this point, no **new** points should have been raised in the discussion for **at least three business days**
+    * If substantial new points (e.g., a significant trade-off) are raised *during* the FCP, the FCP should be cancelled and discussion renewed
 1. During the FCP, SIG members should each vote to `approve`, `reject`, or `defer` the RFC
-  * If the discussion has been contentious, members should explain the rationale behind their vote
+    * If the discussion has been contentious, members should explain the rationale behind their vote
 1. The FCP will be considered closed and the RFC either approved, rejected, or approved after the following conditions have all been met:
-  * At least two business days have passed since the FCP began
-  * Either:
-    * A majority of non-author members have voted
-    * At least three non-author members have voted, and the vote is unanimous
-* The RFC will be merged with the appropriate state
+    * At least two business days have passed since the FCP began
+    * Either:
+      * A majority of non-author members have voted
+      * At least three non-author members have voted, and the vote is unanimous
+1. The RFC will be merged with the appropriate state
 
 ### Reviewing an RFC
 
