@@ -22,7 +22,7 @@ This RFC is accompanied by RFC 0002-metric-measure which proposes to create a ne
 
 ## Trade-offs and mitigations
 
-This is an refactoring of the existing proposal to cover more use-cases that does not introduce new complexity.  The existing mechanism for metrics is extended to raw statistics by a new metric type, which allows elimianting raw statistics, leaving equal complexity.
+This is a refactoring of the existing proposal to cover more use-cases and does not introduce new complexity.  The existing mechanism for metrics is extended raw statistics by a new metric type, which allows eliminating raw statistics, leaving equal complexity.
 
 ## Prior art and alternatives
 
