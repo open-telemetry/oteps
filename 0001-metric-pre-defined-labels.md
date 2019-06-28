@@ -12,7 +12,7 @@ The current API for recording raw statistics does not support the same optimizat
 
 ## Explanation
 
-In the current proposal, Metrics are used for _common_ pre-aggregated metric types, whereas Raw statistics are used for uncommon and vendor-specific aggregations.  The optimization and the usability advantages gained with pre-defined labels should be extended to Raw statistics because they equally important and equally applicable.
+In the current proposal, Metrics are used for _common_ pre-aggregated metric types, whereas Raw statistics are used for uncommon and vendor-specific aggregations.  The optimization and the usability advantages gained with pre-defined labels should be extended to Raw statistics because they are equally important and equally applicable.
 
 For example, where the application wants to compute a histogram of some value (e.g., latency), there's good reason to pre-aggregate such information.  In this exampler, this allows an implementation to effienctly export the histogram of latencies "grouped" into individual results by label value(s).
 
