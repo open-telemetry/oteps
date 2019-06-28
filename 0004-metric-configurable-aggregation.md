@@ -13,17 +13,17 @@ This proposal completes the elimination of Raw statistics by recognizing that ag
 Following this change, we should think of the _Metric type_ as:
 
 1. Indicating something about what kind of numbers are being recorded (i.e., the input domain, e.g., restricted to values >= 0?)
-  1. For Gauges: Something pre-computed where rate or count is not relevant
-  1. For Cumulatives: Something where rate or count is relevant
-  1. For Measures: Something where individual values are relevant
+   1. For Gauges: Something pre-computed where rate or count is not relevant
+   1. For Cumulatives: Something where rate or count is relevant
+   1. For Measures: Something where individual values are relevant
 1. Indicating something about the default interpretation, based on the action verb (Set, Inc, Record, etc.)
-  1. For Gauges: the action is Set()
-  1. For Cumulatives: the action is Inc()
-  1. For Measures: the action is Record()
+   1. For Gauges: the action is Set()
+   1. For Cumulatives: the action is Inc()
+   1. For Measures: the action is Record()
 1. Unless the programmer declares otherwise, suggesting a default aggregation
-  1. For Gauges: LAST_VALUE is interesting, SUM is likely not interesting
-  1. For Cumulatives: SUM is interesting, LAST_VALUE is likely not interesting
-  1. For Measures: all aggregations apply, default is MIN, MAX, SUM, COUNT.
+   1. For Gauges: LAST_VALUE is interesting, SUM is likely not interesting
+   1. For Cumulatives: SUM is interesting, LAST_VALUE is likely not interesting
+   1. For Measures: all aggregations apply, default is MIN, MAX, SUM, COUNT.
 
 ## Internal details
 
@@ -44,6 +44,20 @@ The non-decomposable aggregations do not have standard definitions, they are pur
 1. HISTOGRAM: The intended output is a distribution summary, specifically summarizing counts into non-overlapping ranges.
 1. SUMMARY: This is a more generic way to request information about a distribution, perhaps represented in some vendor-specific way / not a histogram.
 
+## Example
+
+To declare a MeasureMetric,
+
+```
+   myMetric := metric.NewMeasureMetric(
+		   "ex.com/mymetric",
+	           metric.WithAggregations(metric.SUM, metric.COUNT),
+		   metric.WithLabelKeys(aKey, bKey))
+)
+```
+
+Here, we have declared a Measure-type metric with recommended SUM and COUNT aggregations (allowing to compute the average) with `aKey` and `bKey` as recommended aggregation dimensions.  While the SDK has full control over which aggregations are actually performed, the programmer has specified a good default behavior for the implementation to use.
+
 ## Trade-offs and mitigations
 
 This avoids requiring programmers to use the `view` API, which is an SDK API, not a user-facing instrumentation API. Letting the application programmer recommend aggregations directly gives the implementation more information about the raw statistics. Letting programmers declare their intent has few downsides, since there is a well-defined default behavior.
@@ -56,4 +70,4 @@ Existing systems generaly declare separate Metric types according to the desired
 
 There are questions about the value of the MIN and MAX aggregations.  While they are simple to compute, they are difficult to use in practice.
 
-There are questions about the interpretation of HISTOGRAM and SUMMARY. The point of Raw statistics was that we shouldn't specify these aggregations because they are expensive and many implementations are possible.  This is still true. What is the value in specifying HISTOGRAM as opposed to SUMMARY?  How is SUMMARY different from MIN/MAX/COUNT/SUM?
+There are questions about the interpretation of HISTOGRAM and SUMMARY. The point of Raw statistics was that we shouldn't specify these aggregations because they are expensive and many implementations are possible.  This is still true. What is the value in specifying HISTOGRAM as opposed to SUMMARY?  How is SUMMARY different from MIN/MAX/COUNT/SUM, does it imply implementation-defined quantiles?

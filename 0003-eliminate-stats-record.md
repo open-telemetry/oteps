@@ -4,15 +4,15 @@ Remove `stats.Record` from the specification, following the MeasureMetric type (
 
 ## Motivation
 
-This change is no longer a necessary interface. There are conceivable reasons to support it, but they are not outweighed by the cost of implementing and supporting two interfaces for recording metrics and statistics.
+`stats.Record` is no longer a necessary interface. There are conceivable reasons to support it, but they are outweighed by the cost of implementing and supporting two interfaces for recording metrics and statistics.
 
 ## Explanation
 
-In RFC 0002-metric-measure, a new MeasureMetric type is introduced to replace raw statistics, with support for pre-defined label values.  With the new type introduced, it's now possible to record formerly-raw statistics through a higher-level Metric interface.  stats.Record is no longer a requirement and should be removed until strong evidence of its need emerges from real use-cases.
+In RFC 0002-metric-measure, a new MeasureMetric type is introduced to replace raw statistics, with support for pre-defined label values.  With the new type introduced, it's now possible to record formerly-raw statistics through a higher-level Metric interface.
 
 ## Internal details
 
-This simply involves removing the low-level `stats.Record` API from the specification.
+This simply involves removing the low-level `stats.Record` API from the specification, as it is no longer required.
 
 ## Trade-offs and mitigations
 
@@ -32,3 +32,5 @@ Are either of the trade-offs described above important enough to keep the low-le
 ## Future possibilities
 
 This restricts future possibilities for the benefit of a smaller, simpler specification.
+
+This leaves open the possibility of adding `stats.Record` functionality later, when the need is more clearly recognized.
