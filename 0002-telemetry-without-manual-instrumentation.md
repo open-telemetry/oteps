@@ -4,7 +4,7 @@ _Cross-language requirements for automated approaches to extracting portable tel
 
 ## Motivation
 
-The purpose of OpenTelemetry is to make robust, portable telemetry a built-in feature of cloud-native software. For some software and some situations, that instrumentation can literally be part of the source code. In other situations, it’s not so simple: for example, we can’t necessarily edit or even recompile some of our software, the OpenTelemetry instrumentation only exists as a plugin, or instrumentation just never rises to the top of the priority list for a service-owner.
+The purpose of OpenTelemetry is to make robust, portable telemetry a built-in feature of cloud-native software. For some software and some situations, that instrumentation can literally be part of the source code. In other situations, it’s not so simple: for example, we can’t necessarily edit or even recompile some of our software, the OpenTelemetry instrumentation only exists as a plugin, or instrumentation just never rises to the top of the priority list for a service-owner. Furthermore, there is occasionally a desire to disable instrumentation for a single plugin or module at runtime, again without requiring developers to make changes to source code.
 
 One way to navigate situations like these is with a software layer that adds OpenTelemetry instrumentation to a service without modifying the source code for that service. (In the conventional APM world, these software layers are often called “agents”, though that term is overloaded and ambiguous so we try avoid it in this document.)
 
@@ -26,7 +26,7 @@ Without further ado, here are a set of requirements for “official” OpenTelem
 * No _manual_ source code modifications allowed
 * Licensing must be permissive (e.g., ASL / BSD)
 * Packaging must allow vendors to “wrap” or repackage the portable (OpenTelemetry) library into a single asset that’s delivered to customers
-    * That is, vendors do not want to require users to comprehend both an OpenTel package and a vendor-specific package
+    * That is, vendors do not want to require users to comprehend both an OpenTelemetry package and a vendor-specific package
 * Explicit, whitebox OpenTelemetry instrumentation must interoperate with the “automatic” / zero-source-code-modification / blackbox instrumentation.
     * If the blackbox instrumentation starts a Span, whitebox instrumentation must be able to discover it as the active Span (and vice versa)
     * Relatedly, there also must be a way to discover and avoid potential conflicts/overlap/redundancy between explicit whitebox instrumentation and blackbox instrumentation of the same libraries/packages
@@ -43,6 +43,7 @@ Without further ado, here are a set of requirements for “official” OpenTelem
     * Note that this also makes it easy to test against multiple different versions of any given library
 * A fully pluggable architecture, where plugins can be registered at runtime without requiring changes to the central repo at github.com/open-telemetry
     * E.g., for ops teams that want to write a plugin for a proprietary piece of legacy software they are unable to recompile
+* Augemntation of whitebox instrumentation by blackbox instrumentation (or, perhaps, vice versa). That is, not only can the trace context be shared by these different flavors of instrumentation, but even things like in-flight Span objects can be shared and co-modified (e.g., to use runtime interposition to grab local variables and attach them to a manually-instrumented span).
 
 
 ## Trade-offs and mitigations
