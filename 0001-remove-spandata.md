@@ -9,13 +9,13 @@ SpanData represents an immutable span object, creating a fairly large API for al
 
 ## Explanation
 
-The primary use case around SpanData comes from the desire to construct and report out of band spans, meaning that you're creating "custom" spans for an operation you don't own. A good example of this is a program that takes in structured logs that contain correlation IDs and a duration (e.g. from splunk) and [converts them](https://github.com/lightstep/splunktospan/blob/master/splunktospan/span.py#L43) to spans for your tracing system. [Another example](https://github.com/lightstep/haproxy_log2span/blob/master/lib/lib.go#L292) is running a sidecar on an HAProxy machine, tailing the request logs, and creating spans. SpanData supports the out of band reporting case, whereas you can’t with the current Span API as you cannot set the start and end timestamp, or add any tags at span creation that the sampler might need.
+SpanData's primary use case comes from the need to construct and report out of band spans, meaning that you're creating "custom" spans for an operation you don't own. A good example of this is a program that takes in structured logs that contain correlation IDs and a duration (e.g. from splunk) and [converts them](https://github.com/lightstep/splunktospan/blob/master/splunktospan/span.py#L43) to spans for your tracing system. [Another example](https://github.com/lightstep/haproxy_log2span/blob/master/lib/lib.go#L292) is running a sidecar on an HAProxy machine, tailing the request logs, and creating spans. SpanData supports the out of band reporting case, whereas you can’t with the current Span API as you cannot set the start and end timestamp, or add any tags at span creation that the sampler might need.
 
-I'd like to propose getting rid of `SpanData` and `tracer.recordSpanData()` and replacing it by allowing `startSpan()` and `span.finish()` to accept start and end timestamp options. This reduces the API surface, consolidating on a single span type. Options would meet the requirements for out of band reporting.
+I'd like to propose getting rid of SpanData and `tracer.recordSpanData()` and replacing it by allowing `tracer.startSpan()` and `span.finish()` to accept start and end timestamp options. This reduces the API surface, consolidating on a single span type. Options would meet the requirements for out of band reporting.
 
 ## Internal details
 
-`startSpan()` would change so you can include options such as `withTags()`, `withStartTimestamp()`, `withResource()`, `withEvents()`, `withLogs()`, etc. and for `finish()` you could have `withEndTimestamp()`, `withEvents()`, etc. The exact implementation would be language specific, so some would use an options pattern with function overloading or variadic parameters, or a span builder pattern.
+`startSpan()` would change so you can include options such as `withStartTimestamp()`, `withTags()`, `withResource()`, `withEvents()`, `withLogs()`, etc. and for `finish()` you could have `withEndTimestamp()`, `withEvents()`, etc. The exact implementation would be language specific, so some would use an options pattern with function overloading or variadic parameters, or a span builder pattern.
 
 ## Trade-offs and mitigations
 
