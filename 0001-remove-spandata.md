@@ -1,7 +1,6 @@
 # Remove SpanData
 
 Remove and replace SpanData by adding span start and finish options.
- 
 
 ## Motivation
 
@@ -21,7 +20,7 @@ I'd like to propose getting rid of SpanData and `tracer.recordSpanData()` and re
 
 From https://github.com/open-telemetry/opentelemetry-specification/issues/71: If the underlying SDK automatically adds tags to spans such as thread-id, stacktrace, and cpu-usage when a span is started, they would be incorrect for out of band spans as the tracer would not know the difference between in and out of band spans. This can be mitigated by indicating that the span is out of band to prevent attaching possibly incorrect information.
 
-https://github.com/open-telemetry/opentelemetry-specification/issues/96 discusses the possibility of allowing SpanData to support lazy fields, preventing allocations until it is read by the exporter. With span options, I don’t believe we would be able to get a fully lazy span, although events and logs could easily be made lazy in the future.
+https://github.com/open-telemetry/opentelemetry-specification/issues/96 discusses the possibility of allowing SpanData to support lazy fields, preventing allocations until it is read by the exporter. With span options, I don’t believe we would be able to get a fully lazy span, but we can get really close, especially by adding lazily evaluated events and logs. Some discussion should be had about the laziness questions in the Open Questions section.
 
 ## Prior art and alternatives
 
@@ -29,4 +28,13 @@ The OpenTracing specification for `tracer.startSpan()` includes an optional star
 
 ## Open questions
 
-Is laziness a desired property of SpanData? If so, what are the other requirements for SpanData? 
+What does lazy mean for SpanData? When we talk about lazy logs, we normally mean lazy evaluation, where expensive formatting is deferred until they are actually needed. Is laziness a desired property of SpanData? If so, what are the other requirements for SpanData? 
+
+There also seems to be some hidden dependency between SpanData and the sampler API. For example, given a complete SpanData object with a start and finish timestamp, I imagine there's a use case where the sampler can look at the that and decide "this took a long time" and sample it. Is this a real use case? Is there a requirement to be able to provide complete span objects to the sampler?
+
+## Related Issues
+
+Options would solve https://github.com/open-telemetry/opentelemetry-specification/issues/139
+By removing SpanData, https://github.com/open-telemetry/opentelemetry-specification/issues/92 can be resolved and closed.
+https://github.com/open-telemetry/opentelemetry-specification/issues/68 can be closed. `withResources()` can provide a different resource for out of band spans, otherwise the tracer can provide the default resource.
+https://github.com/open-telemetry/opentelemetry-specification/issues/60 can be closed due to removal of SpanData.
