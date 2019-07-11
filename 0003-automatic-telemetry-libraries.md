@@ -8,7 +8,7 @@ The purpose of OpenTelemetry is to make robust, portable telemetry a built-in fe
 
 ### Why “cross-language/framework”?
 
-There should be a _consistent_ way of adding and interacting with automatically created OpenTelemetry spans and metrics that is neither surprising to users of frameworks or languages. It should be easy for framework authors, as well as motivated users, to write automated instrumentation adapters for any framework that have similar installation (appropriate for the language) and are easy to maintain.
+There should be a _consistent_ way of adding and interacting with automatically created OpenTelemetry spans and metrics that is neither surprising to users of frameworks or languages. It should be easy for framework authors, as well as motivated users, to write automated instrumentation adapters for any framework that have similar installation methods (appropriate for the language), interoperate with other forms of instrumentation such as blackbox and whitebox, and are easy to maintain.
 
 ### Suggested reading
 
