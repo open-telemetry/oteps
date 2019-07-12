@@ -23,7 +23,7 @@ Many people have correctly observed that “agent” design is highly language-d
 ### Requirements
 
 Without further ado, here are a set of requirements for “official” OpenTelemetry efforts to accomplish zero-source-code-modification instrumentation (i.e., “OpenTelemetry agents”) in any given language:
-* No _manual_ source code modifications allowed
+* _Manual_ source code modifications "very strongly discouraged", with an exception for languages or environments that leave no credible alternatives. Any code changes must be trivial and `O(1)` per source file (rather than per-function, etc).
 * Licensing must be permissive (e.g., ASL / BSD)
 * Packaging must allow vendors to “wrap” or repackage the portable (OpenTelemetry) library into a single asset that’s delivered to customers
     * That is, vendors do not want to require users to comprehend both an OpenTelemetry package and a vendor-specific package
