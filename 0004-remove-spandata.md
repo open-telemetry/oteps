@@ -18,7 +18,7 @@ I'd like to propose getting rid of SpanData and `tracer.recordSpanData()` and re
 
 ## Internal details
 
-`startSpan()` would change so you can include options such as `withStartTimestamp()` and `withResource()`. When you have a span sink, out of band spans may have different resources than the tracer they are being reported to, so you want to pass an explicit resource. For `span.finish()` you would have `withEndTimestamp()`. The exact implementation would be language specific, so some would use an options pattern with function overloading or variadic parameters, or add these options to the span builder.
+`startSpan()` would change so you can include an optional start timestamp and resource. When you have a span sink, out of band spans may have different resources than the tracer they are being reported to, so you want to pass an explicit resource. For `span.finish()` you would have an optional end timestamp. The exact implementation would be language specific, so some would use an options pattern with function overloading or variadic parameters, or add these options to the span builder.
 
 ## Trade-offs and mitigations
 
@@ -36,7 +36,7 @@ There also seems to be some hidden dependency between SpanData and the sampler A
 
 ## Future Work
 
-We might want to include `withAttributes()` as a start option to give the underlying sampler more information to sample with. We also might want a `withEvents()`, which would be for bulk adding events with explicit timestamps.
+We might want to include attributes as a start option to give the underlying sampler more information to sample with. We also might want to include optional events, which would be for bulk adding events with explicit timestamps.
 
 ## Related Issues
 
@@ -46,6 +46,6 @@ Options would solve [open-telemetry/opentelemetry-specification#139](https://git
 
 By removing SpanData, [open-telemetry/opentelemetry-specification#92](https://github.com/open-telemetry/opentelemetry-specification/issues/92) can be resolved and closed.
 
-[open-telemetry/opentelemetry-specification#68](https://github.com/open-telemetry/opentelemetry-specification/issues/68) can be closed. `withResources()` can provide a different resource for out of band spans, otherwise the tracer can provide the default resource.
+[open-telemetry/opentelemetry-specification#68](https://github.com/open-telemetry/opentelemetry-specification/issues/68) can be closed. An optional resource can provide a different resource for out of band spans, otherwise the tracer can provide the default resource.
 
 [open-telemetry/opentelemetry-specification#60](https://github.com/open-telemetry/opentelemetry-specification/issues/60) can be closed due to removal of SpanData.
