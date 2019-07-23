@@ -30,7 +30,7 @@ The OpenTracing specification for `tracer.startSpan()` includes an optional star
 
 ## Open questions
 
-Imagine a scenario where you have a sidecar that accepts serialized spans from a legacy tracing system that you want to convert to OpenTelem spans. Those legacy spans have a trace and span ID you want to reuse. Should `startSpan()` include an option to explicitly set the span ID? Would it make more sense to take a direct dependency on the SDK's span type and translate to that?
+Imagine a scenario where you have a sidecar that accepts serialized spans from a legacy tracing system that you want to convert to OpenTelemetry spans. Those legacy spans have a trace and span ID you want to reuse. Should `startSpan()` include an option to explicitly set the span ID? Would it make more sense to take a direct dependency on the SDK's span type and translate to that?
 
 There also seems to be some hidden dependency between SpanData and the sampler API. For example, given a complete SpanData object with a start and finish timestamp, I imagine there's a use case where the sampler can look at the that and decide "this took a long time" and sample it. Is this a real use case? Is there a requirement to be able to provide complete span objects to the sampler?
 
