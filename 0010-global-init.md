@@ -49,7 +49,10 @@ party libraries to use the global SDK before it is installed, which is
 addressed in a requirement stated below.
 
 The explicit initializer method should take independent `Tracer` and
-`Meter` objects (e.g., `opentelemetry.Init(Tracer, Meter)`).
+`Meter` objects (e.g., `opentelemetry.Init(Tracer, Meter)`).  The SDK
+may be installed no more than once.  After the first SDK installed,
+subsequent calls to the explicit initializer shall log console
+warnings.
 
 In common language, uses of the global SDK instance (i.e., the Tracer
 and Meter) must "begin working" once the SDK is installed, with the
