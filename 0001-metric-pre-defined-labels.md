@@ -1,5 +1,7 @@
 # Pre-defined label support for all metric operations
 
+*Status: proposed*
+
 Let all Metric objects (Cumulative, Gauge, ...) and Raw statistics support pre-defined label values.
 
 ## Motivation

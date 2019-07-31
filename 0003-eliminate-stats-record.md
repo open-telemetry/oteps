@@ -1,5 +1,7 @@
 # Eliminate stats.Record functionality
 
+*Status: proposed*
+
 Remove `stats.Record` from the specification, following the MeasureMetric type (RFC 0002-metric-measure).
 
 ## Motivation

@@ -1,5 +1,7 @@
 # Replace Raw statistics with Measure-type Metric
 
+*Status: proposed*
+
 Define a new Metric type named "Measure" to cover existing "Raw" statistics uses.
 
 ## Motivation
