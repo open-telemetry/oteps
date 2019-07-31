@@ -81,14 +81,18 @@ not depend on the SDK being installed.
 
 ## Trade-offs and mitigations
 
+### Testing support
+
+Testing should be performed without depending on the global SDK.
+
 ### Synchronization
 
 Since the global Tracer and Meter objects are required to begin
 working once the SDK is installed, there is some implied
 synchronization overhead at startup, overhead we expect to fall after
-the SDK is installed.  We recommend explicitly installing a No-op SDK,
-rather than use global objects configured to repeatedly check whether the
-SDK has been installed.
+the SDK is installed.  We recommend explicitly installing a No-op SDK
+to fully disable instrumentation, as this approach will have a lower
+overhead than leaving the OpenTracing library uninitialized.
 
 ## Prior art and alternatives
 
@@ -101,4 +105,4 @@ configurable SDK prior to first use.
 
 What other options should be passed to the explicit global initializer?
 
-Is there a public test for "is the SDK a no-op"?
+Is there a public test for "is the SDK installed; is it a no-op"?
