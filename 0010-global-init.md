@@ -1,5 +1,7 @@
 # Global SDK initialization
 
+*Status: proposed*
+
 Specify the behavior of OpenTelemetry APIs and implementations at startup.
 
 ## Motivation
