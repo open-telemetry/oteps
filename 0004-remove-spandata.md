@@ -18,7 +18,7 @@ I'd like to propose getting rid of SpanData and `tracer.recordSpanData()` and re
 
 ## Internal details
 
-`startSpan()` would change so you can include an optional start timestamp and resource. When you have a span sink, out of band spans may have different resources than the tracer they are being reported to, so you want to pass an explicit resource. For `span.finish()` you would have an optional end timestamp. The exact implementation would be language specific, so some would use an options pattern with function overloading or variadic parameters, or add these options to the span builder.
+`startSpan()` would change so you can include an optional start timestamp, span ID, and resource. When you have a span sink, out of band spans may have different resources than the tracer they are being reported to, so you want to pass an explicit resource. For `span.finish()` you would have an optional end timestamp. The exact implementation would be language specific, so some would use an options pattern with function overloading or variadic parameters, or add these options to the span builder.
 
 ## Trade-offs and mitigations
 
@@ -29,8 +29,6 @@ From https://github.com/open-telemetry/opentelemetry-specification/issues/71: If
 The OpenTracing specification for `tracer.startSpan()` includes an optional start timestamp and zero or more tags. It also calls out an optional end timestamp and bulk logging for `span.finish()`.
 
 ## Open questions
-
-Imagine a scenario where you have a sidecar that accepts serialized spans from a legacy tracing system that you want to convert to OpenTelemetry spans. Those legacy spans have a trace and span ID you want to reuse. Should `startSpan()` include an option to explicitly set the span ID? Would it make more sense to take a direct dependency on the SDK's span type and translate to that?
 
 There also seems to be some hidden dependency between SpanData and the sampler API. For example, given a complete SpanData object with a start and finish timestamp, I imagine there's a use case where the sampler can look at the that and decide "this took a long time" and sample it. Is this a real use case? Is there a requirement to be able to provide complete span objects to the sampler?
 
