@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  misspell:
+  build:
     docker:
       - image: circleci/golang:1.12
     steps:
