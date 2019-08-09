@@ -1,0 +1,14 @@
+version: 2
+
+jobs:
+  misspell:
+    docker:
+      - image: circleci/golang:1.12
+    steps:
+      - checkout
+      - run:
+          name: Install tools
+          command: make install-tools
+      - run:
+          name: Verify
+          command: make circle-ci
