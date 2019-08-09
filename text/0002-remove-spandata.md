@@ -1,6 +1,6 @@
 # Remove SpanData
 
-Remove and replace SpanData by adding span start and finish options.
+Remove and replace SpanData by adding span start and end options.
 
 ## Motivation
 
@@ -14,11 +14,11 @@ The first use case revolves around creating a span synchronously but needing to 
 
 The second use case comes from the need to construct and report out of band spans, meaning that you're creating "custom" spans for an operation you don't own. One good example of this is a span sink that takes in structured logs that contain correlation IDs and a duration (e.g. from splunk) and [converts them](https://github.com/lightstep/splunktospan/blob/58ef9bca81933a47605a51047b12742e2d13aa8f/splunktospan/span.py#L43) to spans for your tracing system. [Another example](https://github.com/lightstep/haproxy_log2span/blob/761da5bf3e4b6cce56039d65439ae7db57f48603/lib/lib.go#L292) is running a sidecar on an HAProxy machine, tailing the request logs, and creating spans. SpanData allows you to report the out of band reporting case, whereas you can’t with the current Span API as you cannot set the start and end timestamp.
 
-I'd like to propose getting rid of SpanData and `tracer.recordSpanData()` and replacing it by allowing `tracer.startSpan()` to accept a start timestamp option and `span.finish()` to accept end timestamp option. This reduces the API surface, consolidating on a single span type. Options would meet the requirements for out of band reporting.
+I'd like to propose getting rid of SpanData and `tracer.recordSpanData()` and replacing it by allowing `tracer.startSpan()` to accept a start timestamp option and `span.end()` to accept end timestamp option. This reduces the API surface, consolidating on a single span type. Options would meet the requirements for out of band reporting.
 
 ## Internal details
 
-`startSpan()` would change so you can include an optional start timestamp, span ID, and resource. When you have a span sink, out of band spans may have different resources than the tracer they are being reported to, so you want to pass an explicit resource. For `span.finish()` you would have an optional end timestamp. The exact implementation would be language specific, so some would use an options pattern with function overloading or variadic parameters, or add these options to the span builder.
+`startSpan()` would change so you can include an optional start timestamp, span ID, and resource. When you have a span sink, out of band spans may have different resources than the tracer they are being reported to, so you want to pass an explicit resource. For `span.end()` you would have an optional end timestamp. The exact implementation would be language specific, so some would use an options pattern with function overloading or variadic parameters, or add these options to the span builder.
 
 ## Trade-offs and mitigations
 
@@ -26,11 +26,11 @@ From https://github.com/open-telemetry/opentelemetry-specification/issues/71: If
 
 ## Prior art and alternatives
 
-The OpenTracing specification for `tracer.startSpan()` includes an optional start timestamp and zero or more tags. It also calls out an optional end timestamp and bulk logging for `span.finish()`.
+The OpenTracing specification for `tracer.startSpan()` includes an optional start timestamp and zero or more tags. It also calls out an optional end timestamp and bulk logging for `span.end()`.
 
 ## Open questions
 
-There also seems to be some hidden dependency between SpanData and the sampler API. For example, given a complete SpanData object with a start and finish timestamp, I imagine there's a use case where the sampler can look at the that and decide "this took a long time" and sample it. Is this a real use case? Is there a requirement to be able to provide complete span objects to the sampler?
+There also seems to be some hidden dependency between SpanData and the sampler API. For example, given a complete SpanData object with a start and end timestamp, I imagine there's a use case where the sampler can look at the that and decide "this took a long time" and sample it. Is this a real use case? Is there a requirement to be able to provide complete span objects to the sampler?
 
 ## Future Work
 
