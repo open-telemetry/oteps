@@ -7,8 +7,5 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install tools
-          command: make install-tools
-      - run:
           name: Verify
-          command: make circle-ci
+          command: make precommit
