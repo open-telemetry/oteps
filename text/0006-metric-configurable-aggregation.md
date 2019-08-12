@@ -1,6 +1,6 @@
 # Let Metrics support configrable, recommended aggregations
 
-*Status: proposed*
+**Status:** `proposed`
 
 Let the user configure recommended Metric aggregations (SUM, COUNT, MIN, MAX, LAST_VALUE, HISTOGRAM, SUMMARY).
 
