@@ -6,7 +6,7 @@ Let the user configure recommended Metric aggregations (SUM, COUNT, MIN, MAX, LA
 
 ## Motivation
 
-In the current API proposal, Metric types like Gauge and Cumulative are mapped into specific aggregations: Gauge:LAST_VALUE and Cumulative:SUM.  Depending on RFC 0002-metric-measure, which creates a new MeasureMetric type, this proposal introduces the ability to configure alternative, potentially multiple aggregations for Metrics.  This allows the MeasureMetric type to support HISTOGRAM and SUMMARY aggregations, as an alternative to raw statistics.
+In the current API proposal, Metric types like Gauge and Cumulative are mapped into specific aggregations: Gauge:LAST_VALUE and Cumulative:SUM.  Depending on RFC 0004-metric-measure, which creates a new MeasureMetric type, this proposal introduces the ability to configure alternative, potentially multiple aggregations for Metrics.  This allows the MeasureMetric type to support HISTOGRAM and SUMMARY aggregations, as an alternative to raw statistics.
 
 ## Explanation
 

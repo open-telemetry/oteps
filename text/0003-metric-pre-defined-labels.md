@@ -20,7 +20,7 @@ For example, where the application wants to compute a histogram of some value (e
 
 ## Internal details
 
-This RFC is accompanied by RFC 0002-metric-measure which proposes to create a new Metric type to replace Raw statistics.  The metric type, named "Measure", would replace the existing concept and type named "Measure" in the metrics API.  The new MeasureMetric object would support a `Record` method to record measurements.
+This RFC is accompanied by RFC 0004-metric-measure which proposes to create a new Metric type to replace Raw statistics.  The metric type, named "Measure", would replace the existing concept and type named "Measure" in the metrics API.  The new MeasureMetric object would support a `Record` method to record measurements.
 
 ## Trade-offs and mitigations
 
