@@ -1,3 +1,7 @@
+# OpenTelemetry
+[![Gitter chat][gitter-image]][gitter-url]
+[![Build Status][circleci-image]][circleci-url]
+
 # OpenTelemetry RFCs
 ## Evolving OpenTelemetry at the speed of Markdown
 
@@ -114,3 +118,8 @@ Have suggestions? Concerns? Questions? **Please** raise an issue or raise the ma
 ### Background on the OpenTelemetry RFC process
 
 Our RFC process borrows (very!) heavily from the [Rust RFC](https://github.com/rust-lang/rfcs) and [Kubernetes Enhancement Proposal](https://github.com/kubernetes/enhancements) processes, the former also being [very influential](https://github.com/kubernetes/enhancements/blob/master/keps/0001-kubernetes-enhancement-proposal-process.md#prior-art) on the latter; as well as the [OpenTracing RFC](https://github.com/opentracing/specification/tree/master/rfc) process. Massive kudos and thanks to the respective authors and communities for providing excellent prior art 💖
+
+[circleci-image]: https://circleci.com/gh/open-telemetry/rfcs.svg?style=svg 
+[circleci-url]: https://circleci.com/gh/open-telemetry/rfcs
+[gitter-image]: https://badges.gitter.im/open-telemetry/opentelemetry-specification.svg 
+[gitter-url]: https://gitter.im/open-telemetry/opentelemetry-specification?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
