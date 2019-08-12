@@ -66,7 +66,7 @@ This avoids requiring programmers to use the `view` API, which is an SDK API, no
 
 ## Prior art and alternatives
 
-Existing systems generaly declare separate Metric types according to the desired aggregation.  Raw statistics were invented to overcome this, and the present proposal brings back the ability to specify an Aggregation at the point where a Metric is defined.
+Existing systems generally declare separate Metric types according to the desired aggregation.  Raw statistics were invented to overcome this, and the present proposal brings back the ability to specify an Aggregation at the point where a Metric is defined.
 
 ## Open questions
 

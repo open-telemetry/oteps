@@ -40,4 +40,4 @@ With this proposal accepted, there would be three Metric types: Gauge, Cumulativ
 
 This change enables metrics to support configurable aggregation types, which allows the programmer to provide recommended aggregations at the point where Metrics are defined.  This will allow support for good out-of-the-box behavior for metrics defined by third-party libraries, for example.
 
-Without Raw statistics in the API, it becomes possible to elimiante the low-level `stats.Record` API, which may also be desireable.
+Without Raw statistics in the API, it becomes possible to elimiante the low-level `stats.Record` API, which may also be desirable.
