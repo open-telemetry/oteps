@@ -36,7 +36,7 @@ In a way, the `TracerFactory` replaces the global `Tracer` singleton object as a
 
 By providing a TracerFactory and *Named Tracers*, a vendor or OpenTelemetry implementation gains more flexibility in providing tracers and can decide whether or not to produce spans for a specific traced component and even change this behavior at runtime.
 
-In the simplest case, an OpenTelemetry implementation can return a single instance for a requested tracer regardless of the name specified. This could be the case for implementations that do no want/need to enable or disable a tracer.
+In the simplest case, an OpenTelemetry implementation can return a single instance for a requested tracer regardless of the name specified. This could be the case for implementations that do not want/need to enable or disable a tracer.
 
 Alternatively, an implementation can provide different tracers per specified tracer name, thus being able to associate this tracer with the component being traced. This allows for the possibility to enable / disable a tracer based on a custom configuration.
 * Automatically set the `component` ("the component being traced") on every span being produced.
@@ -45,7 +45,7 @@ Alternatively, an implementation can provide different tracers per specified tra
 
 ## Prior art and alternatives
 
-Alternatively, instead of having a `TracerFactory`, existing (global) tracers could return and additional indirection objects (called e.g. `TraceComponent`), which would be able to produce spans for specifically named traced components.
+Alternatively, instead of having a `TracerFactory`, existing (global) tracers could return additional indirection objects (called e.g. `TraceComponent`), which would be able to produce spans for specifically named traced components.
 
 ```java
   TraceComponent traceComponent = OpenTelemetry.Tracing.getTracer().componentBuilder("io.opentelemetry.contrib.mongodb");
@@ -59,4 +59,4 @@ Overall, this would not change a lot since the levels of indirection until produ
 
 ## Future possibilities
 
-By adapting this proposal, current implementations that do not honour the specified tracer name and provide a single global tracer, do not required much change. However they could change that behavior in future versions and provide more specific tracer implementations then. On the other side, if the mechanism of *Named Tracer* is not a part of the initial specification, such scenarios will be prevented and hard to retrofit in future version, should they be deemed necessary then.
+By adapting this proposal, current implementations that do not honor the specified tracer name and provide a single global tracer, would not require much change. However they could change that behavior in future versions and provide more specific tracer implementations then. On the other side, if the mechanism of *Named Tracer*s is not a part of the initial specification, such scenarios will be prevented and hard to retrofit in future version, should they be deemed necessary then.
