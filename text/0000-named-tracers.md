@@ -1,4 +1,4 @@
-# Named Tracers 
+# Named Tracers
 
 **Status:** `proposed`
 
@@ -40,25 +40,30 @@ By providing a TracerFactory and *Named Tracers*, a vendor or OpenTelemetry impl
 
 In the simplest case, an OpenTelemetry implementation can return a single instance for a requested tracer regardless of the name specified. This could be the case for implementations that do not want/need to enable or disable a tracer.
 
-Alternatively, an implementation can provide different tracers per specified tracer name, thus being able to associate this tracer with the component being traced. This allows for the possibility to enable / disable a tracer based on a custom configuration.
-* Automatically set the `component` ("the component being traced") on every span being produced.
+Alternatively, an implementation can provide different tracer instances per specified tracer name, thus being able to associate this tracer with the component being traced. This allows for the possibility to enable / disable a tracer based on a custom configuration.
 
 ## Trade-offs and mitigations
 
 ## Prior art and alternatives
 
-Alternatively, instead of having a `TracerFactory`, existing (global) tracers could return additional indirection objects (called e.g. `TraceComponent`), which would be able to produce spans for specifically named traced components.
+Alternatively, instead of having a `TracerFactory`, existing (global) tracers could return and additional indirection objects (called e.g. `TraceComponent`), which would be able to produce spans for specifically named traced components.
 
 ```java
   TraceComponent traceComponent = OpenTelemetry.Tracing.getTracer().componentBuilder("io.opentelemetry.contrib.mongodb");
   Span span = traceComponent.spanBuilder("someMethod").startSpan();
 ```
 
-Overall, this would not change a lot since the levels of indirection until producing an actual span are the same.
+Overall, this would not change a lot compared to the `TracerFactory` since the levels of indirection until producing an actual span are the same.
 
 
 ## Open questions
 
 ## Future possibilities
 
-By adapting this proposal, current implementations that do not honor the specified tracer name and provide a single global tracer, would not require much change. However they could change that behavior in future versions and provide more specific tracer implementations then. On the other side, if the mechanism of *Named Tracer*s is not a part of the initial specification, such scenarios will be prevented and hard to retrofit in future version, should they be deemed necessary then.
+By adapting this proposal, current implementations that do not honor the specified tracer name and provide a single global tracer, would not require much change. However they could change that behavior in future versions and provide more specific tracer implementations then. On the other side, if the mechanism of *Named Tracers* is not a part of the initial specification, such scenarios will be prevented and hard to retrofit in future version, should they be deemed necessary then.
+
+## Examples (for Tracer names)
+
+Since tracer names describe the libraries which use the tracers, those names should be defined in a way that makes them as unique as possible.
+
+Proposed naming is in analogy to Java package names, e.g: "io.opentelemetry.contrib.mongodb".
