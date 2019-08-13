@@ -46,7 +46,7 @@ Alternatively, an implementation can provide different tracer instances per spec
 
 ## Prior art and alternatives
 
-Alternatively, instead of having a `TracerFactory`, existing (global) tracers could return and additional indirection objects (called e.g. `TraceComponent`), which would be able to produce spans for specifically named traced components.
+Alternatively, instead of having a `TracerFactory`, existing (global) tracers could return additional indirection objects (called e.g. `TraceComponent`), which would be able to produce spans for specifically named traced components.
 
 ```java
   TraceComponent traceComponent = OpenTelemetry.Tracing.getTracer().componentBuilder("io.opentelemetry.contrib.mongodb");
