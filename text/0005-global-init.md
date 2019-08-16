@@ -94,7 +94,7 @@ working once the SDK is installed, there is some implied
 synchronization overhead at startup, overhead we expect to fall after
 the SDK is installed.  We recommend explicitly installing a No-op SDK
 to fully disable instrumentation, as this approach will have a lower
-overhead than leaving the OpenTracing library uninitialized.
+overhead than leaving the OpenTelemetry library uninitialized.
 
 ## Prior art and alternatives
 
