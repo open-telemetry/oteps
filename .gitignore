@@ -1,1 +1,10 @@
+# IntelliJ IDEA
+.idea
+*.iml
+.editorconfig
+
+# VS Code
+.vscode
+
+# Text formatting and spelling tools.
 .tools
