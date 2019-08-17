@@ -107,6 +107,19 @@ running the infrastructure for collecting exported traces.
  been run.
 
 ## Internal details
+In Dapper based systems (or systems without a deferred sampling decision) all exported spans are 
+stored to the backend, thus some of these systems usually don't scale to a high volume of traces,
+or the cost to store all the Spans may be too high. In order to support this use-case and to 
+ensure the quality of the data we send, OpenTelemetry needs to natively support sampling with some
+requirements:
+ * Send as many complete traces as possible. Sending just a subset of the spans from a trace is 
+ less useful because in this case the interaction between the spans may miss.
+ * Allow application operator to configure the sampling frequency.
+ 
+For new modern systems that need to collect all the Spans and later may or may not do a deferred 
+sampling decision, the OpenTelemetry needs to natively support a way to configure the library to 
+collect and export all the Spans. This is possible even though OpenTelemetry supports sampling by
+setting a default config to always collect all the spans.
 
 ### Sampling flags
 OpenTelemetry API has two flags/properties:
@@ -183,17 +196,21 @@ These are the default samplers implemented in the OpenTelemetry SDK:
    
 **Root Span Decision:**
 
-|Decision|ALWAYS_ON|ALWAYS_OFF|ALWAYS_PARENT|Probability|
-|---|---|---|---|---|
-|RecordEvents|`True`|`False`|`False`|`SamplingHint==RECORD OR SampledFlag()`|
-|SampledFlag|`True`|`False`|`False`|`SamplingHint==RECORD_AND_PROPAGATE OR Probability`|
+|Sampler|RecordEvents|SampledFlag|
+|---|---|---|
+|ALWAYS_ON|`True`|`True`|
+|ALWAYS_OFF|`False`|`False`|
+|ALWAYS_PARENT|`False`|`False`|
+|Probability|`SamplingHint==RECORD OR SampledFlag`|`SamplingHint==RECORD_AND_PROPAGATE OR Probability`|
 
 **Child Span Decision:**
 
-|Decision|ALWAYS_ON|ALWAYS_OFF|ALWAYS_PARENT|Probability|
-|---|---|---|---|---|
-|RecordEvents|`True`|`False`|`ParentSampledFlag`|`SamplingHint==RECORD OR SampledFlag()`|
-|SampledFlag|`True`|`False`|`ParentSampledFlag`|`ParentSampledFlag OR SamplingHint==RECORD_AND_PROPAGATE OR Probability`|
+|Sampler|RecordEvents|SampledFlag|
+|---|---|---|
+|ALWAYS_ON|`True`|`True`|
+|ALWAYS_OFF|`False`|`False`|
+|ALWAYS_PARENT|`ParentSampledFlag`|`ParentSampledFlag`|
+|Probability|`SamplingHint==RECORD OR SampledFlag`|`ParentSampledFlag OR SamplingHint==RECORD_AND_PROPAGATE OR Probability`|
 
 ### Links
 This RFC proposes that Links will be recorded only during the start `Span` operation, because:
@@ -204,13 +221,54 @@ which are not supported in OpenTelemetry.
 * Allowing links to be recorded after the sampling decision is made will cause samplers to not 
 work correctly and unexpected behaviors for sampling.
 
-## Trade-offs
- * We considered, instead of using the `SpanBuilder`, setting the sampler on the Span constructor,
- and requiring any `Attributes` to be populated prior to the start of the span's default start time.
- * We considered, instead of using the `SpanBuilder`, setting the `Sampler` and the `Attributes`
- used for the sampler before running an explicit MakeSamplingDecision() on the span. Attempts to
- create a child of the span would fail if MakeSamplingDecision() had not yet been run.
- * We considered allowing the sampling decision to be arbitrarily delayed.
+### When does sampling happen?
+The sampling decision will happen before a real `Span` object is returned to the user, because:
+ * If child spans are created they need to know the 'SampledFlag'.
+ * If `SpanContext` is propagated on the wire the 'SampledFlag' needs to be set.
+ * If user records any tracing event the `Span` object needs to know if the data are kept or not.
+ It may be possible to always collect all the events until the sampling decision is made but this is
+ an important optimization.
+
+There are two important use-cases to be considered:
+ * All information that may be used for sampling decisions are available at the moment when the 
+ logical `Span` operation should start. This is the most common case.
+ * Some information that may be used for sampling decision are NOT available at the moment when the
+ logical `Span` operation should start (e.g. `http.route` may be determine later).
+
+The current [span creation logic][span-creation] it facilitate very well the first use-case, but 
+the second use-case requires users to record the logical `start_time` and collect all the 
+information necessarily to start the `Span` in custom objects, then when all the information are 
+available call the span creation API.
+
+The RFC proposes that:
+ * For languages where a `Builder` pattern is used to construct a `Span`, to allow users to create a
+ `Builder` where the start time of the Span is considered when the `Builder` is created.
+ * For languages where no intermediate object is used to construct a `Span`, to allow users maybe
+  via a `StartSpanOption` object to start a `Span`. The `StartSpanOption` allows users to set all
+  the start `Span` properties.
+
+**Alternatives considerations:**
+ * We considered, instead of requiring that sampling decision happens before the `Span` is 
+ created to add an explicit `MakeSamplingDecision(SamplingHint)` on the `Span`. Attempts to create
+ a child `Span`, or to access the `SpanContext` would fail if `MakeSamplingDecision()` had not yet
+ been run.
+   * Pros:
+     * Simplifies the case when all the attributes that may be used for sampling are not available
+     when the logical `Span` operation should start.
+   * Cons:
+     * The most common case would have required an extra API call.
+     * Error prone, users may forget to call the extra API.
+     * Unexpected and hard to find errors if user tries to create a child `Span` before calling
+     MakeSamplingDecision().
+ * We considered allowing the sampling decision to be arbitrarily delayed, but guaranteed before 
+ any child `Span` is created, or `SpanContext` is accessed, or before `Span.end()` finished.
+   * Pros:
+     * Similar and smaller API that supports both use-cases defined ahead.
+   * Cons:
+     * If `SamplingHint` needs to also be delayed recorded then an extra API on Span is required 
+     to set this.
+     * Does not allow optimization to not record tracing events, all tracing events MUST be 
+     recorded before the sampling decision is made.
 
 ## Prior art and alternatives
 Prior art for Zipkin, and other Dapper based systems: all client-side sampling decisions are made at
@@ -239,3 +297,4 @@ recommend the trace be sampled or not sampled until mid-way through execution;
 
 [trace-flags]: https://github.com/w3c/trace-context/blob/master/spec/20-http_header_format.md#trace-flags
 [specs-pr-216]: https://github.com/open-telemetry/opentelemetry-specification/pull/216
+[span-creation]: https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-tracing.md#span-creation
