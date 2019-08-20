@@ -36,6 +36,7 @@ interact with OpenTelemetry:
 Examples: gRPC, Express, Django developers.
 
  * They must only depend upon the OpenTelemetry API and not upon the SDK.
+   * For testing only they may depend on the SDK with InMemoryExporter.
  * They are shipping source code that will be linked into others' applications.
  * They have no explicit runtime control over the application.
  * They know some signal about what traces may be interesting (e.g. unusual control plane requests)
@@ -124,13 +125,13 @@ setting a default config to always collect all the spans.
 ### Sampling flags
 OpenTelemetry API has two flags/properties:
  * `RecordEvents`
-   * This property is exposed in the `Span` interface.
+   * This property is exposed in the `Span` interface (e.g. `Span.isRecordingEvents()`).
    * If `true` the current `Span` records tracing events (attributes, events, status, etc.), 
    otherwise all tracing events are dropped.
    * Users can use this property to determine if expensive trace events can be avoided.
- * `SampledFlag` 
-   * This flag is propagated via the `TraceOptions` (may be renamed to `TraceFlags` in a different
-   PR) to the child Spans. For more details see the w3c definition [here][trace-flags].
+ * `SampledFlag`
+   * This flag is propagated via the `TraceOptions` to the child Spans (e.g.
+   `TraceOptions.isSampled()`). For more details see the w3c definition [here][trace-flags].
    * In Dapper based systems this is equivalent to `Span` being `sampled` and exported.
    
 The flag combination `SampledFlag == false` and `RecordEvents == true` means that the current `Span`
@@ -165,6 +166,7 @@ The interface for the Sampler class that is available only in the OpenTelemetry 
  * Parent `SpanContext` if any
  * `SamplerHint`
  * `Links`
+ * Span name
  * Initial set of `Attributes` for the `Span` being constructed
 
 It produces as an output called `SamplingResult`:
@@ -235,9 +237,9 @@ There are two important use-cases to be considered:
  * Some information that may be used for sampling decision are NOT available at the moment when the
  logical `Span` operation should start (e.g. `http.route` may be determine later).
 
-The current [span creation logic][span-creation] facilitates very well the first use-case, but 
-the second use-case requires users to record the logical `start_time` and collect all the 
-information necessarily to start the `Span` in custom objects, then when all the information are 
+The current [span creation logic][span-creation] facilitates very well the first use-case, but
+the second use-case requires users to record the logical `start_time` and collect all the
+information necessarily to start the `Span` in custom objects, then when all the properties are
 available call the span creation API.
 
 The RFC proposes that:
