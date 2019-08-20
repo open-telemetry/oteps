@@ -117,7 +117,7 @@ requirements:
  * Allow application operator to configure the sampling frequency.
  
 For new modern systems that need to collect all the Spans and later may or may not do a deferred 
-sampling decision, the OpenTelemetry needs to natively support a way to configure the library to 
+sampling decision, OpenTelemetry needs to natively support a way to configure the library to 
 collect and export all the Spans. This is possible even though OpenTelemetry supports sampling by
 setting a default config to always collect all the spans.
 
