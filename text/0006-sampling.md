@@ -235,7 +235,7 @@ There are two important use-cases to be considered:
  * Some information that may be used for sampling decision are NOT available at the moment when the
  logical `Span` operation should start (e.g. `http.route` may be determine later).
 
-The current [span creation logic][span-creation] it facilitate very well the first use-case, but 
+The current [span creation logic][span-creation] facilitates very well the first use-case, but 
 the second use-case requires users to record the logical `start_time` and collect all the 
 information necessarily to start the `Span` in custom objects, then when all the information are 
 available call the span creation API.
