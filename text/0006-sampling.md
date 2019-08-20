@@ -196,6 +196,7 @@ The interface for the Sampler class that is available only in the OpenTelemetry 
  * `SamplerHint`
  * `Links`
  * Span name
+ * `SpanKind`
  * Initial set of `Attributes` for the `Span` being constructed
 
 It produces as an output called `SamplingResult`:
