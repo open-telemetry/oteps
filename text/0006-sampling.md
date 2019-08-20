@@ -25,8 +25,37 @@ for OpenTelemetry that have gotten muddled in the design of the original Samplin
 to clarify what APIs each should be able to depend upon, and how they will configure sampling and
 OpenTelemetry according to their needs.
 
-![Personas](https://i.imgur.com/w1H0CfH.png)
+```
 
+                    +----------+           +-----------+
+           grpc     |  Library |           |           |
+           Django   |  Devs    +---------->| OTel API  |
+           Express  |          |   +------>|           |
+                    +----------+   |  +--->+-----------+                  +---------+
+                                   |  |          ^                        | OTel    |
+                                   |  |          |                     +->| Proxy   +---+
+                                   |  |          |                     |  |         |   |
+                    +----------+   |  |    +-----+-----+------------+  |  +---------+   |
+                    |          |   |  |    |           | OTel Wire  |  |                |
+           Hbase    |  Infra   |   |  |    |           | Export     |+-+                v
+           Envoy    |  Binary  +---+  |    |  OTel     |            |  |           +----v-----+
+                    |  Devs    |      |    |  SDK      +------------+  |           |          |
+                    +----------+---------->|           |            |  +---------->|  Backend |
+                                   +------>|           | Custom     |  +---------->|          |
+                                   |  |    |           | Export     |  |           +----------+
+                    +----------+   |  |    |           |            |+-+             ^
+                    |          +---+  |    +-----------+------------+                |
+                    |  App     +------+       ^              ^                       |
+                    |  Devs    +              |              |          +------------+-+
+                    |          |              |              |          |              |
+                    +----------+          +---+----+         +----------+   Telemetry  |
+                                          |  SRE   |                    |   Owner      |
+                                          |        |                    |              |
+                                          +--------+                    +--------------+
+                                                                          Lightstep
+                                                                          Honeycomb
+
+```
 ## Explanation
 
 We outline five different use cases (who may be overlapping sets of people), and how they should
