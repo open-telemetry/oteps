@@ -173,15 +173,16 @@ instrumenting code and never access `SampledFlag` unless used in context propaga
 ### SamplingHint
 This is a new concept added in the OpenTelemetry API that allows to suggest sampling hints to the
 implementation of the API:
- * `UNSPECIFIED`
-   * This is the default option.
-   * No suggestion is made.
  * `NOT_RECORD`
    * Suggest to not `RecordEvents = false` and not propagate `SampledFlag = false`.
  * `RECORD`
    * Suggest `RecordEvents = true` and `SampledFlag = false`.
  * `RECORD_AND_PROPAGATE`
    * Suggest to `RecordEvents = true` and propagate `SampledFlag = true`.
+
+The default option for the span creation is to not have any suggestion (or suggestion is not
+specified). This can be implemented by using `null` as the default option or any language specific
+mechanism to achieve the same result.
 
 ### Sampler interface
 The interface for the Sampler class that is available only in the OpenTelemetry SDK:
