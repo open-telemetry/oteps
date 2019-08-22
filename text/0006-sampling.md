@@ -9,11 +9,6 @@ This section tries to summarize all the changes proposed in this RFC:
  1. Add a new `SamplerHint` concept to the API package.
  1. Add capability to record `Attributes` that can be used for sampling decision during the `Span`
  creation time.
- 1. Add capability to start building a `Span` with a delayed `build` method. This is useful for
- cases where some `Attributes` that are useful for sampling are not available when start building
- the `Span`. As an example in Java the current `Span.Builder` will use as a start time for the
- `Span` the moment when the builder is created and not the moment when the `build()` method is
- called.
  1. Remove `addLink` APIs from the `Span` interface, and allow recording links only during the span
  construction time.
 
@@ -272,14 +267,21 @@ the second use-case requires users to record the logical `start_time` and collec
 information necessarily to start the `Span` in custom objects, then when all the properties are
 available call the span creation API.
 
-The RFC proposes that:
- * For languages where a `Builder` pattern is used to construct a `Span`, to allow users to create a
- `Builder` where the start time of the Span is considered when the `Builder` is created.
- * For languages where no intermediate object is used to construct a `Span`, to allow users maybe
-  via a `StartSpanOption` object to start a `Span`. The `StartSpanOption` allows users to set all
-  the start `Span` properties.
+The RFC proposes that we keep the current [span creation logic][span-creation] as it is and we will
+address the delayed sampling in a different RFC when that becomes a high priority.
 
 **Alternatives considerations:**
+ * We considered, to offer a delayed span construction mechanism:
+    * For languages where a `Builder` pattern is used to construct a `Span`, to allow users to
+    create a `Builder` where the start time of the Span is considered when the `Builder` is created.
+    * For languages where no intermediate object is used to construct a `Span`, to allow users maybe
+     via a `StartSpanOption` object to start a `Span`. The `StartSpanOption` allows users to set all
+     the start `Span` properties.
+    * Pros:
+      * Would resolve the second use-case posted above.
+    * Cons:
+      * We could not identify too many real case examples for the second use-case and decided to
+      postpone the decision to avoid premature decisions.
  * We considered, instead of requiring that sampling decision happens before the `Span` is 
  created to add an explicit `MakeSamplingDecision(SamplingHint)` on the `Span`. Attempts to create
  a child `Span`, or to access the `SpanContext` would fail if `MakeSamplingDecision()` had not yet
