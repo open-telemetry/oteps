@@ -1,7 +1,7 @@
 # RFC: Data Formats for OpenTelemetry
 
 # Overview
-OpenTelemetry is an observability system, which generates observations, and then sends that data to remote systems for analysis. Describing how  this observability data is represented and transmitted is critical part of the OpenTelemetry specification.
+OpenTelemetry is an observability system, which generates observations, and then sends that data to remote systems for analysis. Describing how this observability data is represented and transmitted is critical part of the OpenTelemetry specification.
 
 **Proposed Layers**
 *   Metadata and Semantic Conventions
