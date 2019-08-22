@@ -17,7 +17,7 @@ Spans represent specific operations in and between systems. Some of these operat
 ## Requirements
 
 
-### Handle complex data
+### Handle Complex Data
 
 Semantic information is often complex and multi-valued. How we represent semantic data is related to how attributes are defined at the logical layer.
 
