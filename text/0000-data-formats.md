@@ -40,7 +40,7 @@ Not all semantics conventions and common operations are known at this time. It m
 
 #### RPC calls
 
-Modeling distributed transactions is a core usecase, it is common to analyze  errors and latency for RPC calls. Because multiple individual network requests may be involved in a single logical RPC operation, it must be possible to describe RPC calls as logical operations, independent from the descriptions of transport and application protocols which they contain.
+Modeling distributed transactions is a core usecase, it is common to analyze errors and latency for RPC calls. Because multiple individual network requests may be involved in a single logical RPC operation, it must be possible to describe RPC calls as logical operations, independent from the descriptions of transport and application protocols which they contain.
 
 Examples:
 *   A client sending a request to a remote server.
