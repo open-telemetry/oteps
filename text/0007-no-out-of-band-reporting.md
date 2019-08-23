@@ -35,6 +35,9 @@ sample these data.
 1. Associating the source of the telemetry with the telemetry data gets very simple. All data
 produced by one instance of the API implementation belongs to only one Application.
 
+This can be rephrased as "one API implementation instance" can report telemetry about only the
+current Application.
+
 ### Resource changes
 This RFC does not suggest to remove the `Resource` concept or to modify any API in this interface,
 it only suggests to move this concept to the SDK level.
