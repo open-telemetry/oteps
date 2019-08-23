@@ -84,7 +84,7 @@ Examples: HBase, Envoy developers.
 
 **Solution:**
  * Allow different sampling strategies by default in OpenTelemetry SDK, all configurable easily via
- YAML or future flags. See [default samplers](#default-samplers).
+ YAML or feature flags. See [default samplers](#default-samplers).
 
 ### Application developer
 These are the folks we've been thinking the most about for OpenTelemetry in general.
