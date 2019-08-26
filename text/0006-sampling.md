@@ -200,7 +200,7 @@ It produces as an output called `SamplingResult`:
  * A set of span Attributes that will also be added to the `Span`.
    * These attributes will be added after the initial set of `Attributes`.
  * (under discussion in separate RFC) the SamplingRate float.
-
+ 
 ### Default Samplers
 These are the default samplers implemented in the OpenTelemetry SDK:
  * ALWAYS_ON
@@ -270,6 +270,8 @@ available call the span creation API.
 
 The RFC proposes that we keep the current [span creation logic][span-creation] as it is and we will
 address the delayed sampling in a different RFC when that becomes a high priority.
+
+The SDK must call the `Sampler` every time a `Span` is created during the start span operation.
 
 **Alternatives considerations:**
  * We considered, to offer a delayed span construction mechanism:
