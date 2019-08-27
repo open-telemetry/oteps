@@ -10,7 +10,7 @@ This propsal was originally split into three semi-related parts. Based on the fe
     000x-metric-measure
     000x-eliminate-stats-record
 
-### Updated 8/23/2019
+### Updated 8/27/2019
 
 A working group convened on 8/21/2019 to discuss and debate the two metrics RFCs (0003 and 0004) and several surrounding concerns.  This document has been revised with related updates that were agreed upon during this working session.  See the (meeting notes)[https://docs.google.com/document/d/1d0afxe3J6bQT-I6UbRXeIYNcTIyBQv4axfjKF4yvAPA/edit#].
 
