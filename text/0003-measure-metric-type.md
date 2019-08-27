@@ -1,8 +1,8 @@
 # Consolidate pre-aggregated and raw metrics APIs
 
-**Status:** `accepted`
+**Status:** `proposed`
 
-# Forward
+# Foreward
 
 This propsal was originally split into three semi-related parts. Based on the feedback, they are now combined here into a single proposal. The original proposals were:
 
@@ -36,7 +36,7 @@ The preceding raw statistics API supported all-or-none recording for interdepend
 
 # Explanation
 
-The common use for `MeasureMetric`, like the preceding raw statistics API, is for reporting information about rates and distributions over structured, numerical event data.  Measure metrics are the most general-purpose of metrics.  Informally, the individual metric event has a logical format expressed as one primary key=value (the metric name and a numerical value) and any number of secondary key=values (the labels, resources, and other context).
+The common use for `MeasureMetric`, like the preceding raw statistics API, is for reporting information about rates and distributions over structured, numerical event data.  Measure metrics are the most general-purpose of metrics.  Informally, the individual metric event has a logical format expressed as one primary key=value (the metric name and a numerical value) and any number of secondary key=values (the labels, resources, and context).
 
     metric_name=_number_
     pre_defined1=_any_value_
@@ -48,6 +48,8 @@ The common use for `MeasureMetric`, like the preceding raw statistics API, is fo
     context_tag1=_any_value_
     context_tag2=_any_value_
     ...
+
+Here, "pre_defined" keys are those captured in the metrics handle, "resource" keys are those configured when the SDK was initialized, and "context_tag" keys are those propagated via context.
 
 Events of this form can logically capture a single update to a named metric, whether a cumulative, gauge, or measure kind of metric.  This logical structure defines a _low-level encoding_ of any metric event, across the three kinds of metric.  This establishes the separation between the metrics API and implementation required for OpenTelemetry.  An SDK could simply encode a stream of these events and the consumer, provided access to the metric definition, should be able to interpret these events according to the semantics prescribed for each kind of metric.
 
@@ -96,7 +98,7 @@ For cumulative metrics, the default OpenTelemetry implementation exports the sum
 
 Gauge metrics express a pre-calculated value that is either `Set()` by explicit instrumentation or observed through a callback.  Generally, this kind of metric should be used when the metric cannot be expressed as a sum or a rate because the measurement interval is arbitrary.  Use this kind of metric when the measurement is not a quantity, and the sum and event count are not of interest.
 
-Only the gauge kind of metric supports observing the metric via a callback (as an option).  Semantically, there is an important difference between explicitly setting a gauge and observing it through a callback.  In case of setting the gauge explicitly, the call happens inside of an implicit or explicit distributed context.  The implementation is free to associate the explicit `Set()` event with a span context, for example.  When observing gauge metrics via a callback, there is no distributed context associated with the event.
+Only the gauge kind of metric supports observing the metric via a callback (as an option).  Semantically, there is an important difference between explicitly setting a gauge and observing it through a callback.  In case of setting the gauge explicitly, the call happens inside of an implicit or explicit context.  The implementation is free to associate the explicit `Set()` event with a context, for example.  When observing gauge metrics via a callback, there is no context associated with the event.
 
 As a special case, to support existing metrics infrastructure, a gauge metric may be declared as a precomputed sum, in which case it is defined as strictly ascending.  The API will reject descending updates to strictly-ascending gauges, instead submitting an SDK error event.
 
@@ -132,7 +134,7 @@ Logically, a measurement is defined as:
 - Value: a floating point or integer
 - Pre-defined label values: associated via metrics API handle
 
-The batch measurement API shall be named `RecordBatch`.  The entire batch of measurements takes place within some (implicit or explicit) distributed context.
+The batch measurement API shall be named `RecordBatch`.  The entire batch of measurements takes place within some (implicit or explicit) context.
 
 ## Prior art and alternatives
 
