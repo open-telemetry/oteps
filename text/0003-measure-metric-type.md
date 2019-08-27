@@ -59,7 +59,7 @@ The `Meter` interface represents the metrics portion of the OpenTelemetry API.
 
 There are three kinds of metric, `CumulativeMetric`, `GaugeMetric`, and `MeasureMetric`.
 
-Metric objects are declared and defined independently of the SDK. They may be statically defined, as opposed to allocated through the SDK in any way.  To define a new metric, use one of the `NewCumulativeMetric`, `NewGaugeMetric`, or `NewMeasureMetric` methods.
+Metric objects are declared and defined independently of the SDK. They may be statically defined, as opposed to allocated through the SDK in any way.  To define a new metric, use one of the language-specific API methods (e.g., with names like `NewCumulativeMetric`, `NewGaugeMetric`, or `NewMeasureMetric`).
 
 Each metric is declared with a list (possibly empty) of pre-defined label keys.  These pre-defined label keys declare the set of keys that are available as dimensions for efficient pre-aggregation.
 
