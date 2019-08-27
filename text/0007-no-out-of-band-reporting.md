@@ -15,7 +15,7 @@ this requirements forces a lot of trade-offs and unnecessary complicated APIs (e
 be exposed in the API package to allow telemetry to be associated with the source of the telemetry).
 
 Reporting out-of-band telemetry is a required for the OpenTelemetry ecosystem, but this can be done
-via few different other options that does not require to use the API package:
+via a few different other options that does not require to use the API package:
 * The OpenTelemetry Service, users can write a simple [receiver][otelsvc-receiver] that parses and
 produces the OpenTelemetry data.
 * Using the SDK's exporter framework, users can write directly OpenTelemetry data.
