@@ -1,8 +1,8 @@
 # Consolidate pre-aggregated and raw metrics APIs
 
-**Status:** `proposed`
+**Status:** `accepted`
 
-## Forward
+# Forward
 
 This propsal was originally split into three semi-related parts. Based on the feedback, they are now combined here into a single proposal. The original proposals were:
 
@@ -10,39 +10,135 @@ This propsal was originally split into three semi-related parts. Based on the fe
     000x-metric-measure
     000x-eliminate-stats-record
 
-## Overview
+### Updated 8/23/2019
 
-Introduce a `Measure` type of metric object that supports a `Record` API.  Like existing `Gauge` and `Cumulative` metrics, the new `Measure` metric supports pre-defined labels.  A new measurement batch API is introduced for recording multiple metric observations simultaneously.
+A working group convened on 8/21/2019 to discuss and debate the two metrics RFCs (0003 and 0004) and several surrounding concerns.  This document has been revised with related updates that were agreed upon during this working session.  See the (meeting notes)[https://docs.google.com/document/d/1d0afxe3J6bQT-I6UbRXeIYNcTIyBQv4axfjKF4yvAPA/edit#].
 
-## Motivation
+# Overview
 
-In the current `Metric.GetOrCreateTimeSeries` API for Gauges and Cumulatives, the caller obtains a `TimeSeries` handle for repeatedly recording metrics with certain pre-defined label values set.  This is an important optimization, especially for exporting aggregated metrics.
+Introduce a `Measure` kind of metric object that supports a `Record` API method.  Like existing `Gauge` and `Cumulative` metrics, the new `Measure` metric supports pre-defined labels.  A new measurement batch API is introduced for recording multiple metric observations simultaneously.
 
-The use of pre-defined labels improves usability too, for working with metrics in code. Application programs with long-lived objects and associated Metrics can compute predefined label values once (e.g., in a constructor), rather than once per call site.
+## Terminology
 
-The current raw statistics API does not support pre-defined labels.  This RFC replaces the raw statistics API by a new, general-purpose type of metric, `MeasureMetric`, generally intended for recording individual measurements the way raw statistics did, with added support for pre-defined labels.
+This RFC changes how "Measure" is used in the OpenTelemetry metrics specification.  Before, "Measure" was the name of a series of raw measurements.  After, "Measure" is the kind of a metric object used for recording a series raw measurements.
 
-The former raw statistics API supported all-or-none recording for interdependent measurements.  This RFC introduces a `MeasurementBatch` to support recording batches of metric observations.
+Since this document will be read in the future after the proposal has been written, uses of the word "current" lead to confusion.  For this document, the term "preceding" refers to the state that was current prior to these changes.
 
-## Explanation
+# Motivation
 
-In the current proposal, Metrics are used for pre-aggregated metric types, whereas Raw statistics are used for uncommon and vendor-specific aggregations.  The optimization and the usability advantages gained with pre-defined labels should be extended to Raw statistics because they are equally important and equally applicable. This is a new requirement.
+In the preceding `Metric.GetOrCreateTimeSeries` API for Gauges and Cumulatives, the caller obtains a `TimeSeries` handle for repeatedly recording metrics with certain pre-defined label values set.  This enables an important optimization for exporting pre-aggregated metrics, since the implementation is able to compute the aggregate summary "entry" using a pointer or fast table lookup. The efficiency gain requires that the aggregation keys be a subset of the pre-defined labels.
 
-For example, where the application wants to compute a histogram of some value (e.g., latency), there's good reason to pre-aggregate such information.  In this example, it allows an implementation to effienctly export the histogram of latencies "grouped" into individual results by label value(s).
+Application programs with long-lived objects and associated Metrics can take advantage of pre-defined labels by computing label values once per object (e.g., in a constructor), rather than once per call site. In this way, the use of pre-defined labels improves the usability of the API as well as makes an important optimization possible to the implementation.
 
-The new `MeasureMetric` API satisfies the requirements of a single-argument call to record raw statistics, but the raw statistics API had secondary purpose, that of supporting recording multiple observed values simultaneously.  This proposal introduces a `MeasurementBatch` API to record multiple metric observations in a single call.
+The preceding raw statistics API did not specify support for pre-defined labels.  This RFC replaces the raw statistics API by a new, general-purpose kind of metric, `MeasureMetric`, generally intended for recording individual measurements like the preceding raw statistics API, with explicit support for pre-defined labels.
 
-## Internal details
+The preceding raw statistics API supported all-or-none recording for interdependent measurements.  This RFC introduces a `RecordBatch` API to support recording batches of measurements in a single API call, where a `Measurement` is now defined as a tuple of `MeasureMetric`, `Value` (integer or floating point), and `Labels`.
 
-The type known as `MeasureMetric` is a direct replacement for the raw statistics `Measure` type.  The `MeasureMetric.Record` method records a single observation of the metric.  The `MeasureMetric.GetOrCreateTimeSeries` supports pre-defined labels, just the same as `Gauge` and `Cumulative` metrics.
+# Explanation
 
-## Trade-offs and mitigations
+The common use for `MeasureMetric`, like the preceding raw statistics API, is for reporting information about rates and distributions over structured, numerical event data.  Measure metrics are the most general-purpose of metrics.  Informally, the individual metric event has a logical format expressed as one primary key=value (the metric name and a numerical value) and any number of secondary key=values (the labels, resources, and other context).
 
-This Measure Metric API is conceptually close to the Prometheus [Histogram, Summary, and Untyped metric types](https://prometheus.io/docs/concepts/metric_types/), but there is no way in OpenTelemetry to distinguish these cases at the declaration site, in code.  This topic is covered in 0004-metric-configurable-aggregation.
+    metric_name=_number_
+    pre_defined1=_any_value_
+    pre_defined2=_any_value_
+    ...
+    resource1=_any_value_
+    resource2=_any_value_
+    ...
+    context_tag1=_any_value_
+    context_tag2=_any_value_
+    ...
+
+Events of this form can logically capture a single update to a named metric, whether a cumulative, gauge, or measure kind of metric.  This logical structure defines a _low-level encoding_ of any metric event, across the three kinds of metric.  This establishes the separation between the metrics API and implementation required for OpenTelemetry.  An SDK could simply encode a stream of these events and the consumer, provided access to the metric definition, should be able to interpret these events according to the semantics prescribed for each kind of metric.
+
+## Metrics API concepts
+
+The `Meter` interface represents the metrics portion of the OpenTelemetry API.
+
+There are three kinds of metric, `CumulativeMetric`, `GaugeMetric`, and `MeasureMetric`.
+
+Metric objects are declared and defined independently of the SDK. They may be statically defined, as opposed to allocated through the SDK in any way.  To define a new metric, use one of the `NewCumulativeMetric`, `NewGaugeMetric`, or `NewMeasureMetric` methods.
+
+Each metric is declared with a list (possibly empty) of pre-defined label keys.  These pre-defined label keys declare the set of keys that are available as dimensions for efficient pre-aggregation.
+
+To obtain a metric _handle_ from a metric object, call `getHandle` with the pre-defined label values.  There are two ways to pass the pre-defined label values:
+
+1. As an ordered list of values.  In this case, the number of arguments in the list must match the number of pre-defined label keys.  When the number of arguments disagrees with the metric definition, the implementation may return an error or thrown an exception to synchronously indicate this condition.
+2. As a list of key:value pairs.  In this case, the application is free to provide the list of label values in arbitrary order.  Values that are not passed when constructing handles in this way are marked as "not present".  Values that are not part of the pre-defined label keys are ignored when constructing handles.
+
+Metric handles, thusly obtained with one of the `getHandle` variations, may be used to `Set()`, `Add()`, and `Record()` metrics according to their kind.  Context tags that apply when calling `Set()`, `Add()`, and `Record()` may not override values that were set in the handle as pre-defined labels.
+
+## Selecting Metric Kind
+
+By the "separation clause" of OpenTelemetry, we know that an implementation is free to do _anything_ in response to a metric API call.  By the low-level interpretation defined above, all metric events have the same structural representation, only their logical interpretation varies according to the metric definition.  Therefore, we select metric kinds based on two primary concerns:
+
+1. What should be the default implementation behavior?  Unless configured otherwise, how should the implementation treat this metric variable?
+1. How will the program read?  Each metric uses a different verb, which helps convey meaning and describe default behavior.  Cumulatives have an `Add()` method.  Gauges have a `Set()` method.  Measures have a `Record()` method.
+
+To guide the user in selecting the right kind of metric for an application, we'll consider the following questions about the primary intent of reporting given data.  We use "of primary interest" here to mean information that is almost certainly useful in understanding system behavior.  Consider these questions:
+
+- Does the measurement represent a quantity of something?  Is it also non-negative?
+- Is the sum a matter of primary interest?
+- Is the event count of primary interest?
+- Is the distribution (p50, p99, etc.) a matter of primary interest?
+
+The specification will be updated with the following guidance.
+
+### Cumulative metric
+
+Likely to be the most common kind of metric, cumulative metric events express the computation of a sum.  Choose this kind of metric when the value is a quantity, the sum is of primary interest, and the event count and distribution are not of primary interest.  To raise (or lower) a cumulative metric, call the `Add()` method.
+
+If the quantity in question is always non-negative, it implies that the sum is strictly ascending.  When this is the case, the cumulative metric also serves to define a rate.  For this reason, cumulative metrics have an option to be declared as non-negative.  The API will reject negative updates to non-negative cumulative metrics, instead submitting an SDK error event, which helps ensure meaningful rate calculations.
+
+For cumulative metrics, the default OpenTelemetry implementation exports the sum of event values taken over an interval of time.
+
+### Gauge metric
+
+Gauge metrics express a pre-calculated value that is either `Set()` by explicit instrumentation or observed through a callback.  Generally, this kind of metric should be used when the metric cannot be expressed as a sum or a rate because the measurement interval is arbitrary.  Use this kind of metric when the measurement is not a quantity, and the sum and event count are not of interest.
+
+Only the gauge kind of metric supports observing the metric via a callback (as an option).  Semantically, there is an important difference between explicitly setting a gauge and observing it through a callback.  In case of setting the gauge explicitly, the call happens inside of an implicit or explicit distributed context.  The implementation is free to associate the explicit `Set()` event with a span context, for example.  When observing gauge metrics via a callback, there is no distributed context associated with the event.
+
+As a special case, to support existing metrics infrastructure, a gauge metric may be declared as a precomputed sum, in which case it is defined as strictly ascending.  The API will reject descending updates to strictly-ascending gauges, instead submitting an SDK error event.
+
+For gauge metrics, the default OpenTelemetry implementation exports the last value that was `Set()`.  If configured for an observer callback instead, the default OpenTelemetry implementation exports  Observed at the time of metrics collection.
+
+### Measure metric
+
+Measure metrics express a distribution of values.  This kind of metric should be used when the count of events is meaningful and either:
+
+1. The sum is of interest in addition to the count
+1. Quantiles information is of interest.
+
+The key property of a measure metric event is that two events cannot be trivially reduced into one, as a step in pre-aggregation.  For cumulatives and gauges, two `Add()` or `Set()` events can be replaced by a single event (for default behavior, i.e., unless the implementation is configured differently), whereas two `Record()` events must by reflected in two events. 
+
+Like cumulative metrics, non-negative measures are an important case because they support rate calculations. As an option, measure metrics may be declared as non-negative.  The API will reject negative metric events for non-negative measures, instead submitting an SDK error event.
+
+For measure metrics, the default OpenTelemetry implementation is left up to the implementation. The default interpretation is that the distribution should be summarized, somehow, but the specific technique used belongs to the implementation.  A low-cost policy is selected as the default behavior for export OpenTelemetry measures:
+
+- For non-negative measure metrics, unless otherwise configured, the default implementation exports the sum, the count, and the maximum value as three separate summary variables.
+- For arbitrary measure metrics, unless otherwise configured, the default implementation exports the sum, the count, the minimum, and the maximum value as four separate summary variables.
+
+### Disable selected metrics by default
+
+All OpenTelemetry metrics may be disabled by default, as an option.  Use this option to indicate that the default implementation should be to do nothing for events about this metric.
+
+### RecordBatch API
+
+Applications sometimes want to record multiple metrics in a single API call, either becase the values are inter-related or because it lowers overhead.  We agree that recording batch measurements will be restricted to measure metrics, although this support could be extended to all kinds of metric in the future.
+
+Logically, a measurement is defined as:
+
+- Measure metric: which metric is being updated
+- Value: a floating point or integer
+- Pre-defined label values: associated via metrics API handle
+
+The batch measurement API shall be named `RecordBatch`.  The entire batch of measurements takes place within some (implicit or explicit) distributed context.
 
 ## Prior art and alternatives
 
-Prometheus supports the notion of vector metrics, which are those which support pre-defined labels.  The vector-metric API supports a variety of methods like `WithLabelValues` to associate labels with a metric handle, similar to `GetOrCreateTimeSeries` in OpenTelemetry.  As in this proposal, Prometheus supports a vector API for all metric types.
+Prometheus supports the notion of vector metrics, which are those that support pre-defined labels.  The vector-metric API supports a variety of methods like `WithLabelValues` to associate labels with a metric handle, similar to `GetOrCreateTimeSeries` in OpenTelemetry.  As in this proposal, Prometheus supports a vector API for all metric types.
+
+Statsd libraries generally report metric events individually.  To implement statsd reporting from the OpenTelemetry, a `Meter` SDK would be installed that converts metric events into statsd updates.
 
 ## Open questions
 
