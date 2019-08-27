@@ -7,7 +7,7 @@ This section tries to summarize all the changes proposed in this RFC:
 1. Remove API requirement to support reporting out-of-band telemetry.
 1. Move Resource to SDK, API will always report telemetry for the current application so no need to
 allow configuring the Resource in any instrumentation.
-1. New APIs should be design without this requirement.
+1. New APIs should be designed without this requirement.
 
 ## Motivation
 Currently the API package is designed with a goal to support reporting out-of-band telemetry, but
