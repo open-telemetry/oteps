@@ -25,10 +25,10 @@ The purpose of _Named Tracers_ is the ability to allow for a more fine-grained c
 
 ## Explanation
 
-From a user perspective, working with *Named Tracers* and *TracerFactories* is very similar to how logging frameworks like [log4j](https://www.slf4j.org/apidocs/org/slf4j/LoggerFactory.html) work. In analogy to requesting Logger objects through LoggerFactories, a tracing library would create specific 'Tracer' objects through a 'TracerFactory'.
+From a user perspective, working with *Named Tracers* and *TracerFactories* is very similar to how e.g. the [Java logging API](https://docs.oracle.com/javase/7/docs/api/java/util/logging/Logger.html#getLogger(java.lang.String)) and logging frameworks like [log4j](https://www.slf4j.org/apidocs/org/slf4j/LoggerFactory.html) work. In analogy to requesting Logger objects through LoggerFactories, a tracing library would create specific 'Tracer' objects through a 'TracerFactory'.
 
 ```java
-Tracer tracer = OpenTelemetry.Tracing.getTracerFactory().getTracer("io.opentelemetry.contrib.mongodb");
+Tracer tracer = OpenTelemetry.getTracerFactory().getTracer("io.opentelemetry.contrib.mongodb");
 ```
 
 In a way, the `TracerFactory` replaces the global `Tracer` singleton object as a ubiquitous point to request a tracer instance.
@@ -62,8 +62,21 @@ Overall, this would not change a lot compared to the `TracerFactory` since the l
 
 By adapting this proposal, current implementations that do not honor the specified tracer name and provide a single global tracer, would not require much change. However they could change that behavior in future versions and provide more specific tracer implementations then. On the other side, if the mechanism of *Named Tracers* is not a part of the initial specification, such scenarios will be prevented and hard to retrofit in future version, should they be deemed necessary then.
 
-## Examples (for Tracer names)
+## Examples (of Tracer names)
 
-Since tracer names describe the libraries which use the tracers, those names should be defined in a way that makes them as unique as possible.
+Since tracer names describe the libraries which use the tracers, those names should be defined in a way that makes them as unique as possible. The name of the tracer should represent the identity of the library, class or package that provides the instrumentation. 
 
-Proposed naming is in analogy to Java package names, e.g: "io.opentelemetry.contrib.mongodb".
+Examples (based on existing contribution libraries from OpenTracing and OpenCensus):
+
+* _io.opentracing.contrib.spring.rabbitmq_
+* _io.opentracing.contrib.jdbc_
+* _io.opentracing.thrift_
+* _io.opentracing.contrib.asynchttpclient_
+* _io.opencensus.contrib.http.servlet_
+* _io.opencensus.contrib.spring.sleuth.v1x_
+* _io.opencensus.contrib.http.jaxrs_
+* _github.com/opentracing-contrib/go-amqp_ (Go)
+* _github.com/opentracing-contrib/go-grpc_ (Go)
+* _OpenTracing.Contrib.NetCore.AspNetCore_ (.NET)
+* _OpenTracing.Contrib.NetCore.EntityFrameworkCore_ (.NET)
+
