@@ -2,23 +2,46 @@
 
 **Status:** `proposed`
 
-_Cross-language requirements for automated approaches to extracting portable telemetry data with zero source code modification._
+_Cross-language requirements for automated approaches to extracting portable telemetry data with O(1) source code modification._
 
 ## Motivation
 
-The purpose of OpenTelemetry is to make robust, portable telemetry a built-in feature of cloud-native software. For some software and some situations, that instrumentation can literally be part of the source code. In other situations, it’s not so simple: for example, we can’t necessarily edit or even recompile some of our software, the OpenTelemetry instrumentation only exists as a plugin, or instrumentation just never rises to the top of the priority list for a service-owner. Furthermore, there is occasionally a desire to disable instrumentation for a single plugin or module at runtime, again without requiring developers to make changes to source code.
+The purpose of OpenTelemetry is to make robust, portable telemetry a built-in feature of cloud-native software. For some software and some situations, that instrumentation can literally be part of the source code.
+However, developers shouldn't need to do more than "paste one import and add O(1) lines of code into the top of their main function" to get basic tracing with common frameworks.
 
-One way to navigate situations like these is with a software layer that adds OpenTelemetry instrumentation to a service without modifying the source code for that service. (In the conventional APM world, these software layers are often called “agents”, though that term is overloaded and ambiguous so we try avoid it in this document.)
+In other situations, it’s not so simple: for example, we can’t necessarily edit or even recompile some of our software, the OpenTelemetry instrumentation only exists as a plugin, or instrumentation just never rises to the top of the priority list for a service-owner.
+Furthermore, there is occasionally a desire to disable instrumentation for a single plugin or module at runtime, again without requiring developers to make changes to source code.
+
+One way to navigate situations like these is with a software layer that adds OpenTelemetry instrumentation to a service without modifying the source code for that service.
+(In the conventional APM world, these software layers are often called “agents”, though that term is overloaded and ambiguous so we try avoid it in this document.)
 
 ### Why “cross-language”?
 
-Many people have correctly observed that “agent” design is highly language-dependent. This is certainly true, but there are still higher-level “product” objectives for OpenTelemetry that can guide the design choices we make across languages and help users form a consistent impression of what OpenTelemetry provides (and what it does not).
+Many people have correctly observed that “agent” design is highly framework and language-dependent.
+This is certainly true, but there are still higher-level “product” objectives for OpenTelemetry that can guide the design choices we make across languages and help users form a consistent impression of what OpenTelemetry provides (and what it does not).
 
 ### Suggested reading
 
 * This GitHub issue: [Propose an "Auto-Instrumentation SIG"](https://github.com/open-telemetry/community/pull/87)
 * [Rough notes from the June 11, 2019 meeting](https://docs.google.com/document/d/1ix0WtzB5j-DRj1VQQxraoqeUuvgvfhA6Sd8mF5WLNeY/edit) following this ^^ issue
 * The [rough draft for this RFC](https://docs.google.com/document/d/1sovSQIGdxXtsauxUNp4qUMEIJZzObdukzPT52eyPCHM/edit#), including the comments
+* [The greybox instrumentation RFC](https://github.com/open-telemetry/oteps/pull/7) merged into this one.
+* https://docs.honeycomb.io/getting-data-in/beelines/ for the general philosophy on what Honeycomb would like to contribute and standardize for greybox instrumentation.
+
+Go:
+
+* https://docs.honeycomb.io/getting-data-in/go/beeline/#wrappers-and-other-middleware which provides sets of wrappers to automatically instrument each handler and database call.
+* https://github.com/open-telemetry/opentelemetry-go/blob/master/example/http/server/server.go which currently requires manually instrumenting _each_ handler.
+
+Ruby:
+
+* https://docs.honeycomb.io/getting-data-in/ruby/beeline/#instrumented-packages
+* https://github.com/open-telemetry/opentelemetry-ruby (an empty repo)
+
+NodeJS:
+
+* https://docs.honeycomb.io/getting-data-in/javascript/beeline-nodejs/#instrumented-packages
+* https://github.com/open-telemetry/opentelemetry-js (no automatic framework instrumentation)
 
 ## Proposed guidelines
 
@@ -26,7 +49,7 @@ Many people have correctly observed that “agent” design is highly language-d
 
 Without further ado, here are a set of requirements for “official” OpenTelemetry efforts to accomplish zero-source-code-modification instrumentation (i.e., “OpenTelemetry agents”) in any given language:
 * _Manual_ source code modifications "very strongly discouraged", with an exception for languages or environments that leave no credible alternatives. Any code changes must be trivial and `O(1)` per source file (rather than per-function, etc).
-* Licensing must be permissive (e.g., ASL / BSD)
+* Licensing must follow CNCF licensing rules (e.g., ASL / BSD)
 * Packaging must allow vendors to “wrap” or repackage the portable (OpenTelemetry) library into a single asset that’s delivered to customers
     * That is, vendors do not want to require users to comprehend both an OpenTelemetry package and a vendor-specific package
 * Explicit, whitebox OpenTelemetry instrumentation must interoperate with the “automatic” / zero-source-code-modification / blackbox instrumentation.
@@ -58,3 +81,4 @@ There is also a school of thought that we should only be focusing on the bits an
 
 There are many proprietary APM language agents – no need to list them all here. The Datadog APM "language agents" are notable in that they were conceived and written post-OpenTracing and thus have been built to interoperate with same. There are a number of mature JVM language agents that are pure OSS (e.g., [Glowroot](https://glowroot.org/)).
 
+Honeycomb's beelines, as examples of O(1) greybox instrumentation.
