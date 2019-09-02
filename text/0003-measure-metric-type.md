@@ -12,7 +12,7 @@ This propsal was originally split into three semi-related parts. Based on the fe
 
 ### Updated 8/27/2019
 
-A working group convened on 8/21/2019 to discuss and debate the two metrics RFCs (0003 and 0004) and several surrounding concerns.  This document has been revised with related updates that were agreed upon during this working session.  See the (meeting notes)[https://docs.google.com/document/d/1d0afxe3J6bQT-I6UbRXeIYNcTIyBQv4axfjKF4yvAPA/edit#].
+A working group convened on 8/21/2019 to discuss and debate the two metrics RFCs (0003 and 0004) and several surrounding concerns.  This document has been revised with related updates that were agreed upon during this working session.  See the [meeting notes](https://docs.google.com/document/d/1d0afxe3J6bQT-I6UbRXeIYNcTIyBQv4axfjKF4yvAPA/edit#).
 
 # Overview
 
@@ -51,24 +51,25 @@ The common use for `MeasureMetric`, like the preceding raw statistics API, is fo
 
 Here, "pre_defined" keys are those captured in the metrics handle, "resource" keys are those configured when the SDK was initialized, and "context_tag" keys are those propagated via context.
 
-Events of this form can logically capture a single update to a named metric, whether a cumulative, gauge, or measure kind of metric.  This logical structure defines a _low-level encoding_ of any metric event, across the three kinds of metric.  This establishes the separation between the metrics API and implementation required for OpenTelemetry.  An SDK could simply encode a stream of these events and the consumer, provided access to the metric definition, should be able to interpret these events according to the semantics prescribed for each kind of metric.
+Events of this form can logically capture a single update to a named metric, whether a cumulative, gauge, or measure kind of metric.  This logical structure defines a _low-level encoding_ of any metric event, across the three kinds of metric.  An SDK could simply encode a stream of these events and the consumer, provided access to the metric definition, should be able to interpret these events according to the semantics prescribed for each kind of metric.
 
 ## Metrics API concepts
 
 The `Meter` interface represents the metrics portion of the OpenTelemetry API.
 
-There are three kinds of metric, `CumulativeMetric`, `GaugeMetric`, and `MeasureMetric`.
+There are three kinds of metric instrument, `CumulativeMetric`, `GaugeMetric`, and `MeasureMetric`.
 
-Metric objects are declared and defined independently of the SDK. They may be statically defined, as opposed to allocated through the SDK in any way.  To define a new metric, use one of the language-specific API methods (e.g., with names like `NewCumulativeMetric`, `NewGaugeMetric`, or `NewMeasureMetric`).
+Metric instruments are constructed by the API, they are not constructed by any specific SDK.
 
-Each metric is declared with a list (possibly empty) of pre-defined label keys.  These pre-defined label keys declare the set of keys that are available as dimensions for efficient pre-aggregation.
+| Name | A string. |
+| Kind | One of Cumulative, Gauge, or Measure. |
+| Keys | List of always-defined keys in handles for this metric. |
+| Unit | The unit of measurement being recorded. |
+| Description | Information about this metric. |
 
-To obtain a metric _handle_ from a metric object, call `getHandle` with the pre-defined label values.  There are two ways to pass the pre-defined label values:
+See the specification for more information on these fields, including formatting and uniqueness requirements.  To define a new metric, use one of the language-specific API methods (e.g., with names like `NewCumulativeMetric`, `NewGaugeMetric`, or `NewMeasureMetric`).
 
-1. As an ordered list of values.  In this case, the number of arguments in the list must match the number of pre-defined label keys.  When the number of arguments disagrees with the metric definition, the implementation may return an error or thrown an exception to synchronously indicate this condition.
-2. As a list of key:value pairs.  In this case, the application is free to provide the list of label values in arbitrary order.  Values that are not passed when constructing handles in this way are marked as "not present".  Values that are not part of the pre-defined label keys are ignored when constructing handles.
-
-Metric handles, thusly obtained with one of the `getHandle` variations, may be used to `Set()`, `Add()`, and `Record()` metrics according to their kind.  Context tags that apply when calling `Set()`, `Add()`, and `Record()` may not override values that were set in the handle as pre-defined labels.
+Metric instrument Handles are SDK-provided objects that combine a metric instrument with a set of pre-defined labels.  Handles are obtained by calling a language-specific API method (e.g., `GetHandle`) on the metric instrument with its label values.  Handles may be used to `Set()`, `Add()`, or `Record()` metrics according to their kind.  The `Set()`, `Add()`, and `Record()` 
 
 ## Selecting Metric Kind
 
@@ -81,7 +82,7 @@ To guide the user in selecting the right kind of metric for an application, we'l
 
 - Does the measurement represent a quantity of something?  Is it also non-negative?
 - Is the sum a matter of primary interest?
-- Is the event count of primary interest?
+- Is the event count a matter of primary interest?
 - Is the distribution (p50, p99, etc.) a matter of primary interest?
 
 The specification will be updated with the following guidance.
@@ -98,11 +99,11 @@ For cumulative metrics, the default OpenTelemetry implementation exports the sum
 
 Gauge metrics express a pre-calculated value that is either `Set()` by explicit instrumentation or observed through a callback.  Generally, this kind of metric should be used when the metric cannot be expressed as a sum or a rate because the measurement interval is arbitrary.  Use this kind of metric when the measurement is not a quantity, and the sum and event count are not of interest.
 
-Only the gauge kind of metric supports observing the metric via a callback (as an option).  Semantically, there is an important difference between explicitly setting a gauge and observing it through a callback.  In case of setting the gauge explicitly, the call happens inside of an implicit or explicit context.  The implementation is free to associate the explicit `Set()` event with a context, for example.  When observing gauge metrics via a callback, there is no context associated with the event.
+Only the gauge kind of metric supports observing the metric via a gauge `Observer` callback (as an option).  Semantically, there is an important difference between explicitly setting a gauge and observing it through a callback.  In case of setting the gauge explicitly, the call happens inside of an implicit or explicit context.  The implementation is free to associate the explicit `Set()` event with a context, for example.  When observing gauge metrics via a callback, there is no context associated with the event.
 
 As a special case, to support existing metrics infrastructure, a gauge metric may be declared as a precomputed sum, in which case it is defined as strictly ascending.  The API will reject descending updates to strictly-ascending gauges, instead submitting an SDK error event.
 
-For gauge metrics, the default OpenTelemetry implementation exports the last value that was `Set()`.  If configured for an observer callback instead, the default OpenTelemetry implementation exports  Observed at the time of metrics collection.
+For gauge metrics, the default OpenTelemetry implementation exports the last value that was explicitly `Set()`, or if using a callback, the current value from the Observer.
 
 ### Measure metric
 
@@ -111,14 +112,11 @@ Measure metrics express a distribution of values.  This kind of metric should be
 1. The sum is of interest in addition to the count
 1. Quantiles information is of interest.
 
-The key property of a measure metric event is that two events cannot be trivially reduced into one, as a step in pre-aggregation.  For cumulatives and gauges, two `Add()` or `Set()` events can be replaced by a single event (for default behavior, i.e., unless the implementation is configured differently), whereas two `Record()` events must by reflected in two events. 
+The key property of a measure metric event is that two events cannot be trivially reduced into one, unlike cumulative and gauge metrics.  Two `Record()` events must by reflected in two events because both the event count and the individual values are significant. 
 
 Like cumulative metrics, non-negative measures are an important case because they support rate calculations. As an option, measure metrics may be declared as non-negative.  The API will reject negative metric events for non-negative measures, instead submitting an SDK error event.
 
-For measure metrics, the default OpenTelemetry implementation is left up to the implementation. The default interpretation is that the distribution should be summarized, somehow, but the specific technique used belongs to the implementation.  A low-cost policy is selected as the default behavior for export OpenTelemetry measures:
-
-- For non-negative measure metrics, unless otherwise configured, the default implementation exports the sum, the count, and the maximum value as three separate summary variables.
-- For arbitrary measure metrics, unless otherwise configured, the default implementation exports the sum, the count, the minimum, and the maximum value as four separate summary variables.
+For measure metrics, the default OpenTelemetry implementation is left up to the implementation. The default interpretation is that the distribution should be summarized, somehow, but the specific technique used belongs to the implementation and the exporter semantics.  A low-cost policy is selected as the default behavior for export OpenTelemetry measures: export the sum, the count, the minimum, and the maximum value in the form of a summary.
 
 ### Disable selected metrics by default
 
