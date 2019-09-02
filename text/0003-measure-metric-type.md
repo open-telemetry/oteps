@@ -73,10 +73,10 @@ Metric instrument Handles are SDK-provided objects that combine a metric instrum
 
 ## Selecting Metric Kind
 
-By the "separation clause" of OpenTelemetry, we know that an implementation is free to do _anything_ in response to a metric API call.  By the low-level interpretation defined above, all metric events have the same structural representation, only their logical interpretation varies according to the metric definition.  Therefore, we select metric kinds based on two primary concerns:
+By separation of API and implementation in OpenTelemetry, we know that an implementation is free to do _anything_ in response to a metric API call.  By the low-level interpretation defined above, all metric events have the same structural representation, only their logical interpretation varies according to the metric definition.  Therefore, we select metric kinds based on two primary concerns:
 
 1. What should be the default implementation behavior?  Unless configured otherwise, how should the implementation treat this metric variable?
-1. How will the program read?  Each metric uses a different verb, which helps convey meaning and describe default behavior.  Cumulatives have an `Add()` method.  Gauges have a `Set()` method.  Measures have a `Record()` method.
+1. How will the program source code read?  Each metric uses a different verb, which helps convey meaning and describe default behavior.  Cumulatives have an `Add()` method.  Gauges have a `Set()` method.  Measures have a `Record()` method.
 
 To guide the user in selecting the right kind of metric for an application, we'll consider the following questions about the primary intent of reporting given data.  We use "of primary interest" here to mean information that is almost certainly useful in understanding system behavior.  Consider these questions:
 
@@ -107,16 +107,16 @@ For gauge metrics, the default OpenTelemetry implementation exports the last val
 
 ### Measure metric
 
-Measure metrics express a distribution of values.  This kind of metric should be used when the count of events is meaningful and either:
+Measure metrics express a distribution of values.  This kind of metric should be used when the count or rate of events is meaningful and either:
 
-1. The sum is of interest in addition to the count
-1. Quantiles information is of interest.
+1. The sum is of interest in addition to the count (rate)
+1. Quantile information is of interest.
 
-The key property of a measure metric event is that two events cannot be trivially reduced into one, unlike cumulative and gauge metrics.  Two `Record()` events must by reflected in two events because both the event count and the individual values are significant. 
+The key property of a measure metric event is that computing quantiles and/or summarizing a distribution (e.g., via a histogram) may be expensive.  Not only will implementations have various capabilities and algorithms for this task, users may wish to control the quality and cost of aggregating measure metrics.
 
 Like cumulative metrics, non-negative measures are an important case because they support rate calculations. As an option, measure metrics may be declared as non-negative.  The API will reject negative metric events for non-negative measures, instead submitting an SDK error event.
 
-For measure metrics, the default OpenTelemetry implementation is left up to the implementation. The default interpretation is that the distribution should be summarized, somehow, but the specific technique used belongs to the implementation and the exporter semantics.  A low-cost policy is selected as the default behavior for export OpenTelemetry measures: export the sum, the count, the minimum, and the maximum value in the form of a summary.
+Because measure metrics have such wide application, implementations are likely to provide configurable behavior.  OpenTelemetry may provide such a facility in its standard SDK, but in case no configuration is provided by the application, a low-cost policy is specified as the default behavior, whic is to export the sum, the count (rate), the minimum value, and the maximum value.
 
 ### Disable selected metrics by default
 
@@ -132,16 +132,16 @@ Logically, a measurement is defined as:
 - Value: a floating point or integer
 - Pre-defined label values: associated via metrics API handle
 
-The batch measurement API shall be named `RecordBatch`.  The entire batch of measurements takes place within some (implicit or explicit) context.
+The batch measurement API uses a language-specific method name (e.g., `RecordBatch`).  The entire batch of measurements takes place within some (implicit or explicit) context.
 
 ## Prior art and alternatives
 
-Prometheus supports the notion of vector metrics, which are those that support pre-defined labels.  The vector-metric API supports a variety of methods like `WithLabelValues` to associate labels with a metric handle, similar to `GetOrCreateTimeSeries` in OpenTelemetry.  As in this proposal, Prometheus supports a vector API for all metric types.
+Prometheus supports the notion of vector metrics, which are those that support pre-defined labels for a specific set of Keys.  The vector-metric API supports a variety of methods like `WithLabelValues` to associate labels with a metric handle, similar to `GetHandle` in OpenTelemetry.  As in this proposal, Prometheus supports a vector API for all metric types.
 
 Statsd libraries generally report metric events individually.  To implement statsd reporting from the OpenTelemetry, a `Meter` SDK would be installed that converts metric events into statsd updates.
 
 ## Open questions
 
-Argument ordering has been proposed as the way to pass pre-defined label values in `GetOrCreateTimeseries`.  The argument list must match the parameter list exactly, and if it doesn't we generally find out at runtime or not at all.  This model has more optimization potential, but is easier to misuse, than the alternative.  The alternative approach is to always pass label:value pairs to `GetOrCreateTimeseries`, as opposed to an ordered list of values. 
+Argument ordering has been proposed as the way to pass pre-defined label values in `GetHandle`.  The argument list must match the parameter list exactly, and if it doesn't we generally find out at runtime or not at all.  This model has more optimization potential, but is easier to misuse than the alternative.  The alternative approach is to always pass label:value pairs to `GetOrCreateTimeseries`, as opposed to an ordered list of values. 
 
 The same discussion can be had for the `MeasurementBatch` type described here.  It can be declared with an ordered list of metrics, then the `Record` API takes only an ordered list of numbers.  Alternatively, and less prone to misuse, the `MeasurementBatch.Record` API could be declared with a list of metric:number pairs.
