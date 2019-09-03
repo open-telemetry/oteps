@@ -1,4 +1,4 @@
-module github.com/open-telemetry/rfcs
+module github.com/open-telemetry/oteps
 
 go 1.12
 
