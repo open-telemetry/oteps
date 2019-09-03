@@ -16,7 +16,7 @@ A working group convened on 8/21/2019 to discuss and debate the two metrics RFCs
 
 # Overview
 
-Introduce a `Measure` kind of metric object that supports a `Record` API method.  Like existing `Gauge` and `Cumulative` metrics, the new `Measure` metric supports pre-defined labels.  A new measurement batch API is introduced for recording multiple metric observations simultaneously.
+Introduce a `Measure` kind of metric object that supports a `Record` API method.  Like existing `Gauge` and `Cumulative` metrics, the new `Measure` metric supports pre-defined labels.  A new `RecordBatch` measurement API  is introduced for recording multiple metric observations simultaneously.
 
 ## Terminology
 
@@ -142,6 +142,13 @@ Statsd libraries generally report metric events individually.  To implement stat
 
 ## Open questions
 
+### `GetHandle` argument ordering
 Argument ordering has been proposed as the way to pass pre-defined label values in `GetHandle`.  The argument list must match the parameter list exactly, and if it doesn't we generally find out at runtime or not at all.  This model has more optimization potential, but is easier to misuse than the alternative.  The alternative approach is to always pass label:value pairs to `GetOrCreateTimeseries`, as opposed to an ordered list of values. 
 
-The same discussion can be had for the `MeasurementBatch` type described here.  It can be declared with an ordered list of metrics, then the `Record` API takes only an ordered list of numbers.  Alternatively, and less prone to misuse, the `MeasurementBatch.Record` API could be declared with a list of metric:number pairs.
+### `RecordBatch` argument ordering
+
+The discussion above can be had for the proposed `RecordBatch` method.  It can be declared with an ordered list of metrics, then the `Record` API takes only an ordered list of numbers.  Alternatively, and less prone to misuse, the `MeasurementBatch.Record` API could be declared with a list of metric:number pairs.
+
+### Eliminate `GetDefaultHandle()`
+
+Instead of a mechanism to obtain a default handle, some languages may prefer to simply operate on the metric instrument directly in this case.  Should OpenTelemetry eliminate `GetDefaultHandle` and instead specify that cumulative, gauge, and measure metric instruments implement `Add()`, `Set()`, and `Record()` with the same interpretation?
