@@ -15,7 +15,7 @@ data by service, component, or other version.
 ## Explanation
 
 A `Version` is a semantic resource that can be composed with other resources, such as a `Service`, 
-`Component`, `Library`, `Device`, `Platform`, etc. A `Version` is optional, but reccomended.
+`Component`, `Library`, `Device`, `Platform`, etc. A `Version` is optional, but recommended.
 The definition of a `Version` is as follows:
 
 | Key     | Value  | Description                                  |
