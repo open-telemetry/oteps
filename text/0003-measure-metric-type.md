@@ -153,6 +153,10 @@ The discussion above can be had for the proposed `RecordBatch` method.  It can b
 
 Instead of a mechanism to obtain a default handle, some languages may prefer to simply operate on the metric instrument directly in this case.  Should OpenTelemetry eliminate `GetDefaultHandle` and instead specify that cumulative, gauge, and measure metric instruments implement `Add()`, `Set()`, and `Record()` with the same interpretation?
 
+The argument against this is that metric instruments are meant to be pure API objects, they are not constructed through an SDK. Therefore, the default Meter (SDK) will have to be located from the context, meaning there is a question about whether this is as efficient as storing a re-usable handle for the default case.  For metric instruments with no required keys, this will be a real question: what is the benefit of a handle of it specifies no information other than the SDK?
+
+If we eliminate `GetDefaultHandle()`, the SDK may keep a map of metric instrument to default handle on its own.
+
 ### `RecordBatch` support for all metrics
 
 In the 8/21 working session, we agreed to limit `RecordBatch` to recording of simultaneous measure metrics, meaning to exclude cumulatives and gauges from batch recording.  There are arguments in favor of supporting batch recording for all metric instruments.
