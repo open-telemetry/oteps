@@ -63,14 +63,3 @@ This can be potential improved as by making the label set a first-class concept.
 ## Open questions
 
 Should the additional scope concept shown above be implemented?
-
-
-
-
-
-
-
-
-
-
-
