@@ -31,7 +31,7 @@ UnifiedContext will be a composite object containing all contexts that are prese
 
 The BinaryAPI will support two methods:
 
-    * fromBytes: convert raw bytes to a UnifiedContext or Null
+  * fromBytes: convert raw bytes to a UnifiedContext or Null
     * toBytes: convert a UnifiedContext to raw bytes
 
 ### HTTPTextFormat
