@@ -63,7 +63,7 @@ Metric instruments are constructed by the API, they are not constructed by any s
 
 | Name | A string. |
 | Kind | One of Cumulative, Gauge, or Measure. |
-| Keys | List of always-defined keys in handles for this metric. |
+| Required Keys | List of always-defined keys in handles for this metric. |
 | Unit | The unit of measurement being recorded. |
 | Description | Information about this metric. |
 
@@ -136,7 +136,7 @@ The batch measurement API uses a language-specific method name (e.g., `RecordBat
 
 ## Prior art and alternatives
 
-Prometheus supports the notion of vector metrics, which are those that support pre-defined labels for a specific set of Keys.  The vector-metric API supports a variety of methods like `WithLabelValues` to associate labels with a metric handle, similar to `GetHandle` in OpenTelemetry.  As in this proposal, Prometheus supports a vector API for all metric types.
+Prometheus supports the notion of vector metrics, which are those that support pre-defined labels for a specific set of required keys.  The vector-metric API supports a variety of methods like `WithLabelValues` to associate labels with a metric handle, similar to `GetHandle` in OpenTelemetry.  As in this proposal, Prometheus supports a vector API for all metric types.
 
 Statsd libraries generally report metric events individually.  To implement statsd reporting from the OpenTelemetry, a `Meter` SDK would be installed that converts metric events into statsd updates.
 
