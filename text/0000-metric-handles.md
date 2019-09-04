@@ -68,3 +68,9 @@ Should the additional scope concept shown above be implemented?
 
 OpenCensus has the notion of a metric attachment, allowing the application to include additional information associated with the event, for sampling purposes.  The position taken here is that additional label values on the metric handle (specified here) or the context are a suitable replacement.
 
+## Issues addressed
+
+[Agreements reached on handles and naming in the working group convened on 8/21/2019](https://docs.google.com/document/d/1d0afxe3J6bQT-I6UbRXeIYNcTIyBQv4axfjKF4yvAPA/edit#).
+
+[`record` should take a generic `Attachment` class instead of having tracing dependency](https://github.com/open-telemetry/opentelemetry-specification/issues/144)
+
