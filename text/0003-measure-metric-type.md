@@ -124,13 +124,12 @@ All OpenTelemetry metrics may be disabled by default, as an option.  Use this op
 
 ### RecordBatch API
 
-Applications sometimes want to record multiple metrics in a single API call, either becase the values are inter-related or because it lowers overhead.  We agree that recording batch measurements will be restricted to measure metrics, although this support could be extended to all kinds of metric in the future.
+Applications sometimes want to act upon multiple metric handles in a single API call, either because the values are inter-related to each other, or because it lowers overhead.  We agree that recording batch measurements will be restricted to measure metrics, although this support could be extended to all kinds of metric in the future.
 
-Logically, a measurement is defined as:
+A single measurement is defined as:
 
-- Measure metric: which metric is being updated
-- Value: a floating point or integer
-- Pre-defined label values: associated via metrics API handle
+- Handle: the measure instrument and pre-defined label values
+- Value: the recorded floating point or integer data
 
 The batch measurement API uses a language-specific method name (e.g., `RecordBatch`).  The entire batch of measurements takes place within some (implicit or explicit) context.
 
