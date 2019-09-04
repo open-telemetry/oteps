@@ -174,10 +174,10 @@ OpenCensus has the notion of a metric attachment, allowing the application to in
 
 ## Issues addressed
 
-(Raw vs. other metrics / measurements are unclear)[https://github.com/open-telemetry/opentelemetry-specification/issues/83]
+[Raw vs. other metrics / measurements are unclear])https://github.com/open-telemetry/opentelemetry-specification/issues/83)
 
-(`record` should take a generic `Attachment` class instead of having tracing dependency)[https://github.com/open-telemetry/opentelemetry-specification/issues/144]
+[`record` should take a generic `Attachment` class instead of having tracing dependency](https://github.com/open-telemetry/opentelemetry-specification/issues/144)
 
-(Eliminate Measurement class to save on allocations)[https://github.com/open-telemetry/opentelemetry-specification/issues/145]
+[Eliminate Measurement class to save on allocations](https://github.com/open-telemetry/opentelemetry-specification/issues/145)
 
-(Implement three more types of Metric)[https://github.com/open-telemetry/opentelemetry-specification/issues/146]
+[Implement three more types of Metric](https://github.com/open-telemetry/opentelemetry-specification/issues/146)
