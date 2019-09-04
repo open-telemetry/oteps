@@ -91,7 +91,7 @@ The specification will be updated with the following guidance.
 
 Likely to be the most common kind of metric, cumulative metric events express the computation of a sum.  Choose this kind of metric when the value is a quantity, the sum is of primary interest, and the event count and distribution are not of primary interest.  To raise (or lower) a cumulative metric, call the `Add()` method.
 
-If the quantity in question is always non-negative, it implies that the sum is strictly ascending.  When this is the case, the cumulative metric also serves to define a rate.  For this reason, cumulative metrics have an option to be declared as non-negative.  The API will reject negative updates to non-negative cumulative metrics, instead submitting an SDK error event, which helps ensure meaningful rate calculations.
+If the quantity in question is always non-negative, it implies that the sum is strictly ascending.  When this is the case, the cumulative metric also serves to define a rate.  For this reason, cumulative metrics have a `NonNegative` option to be declared as non-negative.  The API will reject negative updates to non-negative cumulative metrics, instead submitting an SDK error event, which helps ensure meaningful rate calculations.
 
 For cumulative metrics, the default OpenTelemetry implementation exports the sum of event values taken over an interval of time.
 
@@ -101,7 +101,7 @@ Gauge metrics express a pre-calculated value that is either `Set()` by explicit 
 
 Only the gauge kind of metric supports observing the metric via a gauge `Observer` callback (as an option).  Semantically, there is an important difference between explicitly setting a gauge and observing it through a callback.  In case of setting the gauge explicitly, the call happens inside of an implicit or explicit context.  The implementation is free to associate the explicit `Set()` event with a context, for example.  When observing gauge metrics via a callback, there is no context associated with the event.
 
-As a special case, to support existing metrics infrastructure, a gauge metric may be declared as a precomputed sum, in which case it is defined as strictly ascending.  The API will reject descending updates to strictly-ascending gauges, instead submitting an SDK error event.
+As a special case, to support existing metrics infrastructure, a gauge metric may be declared as a precomputed cumulative sum using the `NonDescending` option, in which case it is defined as a strictly ascending.  The API will reject descending updates to non-descending gauges, instead submitting an SDK error event.
 
 For gauge metrics, the default OpenTelemetry implementation exports the last value that was explicitly `Set()`, or if using a callback, the current value from the Observer.
 
@@ -114,7 +114,7 @@ Measure metrics express a distribution of values.  This kind of metric should be
 
 The key property of a measure metric event is that computing quantiles and/or summarizing a distribution (e.g., via a histogram) may be expensive.  Not only will implementations have various capabilities and algorithms for this task, users may wish to control the quality and cost of aggregating measure metrics.
 
-Like cumulative metrics, non-negative measures are an important case because they support rate calculations. As an option, measure metrics may be declared as non-negative.  The API will reject negative metric events for non-negative measures, instead submitting an SDK error event.
+Like cumulative metrics, non-negative measures are an important case because they support rate calculations. As an option, measure metrics may be declared as `NonNegative`.  The API will reject negative metric events for non-negative measures, instead submitting an SDK error event.
 
 Because measure metrics have such wide application, implementations are likely to provide configurable behavior.  OpenTelemetry may provide such a facility in its standard SDK, but in case no configuration is provided by the application, a low-cost policy is specified as the default behavior, whic is to export the sum, the count (rate), the minimum value, and the maximum value.
 
@@ -163,7 +163,7 @@ In the 8/21 working session, we agreed to limit `RecordBatch` to recording of si
 
 - If atomicity (i.e., the all-or-none property) is the reason for batch reporting, it makes sense to include all the metric instruments in the API
 - `RecordBatch` support for cumulatives and gauges will be natural for SDKs that act as forwarders for metric events . The natural implementation for `Add()` and `Set()` methods will be `RecordBatch` with a single event.
-- Likewise, it is simple for an SDK that acts as an aggregator (vs. forwarder) to redirect `Add()` and `Set()` APIs to the handle-specific `Add()` and `Set()` methods; while the SDK, as the implementation, can ensure these cumulative and gauge updates are atomic with the measure updates.
+- Likewise, it is simple for an SDK that acts as an aggregator (not a forwarder) to redirect `Add()` and `Set()` APIs to the handle-specific `Add()` and `Set()` methods; while the SDK, as the implementation, still may (not must) treat these cumulative and gauge updates as atomic.
 
 Arguments against batch recording for all metric instruments:
 
