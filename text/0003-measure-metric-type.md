@@ -167,3 +167,14 @@ In the 8/21 working session, we agreed to limit `RecordBatch` to recording of si
 Arguments against batch recording for all metric instruments:
 
 - The `Record` in `RecordBatch` suggests it is to be applied to measure metrics.  This is due to measure metrics being the most general-purpose of metric instruments.
+
+### Metric "attachments" support
+
+OpenCensus has the notion of a metric attachment, allowing the application to include additional information associated with the event, for sampling purposes.  The position taken here is that additional label values in the metric handle (specified in 0000-metric-handles.md) or the context are a suitable replacement.
+
+## Issues addressed
+
+https://github.com/open-telemetry/opentelemetry-specification/issues/83
+https://github.com/open-telemetry/opentelemetry-specification/issues/144
+https://github.com/open-telemetry/opentelemetry-specification/issues/145
+https://github.com/open-telemetry/opentelemetry-specification/issues/146
