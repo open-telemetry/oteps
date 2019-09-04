@@ -20,11 +20,9 @@ One significant difference between gauges that are explicitly `Set()`, as compar
 
 ## Details
 
-Observer callbacks are only supported for gauge metric instruments.
+Observer callbacks are only supported for gauge metric instruments.  Use the language-specific constructor for an Observer gauge (e.g., `metric.NewFloat64Observer()`).  Observer gauges support the `NonDescending` option.
 
-Callbacks return a map from _label set_ to gauge value.
-
-Gauges declared with observer callbacks may also be `Set`.
+Callbacks return a map from _label set_ to gauge value. Gauges declared with observer callbacks cannot also be `Set`.
 
 Callbacks should avoid blocking.  The implementation may be required to cancel computation if the callback blocks for too long.
 
