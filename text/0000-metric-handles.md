@@ -46,7 +46,7 @@ and three handles:
   measureHandle := measure.GetHandleOrdered(1, 2, 3)  // values for a, b, c
 ```
 
-This can be potential improved as by making the label set a first-class concept.  This has the potential to further reduce the cost of getting a group of handles with the same set of labels:
+This can be potentially improved as by making the label map a first-class concept.  This has the potential to further reduce the cost of getting a group of handles with the same map of labels:
 
 ```
   var commonKeys = metric.DefineKeys("a", "b", "c")
@@ -54,12 +54,17 @@ This can be potential improved as by making the label set a first-class concept.
   var counter = metric.NewFloat64Cumulative("example.com/counter", metric.WithKeys(commonKeys))
   var measure = metric.NewFloat64Measure("example.com/measure", metric.WithKeys(commonKeys))
 
-  labelSet := commonKeys.Values(1, 2, 3)  // values for a, b, c
-  gaugeHandle := gauge.GetHandleOrdered(labelSet)
-  counterHandle := counter.GetHandleOrdered(labelSet)
-  measureHandle := measure.GetHandleOrdered(labelSet)
+  labelMap := commonKeys.Values(1, 2, 3)  // values for a, b, c
+  gaugeHandle := gauge.GetHandle(labelMap)
+  counterHandle := counter.GetHandle(labelMap)
+  measureHandle := measure.GetHandle(labelMap)
 ```
 
 ## Open questions
 
 Should the additional scope concept shown above be implemented?
+
+### Metric `Attachment` support
+
+OpenCensus has the notion of a metric attachment, allowing the application to include additional information associated with the event, for sampling purposes.  The position taken here is that additional label values on the metric handle (specified here) or the context are a suitable replacement.
+

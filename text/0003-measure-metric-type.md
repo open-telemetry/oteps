@@ -4,14 +4,6 @@
 
 # Foreward
 
-This propsal was originally split into three semi-related parts. Based on the feedback, they are now combined here into a single proposal. The original proposals were:
-
-    000x-metric-pre-defined-labels
-    000x-metric-measure
-    000x-eliminate-stats-record
-
-### Updated 8/27/2019
-
 A working group convened on 8/21/2019 to discuss and debate the two metrics RFCs (0003 and 0004) and several surrounding concerns.  This document has been revised with related updates that were agreed upon during this working session.  See the [meeting notes](https://docs.google.com/document/d/1d0afxe3J6bQT-I6UbRXeIYNcTIyBQv4axfjKF4yvAPA/edit#).
 
 # Overview
@@ -61,6 +53,8 @@ There are three kinds of metric instrument, `CumulativeMetric`, `GaugeMetric`, a
 
 Metric instruments are constructed by the API, they are not constructed by any specific SDK.
 
+| Field | Description |
+|------|-----------|
 | Name | A string. |
 | Kind | One of Cumulative, Gauge, or Measure. |
 | Required Keys | List of always-defined keys in handles for this metric. |
@@ -168,13 +162,9 @@ Arguments against batch recording for all metric instruments:
 
 - The `Record` in `RecordBatch` suggests it is to be applied to measure metrics.  This is due to measure metrics being the most general-purpose of metric instruments.
 
-### Metric "attachments" support
-
-OpenCensus has the notion of a metric attachment, allowing the application to include additional information associated with the event, for sampling purposes.  The position taken here is that additional label values in the metric handle (specified in 0000-metric-handles.md) or the context are a suitable replacement.
-
 ## Issues addressed
 
-[Raw vs. other metrics / measurements are unclear])https://github.com/open-telemetry/opentelemetry-specification/issues/83)
+[Raw vs. other metrics / measurements are unclear](https://github.com/open-telemetry/opentelemetry-specification/issues/83)
 
 [`record` should take a generic `Attachment` class instead of having tracing dependency](https://github.com/open-telemetry/opentelemetry-specification/issues/144)
 
