@@ -112,9 +112,9 @@ Like cumulative metrics, non-negative measures are an important case because the
 
 Because measure metrics have such wide application, implementations are likely to provide configurable behavior.  OpenTelemetry may provide such a facility in its standard SDK, but in case no configuration is provided by the application, a low-cost policy is specified as the default behavior, whic is to export the sum, the count (rate), the minimum value, and the maximum value.
 
-### Disable selected metrics by default
+### Option to disable metrics by default
 
-All OpenTelemetry metrics may be disabled by default, as an option.  Use this option to indicate that the default implementation should be to do nothing for events about this metric.
+Metric instruments are enabled by default, meaning that SDKs will export metric data for this instrument without configuration.  Metric instruments support a `Disabled` option, marking them as verbose sources of information that may be configured on an as-needed basis to control cost (e.g., using a "views" API).
 
 ### Option summary
 
@@ -123,6 +123,7 @@ The optional properties of a metric instrument are:
 | Property | Description | Metric kind |
 |----------|-------------|-------------|
 | Required Keys | Determines labels that are always set on metric handles | All kinds |
+| Disabled | Indicates a verbose metric that does not report by default | All kinds |
 | Bidirectional | Indicates a cumulative metric instrument that goes up and down | Cumulative |
 | Unidirectional | Indicate a gauge that only ascends, for rate calculation | Gauge |
 | NonNegative | Indicates a measure that is never negative, for rate calculation | Measure |
