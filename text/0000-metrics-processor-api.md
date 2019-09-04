@@ -19,6 +19,8 @@ We consider several cases to justify this addition:
 
 We propose that OpenTelemetry libraries support a low-level metrics processor API to facilitate these cases.  Third-party metrics libraries and streaming metric exporters will take advantage of this support.
 
+See the [span processor API](https://github.com/open-telemetry/opentelemetry-specification/pull/205), which has similar support for building span event export pipelines.
+
 ## Internal details
 
 The metric processor is API is called once per metric event. The event structure includes:
