@@ -6,7 +6,7 @@ The low-level metrics processor API is specified to support processing metrics A
 
 ## Motivation
 
-The OpenTelemetry (v1 metrics data model)[https://github.com/open-telemetry/opentelemetry-proto/blob/master/opentelemetry/proto/metrics/v1/metrics.proto] supports exporting pre-aggregated metrics data and is a good choice in most cases.  We identify two cases where it is important to support exporting metric updates as individual events from the SDK.
+The OpenTelemetry [v1 metrics data model](https://github.com/open-telemetry/opentelemetry-proto/blob/master/opentelemetry/proto/metrics/v1/metrics.proto) supports exporting pre-aggregated metrics data and is a good choice in most cases.  We identify two cases where it is important to support exporting metric updates as individual events from the SDK.
 
 In OpenTelemetry terminology, a "processor" API is part of the SDK that supports building export pipelines, a layered approach to building exporters.  The low-level metrics processor allows constructing bridges to other metrics systems, but it not a complete exporter by itself.
 
@@ -39,4 +39,4 @@ Because observer gauges are non-contextual, there are no actual events for the m
 
 ## Related issues
 
-This (CloudWatch metrics)[https://github.com/open-telemetry/opentelemetry-go/issues/83] issue would be addressed with a metrics processor-based export pipeline.
+This [CloudWatch metrics](https://github.com/open-telemetry/opentelemetry-go/issues/83) issue would be addressed with a metrics processor-based export pipeline.
