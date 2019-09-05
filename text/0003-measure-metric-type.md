@@ -2,7 +2,7 @@
 
 **Status:** `proposed`
 
-# Foreward
+# Foreword
 
 A working group convened on 8/21/2019 to discuss and debate the two metrics RFCs (0003 and 0004) and several surrounding concerns.  This document has been revised with related updates that were agreed upon during this working session.  See the [meeting notes](https://docs.google.com/document/d/1d0afxe3J6bQT-I6UbRXeIYNcTIyBQv4axfjKF4yvAPA/edit#).
 
@@ -110,7 +110,7 @@ The key property of a measure metric event is that computing quantiles and/or su
 
 Like cumulative metrics, non-negative measures are an important case because they support rate calculations. As an option, measure metrics may be declared as `NonNegative`.  The API will reject negative metric events for non-negative measures, instead submitting an SDK error event.
 
-Because measure metrics have such wide application, implementations are likely to provide configurable behavior.  OpenTelemetry may provide such a facility in its standard SDK, but in case no configuration is provided by the application, a low-cost policy is specified as the default behavior, whic is to export the sum, the count (rate), the minimum value, and the maximum value.
+Because measure metrics have such wide application, implementations are likely to provide configurable behavior.  OpenTelemetry may provide such a facility in its standard SDK, but in case no configuration is provided by the application, a low-cost policy is specified as the default behavior, which is to export the sum, the count (rate), the minimum value, and the maximum value.
 
 ### Option to disable metrics by default
 
