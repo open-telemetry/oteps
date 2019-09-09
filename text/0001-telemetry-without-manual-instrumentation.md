@@ -80,11 +80,14 @@ Given the desired end state, the Datadog tracers seem like the closest-fit, perm
     * Create a new `dd-trace-foo` lib that wraps `auto-instr-foo` and includes the Datadog-specific pieces factored out above
     * Show that it’s also possible to bind to arbitrary OpenTelemetry-based tracers to the above API/SPI
   * Declare the forked `auto-instr-foo` repository ready for production beta use
-  * For some (hopefully brief) period:
+  * For some (ideally brief) period:
     * When new plugins are added to Datadog's (original) repo, merge them over into the `auto-instr-foo` repo
     * Allow Datadog end-users to bind to either for some period of time (ultimately Datadog's decision on timeline here, and does not prevent other tracers from using `auto-instr-foo`)
-    * Once Datadog has confidence, replace the original `dd-trace-foo` repo with the thin wrapper from above. (Note that Datadog end-users should not need to care about this refactor)
-  * Moved repo is GA’d: all new plugins and refactors happen in the `auto-instr-foo` repo
+    * Finally, when the combination of `auto-instr-foo` and a Datadog wrapper is functionally equivalent to the `dd-trace-foo` mainline, the latter can be safely replaced by the former.
+      * Note that, by design, this is not expected to affect Datadog end-users
+  * Moved repo is GA’d: all new plugins (and improvements to the auto-instrumentation core) happen in the `auto-instr-foo` repo
+
+There are some languages which will have OpenTelemetry support before there's Datadog `dd-trace-foo` support. In those situations, we will fall back to the requirements in this OTEP and leave the technical determinations up to the language SIG and the OpenTelemetry TC.
 
 ### Mini-FAQ about this proposal
 
