@@ -139,9 +139,9 @@ In order for Context to function, it must always remain bound to the execution o
 
 ## Pre-existing Context implementations
 
-In some languages, a single, widely used Context implementation exists. In other languages, there many be too many  implementations, or none at all. In the cases where there is not an extremely clear pre-existing option available, OpenTelemetry should provide its own Context implementation.
+In some languages, a single, widely used Context implementation exists. In other languages, there many be too many  implementations, or none at all. For example, Go has a the context.Context object, and widespread conventions for how to pass it down the call stack.
 
-While the specification defines the default OpenTelemetry approach to context propagation, it is important to note that in some languages, a form of context propagation may already exist. For example, Go has a the context.Context object, and widespread conventions for how to pass it down the call stack.
+In the cases where an extremely clear, pre-existing option is not available, OpenTelemetry should provide its own Context implementation.
 
 ## Default Propagators
 
