@@ -164,7 +164,7 @@ Solving this issue is not worth having semantic confusion with dual purpose. How
 
 ## What about complex propagation behavior?
 
-Some OpenTelemetry proposals have called for more complex propagation behavior. For example, having a fallback to extracting B3 headersif Trace-Context headers are not found. Chained propagators and other complex behavior can be modeled as implementation details behind the Propagator interface. Therefore, the propagation system itself does not need to provide chained propagators or other additional facilities.
+Some OpenTelemetry proposals have called for more complex propagation behavior. For example, falling back to extracting B3 headers if W3C Trace-Context headers are not found. Chained propagators and other complex behavior can be modeled as implementation details behind the Propagator interface. Therefore, the propagation system itself does not need to provide chained propagators or other additional facilities.
 
 
 ## Did you add a context parameter to every API call because Go has infected your brain?
