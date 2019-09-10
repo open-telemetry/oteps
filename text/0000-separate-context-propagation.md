@@ -9,7 +9,7 @@ Design OpenTelemetry as a set of separate applications which operate on a shared
 
 Based on prior art, we know that fusing the observability system and the context propagation system together creates issues. Observability systems have special rules for propagating information, such as sampling, and may have different requirements from other systems which require non-local information to be sent downstream.  
 * Separation of concerns
-  *   Remove dependecy the Tracer dependency from context propagation mechanisms.
+  *   Remove the Tracer dependency from context propagation mechanisms.
   *   Separate distributed context into Baggage and Correlations
 * Extensibility
   *   Allow users to create new applications for context propagation.
@@ -102,7 +102,7 @@ Distributed applications send data to downstream processes via propagators, func
 To send the data for all distributed applications downstream to the next process, the Propagation API provides a function which takes a context and a request, and mutates the request to include the encoded context. The canonical representation of a request is as a map.
 
 **Extract( context, request) context**  
-To receive the data from all distributed applications set by prior upstream processes, the Propagation API provides a function which takes a context and a request, and mutates the request to include the encoded context. The canonical representation of a request is as a map.
+To receive data injected by prior upstream processes, the Propagation API provides a function which takes a context and a request, and returns an updated context.
 
 **RegisterPropagator( type, inject, extract)**  
 In order for the application layer to function correctly, Propagation choices must be syncronized between all processes in the distributed system, and multiple applications must be able to inject and extract their context into the same request. To meet these requirements, the Propagation API provides a function which registers a set of propagators, which will all be executed in order when the future calls to inject and extract are made. A canonical propagator consists of an inject and an extract function.
