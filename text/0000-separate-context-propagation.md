@@ -141,9 +141,7 @@ In order for Context to function, it must always remain bound to the execution o
 
 In some languages, a single, widely used Context implementation exists. In other languages, there many be too many  implementations, or none at all. In the cases where there is not an extremely clear pre-existing option available, OpenTelemetry should provide its own Context implementation.
 
-While the above explanation represents the default OpenTelemetry approach to context propagation, it is important to note that some languages may already contain a form of context propagation. For example, Go has a the context.Context object, and widespread conventions for how to pass.
-
-Span data is used as labels for metrics and traces. This can quickly add overhead when propagated in-band. But, because this data is write-only, how this information is transmitted remains undefined. 
+While the specification defines the default OpenTelemetry approach to context propagation, it is important to note that in some languages, a form of context propagation may already exist. For example, Go has a the context.Context object, and widespread conventions for how to pass it down the call stack.
 
 ## Default Propagators
 
@@ -158,7 +156,7 @@ Since Baggage Context and Correlation Context appear very similar, why have two?
 
 First and foremost, the intended uses for Baggage and Correlations are completely different. Secondly, the propagation requirements diverge significantly.
 
-Correlations values are solely to be used as labels for metrics and traces. By making Correlation Context data write-only, how and when it is transmitted remains undefined. This leaves the door open to optimizations, such as propagating some data out-of-band, and situations where sampling decisions may cease the need to propagate correlation context any further.
+Correlation values are solely to be used as labels for metrics and traces. By making Correlation data write-only, how and when it is transmitted remains undefined. This leaves the door open to optimizations, such as propagating some data out-of-band, and situations where sampling decisions may cease the need to propagate correlation context any further.
 
 Baggage values, on the other hand, are explicitly added in order to be accessed by downstream by other application code. Therefore, Baggage Context must be readable, and reliably propagated in-band in order to accomplish this goal.
 
