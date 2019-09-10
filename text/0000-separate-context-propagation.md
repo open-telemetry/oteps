@@ -32,13 +32,13 @@ To allow for this extensibility, OpenTelemetry is separated into **application l
 
 OpenTelemetry currently contains two observability systems - Tracing and Metrics – and may be extended over time. These separate systems are bound into a unified Observability API through sharing labels – a mechanism for correlating independent observations – and through sharing propagators.
 
-**Observe( context, labels…, observations...) context**
+**Observe( context, labels…, observations...) context**  
 The general form for all observability APIs is a function which takes a Context, label keys, and observations as input, and returns an updated Context.
 
-**Correlate( context, label, value, hoplimit) context**
+**Correlate( context, label, value, hoplimit) context**  
 To set the label values used by all observations in the current transaction, the Observability API provides a function which takes a context, a label key, a value, and a hoplimit, and returns an updated context. If the hoplimit is set to NO_PROPAGATION, the label will only be available to observability functions in the same process. If the hoplimit is set to UNLIMITED_PROPAGATION, it will be available to all downstream services.
 
-**GetPropagator( type) inject, extract**
+**GetPropagator( type) inject, extract**  
 To register with the propagation system, the Observability API provides a set of propagation functions for every propagation type. 
 
 
@@ -48,19 +48,24 @@ In addition to observability, OpenTelemetry provides a simple mechanism for prop
 
 To manage the state of a distributed application, the Baggage API provides a set of functions which read, write, and remove data.
 
-**SetBaggage(context, key, value) context**
+**SetBaggage(context, key, value) context**  
 To record the distributed state of an application, the Baggage API provides a function which takes a context, a key, and a value as input, and returns an updated context which contains the new value.
 
-**GetBaggage( context, key) value**
+**GetBaggage( context, key) value**  
 To access the distributed state of an application, the Baggage API provides a function which takes a context and a key as input, and returns a value.
 
-**RemoveBaggage( context, key) context**
+**RemoveBaggage( context, key) context**  
 To delete distributed state from an application, the Baggage API provides a function which takes a context, a key, and a value as input, and returns an updated context which contains the new value.
 
+<<<<<<< HEAD
 **ClearBaggage( context) context**
 To avoid sending baggage to an untrusted downstream process, the Baggage API provides a function remove all baggage from a context. 
+=======
+**ClearBaggage( context) context**  
+To avoid sending baggage to an untrusted downstream process, the Baggage API provides a function remove all baggage from a context, 
+>>>>>>> move function descriptions to new line
 
-**GetPropagator( type) inject, extract**
+**GetPropagator( type) inject, extract**  
 To register with the propagation system, the Baggage API provides a set of propagation functions for every propagation type.
 
 
@@ -68,7 +73,7 @@ To register with the propagation system, the Baggage API provides a set of propa
 
 Because the application and context propagation layers are separated, it is possible to create new distributed applications which do not depend on either the Observability or Baggage APIs.
 
-**GetPropagator(type) inject, extract**
+**GetPropagator(type) inject, extract**  
 To register with the propagation system, additional APIs provide a set of propagation functions for every propagation type.
 
 
