@@ -124,11 +124,11 @@ OpenTelemetry currently contains two types of Propagators:
 ## Context details
 OpenTelemetry currently implements three context types of context propagation.
 
-**Span Context -** Observability data used by the tracing system. The readable attributes are defined to match those found in the  W3C **traceparent** header. Span Context is used as labels for metrics and traces. This can quickly add overhead when propagated in-band. But, because this data is write-only, how this information is transmitted remains undefined. 
+**Span Context -** The serializable portion of a span, which is injected and extracted. The readable attributes are defined to match those found in the  W3C **traceparent** header. 
 
-**Correlation Context -** Transaction-level observability data, which can be applied as labels to spans and metrics. 
+**Correlation Context -** Correlation Context contains a map of labels and values, to be shared between metrics and traces. This allows observability data to be indexed and dimensionalized in a variety of ways. Note that correlations can quickly add overhead when propagated in-band. But because this data is write-only, it may be possible to optimize how it is transmitted.
 
-**Baggage Context -** Transaction-level application data, meant to be shared with downstream components.
+**Baggage Context -** Transaction-level application data, meant to be shared with downstream components. This data is readable, and must be propagated in-band. Because of this, Baggage should be used sparingly, to avoid ballooning the size of RPC requests.
 
 Note that when possible, OpenTelemetry APIs calls are given access to the entire context object, and not a specific context type.
 
