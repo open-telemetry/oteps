@@ -190,4 +190,4 @@ Given that we must ship with working propagators, and the W3C specifications are
 
 # Future possibilities
 
-Cleanly splitting OpenTelemetry into an Application and  Context Propagation layer may allow us to move the Context Propagation layer into its own, stand-alone project. This may facilitate adoption, by allowing us to share Context Propagation with gRPC and other projects.
+Cleanly splitting OpenTelemetry into an Application and Context Propagation layer may allow us to move the Context Propagation layer into its own, stand-alone project. This may facilitate adoption, by allowing us to share Context Propagation with gRPC and other projects.
