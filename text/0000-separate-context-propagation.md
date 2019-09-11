@@ -87,10 +87,10 @@ To access the local state of an application, the Context API provides a function
 ### Optional: Automated Context Management
 When possible, context should automatically be associated with program execution . Note that some languages do not provide any facility for setting and getting a current context. In these cases, the user is responsible for managing the current context. 
 
-**SetCurrentContext(context)**  
+**SetCurrent(context)**  
 To associate a context with program execution, the Context API provides a function which takes a Context.
 
-**GetCurrentContext() -> context**  
+**GetCurrent() -> context**  
 To access the context associated with program execution, the Context API provides a function which takes no arguments and returns a Context.
 
 
