@@ -1,6 +1,7 @@
 # Global SDK initialization
 
 *Status: proposed*
+*Updated: 07/30/2019*
 
 Specify the behavior of OpenTelemetry APIs and implementations at startup.
 
