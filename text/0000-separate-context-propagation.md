@@ -57,13 +57,8 @@ To access the distributed state of an application, the Baggage API provides a fu
 **RemoveBaggage( context, key) context**  
 To delete distributed state from an application, the Baggage API provides a function which takes a context, a key, and a value as input, and returns an updated context which contains the new value.
 
-<<<<<<< HEAD
-**ClearBaggage( context) context**
-To avoid sending baggage to an untrusted downstream process, the Baggage API provides a function remove all baggage from a context. 
-=======
 **ClearBaggage( context) context**  
 To avoid sending baggage to an untrusted downstream process, the Baggage API provides a function remove all baggage from a context, 
->>>>>>> move function descriptions to new line
 
 **GetPropagator( type) inject, extract**  
 To register with the propagation system, the Baggage API provides a set of propagation functions for every propagation type.
