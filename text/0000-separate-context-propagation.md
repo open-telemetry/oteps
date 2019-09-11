@@ -32,13 +32,13 @@ To allow for this extensibility, OpenTelemetry is separated into **application l
 
 OpenTelemetry currently contains two observability systems - Tracing and Metrics – and may be extended over time. These separate systems are bound into a unified Observability API through sharing labels – a mechanism for correlating independent observations – and through sharing propagators.
 
-**Observe( context, labels…, observations...) context**  
+**Observe(context, labels…, observations...) -> context**  
 The general form for all observability APIs is a function which takes a Context, label keys, and observations as input, and returns an updated Context.
 
-**Correlate( context, label, value, hoplimit) context**  
+**Correlate(context, label, value, hoplimit) -> context**  
 To set the label values used by all observations in the current transaction, the Observability API provides a function which takes a context, a label key, a value, and a hoplimit, and returns an updated context. If the hoplimit is set to NO_PROPAGATION, the label will only be available to observability functions in the same process. If the hoplimit is set to UNLIMITED_PROPAGATION, it will be available to all downstream services.
 
-**GetPropagator( type) inject, extract**  
+**GetPropagator(type) -> (inject, extract)**  
 To register with the propagation system, the Observability API provides a set of propagation functions for every propagation type. 
 
 
@@ -48,19 +48,19 @@ In addition to observability, OpenTelemetry provides a simple mechanism for prop
 
 To manage the state of a distributed application, the Baggage API provides a set of functions which read, write, and remove data.
 
-**SetBaggage(context, key, value) context**  
+**SetBaggage(context, key, value) -> context**  
 To record the distributed state of an application, the Baggage API provides a function which takes a context, a key, and a value as input, and returns an updated context which contains the new value.
 
-**GetBaggage( context, key) value**  
+**GetBaggage(context, key) -> value**  
 To access the distributed state of an application, the Baggage API provides a function which takes a context and a key as input, and returns a value.
 
-**RemoveBaggage( context, key) context**  
+**RemoveBaggage(context, key) -> context**  
 To delete distributed state from an application, the Baggage API provides a function which takes a context, a key, and a value as input, and returns an updated context which contains the new value.
 
-**ClearBaggage( context) context**  
+**ClearBaggage(context) -> context**  
 To avoid sending baggage to an untrusted downstream process, the Baggage API provides a function remove all baggage from a context, 
 
-**GetPropagator( type) inject, extract**  
+**GetPropagator(type) -> (inject, extract)**  
 To register with the propagation system, the Baggage API provides a set of propagation functions for every propagation type.
 
 
@@ -68,7 +68,7 @@ To register with the propagation system, the Baggage API provides a set of propa
 
 Because the application and context propagation layers are separated, it is possible to create new distributed applications which do not depend on either the Observability or Baggage APIs.
 
-**GetPropagator(type) inject, extract**  
+**GetPropagator(type) -> (inject, extract)**  
 To register with the propagation system, additional APIs provide a set of propagation functions for every propagation type.
 
 
@@ -78,19 +78,19 @@ To register with the propagation system, additional APIs provide a set of propag
 
 Distributed applications access data in-process using a shared context object. Each distributed application sets a single key in the context, containing all of the data for that system.
 
-**SetValue( context, key, value) context**  
+**SetValue(context, key, value) -> context**  
 To record the local state of an application, the Context API provides a function which takes a context, a key, and a value as input, and returns an updated context which contains the new value.
 
-**GetValue( context, key) value**  
+**GetValue(context, key) -> value**  
 To access the local state of an application, the Context API provides a function which takes a context and a key as input, and returns a value.
 
 ### Optional: Automated Context Management
 When possible, context should automatically be associated with program execution . Note that some languages do not provide any facility for setting and getting a current context. In these cases, the user is responsible for managing the current context. 
 
-**SetCurrentContext( context)**  
+**SetCurrentContext(context)**  
 To associate a context with program execution, the Context API provides a function which takes a Context.
 
-**GetCurrentContext() context**  
+**GetCurrentContext() -> context**  
 To access the context associated with program execution, the Context API provides a function which takes no arguments and returns a Context.
 
 
@@ -98,13 +98,13 @@ To access the context associated with program execution, the Context API provide
 
 Distributed applications send data to downstream processes via propagators, functions which read and write application context into RPC requests. Each distributed application creates a set of propagators for every type of supported medium - currently HTTP and Binary.
 
-**Inject( context, request)**  
+**Inject(context, request)**  
 To send the data for all distributed applications downstream to the next process, the Propagation API provides a function which takes a context and a request, and mutates the request to include the encoded context. The canonical representation of a request is as a map.
 
-**Extract( context, request) context**  
+**Extract(context, request) -> context**  
 To receive data injected by prior upstream processes, the Propagation API provides a function which takes a context and a request, and returns an updated context.
 
-**RegisterPropagator( type, inject, extract)**  
+**RegisterPropagator(type, inject, extract)**  
 In order for the application layer to function correctly, Propagation choices must be syncronized between all processes in the distributed system, and multiple applications must be able to inject and extract their context into the same request. To meet these requirements, the Propagation API provides a function which registers a set of propagators, which will all be executed in order when the future calls to inject and extract are made. A canonical propagator consists of an inject and an extract function.
 
 OpenTelemetry currently contains two types of Propagators:
