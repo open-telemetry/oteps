@@ -10,7 +10,9 @@ The specification currently names this concept `TimeSeries`, the object returned
 
 ## Explanation
 
-The `TimeSeries` is renamed to `Handle` as the former name suggests an implementation, not an API concept. `Handle`, we feel, is more descriptive of the intended use.  Likewise with `GetOrCreateTimeSeries` to `GetHandle` and `GetDefaultTimeSeries` to `GetDefaultHandle`, these names suggest an implementation and not the intended use.	Applications are encouraged to re-use metric handles for efficiency.
+The `TimeSeries` is renamed to `Handle` as the former name suggests an implementation, not an API concept. `Handle`, we feel, is more descriptive of the intended use.  Likewise with `GetOrCreateTimeSeries` to `GetHandle` and `GetDefaultTimeSeries` to `GetDefaultHandle`, these names suggest an implementation and not the intended use.
+
+Applications are encouraged to re-use metric handles for efficiency.
 
 Handles are useful to reduce the cost of repeatedly recording a metric instrument (cumulative, gauge, or measure) with a pre-defined set of label values.  All metric kinds support declaring a set of required label keys.  These label keys, by definition, must be specified in every metric `Handle`.  We permit "unspecified" label values in cases where a handle is requested but a value was not provided.  The default metric handle has all its required keys unspecified.  We presume that fast pre-aggregation of metrics data is only possible, in general, when the pre-aggregation keys are a subset of the required keys on the metric.
 
