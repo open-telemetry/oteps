@@ -7,7 +7,7 @@ Design OpenTelemetry as a set of separate applications which operate on a shared
 
 ## Motivation
 
-Based on prior art, we know that fusing the observability system and the context propagation system together creates issues. Observability systems have special rules for propagating information, such as sampling, and may have different requirements from other systems which require non-local information to be sent downstream.  
+Based on prior art, we know that fusing the observability system and the context propagation system together creates issues. Observability systems have special rules for propagating information, such as sampling, and may have different requirements from other systems which require non-local information to be sent downstream. 
 * Separation of concerns
   *   Remove the Tracer dependency from context propagation mechanisms.
   *   Separate distributed context into Baggage and Correlations
@@ -23,7 +23,7 @@ Based on prior art, we know that fusing the observability system and the context
 
 OpenTelemetry is a distributed program, which requires non-local, transaction-level context in order to execute correctly. Transaction-level context can also be used to build other distributed programs, such as security, versioning, and network switching programs.
 
-To allow for this extensibility, OpenTelemetry is separated into **application layer** and a **context propagation layer**.  In this architecture, multiple distributed applications - such as the observability and baggage systems provided by OpenTelemetry - simultaneously share the same underlying context propagation system in order to execute their programs.
+To allow for this extensibility, OpenTelemetry is separated into **application layer** and a **context propagation layer**. In this architecture, multiple distributed applications - such as the observability and baggage systems provided by OpenTelemetry - simultaneously share the same underlying context propagation system in order to execute their programs.
 
 
 # Application Layer
@@ -130,7 +130,7 @@ Note that when possible, OpenTelemetry APIs calls are given access to the entire
 
 ## Context Management and in-process propagation
 
-In order for Context to function, it must always remain bound to the execution of code it represents. By default, this means that the programmer must pass a Context down the call stack as a function parameter.  However, many languages provide automated context management facilities, such as thread locals.  OpenTelemetry should leverage these facilities when available, in order to provide automatic context management.
+In order for Context to function, it must always remain bound to the execution of code it represents. By default, this means that the programmer must pass a Context down the call stack as a function parameter. However, many languages provide automated context management facilities, such as thread locals. OpenTelemetry should leverage these facilities when available, in order to provide automatic context management.
 
 ## Pre-existing Context implementations
 
