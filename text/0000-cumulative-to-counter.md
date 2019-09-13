@@ -12,7 +12,7 @@ Counter is a noun, like the other kinds Gauge and Measure.  Cumulative is an adj
 
 ## Explanation
 
-This will eliminate the cognitive cost of mapping "cumulative" to "counter" when speaking about these APIs.
+This will eliminate the cognitive cost of mapping "counter" to "cumulative" when speaking about these APIs.
 
 ## Internal details
 
