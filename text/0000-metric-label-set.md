@@ -6,7 +6,7 @@ Introduce a first-class `LabelSet` API type as a handle on a pre-defined set of 
 
 ## Motivation
 
-Labels are key-value pairs used across OpenTelemetry for categorizing spans (attributes, event fields) and metrics (labels).  Treatment of labels in the metrics API is especially important because of certain optimizations that take advantage ofpre-defined labels.
+Labels are key-value pairs used across OpenTelemetry for categorizing spans (attributes, event fields) and metrics (labels).  Treatment of labels in the metrics API is especially important because of certain optimizations that take advantage of pre-defined labels.
 
 This optimization currently applies to metric instrument handles, the result of `GetHandle(Instrument, { Key : Value, ... })` on a metric instrument. By allowing the SDK to pre-compute information about the pair of `(Instrument, { Key : Value, ... })`, this reasoning goes, the metrics SDK has the opportunity make individual `Add()` and `Set()` operations on handles as fast as a few machine instructions.
 
@@ -24,7 +24,7 @@ RecordBatch({ Key1: Value1,
 	      ... ])
 ```
 
-This RFC proposes the new `LabelSet` concept is returned by an API named like `Meter.DefineLabels({ Key: Value, ... })` which allows the SDK to potentially sort, canonicalize, or hash the set of labels once, allowing it to be re-used in several ways.  For example, the `RecordBatch` above can be written as one call to `DefineLabels` and inidividual operations.
+This RFC proposes the new `LabelSet` concept is returned by an API named `Meter.DefineLabels({ Key: Value, ... })` which allows the SDK to potentially sort, canonicalize, or hash the set of labels once, allowing it to be re-used in several ways.  For example, the `RecordBatch` above can be written as one call to `DefineLabels` and inidividual operations.
 
 ```
 Labels := meter.DefineLabels({ Key1: Value1,
@@ -40,7 +40,7 @@ With a first-class `LabelSet`, labels can even be re-used across multiple calls 
 
 ## Explanation
 
-Metric instrument APIs which presently take labels in the form `{ Key: Value, ... }` will be updated to take an explicit `LabelSet`.  The `Meter.DefineLabels` API method supports getting a `LabelSet` from the SDK, allowing the programmer to pre-define labels without being required to manage handles.  This brings the numnber of ways to update a metric to three, via re-using a handle `GetHandle()`:
+Metric instrument APIs which presently take labels in the form `{ Key: Value, ... }` will be updated to take an explicit `LabelSet`.  The `Meter.DefineLabels` API method supports getting a `LabelSet` from the SDK, allowing the programmer to pre-define labels without being required to manage handles.  This brings the number of ways to update a metric to three, via re-using a handle from `GetHandle()`:
 
 ```
 cumulative := metric.NewFloat64Cumulative("my_counter", [
@@ -89,9 +89,9 @@ labelSet := requiredKeys.DefineValues(meter, 1, 2, 3)
 Metric instruments are specified as SDK-independent objects, therefore metric handles were required to bind the instrument to the SDK in order to operate. In this proposal, `LabelSet` becomes responsible for binding the SDK at any call site where it is used.  Other than knowing the `Meter` that defined it, `LabelSet` is an opaque interface.  The three ways to use `LabelSet` in the metrics API are:
 
 ```
-_instrument_.GetHandle(labels)._Action_(value)     // Action on a handle 
-_instrument_._Action_(value, labels)               // Single action, no handle
-RecordBatch(labels, [(_instrument_, value), ...])  // Batch action, no handles
+instrument.GetHandle(labels).Action(value)       // Action on a handle 
+instrument.Action(value, labels)                 // Single action, no handle
+RecordBatch(labels, [(instrument, value), ...])  // Batch action, no handles
 ```
 
 ## Trade-offs and mitigations
@@ -110,11 +110,13 @@ as opposed to this:
 instrument.GetHandle(meter.DefineLabels({ Key: Value, ... }))
 ```
 
-A key distinction between `LabelSet` and similar concepts in existing metrics libraries is that it is a _write-only_ structure allowing the programmer to set diagnostic state, while ensuring that diagnostic state does not become application-level state.
+A key distinction between `LabelSet` and similar concepts in existing metrics libraries is that it is a _write-only_ structure, allowing the programmer to set diagnostic state while ensuring that diagnostic state does not become application-level state.
 
 ## Prior art and alternatives
 
 There is not clear prior art like `LabelSet` as defined here.
+
+A potential application for `DefineLabels` is to pre-compute the bytes of the statsd encoding for a label set once, to avoid repeatedly serializing this information.
 
 ## Open questions
 
