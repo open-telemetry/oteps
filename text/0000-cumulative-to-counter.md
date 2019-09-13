@@ -32,8 +32,8 @@ Uni-directional Gauge instruments are typically used in metric `Observer` callba
 
 Other ways to describe the distinction between true-cumulative and bi-directional Counters are:
 
-- Additive (vs Cumulative)
-- GaugeDelta
+- Additive (vs. Cumulative)
+- GaugeDelta (vs. Gauge)
 
 It is possible that reducing all of these cases into the broad term "Counter" creates more confusion than it addresses.
 
