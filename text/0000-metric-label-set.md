@@ -94,6 +94,12 @@ instrument.Action(value, labels)                 // Single action, no handle
 RecordBatch(labels, [(instrument, value), ...])  // Batch action, no handles
 ```
 
+Metric SDKs that do not or cannot take advantage of the Handle or LabelSet optimizations are not especially burdened by having to support these APIs.  It is trivial to supply implementations of the handle as a simple (`Instrument`, `LabelSet`) pair and the label set as simple list of labels.  This may not be acceptible in performance-critical applications, but this is the common case in many metrics and diagnostics APIs today.
+
+Applications that forego the use of handles but do prefer to store and pass `LabelSet` objects may wonder what kind of performance to expect when exporting pre-computed metric data from their SDK.  What should we expect of a high-performance metrics SDK in this regard?  Since the SDK is involved in constructing the label set, we can presume it has performed the expensive computation of joining the labels into a lookup key or a serializable encoding, yielding a unique ID for the label set.
+
+What remains, at `Record` time, to update the pre-aggregation state, is to lookup a map entry using the pair (`Instrument` ID, `LabelSet` ID), which is somewhat more than the cost of `GetHandle`.  It is relatively fast compared with joining the labels into a lookup key, but there are complications.  The lookup has to be synchronized, which could be a problem in some cases, and the map cannot grow without bound so there is a management "tax" to consider.  This is what we might expect of a high-performance metrics SDK.
+
 ## Trade-offs and mitigations
 
 Each programming language should select the names for `LabelSet` and `DefineLabels` that are most idiomatic and sensible.
