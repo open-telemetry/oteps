@@ -1,6 +1,6 @@
 # Metrics observer specification
 
-**Status:** `proposed`
+**Status:** `approved`
 
 Propose metric `Observer` callbacks for context-free access to current Gauge instrument values on demand.
 

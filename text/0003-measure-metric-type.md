@@ -1,6 +1,6 @@
 # Consolidate pre-aggregated and raw metrics APIs
 
-**Status:** `proposed`
+**Status:** `accepted`
 
 # Foreword
 
