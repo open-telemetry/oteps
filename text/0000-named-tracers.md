@@ -60,7 +60,7 @@ Since tracer names describe the libraries which use the tracers, those names sho
 
 Examples (based on existing contribution libraries from OpenTracing and OpenCensus):
 
-* _io.opentracing.contrib.spring.rabbitmq_
+* `io.opentracing.contrib.spring.rabbitmq`
 * _io.opentracing.contrib.jdbc_
 * _io.opentracing.thrift_
 * _io.opentracing.contrib.asynchttpclient_
