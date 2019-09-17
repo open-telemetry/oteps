@@ -52,7 +52,7 @@ Instead of setting the `component` property based on the given tracer names, tho
 
 ## Future possibilities
 
-By adapting this proposal, current implementations that do not honor the specified tracer name and provide a single global tracer, would not require much change. However they could change that behavior in future versions and provide more specific tracer implementations then. On the other side, if the mechanism of *Named Tracers* is not a part of the initial specification, such scenarios will be prevented and hard to retrofit in future version, should they be deemed necessary then. 
+By adapting this proposal, current implementations that do not make use of the specified tracer name and provide a single global tracer, would not require much change. However they could change that behavior in future versions and provide more specific tracer implementations then. On the other side, if the mechanism of *Named Tracers* is not a part of the initial specification, such scenarios will be prevented and hard to retrofit in future version, should they be deemed necessary then. 
 
 ## Examples (of Tracer names)
 
