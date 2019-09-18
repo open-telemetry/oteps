@@ -85,7 +85,7 @@ The specification will be updated with the following guidance.
 
 Likely to be the most common kind of metric, cumulative metric events express the computation of a sum.  Choose this kind of metric when the value is a quantity, the sum is of primary interest, and the event count and distribution are not of primary interest.  To raise (or lower) a cumulative metric, call the `Add()` method.
 
-If the quantity in question is always non-negative, it implies that the sum never descends.  This is the common case, where cumulative metrics only go up, and these _unidirectional_ cumulative metric instruments serve to compute a rate.  For this reason, cumulative metrics have a `Bidirectional` option to be declared as allowing negative inputs, the uncommon case.  The API will reject negative inputs to (default) unidirectional cumulative metrics, instead submitting an SDK error event, which helps ensure meaningful rate calculations.
+If the quantity in question is always non-negative, it implies that the sum is monotonic.  This is the common case, where cumulative metrics only go up, these metric instruments serve to compute a rate.  For this reason, cumulative metrics have a `NonMonotonic` option to be declared as allowing negative inputs, the uncommon case.  The SDK should reject negative inputs to monotonic cumulative metrics, but it is not required to.
 
 For cumulative metrics, the default OpenTelemetry implementation exports the sum of event values taken over an interval of time.
 
@@ -95,7 +95,7 @@ Gauge metrics express a pre-calculated value that is either `Set()` by explicit 
 
 Only the gauge kind of metric supports observing the metric via a gauge `Observer` callback (as an option, see `0008-metric-observer.md`).  Semantically, there is an important difference between explicitly setting a gauge and observing it through a callback.  In case of setting the gauge explicitly, the call happens inside of an implicit or explicit context.  The implementation is free to associate the explicit `Set()` event with a context, for example.  When observing gauge metrics via a callback, there is no context associated with the event.
 
-As a special case, to support existing metrics infrastructure and the `Observer` pattern, a gauge metric may be declared as a precomputed, unidirectional sum using the `Unidirectional` option, in which case it is may be used to define a rate.  The initial value is presumed to be zero.  The API will reject descending updates to non-descending gauges, instead submitting an SDK error event.  
+As a special case, to support existing metrics infrastructure and the `Observer` pattern, a gauge metric may be declared as a precomputed, monotonic sum using the `Monotonic` option, in which case it is may be used to define a rate.  The initial value is presumed to be zero.  The SDK should reject descending updates to non-descending gauges, but it is not required to.
 
 For gauge metrics, the default OpenTelemetry implementation exports the last value that was explicitly `Set()`, or if using a callback, the current value from the `Observer`.
 
@@ -108,7 +108,7 @@ Measure metrics express a distribution of values.  This kind of metric should be
 
 The key property of a measure metric event is that computing quantiles and/or summarizing a distribution (e.g., via a histogram) may be expensive.  Not only will implementations have various capabilities and algorithms for this task, users may wish to control the quality and cost of aggregating measure metrics.
 
-Like cumulative metrics, non-negative measures are an important case because they support rate calculations. As an option, measure metrics may be declared as `NonNegative`.  The API will reject negative metric events for non-negative measures, instead submitting an SDK error event.
+Like cumulative metrics, non-negative measures are an important case because they support rate calculations.  Like cumulative metrics, non-negative is the default case since non-negative quantities are common.  As an option, measure metrics may be declared as `Signed` to support positive and negative values.  The API should reject negative metric events for non-negative measures, but it is not required to.
 
 Because measure metrics have such wide application, implementations are likely to provide configurable behavior.  OpenTelemetry may provide such a facility in its standard SDK, but in case no configuration is provided by the application, a low-cost policy is specified as the default behavior, which is to export the sum, the count (rate), the minimum value, and the maximum value.
 
@@ -122,11 +122,19 @@ The optional properties of a metric instrument are:
 
 | Property | Description | Metric kind |
 |----------|-------------|-------------|
-| Required Keys | Determines labels that are always set on metric handles | All kinds |
+| Required Keys | Determines labels that are always defined on metric handles | All kinds |
 | Disabled | Indicates a verbose metric that does not report by default | All kinds |
-| Bidirectional | Indicates a cumulative metric instrument that goes up and down | Cumulative |
-| Unidirectional | Indicate a gauge that only ascends, for rate calculation | Gauge |
-| NonNegative | Indicates a measure that is never negative, for rate calculation | Measure |
+| NonMonotonic | Indicates a cumulative metric instrument that goes up and down | Cumulative |
+| Monotonic | Indicate a gauge that only ascends (for rate calculation) | Gauge |
+| Signed | Indicates a measure that is positive or negative | Measure |
+
+The optional modes are compared with their defaults here:
+
+| Metric kind | Default behavior | Alternate behavior | Support for | 
+|-------------|------------------|--------------------|-----------------------|
+| Cumulative  | Monotonic        | NonMonotonic       | Up-down counters |
+| Gauge       | NonMonotonic     | Monotonic          | Cumulative gauges |
+| Measure     | NonNegative      | Signed             | Negative measurements |
 
 ### RecordBatch API
 
