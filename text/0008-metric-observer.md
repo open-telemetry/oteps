@@ -12,15 +12,15 @@ The current specification describes metric callbacks as an alternate means of ge
 
 Gauge metric instruments are typically used to reflect properties that are pre-computed by a system, where the measurement interval is arbitrary.  When selecting a gauge, as opposed to the cumulative or measure kind of metric instrument, there could be significant computational cost in computing the current value.  When this is the case, it is understandable that we are interested in computing them on demand to minimize cost.
 
-Why are gauges different than cumulative and measure instruments?  Measure instruments, by definition, carry information in the individual event, so the callback cannot optimize any better than the SDK can in this case.  Cumulative instruments are more commonly used to record amounts that are readily available, such as the number of bytes read or written, and while this may not always be true, recall the special case of `Monotonic` gauges.
+Why are gauges different than cumulative and measure instruments?  Measure instruments, by definition, carry information in the individual event, so the callback cannot optimize any better than the SDK can in this case.  Cumulative instruments are more commonly used to record amounts that are readily available, such as the number of bytes read or written, and while this may not always be true, recall the special case of `NonDescending` gauges.
 
-`Monotonic` gauges owe their existence to this case, that we support monotonic cumulative metrics which, being expensive to compute, are recommended for use with `Observer` callbacks.  For example, if it requires a system call or more to compute a monotonic sum, such as the _cpu seconds_ consumed by the process, we should declare a monotonic gauge `Observer` for the instrument, instead of a cumulative.  This allows the cost of the metric to be reduced according to the desired monitoring frequency.
+`NonDescending` gauges owe their existence to this case, that we support non-negative cumulative metrics which, being expensive to compute, are recommended for use with `Observer` callbacks.  For example, if it requires a system call or more to compute a non-descending sum, such as the _cpu seconds_ consumed by the process, we should declare a non-descending gauge `Observer` for the instrument, instead of a cumulative.  This allows the cost of the metric to be reduced according to the desired monitoring frequency.
 
 One significant difference between gauges that are explicitly `Set()`, as compared with observer callbacks, is that `Set()` happens inside a context, whereas the observer callback does not.
 
 ## Details
 
-Observer callbacks are only supported for gauge metric instruments.  Use the language-specific constructor for an Observer gauge (e.g., `metric.NewFloat64Observer()`).  Observer gauges support the `Monotonic` option.
+Observer callbacks are only supported for gauge metric instruments.  Use the language-specific constructor for an Observer gauge (e.g., `metric.NewFloat64Observer()`).  Observer gauges support the `NonDescending` option.
 
 Callbacks return a map from _label set_ to gauge value. Gauges declared with observer callbacks cannot also be `Set`.
 
