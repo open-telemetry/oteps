@@ -14,11 +14,13 @@ _Creating Tracers using a factory mechanism and naming those Tracers in accordan
 
 The mechanism of "Named Tracers" proposed here is motivated by following scenarios:
 
-* As a consumer of OpenTelemetry instrumentation libraries, there is currently no possibility of influencing the amount of the data produced by such libraries. Instrumentation libraries can easily "spam" backend systems, deliver bogus data or - in the worst case - crash or slow down applications. These problems might even occur suddenly in production environments caused by external factors such as increasing load or unexpected input data.
+* For a consumer of OpenTelemetry instrumentation libraries, there is currently no possibility of influencing the amount of the data produced by such libraries. Instrumentation libraries can easily "spam" backend systems, deliver bogus data or - in the worst case - crash or slow down applications. These problems might even occur suddenly in production environments caused by external factors such as increasing load or unexpected input data.
 
-* If a library hasn't implemented semantic conventions correctly or those conventions change over time, it's currently hard to interpret and sanitize these data selectively. The produced Spans cannot associated with those instrumentation libraries later.
+* If a library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize these data selectively. The produced Spans cannot associated with those instrumentation libraries later.
 
-This proposal attempts to solve the stated problems by introducing the concept of _Named Tracers_. These associate a given identifier (e.g. _"io.opentelemetry.contrib.mongodb"_, _"1.0.0"_) with a Tracer and its produced Spans.
+This proposal attempts to solve the stated problems by introducing the concept of:
+ * _Named Tracers_ identified via a Resource (e.g. _"io.opentelemetry.contrib.mongodb"_, _"1.0.0"_) which is associated with the Tracer and the Spans it produces.
+ * A `TracerFactory` as the only means of creating a Tracer.
 
 Based on such an identifier, a Sampler could be implemented that discards Spans from certain libraries. Also, by providing a custom Exporter, Span data could be sanitized before it gets processed in a back-end system. However, this is beyond the scope of this proposal, which only provides the fundamental mechanisms.
 
@@ -26,7 +28,7 @@ Based on such an identifier, a Sampler could be implemented that discards Spans 
 
 From a user perspective, working with *Named Tracers* and *TracerFactories* is conceptually similar to how e.g. the [Java logging API](https://docs.oracle.com/javase/7/docs/api/java/util/logging/Logger.html#getLogger(java.lang.String)) and logging frameworks like [log4j](https://www.slf4j.org/apidocs/org/slf4j/LoggerFactory.html) work. In analogy to requesting Logger objects through LoggerFactories, a tracing library would create specific 'Tracer' objects through a 'TracerFactory'.
 
-Instead of using simple strings as an argument for creating new Tracers a Resource identifying an instrumentation library is used. Such resources must have a _version_ and _name_ labels (there could be semantic convention definitions for those).
+Instead of using plain strings as an argument for creating new Tracers a Resource identifying an instrumentation library is used. Such resources must have a _version_ and _name_ labels (there could be semantic convention definitions for those labels). Version values will follow the conventions proposed [here](https://github.com/open-telemetry/oteps/pull/38).
 
 
 ```java
@@ -39,13 +41,13 @@ Resource libraryResource = Resource.create(libraryLabels);
 Tracer tracer = OpenTelemetry.getTracerFactory().getTracer(libraryResource);
 ```
 
-In a way, the `TracerFactory` replaces the global `Tracer` singleton object as a ubiquitous point to request a Tracer instance.
+This `TracerFactory` replaces the global `Tracer` singleton object as a ubiquitous point to request a Tracer instance.
 
 ## Internal details
 
 By providing a `TracerFactory` and *Named Tracers*, a vendor or OpenTelemetry implementation gains more flexibility in providing Tracers and which attributes they set in the resulting spans that are produced.
 
-The span API is extended with a `getLibraryResource` function that returns the resource associated with the Tracer that created the span.
+The SpanData class is extended with a `getLibraryResource` function that returns the resource associated with the Tracer that created the span.
 
 If there are two different instrumentation libraries for the same technology (e.g. MongoDb), these instrumentation libraries should have distinct names.
 
