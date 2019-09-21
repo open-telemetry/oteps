@@ -1,53 +1,34 @@
-# Version Resource Type
+# Version Semantic Attribute
 
 **Status:** `proposed`
 
-Add a composable 'Version' resource type.
+Add a standard `version` semantic attribute.
 
 ## Motivation
 
 When creating trace data or metrics, it can be extremely useful to know the specific version that
 emitted the iota of span or measurement being viewed. However, versions can mean different things
-to different systems and users, leading to a situation where a semantic `Version` type that can
-encapsulate these identifiers would be useful for analysis systems in order to allow for slicing
-data by service, component, or other version.
+to different systems and users. In addition, downstream analysis systems may wish to expose
+functionality related to the type of a version (such as detecting when versions are newer or older).
+To support this, we should standardize a `version` attribute with optional hints as to the type of the
+version.
 
 ## Explanation
 
-A `Version` is a semantic resource that can be composed with other resources, such as a `Service`, 
-`Component`, `Library`, `Device`, `Platform`, etc. A `Version` is optional, but recommended.
-The definition of a `Version` is as follows:
+A `version` is a semantic attribute that can be applied to other resources, such as `Service`,
+`Component`, `Library`, `Device`, `Platform`, etc. A `version` attribute is optional, but recommended.
+The definition of a `version` is a key-value attribute pair of `string` to `string`, with naming schemas
+available to hint at the type of a version, such as the following:
 
-| Key     | Value  | Description                                  |
-|---------|--------|----------------------------------------------|
-| semver  | string | version string in semver format              |
-| git_sha | string | version string as a git sha                  |
-
-Only one field should be specified in a single `Version`. 
+`version=semver:1.2.3` (a semantic version)
+`version=git:8ae73a` (a git sha hash)
+`version=0.0.4.2.20190921` (a untyped version)
 
 ## Internal details
 
-The exact implementation of this resource would vary based on language, but it would ultimately need to be represented in the data format so that it could be commmunicated to analysis backends. A JSON representation of a version resource follows:
-
-```
-{
-    "version": {
-        "type": "semver",
-        "value": "1.0.0",
-    }
-}
-```
-
-## Trade-offs and mitigations
-
-The largest drawback to this proposal is that there is a wide variety of things that constitute a 'version string'. By design, we do not attempt to solve for all of them in this proposal - instead, we focus on versions strings that are well-understood to have some semantic meaning attached to them if properly used.
+Since this is just an attribute pair, no special handling is required, although SDKs may provide helper methods
+to construct schema-appropriate values.
 
 ## Prior art and alternatives
 
 Tagging service resources with their version is generally suggested by analysis tools -- see [JAEGER_TAGS](https://www.jaegertracing.io/docs/1.8/client-features/) for an example -- but lacks standardization.
-
-## Open questions
-
-What should the exact representation of the version object be?
-
-Would it make more sense to just have a `version` key that any arbitrary string can be applied to?
