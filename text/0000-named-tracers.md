@@ -77,15 +77,15 @@ Since Tracer names describe the libraries which use the Tracers, those names sho
 
 Examples (based on existing contribution libraries from OpenTracing and OpenCensus):
 
-* _io.opentracing.contrib.spring.rabbitmq_
-* _io.opentracing.contrib.jdbc_
-* _io.opentracing.thrift_
-* _io.opentracing.contrib.asynchttpclient_
-* _io.opencensus.contrib.http.servlet_
-* _io.opencensus.contrib.spring.sleuth.v1x_
-* _io.opencensus.contrib.http.jaxrs_
-* _github.com/opentracing-contrib/go-amqp_ (Go)
-* _github.com/opentracing-contrib/go-grpc_ (Go)
-* _OpenTracing.Contrib.NetCore.AspNetCore_ (.NET)
-* _OpenTracing.Contrib.NetCore.EntityFrameworkCore_ (.NET)
+* io.opentracing.contrib.spring.rabbitmq
+* io.opentracing.contrib.jdbc
+* io.opentracing.thrift
+* io.opentracing.contrib.asynchttpclient
+* io.opencensus.contrib.http.servlet
+* io.opencensus.contrib.spring.sleuth.v1x
+* io.opencesus.contrib.http.jaxrs
+* github.com/opentracing-contrib/go-amqp (Go)
+* github.com/opentracing-contrib/go-grpc (Go)
+* OpenTracing.Contrib.NetCore.AspNetCore (.NET)
+* OpenTracing.Contrib.NetCore.EntityFrameworkCore (.NET)
 
