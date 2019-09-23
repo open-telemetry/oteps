@@ -1,6 +1,6 @@
 # Version Semantic Attribute
 
-**Status:** `proposed`
+**Status:** `approved`
 
 Add a standard `version` semantic attribute.
 
