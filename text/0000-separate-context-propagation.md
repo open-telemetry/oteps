@@ -23,7 +23,7 @@ Based on prior art, we know that fusing the observability system and the context
 
 OpenTelemetry is a distributed program, which requires non-local, transaction-level context in order to execute correctly. Transaction-level context can also be used to build other distributed programs, such as security, versioning, and network switching programs.
 
-To allow for this extensibility, OpenTelemetry is separated into **application layer** and a **context propagation layer**. In this architecture, multiple distributed applications - such as the observability and baggage systems provided by OpenTelemetry - simultaneously share the same underlying context propagation system in order to execute their programs.
+To allow for this extensibility, OpenTelemetry is separated into an **application layer** and a **context propagation layer**. In this architecture, multiple distributed applications - such as the observability and baggage systems provided by OpenTelemetry - simultaneously share the same underlying context propagation system in order to execute their programs.
 
 
 # Application Layer
@@ -38,8 +38,11 @@ The general form for all observability APIs is a function which takes a Context,
 **Correlate(context, label, value, hoplimit) -> context**  
 To set the label values used by all observations in the current transaction, the Observability API provides a function which takes a context, a label key, a value, and a hoplimit, and returns an updated context. If the hoplimit is set to NO_PROPAGATION, the label will only be available to observability functions in the same process. If the hoplimit is set to UNLIMITED_PROPAGATION, it will be available to all downstream services.
 
-**GetPropagator(type) -> (inject, extract)**  
-To register with the propagation system, the Observability API provides a set of propagation functions for every propagation type. 
+**GetHTTPExtractor() -> extractor**  
+To deserialize the state of the observability system in the prior upstream process, the Observability API provides a function which returns a HTTPExtract function. 
+
+**GetHTTPInjector() -> injector**  
+To serialize the the current state of the observability system and send it to the next downstream process, the Observability API provides a function which returns a HTTPInject function. 
 
 
 ## Baggage API
@@ -59,17 +62,22 @@ To delete distributed state from an application, the Baggage API provides a func
 
 **ClearBaggage(context) -> context**  
 To avoid sending baggage to an untrusted downstream process, the Baggage API provides a function remove all baggage from a context, 
+**GetHTTPExtractor() -> extractor**  
+To deserialize the state of the system in the prior upstream process, the Baggage API provides a function which returns a HTTPExtract function. 
 
-**GetPropagator(type) -> (inject, extract)**  
-To register with the propagation system, the Baggage API provides a set of propagation functions for every propagation type.
+**GetHTTPInjector() -> injector**  
+To serialize the the current state of the system and send it to the next downstream process, the Baggage API provides a function which returns a HTTPInject function. 
 
 
 ## Additional APIs
 
 Because the application and context propagation layers are separated, it is possible to create new distributed applications which do not depend on either the Observability or Baggage APIs.
 
-**GetPropagator(type) -> (inject, extract)**  
-To register with the propagation system, additional APIs provide a set of propagation functions for every propagation type.
+**GetHTTPExtractor() -> extractor**  
+To deserialize the state of the system in the prior upstream process, all additional APIs provide a function which returns a HTTPExtract function. 
+
+**GetHTTPInjector() -> injector**  
+To serialize the the current state of the  system and send it to the next downstream process, all additional APIs provide a function which returns a HTTPInject function. 
 
 
 # Context Propagation Layer
@@ -96,21 +104,19 @@ To access the context associated with program execution, the Context API provide
 
 ## Propagation API
 
-Distributed applications send data to downstream processes via propagators, functions which read and write application context into RPC requests. Each distributed application creates a set of propagators for every type of supported medium - currently HTTP and Binary.
+Distributed applications propagate their state by data to downstream processes via injectors, functions which read and write application context into RPC requests. Each distributed application creates a set of propagators for every type of supported medium - currently only HTTP requests.
 
-**Inject(context, request)**  
-To send the data for all distributed applications downstream to the next process, the Propagation API provides a function which takes a context and a request, and mutates the request to include the encoded context. The canonical representation of a request is as a map.
+**HTTPInject(context, request)**  
+To send the data for all distributed applications downstream to the next process, the Propagation API provides a function which takes a context and an HTTP request, and mutates the HTTP request to include an HTTP Header representation of the context.
 
-**Extract(context, request) -> context**  
-To receive data injected by prior upstream processes, the Propagation API provides a function which takes a context and a request, and returns an updated context.
+**HTTPExtract(context, request) -> context**  
+To receive data injected by prior upstream processes, the Propagation API provides a function which takes a context and an HTTP request, and returns context which represents the state of the upstream system.
 
-**RegisterPropagator(type, inject, extract)**  
+**ChainHTTPInjector(injector, injector) injector** 
 In order for the application layer to function correctly, Propagation choices must be syncronized between all processes in the distributed system, and multiple applications must be able to inject and extract their context into the same request. To meet these requirements, the Propagation API provides a function which registers a set of propagators, which will all be executed in order when the future calls to inject and extract are made. A canonical propagator consists of an inject and an extract function.
 
-OpenTelemetry currently contains two types of Propagators:
-
-* **HTTP** - context is written into and read from a map of HTTP headers.
-* **Binary** - context is serialized into and deserialized from a stream of bytes.
+**ChainHTTPExtractor(extractor, extractor) extractor** 
+In order for the application layer to function correctly, Propagation choices must be syncronized between all processes in the distributed system, and multiple applications must be able to inject and extract their context into the same request. To meet these requirements, the Propagation API provides a function which registers a set of propagators, which will all be executed in order when the future calls to inject and extract are made. A canonical propagator consists of an inject and an extract function.
 
 # Internal details
 
