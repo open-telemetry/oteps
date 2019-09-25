@@ -16,7 +16,7 @@ The mechanism of "Named Tracers" proposed here is motivated by following scenari
 
 * For a consumer of OpenTelemetry instrumentation libraries, there is currently no possibility of influencing the amount of the data produced by such libraries. Instrumentation libraries can easily "spam" backend systems, deliver bogus data or - in the worst case - crash or slow down applications. These problems might even occur suddenly in production environments caused by external factors such as increasing load or unexpected input data.
 
-* If a library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize these data selectively. The produced Spans cannot associated with those instrumentation libraries later.
+* If a library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize these data selectively. The produced Spans cannot be associated with those instrumentation libraries later.
 
 This proposal attempts to solve the stated problems by introducing the concept of:
  * _Named Tracers_ identified via a name (e.g. _"io.opentelemetry.contrib.mongodb"_) and a version (e.g._"semver:1.0.0"_) which is associated with the Tracer and the Spans it produces.
@@ -41,7 +41,7 @@ Tracer tracer = OpenTelemetry.getTracerFactory().getTracer("io.opentelemetry.con
 
 This `TracerFactory` replaces the global `Tracer` singleton object as a ubiquitous point to request a Tracer instance.
 
-If no tracer name (null or empty string) is specified, following the suggestions in ["error handling proposal"](open-telemetry/opentelemetry-specification#153), a "smart default" will be applied and a default tracer implementation is returned.
+If no tracer name (null or empty string) is specified, following the suggestions in ["error handling proposal"](https://github.com/open-telemetry/opentelemetry-specification/pull/153), a "smart default" will be applied and a default tracer implementation is returned.
 
 
 ## Internal details
