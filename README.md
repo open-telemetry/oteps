@@ -51,7 +51,7 @@ For example, an RFC proposing configurable sampling *and* various samplers shoul
 ### Writing an RFC
 
 * First, [fork](https://help.github.com/en/articles/fork-a-repo) this [repo](https://github.com/open-telemetry/oteps).
-* Copy [`0000-template.md`](./0000-template.md) to `text/0000-my-rfc.md`, where `my-rfc` is a title relevant to your proposal. Leave the number as is for now.
+* Copy [`0000-template.md`](./0000-template.md) to `text/0000-my-rfc.md`, where `my-rfc` is a title relevant to your proposal, and `0000` is the RFC ID. Leave the number as is for now. Once a Pull Request is made, update this ID to match the PR ID.
 * Fill in the template. Put care into the details: It is important to present convincing motivation, demonstrate an understanding of the design's impact, and honestly assess the drawbacks and potential alternatives.
 
 ### Submitting the RFC
