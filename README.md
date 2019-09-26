@@ -5,23 +5,16 @@
 # OpenTelemetry RFCs
 ## Evolving OpenTelemetry at the speed of Markdown
 
-The OpenTelemetry "RFC" (request for comments) process aims to track the **rationale** behind *new functionality*, including trade-offs and alternatives that have been considered.
-
-Much like how designers may improve user research feedback cycles by using prototypes instead of production-ready implementations, we hope that RFCs will help the OpenTelemetry consider functionality more quickly and thoroughly than, say, jumping directly into the standard pull request workflow.
-
-Bug fixes and changes with no external impact, such as refactors, can skip the RFC process and instead stick with the standard GitHub tooling :)
+OpenTelemetry uses an "RFC" (request for comments) process for proposing changes to the [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification).
 
 ### Table of Contents
 
-* [Opening](#opentelemetry-rfcs)
 * [What changes require an RFC?](#what-changes-require-an-rfc)
-  * [Extrapolating cross-cutting changes](#extrapolating-cross-cutting-changes)
 * [RFC scope](#rfc-scope)
-* [The RFC life cycle](#the-rfc-life-cycle)
-* [Submitting a new RFC](#submitting-a-new-rfc)
-* [Reviewing an RFC](#reviewing-an-rfc)
-* [Implementing an RFC](#implementing-an-rfc)
-* [RFCs vs GitHub issues](#rfcs-vs-github-issues)
+* [Writing an RFC](#writing-an-rfc)
+* [Submitting the RFC](#submitting-the-rfc)
+* [Integrating the RFC into the Spec](#integrating-the-rfc-into-the-spec)
+* [Implementing the RFC](#implementing-the-rfc)
 * [Changes to the RFC process](#changes-to-the-rfc-process)
 * [Background on the OpenTelemtry RFC process](#background-on-the-opentelemetry-rfc-process)
 
@@ -55,69 +48,37 @@ While RFCs are intended for "significant" changes, we recommend trying to keep e
 
 For example, an RFC proposing configurable sampling *and* various samplers should instead be split into one RFC proposing configurable sampling as well as an RFC per sampler.
 
-### The RFC life cycle
+### Writing an RFC
 
-An RFC may go through the following states:
+* First, [fork](https://help.github.com/en/articles/fork-a-repo) this [repo](https://github.com/open-telemetry/oteps).
+* Copy [`0000-template.md`](./0000-template.md) to `text/0000-my-rfc.md`, where `my-rfc` is a title relevant to your proposal. Leave the number as is for now.
+* Fill in the template. Put care into the details: It is important to present convincing motivation, demonstrate an understanding of the design's impact, and honestly assess the drawbacks and potential alternatives.
 
-* `proposed`: The starting state. The RFC is still pending approval and should be actively refined and discussed
-* `approved`: The RFC has been approved and is ready to be implemented
-* `implemented`: The RFC has been completed
-* `deferred`: The RFC's approval has been deferred until late, e.g., because significant open questions cannot be answered yet
-* `rejected`: The approvers and/or authors (hopefully together!) have decided against implementing the RFC
-* `withdrawn`: The authors have withdrawn the RFC. Either the original authors or other community members are still welcome to re-open it in the future
-* `replaced`: The RFC has been superseded by a new one
+### Submitting the RFC
+* An RFC is `proposed` by posting it as a PR. Once the PR is created, update the RFC file name to use the PR ID as the RFC ID.
+* An RFC is `approved` when four reviewers github-approve the PR. The RFC is then merged.
+* If an RFC is `rejected` or `withdrawn`, the PR is closed. Note that these RFCs submissions are still recorded, as Github retains both the discussion and the proposal, even if the branch is later deleted.
+* If an RFC discussion becomes long, and the RFC then goes through a major revision, the next version of the RFC can be posted as a new PR, which references the old PR. The old PR is then closed. This makes RFC review easier to follow and participate in.
 
-If the rationale behind a change of state cannot be easily inferred - e.g., if and when it becomes `deferred` - the reason should be clearly documented in the relevant commit.
+### Integrating the RFC into the Spec
+* Once an RFC is `approved`, an issue is created in the [specification repo](https://github.com/open-telemetry/opentelemetry-specification) to integrate the RFC into the spec.
+* When reviewing the spec PR for the RFC, focus on whether the spec is written clearly, and reflects the changes approved in the RFC. Please abstain from relitigating the approved RFC changes at this stage.
+* And RFC is `integrated` when four reviewers github-approve the spec PR. The PR is then merged, and the spec is versioned.
 
-### Submitting a new RFC
+### Implementing the RFC
+* Once an RFC is `integrated` into the spec, an issue is created in the backlog of every relevant OpenTelemetry implementation.
+* PRs are made until the all the requested changes are implemented.
+* The status of the OpenTelemetry implementation is updated to reflect that it is implementing a new version of the spec.
 
-1. If you haven't done so yet, [fork](https://help.github.com/en/articles/fork-a-repo) the [repo](https://github.com/open-telemetry/rfcs)
-1. Copy [`0000-template.md`](./0000-template.md) to `text/0000-my-rfc.md`, where `my-rfc` is a title relevant to your proposal. Leave the number as is for now.
-1. Fill in the template. Do not omit things you think may be obvious to readers; it's better to be too explicit than to leave ambiguity! In particular, assume that no one else cares yet about the proposal, and that your are writing this to **convince** them that they should :)
-1. Submit a [pull request](https://github.com/open-telemetry/compare). Assuming that your RFC follows the template and there are no significant omissions, the pull request will be accepted and your RFC will be assigned a number
-    * TODO: Should this be automated?
-1. A new "work-in-progress" (WIP) pull request will be created with that updates the RFC's status to `approved`
-    * TODO: This should probably be automated
-1. In the WIP pull request, your proposed RFC will now be up for feedback from the OpenTelemetry community. Others may suggest changes, raise concerns, or add new pull requests building on top of yours
-1. Aim to address the discussion! While you are the champion of the RFC, the community collectively owns the result. We're all in this together :)
-    * Please make changes as new commits, documenting the reasoning for each in the commit message. Try to avoid squashing, rebasing, force-pushing, etc. at this point, as doing so may mess with the historical discussion on GitHub
-1. Once the value and trade-offs of the change have been sufficiently discussed, a non-author member of the relevant SIG will remove "WIP" from the PR's title and propose a "motion for final comment period" (FCP)
-    * By this point, no **new** points should have been raised in the discussion for **at least three business days**
-    * If substantial new points (e.g., a significant trade-off) are raised *during* the FCP, the FCP should be cancelled and discussion renewed
-1. During the FCP, SIG members should each vote to `approve`, `reject`, or `defer` the RFC
-    * If the discussion has been contentious, members should explain the rationale behind their vote
-1. The FCP will be considered closed and the RFC either approved, rejected, or approved after the following conditions have all been met:
-    * At least two business days have passed since the FCP began
-    * Either:
-      * A majority of non-author members have voted
-      * At least three non-author members have voted, and the vote is unanimous
-1. The RFC will be merged with the appropriate state
-
-### Reviewing an RFC
-
-Discussion should primarily take place in the pull request aimed at approving the RFC. Any discussion that takes place outside of GitHub - e.g., in meetings or community chat - should be summarized and added to the pull request.
-
-### Implementing an RFC
-
-Once an RFC has been approved, a corresponding issue should be created and prioritized accordingly in the relevant repository.
-
-The original author is welcome but not obligated to implement it. If you are interested in implementing an RFC, please mention it in either the RFC pull request or the new issue (depending on which is active by then). While authors who are interested in implementation generally get priority, we encourage anyone who's interested to collaborate together!
-
-If neither an author nor another community member asks to implement the RFC, it will be assigned once it gets high enough in the backlog.
-
-### RFCs vs GitHub issues
-
-The RFC process primarily aims to document, and facilitate discussion of, the **motivation** and **known drawbacks** of a suggested change. While issues (and pull requests) can definitely accomplish some of this, experience from prior projects has demonstrated that they quickly become too unwieldy, e.g., because the search tools available for issues are much more limited than what's available for a repository's code (or "code", in this case!).
-
-### Changes to the RFC process
+## Changes to the RFC process
 
 The hope and expectation is that the RFC process will **evolve** with the OpenTelemetry. The process is by no means fixed.
 
 Have suggestions? Concerns? Questions? **Please** raise an issue or raise the matter on our [community](https://github.com/open-telemetry/community) chat.
 
-### Background on the OpenTelemetry RFC process
+## Background on the OpenTelemetry RFC process
 
-Our RFC process borrows (very!) heavily from the [Rust RFC](https://github.com/rust-lang/rfcs) and [Kubernetes Enhancement Proposal](https://github.com/kubernetes/enhancements) processes, the former also being [very influential](https://github.com/kubernetes/enhancements/blob/master/keps/0001-kubernetes-enhancement-proposal-process.md#prior-art) on the latter; as well as the [OpenTracing RFC](https://github.com/opentracing/specification/tree/master/rfc) process. Massive kudos and thanks to the respective authors and communities for providing excellent prior art 💖
+Our RFC process borrows from the [Rust RFC](https://github.com/rust-lang/rfcs) and [Kubernetes Enhancement Proposal](https://github.com/kubernetes/enhancements) processes, the former also being [very influential](https://github.com/kubernetes/enhancements/blob/master/keps/0001-kubernetes-enhancement-proposal-process.md#prior-art) on the latter; as well as the [OpenTracing RFC](https://github.com/opentracing/specification/tree/master/rfc) process. Massive kudos and thanks to the respective authors and communities for providing excellent prior art 💖
 
 [circleci-image]: https://circleci.com/gh/open-telemetry/rfcs.svg?style=svg 
 [circleci-url]: https://circleci.com/gh/open-telemetry/rfcs
