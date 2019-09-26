@@ -63,7 +63,7 @@ For example, an RFC proposing configurable sampling *and* various samplers shoul
 ### Integrating the RFC into the Spec
 * Once an RFC is `approved`, an issue is created in the [specification repo](https://github.com/open-telemetry/opentelemetry-specification) to integrate the RFC into the spec.
 * When reviewing the spec PR for the RFC, focus on whether the spec is written clearly, and reflects the changes approved in the RFC. Please abstain from relitigating the approved RFC changes at this stage.
-* And RFC is `integrated` when four reviewers github-approve the spec PR. The PR is then merged, and the spec is versioned.
+* An RFC is `integrated` when four reviewers github-approve the spec PR. The PR is then merged, and the spec is versioned.
 
 ### Implementing the RFC
 * Once an RFC is `integrated` into the spec, an issue is created in the backlog of every relevant OpenTelemetry implementation.
