@@ -45,14 +45,30 @@ If a library (or application) has instrumentation built-in, it is both the instr
 
 If no name (null or empty string) is specified, following the suggestions in ["error handling proposal"](https://github.com/open-telemetry/opentelemetry-specification/pull/153), a "smart default" will be applied and a default Tracer / Meter implementation is returned.
 
+### Examples (of Tracer and Meter names)
+
+Since Tracer and Meter names describe the libraries which use those Tracers and Meters, their names should be defined in a way that makes them as unique as possible.
+The name of the Tracer / Meter should represent the identity of the library, class or package that provides the instrumentation. 
+
+Examples (based on existing contribution libraries from OpenTracing and OpenCensus):
+
+* `io.opentracing.contrib.spring.rabbitmq`
+* `io.opentracing.contrib.jdbc`
+* `io.opentracing.thrift`
+* `io.opentracing.contrib.asynchttpclient`
+* `io.opencensus.contrib.http.servlet`
+* `io.opencensus.contrib.spring.sleuth.v1x`
+* `io.opencesus.contrib.http.jaxrs`
+* `github.com/opentracing-contrib/go-amqp` (Go)
+* `github.com/opentracing-contrib/go-grpc` (Go)
+* `OpenTracing.Contrib.NetCore.AspNetCore` (.NET)
+* `OpenTracing.Contrib.NetCore.EntityFrameworkCore` (.NET)
 
 ## Internal details
 
 By providing a `TracerFactory` / `MeterFactory` and *Named Tracers / Meters*, a vendor or OpenTelemetry implementation gains more flexibility in providing Tracers and Meters and which attributes they set in the resulting Spans and Metrics that are produced.
 
 On an SDK level, the SpanData class and its Metrics counterpart are extended with a `getLibraryResource` function that returns the resource associated with the Tracer / Meter that created it.
-
-If there are two different instrumentation libraries for the same technology (e.g. MongoDb), these instrumentation libraries should have distinct names.
 
 ## Prior art and alternatives
 
@@ -61,7 +77,7 @@ This proposal originates from an `opentelemetry-specification` proposal on [comp
 Alternatively, instead of having a `TracerFactory`, existing (global) Tracers could return additional indirection objects (called e.g. `TraceComponent`), which would be able to produce spans for specifically named traced components.
 
 ```java
-TraceComponent traceComponent = OpenTelemetry.Tracing.getTracer().componentBuilder(libraryResource);
+TraceComponent traceComponent = OpenTelemetry.Tracing.getTracer().componentBuilder("io.opentelemetry.contrib.mongodb", "semver:1.0.0");
 Span span = traceComponent.spanBuilder("someMethod").startSpan();
 ```
 
@@ -89,20 +105,3 @@ Based on the Resource information identifying a Tracer or Meter these could be c
 
 Based on this proposal, future "signal producers" (i.e. logs) can use the same or a similar creation approach.
 
-## Examples (of Tracer and Meter names)
-
-Since Tracer and Meter names describe the libraries which use those Tracers and Meters, their namess should be defined in a way that makes them as unique as possible. The name of the Tracer / Meter should represent the identity of the library, class or package that provides the instrumentation. 
-
-Examples (based on existing contribution libraries from OpenTracing and OpenCensus):
-
-* `io.opentracing.contrib.spring.rabbitmq`
-* `io.opentracing.contrib.jdbc`
-* `io.opentracing.thrift`
-* `io.opentracing.contrib.asynchttpclient`
-* `io.opencensus.contrib.http.servlet`
-* `io.opencensus.contrib.spring.sleuth.v1x`
-* `io.opencesus.contrib.http.jaxrs`
-* `github.com/opentracing-contrib/go-amqp` (Go)
-* `github.com/opentracing-contrib/go-grpc` (Go)
-* `OpenTracing.Contrib.NetCore.AspNetCore` (.NET)
-* `OpenTracing.Contrib.NetCore.EntityFrameworkCore` (.NET)
