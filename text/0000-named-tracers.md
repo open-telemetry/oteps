@@ -1,8 +1,8 @@
-# Named Tracers
+# Named Tracers and Meters
 
 **Status:** `proposed`
 
-_Creating Tracers using a factory mechanism and naming those Tracers in accordance with the library that provides the instrumentation for a traced component._
+_Creating Tracers and Meters using a factory mechanism and naming those Tracers / Meters in accordance with the library that provides the instrumentation for those components._
 
 ## Suggested reading
 
@@ -12,43 +12,45 @@ _Creating Tracers using a factory mechanism and naming those Tracers in accordan
 
 ## Motivation
 
-The mechanism of "Named Tracers" proposed here is motivated by following scenarios:
+The mechanism of "Named Tracers and Meters" proposed here is motivated by following scenarios:
 
 * For a consumer of OpenTelemetry instrumentation libraries, there is currently no possibility of influencing the amount of the data produced by such libraries. Instrumentation libraries can easily "spam" backend systems, deliver bogus data or - in the worst case - crash or slow down applications. These problems might even occur suddenly in production environments caused by external factors such as increasing load or unexpected input data.
 
-* If a library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize these data selectively. The produced Spans cannot be associated with those instrumentation libraries later.
+* If a library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize these data selectively. The produced Spans or Metrics cannot be associated with those instrumentation libraries later.
 
 This proposal attempts to solve the stated problems by introducing the concept of:
- * _Named Tracers_ identified via a name (e.g. _"io.opentelemetry.contrib.mongodb"_) and a version (e.g._"semver:1.0.0"_) which is associated with the Tracer and the Spans it produces.
- * A `TracerFactory` as the only means of creating a Tracer.
+ * _Named Tracers and Meters_ identified via a **name** (e.g. _"io.opentelemetry.contrib.mongodb"_) and a **version** (e.g._"semver:1.0.0"_) which is associated with the Tracer / Meter and the Spans / Metrics it produces.
+ * A `TracerFactory` / `MeterFactory` as the only means of creating a Tracer or Meter.
 
-Based on such an identifier, a Sampler could be implemented that discards Spans from certain libraries. Also, by providing a custom Exporter, Span data could be sanitized before it gets processed in a back-end system. However, this is beyond the scope of this proposal, which only provides the fundamental mechanisms.
+Based on such an identifier, a Sampler could be implemented that discards Spans or Metrics from certain libraries. Also, by providing custom Exporters, Span or Metric data could be sanitized before it gets processed in a back-end system. However, this is beyond the scope of this proposal, which only provides the fundamental mechanisms.
 
 ## Explanation
 
-From a user perspective, working with *Named Tracers* and *TracerFactories* is conceptually similar to how e.g. the [Java logging API](https://docs.oracle.com/javase/7/docs/api/java/util/logging/Logger.html#getLogger(java.lang.String)) and logging frameworks like [log4j](https://www.slf4j.org/apidocs/org/slf4j/LoggerFactory.html) work. In analogy to requesting Logger objects through LoggerFactories, a tracing library would create specific 'Tracer' objects through a 'TracerFactory'.
+From a user perspective, working with *Named Tracers / Meters* and `TracerFactory` / `MeterFactory` is conceptually similar to how e.g. the [Java logging API](https://docs.oracle.com/javase/7/docs/api/java/util/logging/Logger.html#getLogger(java.lang.String)) and logging frameworks like [log4j](https://www.slf4j.org/apidocs/org/slf4j/LoggerFactory.html) work. In analogy to requesting Logger objects through LoggerFactories, a tracing library would create specific Tracer / Meter objects through a TracerFactory / MeterFactory.
 
-New Tracers can be created by providing the name and version of an instrumentation library. The version (following the convention proposed in https://github.com/open-telemetry/oteps/pull/38) is basically optional but *should* be supplied since only this information enables following scenarios:
+New Tracers or Meters can be created by providing the name and version of an instrumentation library. The version (following the convention proposed in https://github.com/open-telemetry/oteps/pull/38) is basically optional but *should* be supplied since only this information enables following scenarios:
 * Only a specific range of versions of a given instrumentation library need to be suppressed, while other versions are allowed (e.g. due to a bug in those specific versions).
 * Go modules allow multiple versions of the same middleware in a single build so those need to be determined at runtime.
 
-Instead of using plain strings as an argument for creating new Tracers a Resource identifying an instrumentation library is used. Such resources must have a _version_ and _name_ labels (there could be semantic convention definitions for those labels). Version values will follow the conventions proposed [here](https://github.com/open-telemetry/oteps/pull/38).
-
 ```java
-// Create a tracer for given instrumentation library in a specific version.
+// Create a tracer/meter for a given instrumentation library in a specific version.
 Tracer tracer = OpenTelemetry.getTracerFactory().getTracer("io.opentelemetry.contrib.mongodb", "semver:1.0.0");
+Meter meter = OpenTelemetry.getMeterFactory().getMeter("io.opentelemetry.contrib.mongodb", "semver:1.0.0");
 ```
 
-This `TracerFactory` replaces the global `Tracer` singleton object as a ubiquitous point to request a Tracer instance.
+These factories (`TracerFactory` and `MeterFactory`) replace the global `Tracer` / `Meter` singleton objects as ubiquitous points to request Tracer and Meter instances.
 
-If no tracer name (null or empty string) is specified, following the suggestions in ["error handling proposal"](https://github.com/open-telemetry/opentelemetry-specification/pull/153), a "smart default" will be applied and a default tracer implementation is returned.
+ The *name* used to create a Tracer or Meter explicitly refers to the *instrumentation* libraries (also referred to as *integrations*) and not the instrumented libraries. These instrumentation libraries could be libraries developed in an OpenTelemetry repository, a 3rd party implementation or even auto-injected code (see [Open Telemetry Without Manual Instrumentation OTEP](https://github.com/open-telemetry/oteps/blob/master/text/0001-telemetry-without-manual-instrumentation.md)). See also the examples for identifiers at the end.
+If a library (or application) has instrumentation built-in, it is of course both the instrumenting and instrumented library and can pass its own name here. In all other cases (and to distinguish them from that case), the distinction between instrumenting and instrumented library is very important. For example, if an HTTP library `com.example.http` is instrumented by either `io.opentelemetry.contrib.examplehttp` or `com.example.company.examplehttpintegration`, then it is important that the Tracer is not named `com.example.http` but after the actual instrumentation library.
+
+If no name (null or empty string) is specified, following the suggestions in ["error handling proposal"](https://github.com/open-telemetry/opentelemetry-specification/pull/153), a "smart default" will be applied and a default Tracer / Meter implementation is returned.
 
 
 ## Internal details
 
-By providing a `TracerFactory` and *Named Tracers*, a vendor or OpenTelemetry implementation gains more flexibility in providing Tracers and which attributes they set in the resulting spans that are produced.
+By providing a `TracerFactory` / `MeterFactory` and *Named Tracers / Meters*, a vendor or OpenTelemetry implementation gains more flexibility in providing Tracers and Meters and which attributes they set in the resulting Spans and Metrics that are produced.
 
-The SpanData class is extended with a `getLibraryResource` function that returns the resource associated with the Tracer that created the span.
+On an SDK level, the SpanData class and its Metrics counterpart are extended with a `getLibraryResource` function that returns the resource associated with the Tracer / Meter that created it.
 
 If there are two different instrumentation libraries for the same technology (e.g. MongoDb), these instrumentation libraries should have distinct names.
 
@@ -59,8 +61,8 @@ This proposal originates from an `opentelemetry-specification` proposal on [comp
 Alternatively, instead of having a `TracerFactory`, existing (global) Tracers could return additional indirection objects (called e.g. `TraceComponent`), which would be able to produce spans for specifically named traced components.
 
 ```java
-  TraceComponent traceComponent = OpenTelemetry.Tracing.getTracer().componentBuilder(libraryResource);
-  Span span = traceComponent.spanBuilder("someMethod").startSpan();
+TraceComponent traceComponent = OpenTelemetry.Tracing.getTracer().componentBuilder(libraryResource);
+Span span = traceComponent.spanBuilder("someMethod").startSpan();
 ```
 
 Overall, this would not change a lot compared to the `TracerFactory` since the levels of indirection until producing an actual span are the same.
@@ -79,15 +81,17 @@ Resource libraryResource = Resource.create(libraryLabels);
 Tracer tracer = OpenTelemetry.getTracerFactory().getTracer(libraryResource);
 ```
 
+Those given alternatives could be applied to Meters and Metrics in the same way.
+
 ## Future possibilities
 
-Based on the Resource information identifying a Tracer these could be configured (enabled / disabled) programmatically or via external configuration sources (e.g. environment).
+Based on the Resource information identifying a Tracer or Meter these could be configured (enabled / disabled) programmatically or via external configuration sources (e.g. environment).
 
-Based on this proposal, other "signal producers" (i.e. metrics and logs) can use the same or a similar creation approach.
+Based on this proposal, future "signal producers" (i.e. logs) can use the same or a similar creation approach.
 
-## Examples (of Tracer names)
+## Examples (of Tracer and Meter names)
 
-Since Tracer names describe the libraries which use the Tracers, those names should be defined in a way that makes them as unique as possible. The name of the Tracer should represent the identity of the library, class or package that provides the instrumentation. 
+Since Tracer and Meter names describe the libraries which use those Tracers and Meters, their namess should be defined in a way that makes them as unique as possible. The name of the Tracer / Meter should represent the identity of the library, class or package that provides the instrumentation. 
 
 Examples (based on existing contribution libraries from OpenTracing and OpenCensus):
 
