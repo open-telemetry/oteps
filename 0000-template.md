@@ -1,6 +1,4 @@
 # Replace this with your awesome RFC title
-* Start Date: YYYY-MM-DD
-* RFC PR: https://github.com/open-telemetry/oteps/pull/0000
 
 Short (one sentence) summary, e.g., something that would be appropriate for a [CHANGELOG](https://keepachangelog.com/) or release notes.
 
