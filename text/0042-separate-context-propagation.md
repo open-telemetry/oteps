@@ -117,6 +117,21 @@ In order for the application layer to function correctly, Propagation choices mu
 **ChainHTTPExtractor(extractor, extractor) extractor** 
 In order for the application layer to function correctly, Propagation choices must be syncronized between all processes in the distributed system, and multiple applications must be able to inject and extract their context into the same request. To meet these requirements, the Propagation API provides a function which registers a set of propagators, which will all be executed in order when the future calls to inject and extract are made. A canonical propagator consists of an inject and an extract function.
 
+### Optional: Global Propagators
+It is often convenient to create a chain of propagators during program initialization, and then access these combined propagators later in the program. To facilitate this, global injectors and extractors are optionally available. However, there is no requirement to use this feature.
+
+**SetHTTPInjector(injector)**  
+To update the global injector, the Propagation API provides a function which takes an injector.
+
+**GetHTTPInjector() -> injector**  
+To access the global injector, the Propagation API provides a function which returns an injector.
+
+**SetHTTPExtractor(extractor)**  
+To update the global extractor, the Propagation API provides a function which takes an injector.
+
+**GetHTTPExtractor() -> extractor**  
+To access the global extractor, the Propagation API provides a function which returns an extractor.
+
 # Internal details
 
 ![drawing](img/context_propagation_details.png)
