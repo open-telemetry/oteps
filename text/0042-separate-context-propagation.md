@@ -37,7 +37,7 @@ The general form for all observability APIs is a function which takes a Context,
 To set the label values used by all observations in the current transaction, the Observability API provides a function which takes a context, a label key, a value, and a hoplimit, and returns an updated context. If the hoplimit is set to NO_PROPAGATION, the label will only be available to observability functions in the same process. If the hoplimit is set to UNLIMITED_PROPAGATION, it will be available to all downstream services.
 
 **GetHTTPExtractor() -> extractor**  
-To deserialize the state of the observability system in the prior upstream process, the Observability API provides a function which returns a HTTPExtract function. 
+To deserialize the state of the system sent from the prior upstream process, the Observability API provides a function which returns a HTTPExtract function. 
 
 **GetHTTPInjector() -> injector**  
 To serialize the the current state of the observability system and send it to the next downstream process, the Observability API provides a function which returns a HTTPInject function. 
@@ -60,8 +60,9 @@ To delete distributed state from an application, the Baggage API provides a func
 
 **ClearBaggage(context) -> context**  
 To avoid sending baggage to an untrusted downstream process, the Baggage API provides a function remove all baggage from a context, 
+
 **GetHTTPExtractor() -> extractor**  
-To deserialize the state of the system in the prior upstream process, the Baggage API provides a function which returns a HTTPExtract function. 
+To deserialize the state of the system sent from the the prior upstream process, the Baggage API provides a function which returns a HTTPExtract function. 
 
 **GetHTTPInjector() -> injector**  
 To serialize the the current state of the system and send it to the next downstream process, the Baggage API provides a function which returns a HTTPInject function. 
@@ -75,7 +76,7 @@ Because the application and context propagation layers are separated, it is poss
 To deserialize the state of the system in the prior upstream process, all additional APIs provide a function which returns a HTTPExtract function. 
 
 **GetHTTPInjector() -> injector**  
-To serialize the the current state of the  system and send it to the next downstream process, all additional APIs provide a function which returns a HTTPInject function. 
+To serialize the the current state of the system and send it to the next downstream process, all additional APIs provide a function which returns a HTTPInject function. 
 
 
 # Context Propagation Layer
