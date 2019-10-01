@@ -1,6 +1,4 @@
-# Proposal: Separate Layer for Context Propagation 
-
-Status: `proposed`
+# Proposal: Separate Layer for Context Propagation
 
 Design OpenTelemetry as a set of separate applications which operate on a shared context propagation mechanism.
 
