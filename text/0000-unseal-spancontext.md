@@ -15,13 +15,13 @@ On the other hand, a non-final SpanContext does have advantages for vendors' fle
 
 ## Explanation
 
-Spans remain as a non-abstract class implemented in the API, but they are non-final. Note that the proposition
+SpanContext remains as a non-abstract class implemented in the API, but they are non-final. Note that the proposition
 
 > SpanContexts are immutable.
 
 only applies to the part of the SpanContext that is publicly exposed on the API level.
 Actual vendor implementations could have additional mutable properties or
-actually have the first access to the `TraceId` property generate the TraceId lazily.
+actually have the first access to the `TraceId` property generate the TraceId lazily. Vendors must take care not to break any assumptions by doing that. For example, if a language allows copying a SpanContext, vendors should better put all mutable data behind an immutable reference so that all copies remain in a consistent state.
 
 ## Internal details
 
