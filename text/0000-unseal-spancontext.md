@@ -67,7 +67,7 @@ https://github.com/open-telemetry/opentelemetry-specification/pull/244
 
 > `SpanContext` is represented as an interface, in order to be serializable into a wider variety of trace context wire formats.
 
-In OpenTelemetry, the SpanContext was just an interface with very few public methods
+In OpenTracing, the SpanContext was just an interface with very few public methods
 (in particular, it did not assume the existence of a thing such as Trace or Span ID):
 
 > The `SpanContext` is more of a "concept" than a useful piece of functionality at the generic OpenTracing layer. That said, it is of critical importance to OpenTracing *implementations* and does present a thin API of its own. Most OpenTracing users only interact with `SpanContext` via [**references**](https://github.com/opentracing/specification/blob/master/specification.md#references-between-spans) when starting new `Span`s, or when injecting/extracting a trace to/from some transport protocol.
