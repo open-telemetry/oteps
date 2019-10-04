@@ -21,7 +21,7 @@ Spans remain as a non-abstract class implemented in the API, but they are non-fi
 
 only applies to the part of the SpanContext that is publicly exposed on the API level.
 Actual vendor implementations could have additional mutable properties or
-actually have the first access to the `TraceId` property 
+actually have the first access to the `TraceId` property generate the TraceId lazily.
 
 ## Internal details
 
