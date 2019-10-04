@@ -4,10 +4,10 @@ Remove the proposition that "`SpanContext` MUST be a final (sealed) class.".
 
 ## Motivation
 
-Currently, SpanContext is the only class that has such a limitation placed upon it in the specification.
+Currently, SpanContext is the only class in the specification that has the limitation of being final placed upon it.
 I also haven't heard a good argument for having a final `SpanContext` so this seems an arbitrary restriction.
 
-On the other hand, a non-final SpanContext does have advantages for vendor's flexibility. For example, they could:
+On the other hand, a non-final SpanContext does have advantages for vendors' flexibility. For example, they could:
 
 * Add custom routing information to the SpanContext more efficiently than by using the string-based mapping in TraceState.
 * Generate Span IDs lazily (e.g., if a Span only has internal parents and children, a mechanism that is more efficient than a combined 128 + 64 bit identifier could be used).
@@ -54,7 +54,7 @@ if there is no such concept in their own system.
 
 The topic was briefly discussed in
 https://github.com/open-telemetry/opentelemetry-specification/pull/244
-("Fix" contradictory wording in SpanContext spec). Before this PR the specification contained the following sentence that directly contradicted the requirement that a SpanContext should be final (that requirement was there too):
+("Fix" contradictory wording in SpanContext spec). Before this PR, the specification contained the following sentence that directly contradicted the requirement that a SpanContext should be final (that requirement was there too):
 
 > `SpanContext` is represented as an interface, in order to be serializable into a wider variety of trace context wire formats.
 
