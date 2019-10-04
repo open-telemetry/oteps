@@ -28,8 +28,9 @@ actually have the first access to the `TraceId` property generate the TraceId la
 The changes in the initial summary of this OTEP shall be applied to the specification at
 https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-tracing.md#spancontext.
 
-Language libraries that actually have a "final" or "sealed" keyword must remove it from the API definition of SpanContext.
-The reference SDK implementation will continue to use this Span implementation without deriving from it.
+Language libraries that used a "final" or "sealed" keyword or something similar in their API definition of SpanContext must remove it.
+
+The reference SDK implementation will continue to use the API's SpanContext implementation without deriving from it.
 Additionally, all public APIs of the SpanContext must be overridable
 (they must not be public data fields in languages where these are not overridable,
 languages that require an explicit marker like `virtual` to make an API overridable must add it, etc.).
@@ -49,6 +50,14 @@ Since the implementation of propagators is on the SDK level, all public APIs cou
 so that it becomes an object that is completely opaque (to everyone but the propagator implementations).
 This would enable even more flexibility or at least spare vendors from adding boilerplate code that, e.g., calculates TraceIds
 if there is no such concept in their own system.
+
+In a (currently hypothetical) C++ implementation of OpenTelemetry (and possibly some other languages),
+having the SpanContext be a "polymorphic", potentially derived class is a big difference to
+the old SpanContext that might be implemented as a simple data structure with a few data fields.
+These languages could opt to make SpanContext effectively a "smart pointer".
+That is, the SpanContext could be implemented as a final class containing nothing but a reference to the actual SpanContextData (which is not final) and non-virtual functions that delegate to the corresponding virtual functions of the SpancontextData class.
+
+(Hypothetical) implementations of the OpenTelemetry specification that value performance highly over flexibility might choose to ignore this OTEP entirely, but these probably will not even be split into an API and SDK part.
 
 ## Prior art and alternatives
 
