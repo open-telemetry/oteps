@@ -1,7 +1,5 @@
 # Opening Span's Context
 
-**Status:** `proposed`
-
 Remove the proposition that "`SpanContext` MUST be a final (sealed) class.".
 
 ## Motivation
