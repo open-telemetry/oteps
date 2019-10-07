@@ -95,8 +95,8 @@ a single `startSpanWithRemoteParent(source, spanName, ...) -> Span`.
 Yet another alternative
 (with different caveats)
 would be to have SpanContext have a reference to the corresponding Span if any.
-Then SDK-implementors could store any additional information in the Span.
-Upon extraction they would either have to fall back to a `null` Span
+Then API implementations could store any additional information in the Span.
+Upon extraction they would either have to fall back to a `null` Span reference on the SpanContext
 and storing any data in the TraceState as strings
 or they could set a special pseudo-Span to store information
 (although that interferes with the reasonable assumption that
