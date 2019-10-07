@@ -35,7 +35,9 @@ Additionally, all public APIs of the SpanContext must be overridable
 (they must not be public data fields in languages where these are not overridable,
 languages that require an explicit marker like `virtual` to make an API overridable must add it, etc.).
 
-Existing propagators (which should be implemented in the SDK package or a separate package) can continue to directly construct a SpanContext.
+Existing propagators
+(which should be implemented in the SDK package or a separate package)
+can continue to directly construct a SpanContext.
 API implementations that want to use a custom SpanContext implementation must either
 handle having a plain SpanContext as parent
 and having additional properties stripped upon extracting
@@ -59,7 +61,7 @@ That is, the SpanContext could be implemented as a final class containing nothin
 
 (Hypothetical) implementations of the OpenTelemetry specification that value performance highly over flexibility might choose to ignore this OTEP entirely, but these probably will not even be split into an API and SDK part.
 
-## Prior art and alternatives
+## Prior art
 
 The topic was briefly discussed in
 https://github.com/open-telemetry/opentelemetry-specification/pull/244
@@ -75,7 +77,30 @@ In OpenTracing, the SpanContext was just an interface with very few public metho
 (quoted from https://github.com/opentracing/specification/blob/master/specification.md#spancontext)
 
 In principle, the same still applies to OpenTelemetry:
-SpanContext has no functionality that is useful outside of propagation or implementations of Spans and Tracers. However, we chose to expose the "internal details" of the W3C context in the API.
+SpanContext has no functionality that is useful outside of propagation or implementations of Spans and Tracers.
+However, we chose to expose the "internal details" of the W3C context in the API.
+
+## Alternatives
+
+An alternative (or addition) to making SpanContext non-final is to reduce the places where it is used.
+In particular, `inject` could take a full Span as parameter.
+This would also make it harder to accidentally inject the parent SpanContext
+(that was initially extracted).
+If `inject(SpanContext)` is still needed, it could be provided as an additional overload
+or renamed to `forward(SpanContext)`.
+In the most radical implementation of this approach, SpanContext could entirely disappear,
+if we also change `extract(source) -> SpanContext` + `startSpan(parent: SpanContext) -> Span` to
+a single `startSpanWithRemoteParent(source, spanName, ...) -> Span`.
+
+Yet another alternative
+(with different caveats)
+would be to have SpanContext have a reference to the corresponding Span if any.
+Then SDK-implementors could store any additional information in the Span.
+Upon extraction they would either have to fall back to a `null` Span
+and storing any data in the TraceState as strings
+or they could set a special pseudo-Span to store information
+(although that interferes with the reasonable assumption that
+`SpanContext.getSpan() == null` iff `SpanContext.isRemote()`).
 
 ## Open questions
 
