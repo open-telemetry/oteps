@@ -1,7 +1,5 @@
 # Replace this with your awesome RFC title
 
-**Status:** `proposed`
-
 Short (one sentence) summary, e.g., something that would be appropriate for a [CHANGELOG](https://keepachangelog.com/) or release notes.
 
 ## Motivation
