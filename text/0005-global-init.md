@@ -1,7 +1,6 @@
 # Global SDK initialization
 
-*Status: proposed*
-*Updated: 07/30/2019*
+*Status: accepted*
 
 Specify the behavior of OpenTelemetry APIs and implementations at startup.
 
@@ -52,10 +51,12 @@ party libraries to use the global SDK before it is installed, which is
 addressed in a requirement stated below.
 
 The explicit initializer method should take independent `Tracer` and
-`Meter` objects (e.g., `opentelemetry.Init(Tracer, Meter)`).  The SDK
-may be installed no more than once.  After the first SDK installed,
-subsequent calls to the explicit initializer shall log console
-warnings.
+`Meter` factories (e.g., `opentelemetry.Init(TracerFactory,
+MeterFactory)`), factories because they facility explicitly named
+`Tracer` and `Meter` instances.  The SDK must not be installed more
+than once.  After the first SDK installed, subsequent calls to the
+explicit initializer shall log console warnings but not replace the
+active SDK.
 
 In common language, uses of the global SDK instance (i.e., the Tracer
 and Meter) must "begin working" once the SDK is installed, with the
@@ -72,9 +73,8 @@ they continue as No-op spans.
 
 There may be loss of metrics at startup.
 
-Metric SubMeasure objects (i.e., metrics w/ predefined labels)
-initialized before the SDK is installed will redirect to the global
-SDK after it is installed.
+Metric instruments and handles initialized before the SDK is installed
+will redirect to the global SDK after it is installed.
 
 ### Concrete types
 
@@ -86,9 +86,13 @@ not depend on the SDK being installed.
 
 ### Testing support
 
-Testing should be performed without depending on the global SDK.
-
-### Synchronization
+Testing should be performed without depending on the global SDK, if
+possible.  If it is necessary to install a global `Tracer` or `Meter`
+factory for code that explicitly relies on the global factories for
+testing, test libraries should provide a compatible SDK that can be
+registered once with support for dynamically adding and removing
+exporters.  The use of named `Tracer` and `Meter` instances will help
+avoid test interference in this case.
 
 Since the global Tracer and Meter objects are required to begin
 working once the SDK is installed, there is some implied
