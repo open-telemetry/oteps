@@ -52,7 +52,7 @@ addressed in a requirement stated below.
 
 The explicit initializer method should take independent `Tracer` and
 `Meter` factories (e.g., `opentelemetry.Init(TracerFactory,
-MeterFactory)`), factories because they facility explicitly named
+MeterFactory)`), factories because they construct explicitly named
 `Tracer` and `Meter` instances.  The SDK must not be installed more
 than once.  After the first SDK installed, subsequent calls to the
 explicit initializer shall log console warnings but not replace the
