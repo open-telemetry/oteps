@@ -114,11 +114,12 @@ To send the data for all distributed applications downstream to the next process
 **HTTPExtract(context, request) -> context**  
 To receive data injected by prior upstream processes, the Propagation API provides a function which takes a context and an HTTP request, and returns context which represents the state of the upstream system.
 
-**ChainHTTPInjector(injector, injector) injector** 
-In order for the application layer to function correctly, Propagation choices must be syncronized between all processes in the distributed system, and multiple applications must be able to inject and extract their context into the same request. To meet these requirements, the Propagation API provides a function which registers a set of propagators, which will all be executed in order when the future calls to inject and extract are made. A canonical propagator consists of an inject and an extract function.
+**ChainHTTPInjector(injector, injector) -> injector**  
+To allow multiple distributed applications to inject their context into the same request, the Propagation API provides a function which takes two injectors, and returns a single injector which calls the two original injectors in order.
 
-**ChainHTTPExtractor(extractor, extractor) extractor** 
-In order for the application layer to function correctly, Propagation choices must be syncronized between all processes in the distributed system, and multiple applications must be able to inject and extract their context into the same request. To meet these requirements, the Propagation API provides a function which registers a set of propagators, which will all be executed in order when the future calls to inject and extract are made. A canonical propagator consists of an inject and an extract function.
+**ChainHTTPExtractor(extractor, extractor) -> extractor**  
+To allow multiple distributed applications to extract their context from the same request, the Propagation API provides a function which takes two extractors, and returns a single extractor which calls the two original extractors in order.
+
 
 ### Optional: Global Propagators
 It is often convenient to create a chain of propagators during program initialization, and then access these combined propagators later in the program. To facilitate this, global injectors and extractors are optionally available. However, there is no requirement to use this feature.
