@@ -147,7 +147,7 @@ OpenTelemetry currently implements three context types of context propagation.
 
 **Correlation Context -** Correlation Context contains a map of labels and values, to be shared between metrics and traces. This allows observability data to be indexed and dimensionalized in a variety of ways. Note that correlations can quickly add overhead when propagated in-band. But because this data is write-only, it may be possible to optimize how it is transmitted.
 
-**Baggage Context -** Transaction-level application data, meant to be shared with downstream components. This data is readable, and must be propagated in-band. Because of this, Baggage should be used sparingly, to avoid ballooning the size of RPC requests.
+**Baggage -** Transaction-level application data, meant to be shared with downstream components. This data is readable, and must be propagated in-band. Because of this, Baggage should be used sparingly, to avoid ballooning the size of all downstream requests.
 
 Note that when possible, OpenTelemetry APIs calls are given access to the entire context object, and not a specific context type.
 
