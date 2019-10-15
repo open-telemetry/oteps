@@ -5,13 +5,16 @@ Design OpenTelemetry as a set of separate applications which operate on a shared
 
 ## Motivation
 
-Based on prior art, we know that fusing the observability system and the context propagation system together creates issues. Observability systems have special rules for propagating information, such as sampling, and may have different requirements from other systems which require non-local information to be sent downstream. 
-* Separation of concerns
-  *   Remove the Tracer dependency from context propagation mechanisms.
-  *   Separate distributed context into Baggage and Correlations
-* Extensibility
-  *   Allow users to create new applications for context propagation.
-  *   For example: A/B testing, encrypted or authenticated data, and new, experimental forms of observability.
+Based on prior art, we know that fusing the observability system and the context propagation system together creates issues. Observability systems have special rules for propagating information, such as sampling. This can create difficulty for other systems, which may want to leverage the same context propagation mechanism, but have different rules and requirements regarding the data they are sending. The Baggage system within OpenTelemetry is one such example.
+
+This RFC addresses the following topics:
+
+**Separatation of concerns**  
+*   Remove the Tracer dependency from context propagation mechanisms.
+*   Handle user data (Baggage) and observability data (Correlations) seprately.  
+
+**Extensibility**
+*   Allow users to create new applications for context propagation. For example: A/B testing, encrypted or authenticated data, and new, experimental forms of observability.
 
 ## Explanation
 
