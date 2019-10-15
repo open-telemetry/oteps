@@ -143,7 +143,7 @@ To access the global extractor, the Propagation API provides a function which re
 ## Context details
 OpenTelemetry currently implements three context types of context propagation.
 
-**Span Context -** The serializable portion of a span, which is injected and extracted. The readable attributes are defined to match those found in the  W3C **traceparent** header. 
+**Span Context -** The serializable portion of a span, which is injected and extracted. The readable attributes are defined to match those found in the  [W3C Trace Context specification](https://www.w3.org/TR/trace-context/). 
 
 **Correlation Context -** Correlation Context contains a map of labels and values, to be shared between metrics and traces. This allows observability data to be indexed and dimensionalized in a variety of ways. Note that correlations can quickly add overhead when propagated in-band. But because this data is write-only, it may be possible to optimize how it is transmitted.
 
