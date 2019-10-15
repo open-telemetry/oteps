@@ -95,7 +95,7 @@ To record the local state of an application, the Context API provides a function
 To access the local state of an application, the Context API provides a function which takes a context and a key as input, and returns a value.
 
 ### Optional: Automated Context Management
-When possible, context should automatically be associated with program execution . Note that some languages do not provide any facility for setting and getting a current context. In these cases, the user is responsible for managing the current context. 
+When possible, the OpenTelemetry context should automatically be associated with the program execution context. Note that some languages do not provide any facility for setting and getting a current context. In these cases, the user is responsible for managing the current context.  
 
 **SetCurrent(context)**  
 To associate a context with program execution, the Context API provides a function which takes a Context.
