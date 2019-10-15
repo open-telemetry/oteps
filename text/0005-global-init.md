@@ -91,8 +91,7 @@ possible.  If it is necessary to install a global `Tracer` or `Meter`
 factory for code that explicitly relies on the global factories for
 testing, test libraries should provide a compatible SDK that can be
 registered once with support for dynamically adding and removing
-exporters.  The use of named `Tracer` and `Meter` instances will help
-avoid test interference in this case.
+exporters.
 
 Since the global Tracer and Meter objects are required to begin
 working once the SDK is installed, there is some implied
