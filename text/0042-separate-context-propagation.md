@@ -149,7 +149,7 @@ OpenTelemetry currently implements three context types of context propagation.
 
 **Baggage -** Transaction-level application data, meant to be shared with downstream components. This data is readable, and must be propagated in-band. Because of this, Baggage should be used sparingly, to avoid ballooning the size of all downstream requests.
 
-Note that when possible, OpenTelemetry APIs calls are given access to the entire context object, and not a specific context type.
+Note that OpenTelemetry APIs calls should *always* be given access to the entire context object, and never just a subset of the context, such as the value in a single key. This allows the SDK to make improvements and leverage additional data that may be available, without changes to all of the call sites.
 
 
 ## Context Management and in-process propagation
