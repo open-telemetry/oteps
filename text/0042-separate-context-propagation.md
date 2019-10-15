@@ -131,7 +131,7 @@ To update the global injector, the Propagation API provides a function which tak
 To access the global injector, the Propagation API provides a function which returns an injector.
 
 **SetHTTPExtractor(extractor)**  
-To update the global extractor, the Propagation API provides a function which takes an injector.
+To update the global extractor, the Propagation API provides a function which takes an extractor.
 
 **GetHTTPExtractor() -> extractor**  
 To access the global extractor, the Propagation API provides a function which returns an extractor.
