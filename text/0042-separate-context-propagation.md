@@ -22,9 +22,9 @@ This RFC addresses the following topics:
 
 ![drawing](img/context_propagation_explanation.png)
 
-OpenTelemetry is a distributed program, which requires non-local, transaction-level context in order to execute correctly. Transaction-level context can also be used to build other distributed programs, such as security, versioning, and network switching programs.
+Distributed tracing is an example of a cross-cutting concern, which requires non-local, transaction-level context propagation in order to execute correctly. Transaction-level context propagation can also be useful for other cross-cutting concerns, e.g., for security, versioning, and network switching. We refer to these types of cross-cutting concerns as **distributed applications**.
 
-To allow for this extensibility, OpenTelemetry is separated into an **application layer** and a **context propagation layer**. In this architecture, multiple distributed applications - such as the observability and baggage systems provided by OpenTelemetry - simultaneously share the same underlying context propagation system in order to execute their programs.
+OpenTelemetry is separated into an **application layer** and a **context propagation layer**. In this architecture, multiple distributed applications - including the observability and baggage systems provided by OpenTelemetry - share the same underlying context propagation system.
 
 
 # Application Layer
