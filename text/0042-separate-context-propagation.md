@@ -204,7 +204,7 @@ Prior art:
 
 # Open questions
 
-Related work on HTTP propagators has not been completed yet.
+Related work on HTTP propagatation has not been completed yet:
 
 * [W3C Trace-Context](https://www.w3.org/TR/trace-context/) candidate is not yet accepted
 * Work on [W3C Correlation-Context](https://w3c.github.io/correlation-context/) has begun, but was halted to focus on Trace-Context. 
