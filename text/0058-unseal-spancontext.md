@@ -15,7 +15,7 @@ On the other hand, a non-final SpanContext does have advantages for vendors' fle
 
 ## Explanation
 
-SpanContext remains as a non-abstract class implemented in the API, but they are non-final. Note that the proposition
+SpanContext remains as a non-abstract class implemented in the API, but it is non-final. Note that the proposition
 
 > SpanContexts are immutable.
 
@@ -52,12 +52,6 @@ Since the implementation of propagators is on the SDK level, all public APIs cou
 so that it becomes an object that is completely opaque (to everyone but the propagator implementations).
 This would enable even more flexibility or at least spare vendors from adding boilerplate code that, e.g., calculates TraceIds
 if there is no such concept in their own system.
-
-In a (currently hypothetical) C++ implementation of OpenTelemetry (and possibly some other languages),
-having the SpanContext be a "polymorphic", potentially derived class is a big difference to
-the old SpanContext that might be implemented as a simple data structure with a few data fields.
-These languages could opt to make SpanContext effectively a "smart pointer".
-That is, the SpanContext could be implemented as a final class containing nothing but a reference to the actual SpanContextData (which is not final) and non-virtual functions that delegate to the corresponding virtual functions of the SpancontextData class.
 
 (Hypothetical) implementations of the OpenTelemetry specification that value performance highly over flexibility might choose to ignore this OTEP entirely, but these probably will not even be split into an API and SDK part.
 
@@ -102,9 +96,15 @@ or they could set a special pseudo-Span to store information
 (although that interferes with the reasonable assumption that
 `SpanContext.getSpan() == null` iff `SpanContext.isRemote()`).
 
-## Open questions
+For new language libraries, the arguments of backward-compatiblity for a non-abstract non-final class does not exist.
+Such languages may choose to implement SpanContext as an interface instead of a non-abstract class.
+Among other things,
+this may be used to improve performance
+because a Span could implement that interface, thus saving allocations.
+Some way for propagators to create a SpanContext that is not bound to a Span is still required to implement `extract`
+(unless [OTEP #42 (Proposal to separate context propagation from observability)][OTEP-ctx] changes that).
 
-None known yet.
+[OTEP-ctx]: https://github.com/open-telemetry/oteps/pull/42
 
 ## Future possibilities
 
