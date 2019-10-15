@@ -179,9 +179,9 @@ Correlation values are solely to be used as labels for metrics and traces. By ma
 
 Baggage values, on the other hand, are explicitly added in order to be accessed by downstream by other application code. Therefore, Baggage Context must be readable, and reliably propagated in-band in order to accomplish this goal.
 
-There may be cases where a key-value pair is propagated as TagMap for observability and as a Baggage for application specific use. AB testing is one example of such use case. There is potential duplication here at call site where a pair is created and also at propagation. 
+There may be cases where a key-value pair is propagated as a Correlation for observability and as a Baggage item for application-specific use. AB testing is one example of such use case. This would result in extra overhead, as the same key-value pair would be present in two separate headers.  
 
-Solving this issue is not worth having semantic confusion with dual purpose. However, because all observability functions take the complete context as input, it may still be possible to use baggage values as labels.
+Solving this issue is not worth having semantic confusion with dual purpose. However, because all observability functions take the complete context as input – and baggage is not sampled – it may still be possible to use baggage values as labels for observability.
 
 
 ## What about complex propagation behavior?
