@@ -10,7 +10,8 @@ OpenTelemetry is designed with a separation between the API and the
 SDK which implements it, allowing an application to configure and bind
 any compatible SDK at runtime.  OpenTelemetry is designed to support
 "zero touch" instrumentation for third party libraries through the use
-of a global instance.
+of a global Tracer and Meter factory instances.  This OTEP proposes a
+specification for how to initialize the global factory instances.
 
 In many programming environments, it is possible for libraries of code
 to auto-initialize, allowing them to begin operation concurrently with
@@ -18,6 +19,19 @@ the main program, e.g., while initializing static program state.  This
 presents a set of opposing requirements: (1) the API supports a
 configurable SDK; (2) third party libraries may use OpenTelemetry
 without configuration.
+
+Without specifying at-most-once initialization for these global
+factory instances, any module of code could conceivably re-install a
+new SDK at any time during program execution.  This proposal ensures
+that only the application main() function, or a suitable framework,
+has explicit control over when the SDK is installed; further, it is
+able to check whether the operation succeeded and abort if the SDK
+could not be installed properly.  After initialization, the operator
+can be sure the intended SDK was installed and will remain installed.
+
+This OTEP also specifies the behavior of the global instances when
+they are used before an SDK is installed, which is a problem in some
+languages.
 
 ## Explanation
 
