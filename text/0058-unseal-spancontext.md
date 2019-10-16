@@ -96,7 +96,7 @@ or they could set a special pseudo-Span to store information
 (although that interferes with the reasonable assumption that
 `SpanContext.getSpan() == null` iff `SpanContext.isRemote()`).
 
-For new language libraries, the arguments of backward-compatiblity for a non-abstract non-final class does not exist.
+For new language libraries, the arguments of backward-compatibility for a non-abstract non-final class does not exist.
 Such languages may choose to implement SpanContext as an interface instead of a non-abstract class.
 Among other things,
 this may be used to improve performance
