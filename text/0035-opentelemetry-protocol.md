@@ -82,7 +82,7 @@ If the client is unable to deliver a certain request (e.g. a timer expired while
 
 - `FailedNotRetryable` - processing of telemetry data failed. The client MUST NOT retry sending the same telemetry data. The telemetry data MUST be dropped. This for example can happen when the request contains bad data and cannot be deserialized or otherwise processed by the server. The client SHOULD maintain a counter of such dropped data.
 
-- `FailedRetryable` - processing of telemetry data failed. The client SHOULD record the error and may retry exporting the same data. This can happen when the server is temporarily unable to process the data.
+- `FailedRetryable` - processing of telemetry data failed. The client SHOULD record the error and may retry exporting the same data immediately. This can happen when the server is temporarily unable to process the data.
 
 #### Throttling
 
@@ -174,6 +174,10 @@ This ensures that all destination servers receive the data regardless of their s
 #### Duplicate Data
 
 In edge cases (e.g. on reconnections, network interruptions, etc) the client has no way of knowing if recently sent data was delivered if no acknowledgement was received yet. The client will typically choose to re-send such data to guarantee delivery, which may result in duplicate data on the server side. This is a deliberate choice and is considered to be the right tradeoff for telemetry data.
+
+### Partial Success
+
+The protocol does not attempt to communicate partial reception success from the server to the client (i.e. when part of the data can be received by the server and part of it cannot). Attempting to do so would complicate the protocol and implementations significantly and is left out as a possible future area of work.
 
 ## Future Versions and Interoperability
 
