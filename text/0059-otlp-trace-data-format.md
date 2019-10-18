@@ -30,29 +30,31 @@ This section specifies data format in Protocol Buffers.
 ```
 // Resource information. This describes the source of telemetry data.
 message Resource {
-  // Set of labels that describe the resource. See OpenTelemetry specification
+  // labels is a list of attributes that describe the resource. See OpenTelemetry specification
   // semantic conventions for standardized label names:
   // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md
+  repeated AttributeKeyValue labels = 1;
 
-  repeated AttributeKeyValue labels = 3;
-  int32 dropped_labels_count = 11;
+  // dropped_labels_count is the number of dropped labels. If the value is 0, then
+  // no labels were dropped.
+  int32 dropped_labels_count = 2;
 }
 ```
 
 ### Span
 
 ```
-// A span represents a single operation within a trace. Spans can be
+// Span represents a single operation within a trace. Spans can be
 // nested to form a trace tree. Spans may also be linked to other spans
-// from the same or different trace. And form graphs. Often, a trace
+// from the same or different trace and form graphs. Often, a trace
 // contains a root span that describes the end-to-end latency, and one
 // or more subspans for its sub-operations. A trace can also contain
 // multiple root spans, or none at all. Spans do not need to be
 // contiguous - there may be gaps or overlaps between spans in a trace.
 //
-// The next id is 17.
+// The next field id is 18.
 message Span {
-  // A unique identifier for a trace. All spans from the same trace share
+  // trace_id is the unique identifier of a trace. All spans from the same trace share
   // the same `trace_id`. The ID is a 16-byte array. An ID with all zeroes
   // is considered invalid.
   //
@@ -62,7 +64,7 @@ message Span {
   // This field is required.
   bytes trace_id = 1;
 
-  // A unique identifier for a span within a trace, assigned when the span
+  // span_id is a unique identifier for a span within a trace, assigned when the span
   // is created. The ID is an 8-byte array. An ID with all zeroes is considered
   // invalid.
   //
@@ -72,40 +74,35 @@ message Span {
   // This field is required.
   bytes span_id = 2;
 
-  // This field conveys information about request position in multiple distributed tracing graphs.
+  // TraceEntry is the entry that is repeated in tracestate field (see below).
+  message TraceEntry {
+    // key must begin with a lowercase letter, and can only contain
+    // lowercase letters 'a'-'z', digits '0'-'9', underscores '_', dashes
+    // '-', asterisks '*', and forward slashes '/'.
+    string key = 1;
+
+    // value is opaque string up to 256 characters printable ASCII
+    // RFC0020 characters (i.e., the range 0x20 to 0x7E) except ',' and '='.
+    // Note that this also excludes tabs, newlines, carriage returns, etc.
+    string value = 2;
+  }
+
+  // TraceState conveys information about request position in multiple distributed tracing graphs.
   // It is a list of Tracestate.Entry with a maximum of 32 members in the list.
   //
   // See the https://github.com/w3c/distributed-tracing for more details about this field.
-  message Tracestate {
-    message Entry {
-      // The key must begin with a lowercase letter, and can only contain
-      // lowercase letters 'a'-'z', digits '0'-'9', underscores '_', dashes
-      // '-', asterisks '*', and forward slashes '/'.
-      string key = 1;
+  repeated TraceEntry tracestate = 3;
 
-      // The value is opaque string up to 256 characters printable ASCII
-      // RFC0020 characters (i.e., the range 0x20 to 0x7E) except ',' and '='.
-      // Note that this also excludes tabs, newlines, carriage returns, etc.
-      string value = 2;
-    }
-
-    // A list of entries that represent the Tracestate.
-    repeated Entry entries = 1;
-  }
-
-  // The Tracestate on the span.
-  Tracestate tracestate = 3;
-
-  // The `span_id` of this span's parent span. If this is a root span, then this
-  // field must be empty. The ID is an 8-byte array.
+  // parent_span_id is the `span_id` of this span's parent span. If this is a root span, then this
+  // field must be omitted. The ID is an 8-byte array.
   bytes parent_span_id = 4;
 
-  // An optional resource that is associated with this span. If not set, this span
-  // should be part of a ResourceSpan that does include the resource information, unless resource
-  // information is unknown.
+  // resource that is associated with this span. Optional. If not set, this span
+  // should be part of a ResourceSpans message that does include the resource information,
+  // unless resource information is unknown.
   Resource resource = 5;
 
-  // A description of the span's operation.
+  // name describes the span's operation.
   //
   // For example, the name can be a qualified method name or a file name
   // and a line number where the operation is called. A best practice is to use
@@ -113,49 +110,47 @@ message Span {
   // This makes it easier to correlate spans in different traces.
   //
   // This field is semantically required to be set to non-empty string.
-  // When null or empty string received - receiver may use string "name"
-  // as a replacement. There might be smarted algorithms implemented by
-  // receiver to fix the empty span name.
   //
   // This field is required.
   string name = 6;
 
-  // Type of span. Can be used to specify additional relationships between spans
+  // SpanKind is the type of span. Can be used to specify additional relationships between spans
   // in addition to a parent/child relationship.
   enum SpanKind {
     // Unspecified. Do NOT use as default.
     // Implementations MAY assume SpanKind to be INTERNAL when receiving UNSPECIFIED.
     SPAN_KIND_UNSPECIFIED = 0;
 
-    // Indicates that the span is used internally. Default value.
+    // Indicates that the span represents an internal operation within an application,
+    // as opposed to an operations happening at the boundaries. Default value.
     INTERNAL = 1;
 
     // Indicates that the span covers server-side handling of an RPC or other
     // remote network request.
     SERVER = 2;
 
-    // Indicates that the span covers the client-side wrapper around an RPC or
-    // other remote request.
+    // Indicates that the span describes a request to some remote service.
     CLIENT = 3;
 
-    // Indicates that the span describes producer sending a message to a broker.
-    // Unlike client and  server, there is no direct critical path latency relationship
-    // between producer and consumer spans.
+    // Indicates that the span describes a producer sending a message to a broker.
+    // Unlike CLIENT and SERVER, there is often no direct critical path latency relationship
+    // between producer and consumer spans. A PRODUCER span ends when the message was accepted
+    // by the broker while the logical processing of the message might span a much longer time.
     PRODUCER = 4;
 
     // Indicates that the span describes consumer receiving a message from a broker.
-    // Unlike client and  server, there is no direct critical path latency relationship
+    // Like the PRODUCER kind, there is often no direct critical path latency relationship
     // between producer and consumer spans.
     CONSUMER = 5;
   }
 
-  // Distinguishes between spans generated in a particular context. For example,
+  // kind field distinguishes between spans generated in a particular context. For example,
   // two spans with the same name may be distinguished using `CLIENT` (caller)
-  // and `SERVER` (callee) to identify queueing latency associated with the span.
+  // and `SERVER` (callee) to identify network latency associated with the span.
   SpanKind kind = 7;
 
-  // The start time of the span. On the client side, this is the time kept by
-  // the local machine where the span execution starts. On the server side, this
+  // start_time_unixnano is the start time of the span. On the client side, this is the time
+  // kept by the local machine where the span execution starts. On the server side, this
   // is the time when the server's application handler starts running.
   //
   // This field is semantically required. When not set on receive -
@@ -166,8 +161,8 @@ message Span {
   // This field is required.
   int64 start_time_unixnano = 8;
 
-  // The end time of the span. On the client side, this is the time kept by
-  // the local machine where the span execution ends. On the server side, this
+  // end_time_unixnano is the end time of the span. On the client side, this is the time
+  // kept by the local machine where the span execution ends. On the server side, this
   // is the time when the server application handler stops running.
   //
   // This field is semantically required. When not set on receive -
@@ -177,7 +172,7 @@ message Span {
   // This field is required.
   int64 end_time_unixnano = 9;
 
-  // The set of attributes. The value can be a string, an integer, a double
+  // attributes is a list of AttributeKeyValue. The value can be a string, an integer, a double
   // or the Boolean values `true` or `false`. Note, global attributes like
   // server name can be set as tags using resource API. Examples of attributes:
   //
@@ -192,7 +187,8 @@ message Span {
   // If this value is 0, then no attributes were dropped.
   int32 dropped_attributes_count = 11;
 
-  // A time-stamped event in the Span.
+  // TimedEvent is a time-stamped annotation of the span, consisting of either
+  // user-supplied key-value pairs, or details of a message sent/received between Spans.
   message TimedEvent {
     // The time the event occurred.
     int64 time_unixnano = 1;
@@ -200,27 +196,21 @@ message Span {
     // A user-supplied name describing the event.
     string name = 2;
 
-    // A set of attributes on the event.
+    // A list of attributes of the event.
     repeated AttributeKeyValue attributes = 3;
 
+    // The number of dropped attributes. If the value is 0, then no attributes were dropped.
     int32 dropped_attributes_count = 4;
   }
 
-  // A collection of `TimedEvent`s. A `TimedEvent` is a time-stamped annotation
-  // on the span, consisting of either user-supplied key-value pairs, or
-  // details of a message sent/received between Spans.
-  message TimedEvents {
-    // A collection of `TimedEvent`s.
-    repeated TimedEvent timed_event = 1;
+  // timed_events is a collection of `TimedEvent`s.
+  repeated TimedEvent timed_events = 12;
 
-    // The number of dropped timed events. If the value is 0, then no events were dropped.
-    int32 dropped_timed_events_count = 2;
-  }
+  // dropped_timed_events_count is the number of dropped timed events. If the value is 0, then
+  // no events were dropped.
+  int32 dropped_timed_events_count = 13;
 
-  // The included timed events.
-  TimedEvents timed_events = 12;
-
-  // A pointer from the current span to another span in the same trace or in a
+  // Link is a pointer from the current span to another span in the same trace or in a
   // different trace. For example, this can be used in batching operations,
   // where a single batch handler processes multiple requests from different
   // traces or when the handler receives a request from a different project.
@@ -233,43 +223,36 @@ message Span {
     bytes span_id = 2;
 
     // The Tracestate associated with the link.
-    Tracestate tracestate = 3;
+    repeated TraceEntry tracestate = 3;
 
-    // A set of attributes on the link.
+    // A list of attributes of the link.
     repeated AttributeKeyValue attributes = 4;
 
+    // dropped_attributes_count is the number of dropped attributes. If the value is 0, then
+    // no attributes were dropped.
     int32 dropped_attributes_count = 5;
   }
 
-  // A collection of links, which are references from this span to a span
+  // links is a collection of Links, which are references from this span to a span
   // in the same or different trace.
-  message Links {
-    // A collection of links.
-    repeated Link link = 1;
+  repeated Link links = 14;
 
-    // The number of dropped links after the maximum size was enforced. If
-    // this value is 0, then no links were dropped.
-    int32 dropped_links_count = 2;
-  }
-
-  // The included links.
-  Links links = 13;
+  // dropped_links_count is the number of dropped links after the maximum size was enforced.
+  // If this value is 0, then no links were dropped.
+  int32 dropped_links_count = 15;
 
   // An optional final status for this span. Semantically when Status
   // wasn't set it is means span ended without errors and assume
   // Status.Ok (code = 0).
-  Status status = 14;
+  Status status = 16;
 
   // An optional number of child spans that were generated while this span
   // was active. If set, allows an implementation to detect missing child spans.
-  google.protobuf.UInt32Value child_span_count = 15;
+  int32 child_span_count = 17;
 }
 
 // The `Status` type defines a logical error model that is suitable for different
-// programming environments, including REST APIs and RPC APIs. This proto's fields
-// are a subset of those of
-// [google.rpc.Status](https://github.com/googleapis/googleapis/blob/master/google/rpc/status.proto),
-// which is used by [gRPC](https://github.com/grpc).
+// programming environments, including REST APIs and RPC APIs.
 message Status {
   // The status code. This is optional field. It is safe to assume 0 (OK)
   // when not set.
@@ -283,30 +266,35 @@ message Status {
 ### AttributeKeyValue
 
 ```
+// AttributeKeyValue is a key-value pair that is used to store Span attributes, Resource
+// labels, etc.
 message AttributeKeyValue {
+  // ValueType is the enumeration of possible types that value can have.
   enum ValueType {
     STRING  = 0;
     BOOL    = 1;
     INT64   = 2;
-    FLOAT64 = 3;
-    BINARY  = 4;
+    DOUBLE  = 3;
   };
 
+  // key part of the key-value pair.
   string key = 1;
+
   // The type of the value.
   ValueType type = 2;
+
+  // Only one of the following fields is supposed to contain data (determined by `type` field value).
+  // This is deliberately not using Protobuf `oneof` for performance reasons (verified by benchmarks).
+
   // A string up to 256 bytes long.
   string string_value = 3;
   // A 64-bit signed integer.
-  int64 int_value = 4;
+  int64 int64_value = 4;
   // A Boolean value represented by `true` or `false`.
   bool bool_value = 5;
   // A double value.
   double double_value = 6;
-  // A binary value of bytes.
-  bytes binary_value = 7;
 }
-
 ```
 
 ## Trade-offs and mitigations
