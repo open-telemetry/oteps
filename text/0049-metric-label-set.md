@@ -2,109 +2,83 @@
 
 **Status:** `proposed`
 
-Introduce a first-class `LabelSet` API type as a handle on a pre-defined set of labels.  
+Introduce a first-class `LabelSet` API type as a handle on a pre-defined set of labels for the Metrics API.
 
 ## Motivation
 
-Labels are key-value pairs used across OpenTelemetry for categorizing spans (attributes, event fields) and metrics (labels).  Treatment of labels in the metrics API is especially important because of certain optimizations that take advantage of pre-defined labels.
+Labels are the term for key-value pairs used in the OpenTelemetry Metrics API.  Treatment of labels in the metrics API is especially important for performance, across a variety of export strategies.
 
-This optimization currently applies to metric instrument handles, the result of `GetHandle(Instrument, { Key : Value, ... })` on a metric instrument. By allowing the SDK to pre-compute information about the pair of `(Instrument, { Key : Value, ... })`, this reasoning goes, the metrics SDK has the opportunity make individual `Add()` and `Set()` operations on handles as fast as a few machine instructions.
+Whether pushing or pulling metrics, whether aggregating metric events in the process or not, it is an expensive computation to translate a set of labels into either a serialized representation or a unique lookup key.  Users of the metrics API stand to benefit by re-using label sets whenever possible, because manipulating label sets often dominates the cost of processing metric events.
 
-Adopting a first-class `LabelSet` extends the potential for optimization, significantly, for cases where a the `{ Key : Value, ... }` can be reused despite not re-using  `(Instrument, { Key : Value, ... })` pairs.
-
-The current API specifies one way to use set of labels for more than one measurement,
-
-```
-RecordBatch({ Key1: Value1,
-  	      Key2: Value2,
-	      ... },
-	    [ (Gauge, Value), 
-	      (Cumulative, Value),
-	      (Measure, Value),
-	      ... ])
-```
-
-This RFC proposes the new `LabelSet` concept is returned by an API named `Meter.DefineLabels({ Key: Value, ... })` which allows the SDK to potentially sort, canonicalize, or hash the set of labels once, allowing it to be re-used in several ways.  For example, the `RecordBatch` above can be written as one call to `DefineLabels` and inidividual operations.
-
-```
-Labels := meter.DefineLabels({ Key1: Value1,
-       	  		       Key2: Value2,
-			       ... })
-Cumulative.Add(Value, Labels)
-Gauge.Set(Value, Labels)
-Measure.Record(Value, Labels)
-...
-```
-
-With a first-class `LabelSet`, labels can even be re-used across multiple calls to `RecordBatch`.
+The Metrics API supports three calling conventions: the Handle convention, the Direct convention, and the Batch convention. Each of these conventions stands to benefit when a `LabelSet` is re-used, as it allows the SDK to process the label set once instead of once per call.  Whenever more than one handle will be created with the same labels, whenever more than one instrument will be called directly with the same labels, and whenever more than one batch of metric events will be recorded with the same labels, re-using a `LabelSet` makes it possible for the SDK to improve performance.
 
 ## Explanation
 
-Metric instrument APIs which presently take labels in the form `{ Key: Value, ... }` will be updated to take an explicit `LabelSet`.  The `Meter.DefineLabels` API method supports getting a `LabelSet` from the SDK, allowing the programmer to pre-define labels without being required to manage handles.  This brings the number of ways to update a metric to three, via re-using a handle from `GetHandle()`:
+Metric instrument APIs which presently take labels in the form `{ Key: Value, ... }` will be updated to take an explicit `LabelSet`.  The `Meter.Labels()` API method supports getting a `LabelSet` from the SDK, allowing the programmer to acquire a pre-define label set.  Here are several examples of `LabelSet` re-use.  Assume we have two instruments:
 
+```golang
+var (
+    cumulative = metric.NewFloat64Cumulative("my_counter")
+    gauge      = metric.NewFloat64Gauge("my_gauge")
+)    
 ```
-cumulative := metric.NewFloat64Cumulative("my_counter", [
-					    "required_key1",
-					    "required_key2",
-					  ])
-labels := meter.DefineLabels({ "required_key1": value1,
-			       "required_key2": value2 })
-handle := cumulative.GetHandle(labels)
+
+Use a `LabelSet` to construct multiple Handles:
+
+```golang
+var (
+    labels  = meter.Labels({ "required_key1": value1, "required_key2": value2 })
+    chandle = cumulative.GetHandle(labels)
+    ghandle = gauge.GetHandle(labels)
+)
 for ... {
-   handle.Add(quantity)
+   // ...
+   chandle.Add(...)
+   ghandle.Set(...)
 }
 ```
 
-To operate on a metric instrument directly, without requiring a handle:
+Use a `LabelSet` to for multiple Direct calls:
 
-```
+```golang
+labels := meter.Labels({ "required_key1": value1, "required_key2": value2 })
 cumulative.Add(quantity, labels)
 gauge.Set(quantity, labels)
-measure.Record(quantity, labels)
 ```
 
-To operate on a batch of labels,
-
-```
-RecordBatch(labels, [
-	(Instrument1, Value1),
-	(Instrument2, Value2),
-	...
-      ])
-```
-
-Note that `meter.GetHandle(instrument, meter.DefineLabels())` is the same as `meter.GetDefaultHandle()`.
+Of course, repeated calls to `Meter.RecordBatch()` could re-use a `LabelSet` as well.
 
 ### Ordered `LabelSet` option
 
-OpenCensus specified support for ordered label sets, in which values for required keys may be passed in order, allowing the implementation directly compute a unique encoding for the label set.   We recognize that providing ordered values is an option that makes sense in some languages and not others, and leave this as an option.  Support for ordered label sets might be arranged through ordered key sets, for example:
+As a language-level decision, APIs may support _ordered_ LabelSet
+construction, in which a pre-defined set of ordered label keys is
+defined such that values can be supplied in order.  This allows a
+faster code path to construct the `LabelSet`.  For example,
 
+```golang
+
+var rpcLabelKeys = meter.OrderedLabelKeys("a", "b", "c")
+
+for _, input := range stream {
+    labels := rpcLabelKeys.Values(1, 2, 3)  // a=1, b=2, c=3
+
+    // ...
+}
 ```
-requiredKeys := metric.DefineKeys("key1", "key2", "key3")
-labelSet := requiredKeys.DefineValues(meter, 1, 2, 3)
-```
+
+This is specified as a language-optional feature because its safety,
+and therefore its value as an input for monitoring, depends on the
+availability of type-checking in the source language.  Passing
+unordered labels (i.e., a list of bound keys and values) to
+`Meter.Labels(...)` is considered the safer alternative.
 
 ## Internal details
 
-Metric instruments are specified as SDK-independent objects, therefore metric handles were required to bind the instrument to the SDK in order to operate. In this proposal, `LabelSet` becomes responsible for binding the SDK at any call site where it is used.  Other than knowing the `Meter` that defined it, `LabelSet` is an opaque interface.  The three ways to use `LabelSet` in the metrics API are:
-
-```
-instrument.GetHandle(labels).Action(value)       // Action on a handle 
-instrument.Action(value, labels)                 // Single action, no handle
-RecordBatch(labels, [(instrument, value), ...])  // Batch action, no handles
-```
-
-Metric SDKs that do not or cannot take advantage of the Handle or LabelSet optimizations are not especially burdened by having to support these APIs.  It is trivial to supply implementations of the handle as a simple (`Instrument`, `LabelSet`) pair and the label set as simple list of labels.  This may not be acceptable in performance-critical applications, but this is the common case in many metrics and diagnostics APIs today.
-
-Applications that forego the use of handles but do prefer to store and pass `LabelSet` objects may wonder what kind of performance to expect when exporting pre-computed metric data from their SDK.  What should we expect of a high-performance metrics SDK in this regard?  Since the SDK is involved in constructing the label set, we can presume it has performed the expensive computation of joining the labels into a lookup key or a serializable encoding, yielding a unique ID for the label set.
-
-What remains, at `Record` time, to update the pre-aggregation state, is to lookup a map entry using the pair (`Instrument` ID, `LabelSet` ID), which is somewhat more than the cost of `GetHandle`.  It is relatively fast compared with joining the labels into a lookup key, but there are complications.  The lookup has to be synchronized, which could be a problem in some cases, and the map cannot grow without bound so there is a management "tax" to consider.  This is what we might expect of a high-performance metrics SDK.
+Metric SDKs that do not or cannot take advantage of the LabelSet optimizations are not especially burdened by having to support these APIs.  It is trivial to supply an implementation of `LabelSet` that simply stores a list of labels.  This may not be acceptable in performance-critical applications, but this is the common case in many metrics and diagnostics APIs today.
 
 ## Trade-offs and mitigations
 
-Each programming language should select the names for `LabelSet` and `DefineLabels` that are most idiomatic and sensible.
-
-In languages where overloading is a standard convenience, the metrics API may elect to offer alternate forms that elide the call to `DefineLabels`, for example this:
+In languages where overloading is a standard convenience, the metrics API may elect to offer alternate forms that elide the call to `Meter.Labels()`, for example:
 
 ```
 instrument.GetHandle(meter, { Key: Value, ... })
@@ -113,17 +87,19 @@ instrument.GetHandle(meter, { Key: Value, ... })
 as opposed to this:
 
 ```
-instrument.GetHandle(meter.DefineLabels({ Key: Value, ... }))
+instrument.GetHandle(meter.Labels({ Key: Value, ... }))
 ```
 
-A key distinction between `LabelSet` and similar concepts in existing metrics libraries is that it is a _write-only_ structure, allowing the programmer to set diagnostic state while ensuring that diagnostic state does not become application-level state.
+A key distinction between `LabelSet` and similar concepts in existing metrics libraries is that it is a _write-only_ structure.  `LabelSet` allows the developer to input metric labels without being able to read them back.  This avoids forcing the SDK to retain a reference to memory that is not required.
 
 ## Prior art and alternatives
 
-There is not clear prior art like `LabelSet` as defined here.
+Some existing metrics APIs support this concept.  For example, see `Scope` in the [Tally metric API for Go](https://godoc.org/github.com/uber-go/tally#Scope).
 
-A potential application for `DefineLabels` is to pre-compute the bytes of the statsd encoding for a label set once, to avoid repeatedly serializing this information.
+Some libraries take `LabelSet` one step further.  In the future, we may add to the the `LabelSet` API a method to extend the label set with additional labels.  For example:
 
-## Open questions
-
-Introducing `LabelSet` makes one more step for simply using the metrics API.  Can convenience libraries, utility classes, and overloaded functions make the simple API use-cases acceptable while supporting re-use of `LabelSet` objects for optimization?
+```
+serviceLabels := meter.Labels({ "k1": "v1", "k2": "v2" })
+// ...
+requestLabels := serviceLabels.With({ "k3": "v3", "k4": "v4" })
+```
