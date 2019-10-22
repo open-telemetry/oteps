@@ -30,8 +30,8 @@ This section specifies data format in Protocol Buffers.
 ```protobuf
 // Resource information. This describes the source of telemetry data.
 message Resource {
-  // labels is a list of attributes that describe the resource. See OpenTelemetry specification
-  // semantic conventions for standardized label names:
+  // labels is a collection of attributes that describe the resource. See OpenTelemetry
+  // specification semantic conventions for standardized label names:
   // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md
   repeated AttributeKeyValue labels = 1;
 
@@ -58,24 +58,24 @@ message Span {
   // the same `trace_id`. The ID is a 16-byte array. An ID with all zeroes
   // is considered invalid.
   //
-  // This field is semantically required. Receiver should generate new
-  // random trace_id if empty or invalid trace_id was received.
-  //
-  // This field is required.
+  // This field is semantically required. If empty or invalid trace_id was received:
+  // - The receiver MAY reject the invalid data and respond with the appropriate error
+  //   code to the sender.
+  // - The receiver MAY accept the invalid data and attempt to correct it.
   bytes trace_id = 1;
 
   // span_id is a unique identifier for a span within a trace, assigned when the span
   // is created. The ID is an 8-byte array. An ID with all zeroes is considered
   // invalid.
   //
-  // This field is semantically required. Receiver should generate new
-  // random span_id if empty or invalid span_id was received.
-  //
-  // This field is required.
+  // This field is semantically required. If empty or invalid span_id was received:
+  // - The receiver MAY reject the invalid data and respond with the appropriate error
+  //   code to the sender.
+  // - The receiver MAY accept the invalid data and attempt to correct it.
   bytes span_id = 2;
 
-  // TraceEntry is the entry that is repeated in tracestate field (see below).
-  message TraceEntry {
+  // TraceStateEntry is the entry that is repeated in tracestate field (see below).
+  message TraceStateEntry {
     // key must begin with a lowercase letter, and can only contain
     // lowercase letters 'a'-'z', digits '0'-'9', underscores '_', dashes
     // '-', asterisks '*', and forward slashes '/'.
@@ -88,10 +88,10 @@ message Span {
   }
 
   // TraceState conveys information about request position in multiple distributed tracing graphs.
-  // It is a list of Tracestate.Entry with a maximum of 32 members in the list.
+  // It is a collection of TracestateEntry with a maximum of 32 members in the list.
   //
   // See the https://github.com/w3c/distributed-tracing for more details about this field.
-  repeated TraceEntry tracestate = 3;
+  repeated TraceStateEntry tracestate = 3;
 
   // parent_span_id is the `span_id` of this span's parent span. If this is a root span, then this
   // field must be omitted. The ID is an 8-byte array.
@@ -172,8 +172,8 @@ message Span {
   // This field is required.
   int64 end_time_unixnano = 9;
 
-  // attributes is a list of AttributeKeyValue. The value can be a string, an integer, a double
-  // or the Boolean values `true` or `false`. Note, global attributes like
+  // attributes is a collection of attributes. The value can be a string, an integer,
+  // a double or the Boolean values `true` or `false`. Note, global attributes like
   // server name can be set as tags using resource API. Examples of attributes:
   //
   //     "/http/user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
@@ -196,7 +196,7 @@ message Span {
     // A user-supplied name describing the event.
     string name = 2;
 
-    // A list of attributes of the event.
+    // attributes is a collection of attributes on the event.
     repeated AttributeKeyValue attributes = 3;
 
     // The number of dropped attributes. If the value is 0, then no attributes were dropped.
@@ -206,8 +206,8 @@ message Span {
   // timed_events is a collection of `TimedEvent`s.
   repeated TimedEvent timed_events = 12;
 
-  // dropped_timed_events_count is the number of dropped timed events. If the value is 0, then
-  // no events were dropped.
+  // dropped_timed_events_count is the number of dropped timed events. If the value is 0,
+  // then no events were dropped.
   int32 dropped_timed_events_count = 13;
 
   // Link is a pointer from the current span to another span in the same trace or in a
@@ -222,14 +222,12 @@ message Span {
     // A unique identifier for the linked span. The ID is an 8-byte array.
     bytes span_id = 2;
 
-    // The Tracestate associated with the link.
-    repeated TraceEntry tracestate = 3;
+    // tracestate is the Tracestate associated with the link.
+    repeated TraceStateEntry tracestate = 3;
 
-    // A list of attributes of the link.
+    // attributes is a collection of attributes on the link.
     repeated AttributeKeyValue attributes = 4;
 
-    // dropped_attributes_count is the number of dropped attributes. If the value is 0, then
-    // no attributes were dropped.
     int32 dropped_attributes_count = 5;
   }
 
@@ -237,8 +235,8 @@ message Span {
   // in the same or different trace.
   repeated Link links = 14;
 
-  // dropped_links_count is the number of dropped links after the maximum size was enforced.
-  // If this value is 0, then no links were dropped.
+  // dropped_links_count is the number of dropped links after the maximum size was
+  // enforced. If this value is 0, then no links were dropped.
   int32 dropped_links_count = 15;
 
   // An optional final status for this span. Semantically when Status
