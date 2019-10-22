@@ -309,6 +309,8 @@ OpenCensus and Jaeger protocol buffer data schemas were used as the inspiration 
 
 A follow up RFC is required to define the data format for metrics.
 
+One of the original aspiring goals for OTLP was to _"support very fast pass-through mode (when no modifications to the data are needed), fast augmenting or tagging of data and partial inspection of data"_. This particular goal was not met directly (although performance improvements over OpenCensus encoding make OTLP more suitable for these tasks). This goal remains a good direction of future research and improvement.
+
 ## Appendix A - Benchmarking
 
 The following shows [benchmarking of encoding/decoding in Go](https://github.com/tigrannajaryan/exp-otelproto/) using various schemas.
