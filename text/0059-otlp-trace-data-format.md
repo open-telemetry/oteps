@@ -27,7 +27,7 @@ This section specifies data format in Protocol Buffers.
 
 ### Resource
 
-```
+```protobuf
 // Resource information. This describes the source of telemetry data.
 message Resource {
   // labels is a list of attributes that describe the resource. See OpenTelemetry specification
@@ -43,7 +43,7 @@ message Resource {
 
 ### Span
 
-```
+```protobuf
 // Span represents a single operation within a trace. Spans can be
 // nested to form a trace tree. Spans may also be linked to other spans
 // from the same or different trace and form graphs. Often, a trace
@@ -265,7 +265,7 @@ message Status {
 
 ### AttributeKeyValue
 
-```
+```protobuf
 // AttributeKeyValue is a key-value pair that is used to store Span attributes, Resource
 // labels, etc.
 message AttributeKeyValue {
