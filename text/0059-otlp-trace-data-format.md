@@ -87,8 +87,8 @@ message Span {
     string value = 2;
   }
 
-  // TraceState conveys information about request position in multiple distributed tracing graphs.
-  // It is a collection of TracestateEntry with a maximum of 32 members in the list.
+  // tracestate conveys information about request position in multiple distributed tracing graphs.
+  // It is a collection of TracestateEntry with a maximum of 32 members in the collection.
   //
   // See the https://github.com/w3c/distributed-tracing for more details about this field.
   repeated TraceStateEntry tracestate = 3;
@@ -172,9 +172,9 @@ message Span {
   // This field is required.
   int64 end_time_unixnano = 9;
 
-  // attributes is a collection of attributes. The value can be a string, an integer,
-  // a double or the Boolean values `true` or `false`. Note, global attributes like
-  // server name can be set as tags using resource API. Examples of attributes:
+  // attributes is a collection of attribute key/value pairs. The value can be a string,
+  // an integer, a double or the Boolean values `true` or `false`. Note, global attributes
+  // like server name can be set as tags using resource API. Examples of attributes:
   //
   //     "/http/user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
   //     "/http/server_latency": 300
@@ -182,28 +182,29 @@ message Span {
   //     "abc.com/score": 10.239
   repeated AttributeKeyValue attributes = 10;
 
-  // The number of attributes that were discarded. Attributes can be discarded
-  // because their keys are too long or because there are too many attributes.
-  // If this value is 0, then no attributes were dropped.
+  // dropped_attributes_count is the number of attributes that were discarded. Attributes
+  // can be discarded because their keys are too long or because there are too many
+  // attributes. If this value is 0, then no attributes were dropped.
   int32 dropped_attributes_count = 11;
 
   // TimedEvent is a time-stamped annotation of the span, consisting of either
   // user-supplied key-value pairs, or details of a message sent/received between Spans.
   message TimedEvent {
-    // The time the event occurred.
+    // time_unixnano is the time the event occurred.
     int64 time_unixnano = 1;
 
-    // A user-supplied name describing the event.
+    // name is a user-supplied description of the event.
     string name = 2;
 
-    // attributes is a collection of attributes on the event.
+    // attributes is a collection of attribute key/value pairs on the event.
     repeated AttributeKeyValue attributes = 3;
 
-    // The number of dropped attributes. If the value is 0, then no attributes were dropped.
+    // dropped_attributes_count is the number of dropped attributes. If the value is 0,
+    // then no attributes were dropped.
     int32 dropped_attributes_count = 4;
   }
 
-  // timed_events is a collection of `TimedEvent`s.
+  // timed_events is a collection of TimedEvent items.
   repeated TimedEvent timed_events = 12;
 
   // dropped_timed_events_count is the number of dropped timed events. If the value is 0,
@@ -215,19 +216,21 @@ message Span {
   // where a single batch handler processes multiple requests from different
   // traces or when the handler receives a request from a different project.
   message Link {
-    // A unique identifier of a trace that this linked span is part of. The ID is a
-    // 16-byte array.
+    // trace_id is a unique identifier of a trace that this linked span is part of.
+    // The ID is a 16-byte array.
     bytes trace_id = 1;
 
-    // A unique identifier for the linked span. The ID is an 8-byte array.
+    // span_id is a unique identifier for the linked span. The ID is an 8-byte array.
     bytes span_id = 2;
 
-    // tracestate is the Tracestate associated with the link.
+    // tracestate is the trace state associated with the link.
     repeated TraceStateEntry tracestate = 3;
 
-    // attributes is a collection of attributes on the link.
+    // attributes is a collection of attribute key/value pairs on the link.
     repeated AttributeKeyValue attributes = 4;
 
+    // dropped_attributes_count is the number of dropped attributes. If the value is 0,
+    // then no attributes were dropped.
     int32 dropped_attributes_count = 5;
   }
 
@@ -239,13 +242,12 @@ message Span {
   // enforced. If this value is 0, then no links were dropped.
   int32 dropped_links_count = 15;
 
-  // An optional final status for this span. Semantically when Status
-  // wasn't set it is means span ended without errors and assume
-  // Status.Ok (code = 0).
+  // status is an optional final status for this span. Semantically when status
+  // wasn't set it is means span ended without errors and assume Status.Ok (code = 0).
   Status status = 16;
 
-  // An optional number of child spans that were generated while this span
-  // was active. If set, allows an implementation to detect missing child spans.
+  // child_span_count is an optional number of child spans that were generated while this
+  // span was active. If set, allows an implementation to detect missing child spans.
   int32 child_span_count = 17;
 }
 
