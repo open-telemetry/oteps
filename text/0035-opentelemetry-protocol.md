@@ -2,7 +2,7 @@
 
 _Author: Tigran Najaryan, Omnition Inc._
 
-**Status:** `proposed`
+**Status:** `approved`
 
 OpenTelemetry Protocol (OTLP) specification describes the encoding, transport and delivery mechanism of telemetry data between telemetry sources, intermediate nodes such as collectors and telemetry backends.
 
