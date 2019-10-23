@@ -153,10 +153,7 @@ message Span {
   // kept by the local machine where the span execution starts. On the server side, this
   // is the time when the server's application handler starts running.
   //
-  // This field is semantically required. When not set on receive -
-  // receiver should set it to the value of end_time field if it was
-  // set. Or to the current time if neither was set. It is important to
-  // keep end_time > start_time for consistency.
+  // This field is semantically required and it is expected that end_time >= start_time.
   //
   // This field is required.
   int64 start_time_unixnano = 8;
@@ -165,9 +162,7 @@ message Span {
   // kept by the local machine where the span execution ends. On the server side, this
   // is the time when the server application handler stops running.
   //
-  // This field is semantically required. When not set on receive -
-  // receiver should set it to start_time value. It is important to
-  // keep end_time > start_time for consistency.
+  // This field is semantically required and it is expected that end_time >= start_time.
   //
   // This field is required.
   int64 end_time_unixnano = 9;
