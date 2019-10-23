@@ -2,7 +2,7 @@
 
 _Author: Tigran Najaryan, Splunk_
 
-**Status:** `proposed`
+**Status:** `approved`
 
 OTLP Trace Data Format specification describes the structure of the trace data that is transported by OpenTelemetry Protocol (RFC0035).
 
