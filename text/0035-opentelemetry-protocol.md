@@ -8,22 +8,30 @@ OpenTelemetry Protocol (OTLP) specification describes the encoding, transport an
 
 ## Table of Contents
 
-- [Motivation](#motivation)
-- [Protocol Details](#protocol-details)
-  - [Export Request and Response](#export-request-and-response)
-  - [OTLP over gRPC](#otlp-over-grpc)
-  - [Other Transports](#other-transports)
-- [Implementation Recommendations](#implementation-recommendations)
-  - [Multi-Destination Exporting](#multi-destination-exporting)
-- [Trade-offs and Mitigations](#trade-offs-and-mitigations)
-- [Future Versions and Interoperability](#future-versions-and-interoperability)
-- [Prior Art, Alternatives and Future Possibilities](#prior-art-alternatives-and-future-possibilities)
-- [Open Questions](#open-questions)
-- [Appendix A - Protocol Buffer Definitions](#appendix-a---protocol-buffer-definitions)
-- [Appendix B - Performance Benchmarks](#appendix-b---performance-benchmarks)
-- [Glossary](#glossary)
-- [Acknowledgements](#acknowledgements)
-- [Author's Address](#authors-address)
+  - [Motivation](#motivation)
+  - [Protocol Details](#protocol-details)
+    - [Export Request and Response](#export-request-and-response)
+      - [OTLP over gRPC](#otlp-over-grpc)
+      - [Result Code](#result-code)
+      - [Throttling](#throttling)
+      - [gRPC Service Definition](#grpc-service-definition)
+    - [Other Transports](#other-transports)
+  - [Implementation Recommendations](#implementation-recommendations)
+    - [Multi-Destination Exporting](#multi-destination-exporting)
+  - [Trade-offs and mitigations](#trade-offs-and-mitigations)
+    - [Request Acknowledgements](#request-acknowledgements)
+      - [Duplicate Data](#duplicate-data)
+    - [Partial Success](#partial-success)
+  - [Future Versions and Interoperability](#future-versions-and-interoperability)
+  - [Prior Art, Alternatives and Future Possibilities](#prior-art-alternatives-and-future-possibilities)
+  - [Open Questions](#open-questions)
+  - [Appendix A - Protocol Buffer Definitions](#appendix-a---protocol-buffer-definitions)
+  - [Appendix B - Performance Benchmarks](#appendix-b---performance-benchmarks)
+    - [Throughput - Sequential vs Concurrent](#throughput---sequential-vs-concurrent)
+    - [CPU Usage - gRPC vs WebSocket/Experimental](#cpu-usage---grpc-vs-websocketexperimental)
+    - [Benchmarking Raw Results](#benchmarking-raw-results)
+  - [Glossary](#glossary)
+  - [Acknowledgements](#acknowledgements)
 
 
 ## Motivation
@@ -138,7 +146,7 @@ The value of `retry_delay` is determined by the server and is implementation dep
 
 #### gRPC Service Definition
 
-`Export` requests and responses are delivered using bidirectional gRPC streams.
+`Export` requests and responses are delivered using unary gRPC calls.
 
 This is OTLP over gRPC Service definition:
 
@@ -199,7 +207,7 @@ The current version of OTLP is the initial version that describes mandatory capa
 
 We have considered using gRPC streaming instead of Unary RPC calls. This would require implementations to manually perform stream closing and opening periodically to be L7 Load Balancer friendly. Reference implementation using gRPC Streaming has shown that it results in significantly more complex and error prone code without significant benefits. Because of this Unary RPC was chosen.
 
-OTLP is an evolution of OpenCensus protocol based on the research and testing of its modifications in production at Omnition. The modifications include changes to data formats (see RFCNNNN), use of Unary PRC and backpressure signaling capability.
+OTLP is an evolution of OpenCensus protocol based on the research and testing of its modifications in production at Omnition. The modifications include changes to data formats (see RFC0059), use of Unary PRC and backpressure signaling capability.
 
 OTLP uses Protocol Buffers for data encoding. Two other encodings were considered as alternative approaches: FlatBuffers and Capnproto. Both alternatives were rejected. FlatBuffers was rejected because it lacks required functionality in all languages except C++, particularly lack of verification of decoded data and inability to mutate in-memory data. Capnproto was rejected because it is not yet considered production ready, the API is not yet stable and like FlatBuffers it lacks ability mutate in-memory data.
 
@@ -419,11 +427,3 @@ Both the Client and the Server are also a `Node`. This term is used in the docum
 ## Acknowledgements
 
 Special thanks to Owais Lone who helped to conduct experiments with Load Balancers, to Paulo Janotti, Bogdan Drutu and Yuri Shkuro for thoughtful discussions around the protocol.
-
-## Author's Address
-
-Tigran Najaryan
-
-Omnition, Inc.
-
-Email: tigran@najaryan.net
