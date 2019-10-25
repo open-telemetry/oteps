@@ -43,7 +43,7 @@ The common use for `MeasureMetric`, like the preceding raw statistics API, is fo
     context_tag2=_any_value_
     ...
 
-Here, "pre_defined" keys are those captured in the metrics Handle, "resource" keys are those configured when the SDK was initialized, and "context_tag" keys are those propagated via context.
+Here, "pre_defined" keys are those captured in the metrics handle, "resource" keys are those configured when the SDK was initialized, and "context_tag" keys are those propagated via context.
 
 Events of this form can logically capture a single update to a named metric, whether a cumulative, gauge, or measure kind of metric.  This logical structure defines a _low-level encoding_ of any metric event, across the three kinds of metric.  An SDK could simply encode a stream of these events and the consumer, provided access to the metric definition, should be able to interpret these events according to the semantics prescribed for each kind of metric.
 
@@ -65,7 +65,7 @@ Metric instruments are constructed through the `Meter` API. Constructing an inst
 
 See the specification for more information on these fields, including formatting and uniqueness requirements.  To define a new metric, use one of the `Meter` API methods (e.g., with names like `NewCumulativeMetric`, `NewGaugeMetric`, or `NewMeasureMetric`).
 
-Metric instrument Handles are combine a metric instrument with a set of pre-defined labels.  Handles are obtained by calling a language-specific API method (e.g., `GetHandle`) on the metric instrument with certain label values.  Handles may be used to `Set()`, `Add()`, or `Record()` metrics according to their kind.
+Metric instrument Handles combine a metric instrument with a set of pre-defined labels.  Handles are obtained by calling a language-specific API method (e.g., `GetHandle`) on the metric instrument with certain label values.  Handles may be used to `Set()`, `Add()`, or `Record()` metrics according to their kind.
 
 ## Selecting Metric Kind
 
