@@ -1,6 +1,6 @@
 # Metric Handle API specification
 
-**Status:** `proposed`
+**Status:** `accepted`
 
 Specify the behavior of the Metrics API "Handle" type, for efficient repeated-use of metric instruments.
 
