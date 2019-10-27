@@ -32,7 +32,7 @@ This section specifies data format in Protocol Buffers.
 message Resource {
   // labels is a collection of attributes that describe the resource. See OpenTelemetry
   // specification semantic conventions for standardized label names:
-  // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md
+  // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-resource-semantic-conventions.md
   repeated AttributeKeyValue labels = 1;
 
   // dropped_labels_count is the number of dropped labels. If the value is 0, then
@@ -210,6 +210,8 @@ message Span {
   // different trace. For example, this can be used in batching operations,
   // where a single batch handler processes multiple requests from different
   // traces or when the handler receives a request from a different project.
+  // See also Links specification:
+  // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/overview.md#links-between-spans
   message Link {
     // trace_id is a unique identifier of a trace that this linked span is part of.
     // The ID is a 16-byte array.
@@ -253,7 +255,7 @@ message Status {
   // when not set.
   int32 code = 1;
 
-  // A developer-facing error message, which should be in English.
+  // A developer-facing human readable error message.
   string message = 2;
 }
 ```
