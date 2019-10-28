@@ -6,7 +6,7 @@ Introduce a first-class `LabelSet` API type as a handle on a pre-defined set of 
 
 ## Motivation
 
-Labels are the term for key-value pairs used in the OpenTelemetry Metrics API.  Treatment of labels in the metrics API is especially important for performance, across a variety of export strategies.
+Labels are the term for key-value pairs used in the OpenTelemetry Metrics API.  Treatment of labels in the Metrics API is especially important for performance across a variety of export strategies.
 
 Whether pushing or pulling metrics, whether aggregating metric events in the process or not, it is an expensive computation to translate a set of labels into either a serialized representation or a unique lookup key.  Users of the metrics API stand to benefit by re-using label sets whenever possible, because manipulating label sets often dominates the cost of processing metric events.
 
