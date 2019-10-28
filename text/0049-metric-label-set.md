@@ -8,7 +8,7 @@ Introduce a first-class `LabelSet` API type as a handle on a pre-defined set of 
 
 Labels are the term for key-value pairs used in the OpenTelemetry Metrics API.  Treatment of labels in the Metrics API is especially important for performance across a variety of export strategies.
 
-Whether pushing or pulling metrics, whether aggregating metric events in the process or not, it is an expensive computation to translate a set of labels into either a serialized representation or a unique lookup key.  Users of the metrics API stand to benefit by re-using label sets whenever possible, because manipulating label sets often dominates the cost of processing metric events.
+Label serialization is often one of the most expensive tasks when processing metric events. Creating a `LabelSet` once and re-using it many times can greatly reduce the overall cost of processing many events.
 
 The Metrics API supports three calling conventions: the Handle convention, the Direct convention, and the Batch convention. Each of these conventions stands to benefit when a `LabelSet` is re-used, as it allows the SDK to process the label set once instead of once per call.  Whenever more than one handle will be created with the same labels, more than one instrument will be called directly with the same labels, or more than one batch of metric events will be recorded with the same labels, re-using a `LabelSet` makes it possible for the SDK to improve performance.
 
