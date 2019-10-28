@@ -14,7 +14,7 @@ The Metrics API supports three calling conventions: the Handle convention, the D
 
 ## Explanation
 
-Metric instrument APIs which presently take labels in the form `{ Key: Value, ... }` will be updated to take an explicit `LabelSet`.  The `Meter.Labels()` API method supports getting a `LabelSet` from the SDK, allowing the programmer to acquire a pre-define label set.  Here are several examples of `LabelSet` re-use.  Assume we have two instruments:
+Metric instrument APIs which presently take labels in the form `{ Key: Value, ... }` will be updated to take an explicit `LabelSet`.  The `Meter.Labels()` API method supports getting a `LabelSet` from the SDK, allowing the programmer to acquire a pre-defined label set.  Here are several examples of `LabelSet` re-use.  Assume we have two instruments:
 
 ```golang
 var (
