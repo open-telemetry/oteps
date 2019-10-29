@@ -283,7 +283,7 @@ message AttributeKeyValue {
   // Only one of the following fields is supposed to contain data (determined by `type` field value).
   // This is deliberately not using Protobuf `oneof` for performance reasons (verified by benchmarks).
 
-  // A string up to 256 bytes long.
+  // A string value.
   string string_value = 3;
   // A 64-bit signed integer.
   int64 int64_value = 4;
