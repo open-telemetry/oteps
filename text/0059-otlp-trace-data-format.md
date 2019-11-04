@@ -58,7 +58,7 @@ message Span {
   // the same `trace_id`. The ID is a 16-byte array. An ID with all zeroes
   // is considered invalid.
   //
-  // This field is semantically required. If empty or invalid trace_id was received:
+  // This field is semantically required. If empty or invalid trace_id is received:
   // - The receiver MAY reject the invalid data and respond with the appropriate error
   //   code to the sender.
   // - The receiver MAY accept the invalid data and attempt to correct it.
@@ -68,7 +68,7 @@ message Span {
   // is created. The ID is an 8-byte array. An ID with all zeroes is considered
   // invalid.
   //
-  // This field is semantically required. If empty or invalid span_id was received:
+  // This field is semantically required. If empty or invalid span_id is received:
   // - The receiver MAY reject the invalid data and respond with the appropriate error
   //   code to the sender.
   // - The receiver MAY accept the invalid data and attempt to correct it.
@@ -167,9 +167,9 @@ message Span {
   // This field is required.
   int64 end_time_unixnano = 9;
 
-  // attributes is a collection of attribute key/value pairs. The value can be a string,
+  // attributes is a collection of key/value pairs. The value can be a string,
   // an integer, a double or the Boolean values `true` or `false`. Note, global attributes
-  // like server name can be set as tags using resource API. Examples of attributes:
+  // like server name can be set using the resource API. Examples of attributes:
   //
   //     "/http/user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
   //     "/http/server_latency": 300
@@ -243,17 +243,40 @@ message Span {
   // wasn't set it is means span ended without errors and assume Status.Ok (code = 0).
   Status status = 16;
 
-  // child_span_count is an optional number of child spans that were generated while this
+  // child_span_count is an optional number of local child spans that were generated while this
   // span was active. If set, allows an implementation to detect missing child spans.
   int32 child_span_count = 17;
 }
 
-// The `Status` type defines a logical error model that is suitable for different
+// The Status type defines a logical error model that is suitable for different
 // programming environments, including REST APIs and RPC APIs.
 message Status {
+
+  // StatusCode mirrors the codes defined at
+  // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-tracing.md#statuscanonicalcode
+  enum StatusCode {
+    Ok                 = 0;
+    Cancelled          = 1;
+    UnknownError       = 2;
+    InvalidArgument    = 3;
+    DeadlineExceeded   = 4;
+    NotFound           = 5;
+    AlreadyExists      = 6;
+    PermissionDenied   = 7;
+    ResourceExhausted  = 8;
+    FailedPrecondition = 9;
+    Aborted            = 10;
+    OutOfRange         = 11;
+    Unimplemented      = 12;
+    InternalError      = 13;
+    Unavailable        = 14;
+    DataLoss           = 15;
+    Unauthenticated    = 16;
+  };
+
   // The status code. This is optional field. It is safe to assume 0 (OK)
   // when not set.
-  int32 code = 1;
+  StatusCode code = 1;
 
   // A developer-facing human readable error message.
   string message = 2;
