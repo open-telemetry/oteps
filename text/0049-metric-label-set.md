@@ -38,7 +38,7 @@ for ... {
 }
 ```
 
-Use a `LabelSet` to for multiple Direct calls:
+Use a `LabelSet` to make multiple Direct calls:
 
 ```golang
 labels := meter.Labels({ "required_key1": value1, "required_key2": value2 })
