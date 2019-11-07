@@ -174,11 +174,11 @@ instrumenting code and never access `SampledFlag` unless used in context propaga
 This is a new concept added in the OpenTelemetry API that allows to suggest sampling hints to the
 implementation of the API:
  * `NOT_RECORD`
-   * Suggest to not record (`RecordEvents = false`) and not propagate (`SampledFlag = false`).
+   * Suggest to not set (`RecordEvents = false`) and not propagate (`SampledFlag = false`).
  * `RECORD`
-   * Suggest to record (`RecordEvents = true`) but not propagate (`SampledFlag = false`).
+   * Suggest to set (`RecordEvents = true`) but not propagate (`SampledFlag = false`).
  * `RECORD_AND_PROPAGATE`
-   * Suggest to record (`RecordEvents = true`) and propagate (`SampledFlag = true`).
+   * Suggest to set (`RecordEvents = true`) and propagate (`SampledFlag = true`).
 
 The default option for the span creation is to not have any suggestion (or suggestion is not
 specified). This can be implemented by using `null` as the default option or any language specific
