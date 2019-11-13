@@ -81,7 +81,7 @@ Metric SDKs that do not or cannot take advantage of the LabelSet optimizations a
 In languages where overloading is a standard convenience, the metrics API may elect to offer alternate forms that elide the call to `Meter.Labels()`, for example:
 
 ```
-instrument.GetHandle(meter, { Key: Value, ... })
+instrument.GetHandle({ Key: Value, ... })
 ```
 
 as opposed to this:
