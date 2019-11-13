@@ -14,7 +14,7 @@ The Metrics API supports three calling conventions: the Handle convention, the D
 
 ## Explanation
 
-Metric instrument APIs which presently take labels in the form `{ Key: Value, ... }` will be updated to take an explicit `LabelSet`.  The `Meter.Labels()` API method supports getting a `LabelSet` from the SDK, allowing the programmer to acquire a pre-defined label set.  Here are several examples of `LabelSet` re-use.  Assume we have two instruments:
+Metric instrument APIs which presently take labels in the form `{ Key: Value, ... }` will be updated to take an explicit `LabelSet`.  The `Meter.Labels()` API method supports getting a `LabelSet` from the API, allowing the programmer to acquire a pre-defined label set.  Here are several examples of `LabelSet` re-use.  Assume we have two instruments:
 
 ```golang
 var (
@@ -38,7 +38,7 @@ for ... {
 }
 ```
 
-Use a `LabelSet` to for multiple Direct calls:
+Use a `LabelSet` to make multiple Direct calls:
 
 ```golang
 labels := meter.Labels({ "required_key1": value1, "required_key2": value2 })
@@ -71,6 +71,12 @@ and therefore its value as an input for monitoring, depends on the
 availability of type-checking in the source language.  Passing
 unordered labels (i.e., a list of bound keys and values) to
 `Meter.Labels(...)` is considered the safer alternative.
+
+### Interaction with "Named" Meters
+
+LabelSet values may be used with any named Meter originating from the
+same Meter provider.  That is, LabelSets acquired through a named
+Meter may be used by any Meter from the same Meter provider.
 
 ## Internal details
 
