@@ -10,7 +10,7 @@ This RFC addresses the following topics:
 **Separatation of concerns**  
 * Remove the Tracer dependency from context propagation mechanisms.
 * Handle user data (Baggage) and observability data (SpanContext, Correlations) 
-  seperately.  
+  separately.  
 
 **Extensibility**
 * Allow developers to create new applications for context propagation. For 
