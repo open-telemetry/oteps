@@ -171,6 +171,7 @@ returns an injector.
 
 ## Prototypes
 
+**Erlang:** https://github.com/open-telemetry/opentelemetry-erlang-api/pull/4
 **Go:** https://github.com/open-telemetry/opentelemetry-go/pull/297  
 **Java:** https://github.com/open-telemetry/opentelemetry-java/pull/655  
 **Python:** https://github.com/open-telemetry/opentelemetry-python/pull/278  
@@ -205,9 +206,9 @@ propagation. Let's assume this tracing system is configured to use B3,
 and has a specific propagator for that format. Initializating the propagators 
 might look like this:
 
-```
-func Init {
-  // create the propagators
+```php
+func InitializeOpentelemetry() {
+  // create the propagators for tracing and baggage.
   bagExtract, bagInject = Baggage::HTTPPropagator()
   traceExtract, traceInject = Tracer::B3Propagator()
   
@@ -224,7 +225,7 @@ These propagators can then be used in the request handler for `service A`. The
 tracing and baggage aspects use the context object to handle state without 
 breaking the encapsulation of the functions they are embedded in.
 
-```
+```php
 func HandleUpstreamRequest(context, request, project) -> (context) {
   // Extract the span context. Because the extractors have been chained,
   // both a span context and any upstream baggage have been extracted 
@@ -276,7 +277,7 @@ context to be propagated automatically.
 In this version of pseudocode, assume that the current context can be stored as 
 a thread local, and is implicitly passed to and returned from every function.
 
-```
+```php
 func HandleUpstreamRequest(request, project) {
   extract = Propagation::GetHTTPExtractor()
   extractor(request.Headers)
@@ -313,8 +314,8 @@ Digging into the details of the tracing system, what might some of the details
 look like? Here is a crude example of extracting and injecting B3 headers, 
 using an explicit context.
 
-```
-  B3Extractor(context, headers) -> (context) {
+```php
+  func B3Extractor(context, headers) -> (context) {
     context = Context::SetValue( context, 
                                  "trace.parentTraceID", 
                                  headers["X-B3-TraceId"])
@@ -324,7 +325,7 @@ using an explicit context.
     return context
   }
 
-  B3Injector(context, headers) -> (context) {
+  func B3Injector(context, headers) -> (context) {
     headers["X-B3-TraceId"] = Context::GetValue( context, "trace.parentTraceID")
     headers["X-B3-SpanId"] = Context::GetValue( context, "trace.parentSpanID")
 
@@ -337,8 +338,8 @@ context. Note that this code must know the internal details about the context
 keys in which the propagators above store their data. For this pseudocode, let's 
 assume again that the context is passed implicitly in a thread local.
 
-```
-  StartSpan(options) {
+```php
+  func StartSpan(options) {
     spanData = newSpanData()
     
     spanData.parentTraceID = Context::GetValue( "trace.parentTraceID")
