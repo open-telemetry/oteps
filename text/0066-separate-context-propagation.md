@@ -292,7 +292,7 @@ a thread local, and is implicitly passed to and returned from every function.
 ```php
 func HandleUpstreamRequest(request, project) {
   extract = Propagation::GetHTTPExtractor()
-  extractor(request.Headers)
+  extract(request.Headers)
   
   Tracer::StartSpan([span options])
   
