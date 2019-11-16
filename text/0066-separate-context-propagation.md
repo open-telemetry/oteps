@@ -371,6 +371,66 @@ assume again that the context is passed implicitly in a thread local.
   }
 ```
 
+Let's look at a couple other scenarios related to automatic context propagation.
+
+When are the values in the current contexdt available? Scope managemenent may be different in each langauge, but as long as the scope does not change (by switching threads, for example) the 
+current context follows the execuption of the program. This includes after a 
+function returns. Note that the context objects themselves are immutable, so 
+explict handles to prior contexts will not be updated when the current context 
+is changed.
+
+```php
+func Request() {
+  emptyContext = Context::GetCurrent()
+  
+  Context::SetValue( "say-something", "foo") 
+  secondContext = Context::GetCurrent()
+  
+  print(Context::GetValue("say-something")) // prints "foo"
+  
+  DoWork()
+  
+  thirdContext = Context::GetCurrent()
+  
+  print(Context::GetValue("say-something")) // prints "bar"
+
+  print( emptyContext.GetValue("say-something") )  // prints ""
+  print( secondContext.GetValue("say-something") ) // prints "foo"
+  print( thirdContext.GetValue("say-something") )  // prints "bar"
+}
+
+func DoWork(){
+  Context::SetValue( "say-something", "bar") 
+}
+```
+
+If context propagation is automantic, does the user ever need to reference a 
+context object directly? Sometimes. Ehen automated context propagation is 
+available, there is no restriction that aspects must only ever access the 
+current context. 
+
+For example, if an aspect wanted to merge the data beween two contexts, at 
+least one of them will not be the current context.
+
+```php
+mergedContext = MergeBaggage( Context::GetCurrent(), otherContext)
+Context::SetCurrent(mergedContext)
+```
+
+Sometimes, suppling an additional version of a function which uses explict 
+contexts is necessary, in order to handle edge cases. For example, in some cases 
+an extracted context is not intended to be set as current context. An 
+alternate extract method can be added to the API to handle this.
+
+```php
+// Most of the time, the extract function operates on the current context.
+Extract(headers)
+
+// When a context needs to be extracted without changing the current 
+// context, fall back to the explicit API.
+otherContext = ExtractWithContext(Context::GetCurrent(), headers)
+```
+
 # Internal details
 
 ![drawing](img/context_propagation_details.png)
