@@ -1,5 +1,17 @@
 # Proposal: Separate Layer for Context Propagation
 
+* [OpenTelemetry layered architecture](#openTelemetry-layered-architecture)
+  * [Aspects](#Aspects)
+    * [Observability API](#Observability-API)
+    * [Baggage API](#Baggage-API)
+  * [Context Propagation](#Context-Propagation)
+    * [Context API](#Context-API)
+    * [Propagation API](#Propagation-API)
+* [Prototypes](#Prototypes)
+* [Examples](#Examples)
+* [Internal details](#Internal-details)
+* [FAQ](#faq)
+
 Refactor OpenTelemetry into a set of separate cross-cutting concerns which 
 operate on a shared context propagation mechanism.
 
@@ -19,7 +31,7 @@ This RFC addresses the following topics:
 
 ## Explanation
 
-# OpenTelemetry Layered Architecture
+# OpenTelemetry layered architecture
 
 The design of OpenTelemetry is based on the priciples of aspect-oriented 
 programming, adopted to the needs of distributed systems.
@@ -169,7 +181,7 @@ takes an injector.
 To access the global injector, the Propagation API provides a function which 
 returns an injector.
 
-## Prototypes
+# Prototypes
 
 **Erlang:** https://github.com/open-telemetry/opentelemetry-erlang-api/pull/4  
 **Go:** https://github.com/open-telemetry/opentelemetry-go/pull/297  
@@ -177,7 +189,7 @@ returns an injector.
 **Python:** https://github.com/open-telemetry/opentelemetry-python/pull/278  
 **Ruby:** https://github.com/open-telemetry/opentelemetry-ruby/pull/147  
 
-## Examples
+# Examples
 
 It might be helpful to look at an example, written in pseudocode. Let's describe 
 a simple scenario, where `service A` responds to an HTTP request from a `client` 
@@ -413,7 +425,7 @@ When available, OpenTelemetry defaults to propagating via HTTP header
 definitions which have been standardized by the W3C.
 
 
-# Trade-offs and mitigations
+# FAQ
 
 ## Why separate Baggage from Correlations?
 
