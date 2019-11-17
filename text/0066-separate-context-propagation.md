@@ -405,7 +405,7 @@ func DoWork(){
 ```
 
 If context propagation is automantic, does the user ever need to reference a 
-context object directly? Sometimes. Ehen automated context propagation is 
+context object directly? Sometimes. When automated context propagation is 
 available, there is no restriction that aspects must only ever access the 
 current context. 
 
