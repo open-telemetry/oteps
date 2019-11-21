@@ -48,7 +48,7 @@ data across the lifespan of a distributed transaction.
 
 ## Observability API
 Distributed tracing is one example of an aspect. Tracing code is interleaved 
-with regular code, and ties together indepentent code modules which would 
+with regular code, and ties together independent code modules which would 
 otherwise remain encapsulated. Tracing is also distributed, and requires 
 non-local, transaction-level context propagation in order to execute correctly.
 
