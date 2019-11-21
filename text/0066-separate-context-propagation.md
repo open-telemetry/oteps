@@ -91,7 +91,7 @@ context which contains the new value.
 
 **ClearBaggage(context) -> context**  
 To avoid sending baggage to an untrusted downstream process, the Baggage API 
-provides a function remove all baggage from a context.
+provides a function to remove all baggage from a context.
 
 **GetBaggageHTTPPropagator() -> (HTTPExtract, HTTPInject)**  
 To deserialize the state of the system sent from the the prior upstream process, 
@@ -501,7 +501,7 @@ undefined. This leaves the door open to optimizations, such as propagating the
 correlation data out-of-band.
 
 Baggage values, on the other hand, are explicitly added in order to be accessed 
-by downstream by other application code. Therefore, Baggage Context must be 
+by other application code downstream. Therefore, Baggage Context must be 
 readable, and reliably propagated in-band in order to accomplish this goal.
 
 There may be cases where a key-value pair is propagated as a Correlation for 
