@@ -1,5 +1,6 @@
 # Context Propagation: A Layered Approach 
 
+* [Motivation](#Motivation)
 * [OpenTelemetry layered architecture](#OpenTelemetry-layered-architecture)
   * [Cross-Cutting Concerns](#Cross-Cutting-Concerns)
     * [Observability API](#Observability-API)
@@ -9,13 +10,21 @@
     * [Propagation API](#Propagation-API)
 * [Prototypes](#Prototypes)
 * [Examples](#Examples)
+  * [Global initialization](#Global-initialization)
+  * [Extracting and injecting from HTTP headers](#Extracting-and-injecting-from-HTTP-headers)
+  * [Simplfy the API with automated context propagation](#Simplfy-the-API-with-automated-context-propagation)
+  * [Implementing a propagator](#Implementing-a-propagator)
+  * [Implementing a concern](#Implementing-a-concern)
+  * [The scope of current context](#The-scope-of-current-context)
+  * [Referencing multiple contexts](#Referencing-multiple-contexts)
+  * [Falling back to explicit contexts](#Falling-back-to-explicit-contexts)
 * [Internal details](#Internal-details)
 * [FAQ](#faq)
 
 Refactor OpenTelemetry into a set of separate cross-cutting concerns which 
 operate on a shared context propagation mechanism.
 
-## Motivation
+# Motivation
 
 This RFC addresses the following topics:
 
@@ -210,11 +219,12 @@ in order to return the correct data.
 client -> service A -> service C
 ```
 
-In , we would like `service A` to decide on which backend service to call, 
-based on the client version. We would also like to trace the entire system, in 
-order to understand if requests to `service C` are slower or faster than 
-`service B`. What might `service A` look like?
+In this example, we would like `service A` to decide on which backend service 
+to call, based on the client version. We would also like to trace the entire 
+system, in order to understand if requests to `service C` are slower or faster 
+than `service B`. What might `service A` look like?
 
+## Global initialization 
 First, during program initialization, `service A` might set a global 
 extractor and injector which chains together baggage and tracing 
 propagation. Let's assume this tracing system is configured to use B3, 
@@ -227,31 +237,32 @@ func InitializeOpentelemetry() {
   bagExtract, bagInject = Baggage::HTTPPropagator()
   traceExtract, traceInject = Tracer::B3Propagator()
   
-  // chain the propagators together and make them globally available.
-  extract = Propagation::ChainHTTPExtractor(bagExtract,traceExtract)
-  inject = Propagation::ChainHTTPInjector(bagInject,traceInject)
-
-  Propagation::SetHTTPExtractor(extract)
-  Propagation::SetHTTPInjector(inject)
+  // add the propagators to the global list.
+  Propagation::SetExtractors(bagExtract, traceExtract)
+  Propagation::SetInjectors(bagInject, traceInject)
 }
 ```
-
+## Extracting and injecting from HTTP headers
 These propagators can then be used in the request handler for `service A`. The 
 tracing and baggage concerns use the context object to handle state without 
 breaking the encapsulation of the functions they are embedded in.
 
 ```php
 func HandleUpstreamRequest(context, request, project) -> (context) {
-  // Extract the span context. Because the extractors have been chained,
-  // both a span context and any upstream baggage have been extracted 
-  // from the request headers into the returned context.
-  extract = Propagation::GetHTTPExtractor()
-  context = extract(context, request.Headers)
+  // Extract the upstream context from the HTTP headers. Because the list of 
+  // extractors includes a trace extractor and a baggage extractor, the 
+  // contents for both systems are included in the  request headers into the 
+  // returned context.
+  extractors = Propagation::GetExtractors()
+  context = Propagation::Extract(context, extractors, request.Headers)
 
   // Start a span, setting the parent to the span context received from 
   // the upstream. The new span will then be in the returned context.
   context = Tracer::StartSpan(context, [span options])
   
+  // Determine the version of the upstream client, in order to handle the data 
+  // migration and allow new clients access to a data source that older clients
+  // are unaware of.
   version = Baggage::GetBaggage( context, "client-version")
 
   switch( version ){
@@ -274,8 +285,8 @@ func FetchDataFromServiceB(context) -> (context, data) {
   
   // Inject the contexts to be propagated. Note that there is no direct 
   // reference to tracing or baggage.
-  inject = Propagation::GetHTTPInjector()
-  context = inject(context, request.Headers)
+  injectors = Propagation::GetInjectors()
+  context = Propagation::Inject(context, injectors, request.Headers)
 
   // make an http request
   data = request.Do()
@@ -284,6 +295,7 @@ func FetchDataFromServiceB(context) -> (context, data) {
 }
 ```
 
+## Simplfy the API with automated context propagation
 In this version of pseudocode above, we assume that the context object is 
 explict,and is pass and returned from every function as an ordinary parameter. 
 This is cumbersome, and in many languages, a mechanism exists which allows 
@@ -294,8 +306,8 @@ a thread local, and is implicitly passed to and returned from every function.
 
 ```php
 func HandleUpstreamRequest(request, project) {
-  extract = Propagation::GetHTTPExtractor()
-  extract(request.Headers)
+  extractors = Propagation::GetExtractors()
+  Propagation::Extract(extractors, request.Headers)
   
   Tracer::StartSpan([span options])
   
@@ -316,18 +328,18 @@ func HandleUpstreamRequest(request, project) {
 func FetchDataFromServiceB() -> (data) {
   request = newRequest([request options])
   
-  inject = Propagation::GetHTTPInjector()
-  inject(request.Headers)
+  injectors = Propagation::GetInjectors()
+  Propagation::Inject(request.Headers)
   
   data = request.Do()
 
   return data
 }
 ```
-
-Digging into the details of the tracing system, what might some of the details 
-look like? Here is a crude example of extracting and injecting B3 headers, 
-using an explicit context.
+## Implementing a propagator
+Digging into the details of the tracing system, what might the internals of a 
+span context propagator look like? Here is a crude example of extracting and 
+injecting B3 headers, using an explicit context.
 
 ```php
   func B3Extractor(context, headers) -> (context) {
@@ -340,15 +352,16 @@ using an explicit context.
     return context
   }
 
-  func B3Injector(context, headers) -> (context) {
+  func B3Injector(context, headers) -> (headers) {
     headers["X-B3-TraceId"] = Context::GetValue( context, "trace.parentTraceID")
     headers["X-B3-SpanId"] = Context::GetValue( context, "trace.parentSpanID")
 
-    return context
+    return headers
   }
 ```
 
-Now, have a look at a crude example of how StartSpan might then make use of the 
+## Implementing a concern
+Now, have a look at a crude example of how StartSpan might make use of the 
 context. Note that this code must know the internal details about the context 
 keys in which the propagators above store their data. For this pseudocode, let's 
 assume again that the context is passed implicitly in a thread local.
@@ -374,9 +387,10 @@ assume again that the context is passed implicitly in a thread local.
   }
 ```
 
+## The scope of current context
 Let's look at a couple other scenarios related to automatic context propagation.
 
-When are the values in the current contexdt available? Scope managemenent may be different in each langauge, but as long as the scope does not change (by switching threads, for example) the 
+When are the values in the current context available? Scope managemenent may be different in each langauge, but as long as the scope does not change (by switching threads, for example) the 
 current context follows the execuption of the program. This includes after a 
 function returns. Note that the context objects themselves are immutable, so 
 explict handles to prior contexts will not be updated when the current context 
@@ -407,10 +421,11 @@ func DoWork(){
 }
 ```
 
+## Referencing multiple contexts
 If context propagation is automantic, does the user ever need to reference a 
-context object directly? Sometimes. When automated context propagation is 
-available, there is no restriction that concerns must only ever access the 
-current context. 
+context object directly? Sometimes. Even when automated context propagation is 
+an available option, there is no restriction which says that concerns must only 
+ever access the current context. 
 
 For example, if a concern wanted to merge the data beween two contexts, at 
 least one of them will not be the current context.
@@ -420,6 +435,7 @@ mergedContext = MergeBaggage( Context::GetCurrent(), otherContext)
 Context::SetCurrent(mergedContext)
 ```
 
+## Falling back to explicit contexts
 Sometimes, suppling an additional version of a function which uses explict 
 contexts is necessary, in order to handle edge cases. For example, in some cases 
 an extracted context is not intended to be set as current context. An 
