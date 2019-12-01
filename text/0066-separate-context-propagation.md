@@ -93,7 +93,7 @@ context which contains the new value.
 To avoid sending baggage to an untrusted downstream process, the Baggage API 
 provides a function to remove all baggage from a context.
 
-**GetBaggageHTTPPropagator() -> (HTTPExtract, HTTPInject)**  
+**GetBaggagePropagator() -> (HTTP_Extractor, HTTP_Injector)**  
 To deserialize the state of the system sent from the the prior upstream process, 
 and to serialize the the current state of the system and send it to the next 
 downstream process, the Baggage API provides a function which returns a 
@@ -138,26 +138,27 @@ functions which read and write context into RPC requests. Each concern creates a
 set of propagators for every type of supported medium - currently only HTTP 
 requests.
 
-**HTTPExtract(context, request) -> context**  
-To receive data injected by prior upstream processes, the Propagation API 
-provides a function which takes a context and an HTTP request, and returns 
-context which represents the state of the upstream system.
+**Extract(context, []http_injector, headers) -> context**  
+In order to continue transmitting data injected earlier in the transaction, 
+the Propagation API provides a function which takes a context, a set of 
+HTTP_Injectors, and a set of HTTP headers, and returns a new context which 
+includes the state sent from the upstream system.
 
-**HTTPInject(context, request)**  
+**Inject(context, []http_extractor, headers) -> headers**  
 To send the data for all concerns downstream to the next process, the 
-Propagation API provides a function which takes a context and an HTTP request, 
-and mutates the HTTP request to include an HTTP Header representation of the 
-context.
+Propagation API provides a function which takes a context and a set of 
+HTTP_Extractors, and adds the contents of the context in to HTTP headers to 
+include an HTTP Header representation of the context.
 
-**ChainHTTPInjector(injector, injector) -> injector**  
-To allow multiple concerns to inject their context into the same request, the 
-Propagation API provides a function which takes two injectors, and returns a 
-single injector which calls the two original injectors in order.
+**HTTP_Extractor(context, headers) -> context**  
+Each concern must implement an HTTP_Extractor, which can locate the headers 
+containing the http-formatted data, and then translate the contents into an 
+in-memory representation, set within the returned context object. 
 
-**ChainHTTPExtractor(extractor, extractor) -> extractor**  
-To allow multiple concerns to extract their context from the same request, the 
-Propagation API provides a function which takes two extractors, and returns a 
-single extractor which calls the two original extractors in order.
+**HTTP_Injector(context, headers) -> headers**  
+Each concern must implement an HTTP_Injector, which can take the in-memory 
+representation of its data from the given context object, and add it to an 
+existing set of HTTP headers.
 
 ### Optional: Global Propagators
 It is often convenient to create a chain of propagators during program 
@@ -165,19 +166,19 @@ initialization, and then access these combined propagators later in the program.
 To facilitate this, global injectors and extractors are optionally available. 
 However, there is no requirement to use this feature.
 
-**SetHTTPExtractor(extractor)**  
+**SetExtractors([]http_extractor)**  
 To update the global extractor, the Propagation API provides a function which 
 takes an extractor.
 
-**GetHTTPExtractor() -> extractor**  
+**GetExtractors() -> []http_extractor**  
 To access the global extractor, the Propagation API provides a function which 
 returns an extractor.
 
-**SetHTTPInjector(injector)**  
+**SetInjectors([]http_injector)**  
 To update the global injector, the Propagation API provides a function which 
 takes an injector.
 
-**GetHTTPInjector() -> injector**  
+**GetInjectors() -> []http_injector**  
 To access the global injector, the Propagation API provides a function which 
 returns an injector.
 
