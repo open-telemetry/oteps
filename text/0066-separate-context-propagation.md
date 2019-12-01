@@ -1,7 +1,7 @@
-# Proposal: Separate Layer for Context Propagation
+# Context Propagation: A Layered Approach 
 
-* [OpenTelemetry layered architecture](#openTelemetry-layered-architecture)
-  * [Aspects](#Aspects)
+* [OpenTelemetry layered architecture](#OpenTelemetry-layered-architecture)
+  * [Cross-Cutting Concerns](#Cross-Cutting-Concerns)
     * [Observability API](#Observability-API)
     * [Baggage API](#Baggage-API)
   * [Context Propagation](#Context-Propagation)
@@ -36,26 +36,26 @@ This RFC addresses the following topics:
 The design of OpenTelemetry is based on the priciples of aspect-oriented 
 programming, adopted to the needs of distributed systems.
 
-OpenTelemetry is separated into two layers: **aspects** which crosscut and 
-intertwine with a program's functional concerns, and cannot be encapsulated. In 
-this architecture, each cross-cutting concern is modeled as an independent 
-subsystem. Multiple aspects - including the tracing and baggage systems provided 
+OpenTelemetry is separated into two layers: **cross-cutting concerns** which 
+intertwine with a program's application logic, and cannot be encapsulated. In 
+this architecture, each concern is modeled as an independent subsystem. 
+Multiple concerns - including the tracing and baggage systems provided 
 by OpenTelemetry - then share the same underlying **context propagation** 
 system, which allows these cross-cutting concerns to store and access their 
 data across the lifespan of a distributed transaction.
 
-# Aspects
+# Cross-Cutting Concerns
 
 ## Observability API
-Distributed tracing is one example of an aspect. Tracing code is interleaved 
-with regular code, and ties together independent code modules which would 
-otherwise remain encapsulated. Tracing is also distributed, and requires 
+Distributed tracing is one example of a cross-cutting concern. Tracing code is 
+interleaved with regular code, and ties together independent code modules which 
+would otherwise remain encapsulated. Tracing is also distributed, and requires 
 non-local, transaction-level context propagation in order to execute correctly.
 
-A second observability aspect is correlations. Correlations are labels for 
-metrics, where the value of the label may be defined anywhere in the 
-transaction. Correlations are like Baggage, but are write only - the values can 
-only be used for observability.
+A second observability concern is **correlations**. Correlations provide values 
+for labels, which can then be applied to any metric occurring later in the 
+same transaction. The Correlations API is similar to the Baggage API, except it 
+is a write-only interface.
 
 The observability APIs are not described here directly. However, in this new 
 design, all observability APIs would be modified to make use of the generalized 
@@ -68,7 +68,7 @@ In addition to observability, OpenTelemetry provides a simple mechanism for
 propagating arbitrary user data, called Baggage. This mechanism is not related
 to tracing or observability, but it uses the same context propagation layer. 
 
-Baggage may be used to model new aspects which would benefit from the same 
+Baggage may be used to model new concerns which would benefit from the same 
 transaction-level context as tracing, e.g., for identity, versioning, and 
 network switching. 
 
@@ -76,16 +76,16 @@ To manage the state of these cross-cutting concerns, the Baggage API provides a
 set of functions which read, write, and propagate data.
 
 **SetBaggage(context, key, value) -> context**  
-To record the distributed state of an aspect, the Baggage API provides a 
+To record the distributed state of a concern, the Baggage API provides a 
 function which takes a context, a key, and a value as input, and returns an 
 updated context which contains the new value.
 
 **GetBaggage(context, key) -> value**  
-To access the distributed state of an aspect, the Baggage API provides a 
+To access the distributed state of a concern, the Baggage API provides a 
 function which takes a context and a key as input, and returns a value.
 
 **RemoveBaggage(context, key) -> context**  
-To delete distributed state from an aspect, the Baggage API provides a function 
+To delete distributed state from a concern, the Baggage API provides a function 
 which takes a context, a key, and a value as input, and returns an updated 
 context which contains the new value.
 
@@ -103,17 +103,17 @@ baggage-specific implementation of the HTTPExtract and HTTPInject functions.
 
 ## Context API
 
-Aspects access data in-process using a shared context object. Each aspect uses 
-its own namespaced set of keys in the context, containing all of the data for 
-that cross-cutting concern.
+Cross-cutting concerns access data in-process using the same, shared context 
+object. Each concern uses its own namespaced set of keys in the context, 
+containing all of the data for that cross-cutting concern.
 
 **SetValue(context, key, value) -> context**  
-To record the local state of an aspect, the Context API provides a function 
-which takes a context, a key, and a value as input, and returns an updated 
-context which contains the new value.
+To record the local state of a cross-cutting concern, the Context API provides a 
+function which takes a context, a key, and a value as input, and returns an 
+updated context which contains the new value.
 
 **GetValue(context, key) -> value**  
-To access the local state of an aspect, the Context API provides a function 
+To access the local state of an concern, the Context API provides a function 
 which takes a context and a key as input, and returns a value.
 
 ### Optional: Automated Context Management
@@ -133,8 +133,8 @@ provides a function which takes no arguments and returns a Context.
 
 ## Propagation API
 
-Aspects send their state to downstream processes via propagators: 
-functions which read and write context into RPC requests. Each aspect creates a 
+Cross-cutting concerns send their state to downstream processes via propagators: 
+functions which read and write context into RPC requests. Each concern creates a 
 set of propagators for every type of supported medium - currently only HTTP 
 requests.
 
@@ -144,18 +144,18 @@ provides a function which takes a context and an HTTP request, and returns
 context which represents the state of the upstream system.
 
 **HTTPInject(context, request)**  
-To send the data for all aspects downstream to the next process, the 
+To send the data for all concerns downstream to the next process, the 
 Propagation API provides a function which takes a context and an HTTP request, 
 and mutates the HTTP request to include an HTTP Header representation of the 
 context.
 
 **ChainHTTPInjector(injector, injector) -> injector**  
-To allow multiple aspects to inject their context into the same request, the 
+To allow multiple concerns to inject their context into the same request, the 
 Propagation API provides a function which takes two injectors, and returns a 
 single injector which calls the two original injectors in order.
 
 **ChainHTTPExtractor(extractor, extractor) -> extractor**  
-To allow multiple aspects to extract their context from the same request, the 
+To allow multiple concerns to extract their context from the same request, the 
 Propagation API provides a function which takes two extractors, and returns a 
 single extractor which calls the two original extractors in order.
 
@@ -234,7 +234,7 @@ func InitializeOpentelemetry() {
 ```
 
 These propagators can then be used in the request handler for `service A`. The 
-tracing and baggage aspects use the context object to handle state without 
+tracing and baggage concerns use the context object to handle state without 
 breaking the encapsulation of the functions they are embedded in.
 
 ```php
@@ -406,10 +406,10 @@ func DoWork(){
 
 If context propagation is automantic, does the user ever need to reference a 
 context object directly? Sometimes. When automated context propagation is 
-available, there is no restriction that aspects must only ever access the 
+available, there is no restriction that concerns must only ever access the 
 current context. 
 
-For example, if an aspect wanted to merge the data beween two contexts, at 
+For example, if a concern wanted to merge the data beween two contexts, at 
 least one of them will not be the current context.
 
 ```php
