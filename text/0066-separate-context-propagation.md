@@ -57,7 +57,7 @@ for labels, which can then be applied to any metric occurring later in the
 same transaction. The Correlations API is similar to the Baggage API, except it 
 is a write-only interface.
 
-The observability APIs are not described here directly. However, in this new 
+The various observability APIs are not described here directly. However, in this new 
 design, all observability APIs would be modified to make use of the generalized 
 context propagation mechanism described below, rather than the tracing-specific 
 propagation system it uses today.
@@ -75,25 +75,25 @@ network switching.
 To manage the state of these cross-cutting concerns, the Baggage API provides a 
 set of functions which read, write, and propagate data.
 
-**SetBaggage(context, key, value) -> context**  
+**`GetBaggage(context, key) -> value`**  
+To access the distributed state of a concern, the Baggage API provides a 
+function which takes a context and a key as input, and returns a value.
+
+**`SetBaggage(context, key, value) -> context`**  
 To record the distributed state of a concern, the Baggage API provides a 
 function which takes a context, a key, and a value as input, and returns an 
 updated context which contains the new value.
 
-**GetBaggage(context, key) -> value**  
-To access the distributed state of a concern, the Baggage API provides a 
-function which takes a context and a key as input, and returns a value.
-
-**RemoveBaggage(context, key) -> context**  
+**`RemoveBaggage(context, key) -> context`**  
 To delete distributed state from a concern, the Baggage API provides a function 
 which takes a context, a key, and a value as input, and returns an updated 
 context which contains the new value.
 
-**ClearBaggage(context) -> context**  
+**`ClearBaggage(context) -> context`**  
 To avoid sending baggage to an untrusted downstream process, the Baggage API 
 provides a function to remove all baggage from a context.
 
-**GetBaggagePropagator() -> (HTTP_Extractor, HTTP_Injector)**  
+**`GetBaggagePropagator() -> (HTTP_Extractor, HTTP_Injector)`**  
 To deserialize the state of the system sent from the the prior upstream process, 
 and to serialize the the current state of the system and send it to the next 
 downstream process, the Baggage API provides a function which returns a 
@@ -107,14 +107,15 @@ Cross-cutting concerns access data in-process using the same, shared context
 object. Each concern uses its own namespaced set of keys in the context, 
 containing all of the data for that cross-cutting concern.
 
-**SetValue(context, key, value) -> context**  
+**`GetValue(context, key) -> value`**  
+To access the local state of an concern, the Context API provides a function 
+which takes a context and a key as input, and returns a value.
+
+**`SetValue(context, key, value) -> context`**  
 To record the local state of a cross-cutting concern, the Context API provides a 
 function which takes a context, a key, and a value as input, and returns an 
 updated context which contains the new value.
 
-**GetValue(context, key) -> value**  
-To access the local state of an concern, the Context API provides a function 
-which takes a context and a key as input, and returns a value.
 
 ### Optional: Automated Context Management
 When possible, the OpenTelemetry context should automatically be associated 
@@ -122,13 +123,14 @@ with the program execution context. Note that some languages do not provide any
 facility for setting and getting a current context. In these cases, the user is 
 responsible for managing the current context.  
 
-**SetCurrent(context)**  
+**`GetCurrent() -> context`**  
+To access the context associated with program execution, the Context API 
+provides a function which takes no arguments and returns a Context.
+
+**`SetCurrent(context)`**  
 To associate a context with program execution, the Context API provides a 
 function which takes a Context.
 
-**GetCurrent() -> context**  
-To access the context associated with program execution, the Context API 
-provides a function which takes no arguments and returns a Context.
 
 
 ## Propagation API
@@ -138,24 +140,24 @@ functions which read and write context into RPC requests. Each concern creates a
 set of propagators for every type of supported medium - currently only HTTP 
 requests.
 
-**Extract(context, []http_injector, headers) -> context**  
+**`Extract(context, []http_injector, headers) -> context`**  
 In order to continue transmitting data injected earlier in the transaction, 
 the Propagation API provides a function which takes a context, a set of 
 HTTP_Injectors, and a set of HTTP headers, and returns a new context which 
 includes the state sent from the upstream system.
 
-**Inject(context, []http_extractor, headers) -> headers**  
+**`Inject(context, []http_extractor, headers) -> headers`**  
 To send the data for all concerns downstream to the next process, the 
 Propagation API provides a function which takes a context and a set of 
 HTTP_Extractors, and adds the contents of the context in to HTTP headers to 
 include an HTTP Header representation of the context.
 
-**HTTP_Extractor(context, headers) -> context**  
+**`HTTP_Extractor(context, headers) -> context`**  
 Each concern must implement an HTTP_Extractor, which can locate the headers 
 containing the http-formatted data, and then translate the contents into an 
 in-memory representation, set within the returned context object. 
 
-**HTTP_Injector(context, headers) -> headers**  
+**`HTTP_Injector(context, headers) -> headers`**  
 Each concern must implement an HTTP_Injector, which can take the in-memory 
 representation of its data from the given context object, and add it to an 
 existing set of HTTP headers.
@@ -166,21 +168,21 @@ initialization, and then access these combined propagators later in the program.
 To facilitate this, global injectors and extractors are optionally available. 
 However, there is no requirement to use this feature.
 
-**SetExtractors([]http_extractor)**  
-To update the global extractor, the Propagation API provides a function which 
-takes an extractor.
-
-**GetExtractors() -> []http_extractor**  
+**`GetExtractors() -> []http_extractor`**  
 To access the global extractor, the Propagation API provides a function which 
 returns an extractor.
 
-**SetInjectors([]http_injector)**  
-To update the global injector, the Propagation API provides a function which 
-takes an injector.
+**`SetExtractors([]http_extractor)`**  
+To update the global extractor, the Propagation API provides a function which 
+takes an extractor.
 
-**GetInjectors() -> []http_injector**  
+**`GetInjectors() -> []http_injector`**  
 To access the global injector, the Propagation API provides a function which 
 returns an injector.
+
+**`SetInjectors([]http_injector)`**  
+To update the global injector, the Propagation API provides a function which 
+takes an injector.
 
 # Prototypes
 
