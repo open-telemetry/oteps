@@ -149,13 +149,13 @@ functions which read and write context into RPC requests. Each concern creates a
 set of propagators for every type of supported medium - currently only HTTP 
 requests.
 
-**`Extract(context, []http_injector, headers) -> context`**  
+**`Extract(context, []http_extractor, headers) -> context`**  
 In order to continue transmitting data injected earlier in the transaction, 
 the Propagation API provides a function which takes a context, a set of 
 HTTP_Injectors, and a set of HTTP headers, and returns a new context which 
 includes the state sent from the upstream system.
 
-**`Inject(context, []http_extractor, headers) -> headers`**  
+**`Inject(context, []http_injector, headers) -> headers`**  
 To send the data for all concerns downstream to the next process, the 
 Propagation API provides a function which takes a context and a set of 
 HTTP_Extractors, and adds the contents of the context in to HTTP headers to 
