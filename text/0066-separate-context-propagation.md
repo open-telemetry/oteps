@@ -30,7 +30,7 @@ This RFC addresses the following topics:
 
 **Separatation of concerns**  
 * Remove the Tracer dependency from context propagation mechanisms.
-* Handle user data (Baggage) and observability data (SpanContext, Correlations) 
+* Handle user data (Baggage) and observability data (SpanContext, etc) 
   separately.  
 
 **Extensibility**
@@ -60,11 +60,6 @@ Distributed tracing is one example of a cross-cutting concern. Tracing code is
 interleaved with regular code, and ties together independent code modules which 
 would otherwise remain encapsulated. Tracing is also distributed, and requires 
 non-local, transaction-level context propagation in order to execute correctly.
-
-A second observability concern is **correlations**. Correlations provide values 
-for labels, which can then be applied to any metric occurring later in the 
-same transaction. The Correlations API is similar to the Baggage API, except it 
-is a write-only interface.
 
 The various observability APIs are not described here directly. However, in this new 
 design, all observability APIs would be modified to make use of the generalized 
@@ -462,12 +457,6 @@ propagation.
 extracted. The readable attributes are defined to match those found in the 
 [W3C Trace Context specification](https://www.w3.org/TR/trace-context/). 
 
-**Correlation Context -** Correlation Context contains a map of labels and 
-values, to be shared between metrics and traces. This allows observability data 
-to be indexed and dimensionalized in a variety of ways. Note that correlations 
-can quickly add overhead when propagated in-band. But because this data is 
-write-only, it may be possible to optimize how it is transmitted.
-
 **Baggage -** Transaction-level application data, meant to be shared with 
 downstream components. This data is readable, and must be propagated in-band. 
 Because of this, Baggage should be used sparingly, to avoid ballooning the size 
@@ -505,31 +494,6 @@ definitions which have been standardized by the W3C.
 
 
 # FAQ
-
-## Why separate Baggage from Correlations?
-
-Since Baggage Context and Correlation Context appear very similar, why have two? 
-
-First and foremost, the intended uses for Baggage and Correlations are 
-completely different. Secondly, the propagation requirements diverge 
-significantly.
-
-Correlation values are solely to be used as labels for metrics and traces. By 
-making Correlation data write-only, how and when it is transmitted remains 
-undefined. This leaves the door open to optimizations, such as propagating the 
-correlation data out-of-band.
-
-Baggage values, on the other hand, are explicitly added in order to be accessed 
-by other application code downstream. Therefore, Baggage Context must be 
-readable, and reliably propagated in-band in order to accomplish this goal.
-
-There may be cases where a key-value pair is propagated as a Correlation for 
-observability and as a Baggage item for application-specific use. AB testing is 
-one example of such use case. This would result in extra overhead, as the same 
-key-value pair would be present in two separate headers.  
-
-Solving this edge case is not worth having the semantic confusion of a single 
-implementation with a dual purpose.
 
 ## What about complex propagation behavior?
 
