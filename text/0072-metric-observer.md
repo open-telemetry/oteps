@@ -151,7 +151,7 @@ class YourClass {
           @Override
           public void update(Result result) {
             for (int i = 0; i < NUM_CORES; i++) {
-              cpuTempByCore[i].Observe(result, getCPUTemp(i));
+              cpuTempByCore[i].Observe(getCPUTemp(i), result);
           }
         });
   }
