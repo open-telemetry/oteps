@@ -46,9 +46,9 @@ of Measure instruments.
 
 ### Why not Counter callbacks?
 
-Counter instruments can be expressed as Observer instruments they are
-expensive to pre-compute or will be instantaneously read.  There are
-two ways these can be treated using Observer instrument semantics.
+Counter instruments can be expressed as Observer instruments when they
+are expensive to pre-compute or will be instantaneously read.  There
+are two ways these can be treated using Observer instrument semantics.
 
 
 Observer instruments, like Gauge instruments, use a "last value"
@@ -65,7 +65,7 @@ they cannot meaningfully be aggregated in this way.
 The preferred way to `Observe()` Counter-like data from an Observer
 instrument callback is to report deltas in the callback and configure
 a Sum aggregation in the exporter.  Data reported in this way will
-support rate calculations just as is they were true Counters.
+support rate calculations just as if they were true Counters.
 
 ### Differences between Gauge and Observer
 
@@ -122,7 +122,7 @@ Observer instrument for which they are registered.  It is an error if
 corresponding to a different Observer instrument.
 
 Multiple observations are possible in a single callback invocation.
-Likewise, it permissible to mix bound and direct observations in a
+Likewise, it is permissible to mix bound and direct observations in a
 single callback invocation.
 
 The Result passed to a callback should not be used outside the
