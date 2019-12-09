@@ -20,6 +20,15 @@ dedicated `Observer` kind of instrument with the same semantics as
 Gauge instruments.  Like a Gauge instrument, Observer instruments are
 used to report the current value of a variable.
 
+We may ask, why should Observer instruments be a first-class part of
+the API, as opposed to simply registering non-instrument-specific
+callbacks to call user-level code on the metrics collection interval?
+That would permit the use of ordinary Gauge instruments as a stand-in
+for the Observer instrument proposed here.  The approach proposed here
+is more flexible because it permits the Meter implementation to
+control the collection interval on a per-instrument basis as well as
+to disable instruments.
+
 ## Explanation
 
 Gauge metric instruments are typically used to reflect properties that
@@ -29,6 +38,13 @@ to the Counter or measure kind of metric instrument, there could be
 significant computational cost in computing or reading the current
 value.  When this is the case, it is understandable that we are
 interested in providing values on demand, as an optimization.
+
+The optimization aspect of Observer instruments is critical to their
+purpose.  If the simpler alternative suggested above--registering
+non-instrument-specific callbacks--were implemented instead, callers
+would demand a way to ask whether an instrument was "recording" or
+not, similar to the [`Span.IsRecording`
+API](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-tracing.md#isrecording).
 
 Observer instruments are semantically equivalent to gauge instruments,
 except they support callbacks instead of a `Set()` operation.
@@ -98,7 +114,7 @@ Callbacks may be called synchronously in the SDK on behalf of an
 exporter, provided it does not contradict the requirement above.
 
 Callbacks should avoid calling OpenTelemetry APIs other than the
-interface provided to `Observe().  This prevents the SDK from
+interface provided to `Observe()`.  This prevents the SDK from
 potentially deadlocking itself by being called synchronously from its
 own thread.  We recognize this may be impossible or expensive to
 enforce.  SDKs should document how they respond to such attempts at
@@ -146,7 +162,7 @@ class YourClass {
         cpuTempByCore[i] = cpuTemp.Bind(meter.createLabelSet("core", i));
     }
 
-    observer.setCallback(
+    cpuTemp.setCallback(
         new ObserverDouble.Callback<ObserverDouble.Result>() {
           @Override
           public void update(Result result) {
@@ -166,7 +182,7 @@ class YourClass {
   private static final ObserverDouble cpuLoad = ...;
 
   void init() {
-    observer.setCallback(
+    cpuLoad.setCallback(
         new ObserverDouble.Callback<ObserverDouble.Result>() {
           @Override
           public void update(Result result) {
