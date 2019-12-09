@@ -290,7 +290,7 @@ func FetchDataFromServiceB(context) -> (context, data) {
 }
 ```
 
-## Simplfy the API with automated context propagation
+## Simplify the API with automated context propagation
 In this version of pseudocode above, we assume that the context object is 
 explict,and is pass and returned from every function as an ordinary parameter. 
 This is cumbersome, and in many languages, a mechanism exists which allows 
