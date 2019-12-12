@@ -167,8 +167,8 @@ representation of its data from the given context object, and add it to an
 existing set of HTTP headers.
 
 ### Optional: Global Propagators
-It is often convenient to create a chain of propagators during program 
-initialization, and then access these combined propagators later in the program. 
+It may be convenient to create a list of propagators during program 
+initialization, and then access these propagators later in the program. 
 To facilitate this, global injectors and extractors are optionally available. 
 However, there is no requirement to use this feature.
 
@@ -220,11 +220,10 @@ system, in order to understand if requests to `service C` are slower or faster
 than `service B`. What might `service A` look like?
 
 ## Global initialization 
-First, during program initialization, `service A` might set a global 
-extractor and injector which chains together baggage and tracing 
-propagation. Let's assume this tracing system is configured to use B3, 
-and has a specific propagator for that format. Initializating the propagators 
-might look like this:
+First, during program initialization, `service A` configures baggage and tracing 
+propagation, and include them in the global list of injectors and extractors. 
+Let's assume this tracing system is configured to use B3, and has a specific 
+propagator for that format. Initializating the propagators might look like this:
 
 ```php
 func InitializeOpentelemetry() {
@@ -385,11 +384,12 @@ assume again that the context is passed implicitly in a thread local.
 ## The scope of current context
 Let's look at a couple other scenarios related to automatic context propagation.
 
-When are the values in the current context available? Scope managemenent may be different in each langauge, but as long as the scope does not change (by switching threads, for example) the 
-current context follows the execuption of the program. This includes after a 
-function returns. Note that the context objects themselves are immutable, so 
-explict handles to prior contexts will not be updated when the current context 
-is changed.
+When are the values in the current context available? Scope managemenent may be 
+different in each langauge, but as long as the scope does not change (by 
+switching threads, for example) the current context follows the execuption of 
+the program. This includes after a function returns. Note that the context 
+objects themselves are immutable, so explict handles to prior contexts will not 
+be updated when the current context is changed.
 
 ```php
 func Request() {
@@ -499,10 +499,10 @@ definitions which have been standardized by the W3C.
 
 Some OpenTelemetry proposals have called for more complex propagation behavior. 
 For example, falling back to extracting B3 headers if W3C Trace-Context headers 
-are not found. Chained propagators and other complex behavior can be modeled as 
+are not found. "Fallback propagators" and other complex behavior can be modeled as 
 implementation details behind the Propagator interface. Therefore, the 
-propagation system itself does not need to provide chained propagators or other 
-additional facilities.
+propagation system itself does not need to provide an mechanism for chaining 
+together propagators or other additional facilities.
 
 
 ## Did you add a context parameter to every API call because Go has infected your brain?
