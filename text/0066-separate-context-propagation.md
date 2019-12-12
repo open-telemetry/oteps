@@ -94,14 +94,14 @@ which takes a context, a key, and a value as input, and returns an updated
 context which contains the new value.
 
 **`ClearBaggage(context) -> context`**  
-To avoid sending baggage to an untrusted downstream process, the Baggage API 
-provides a function to remove all baggage from a context.
+To avoid sending baggage to an untrusted process, the Baggage API provides a 
+function to remove all baggage from a context.
 
 **`GetBaggagePropagator() -> (HTTP_Extractor, HTTP_Injector)`**  
-To deserialize the state of the system sent from the the prior upstream process, 
-and to serialize the the current state of the system and send it to the next 
-downstream process, the Baggage API provides a function which returns a 
-baggage-specific implementation of the HTTPExtract and HTTPInject functions.
+To deserialize the state of the system sent from the the prior process, and to 
+serialize the the current state of the system and send it to the next process, 
+the Baggage API provides a function which returns a baggage-specific 
+implementation of the HTTPExtract and HTTPInject functions.
 
 # Context Propagation
 
@@ -139,7 +139,7 @@ function which takes a Context.
 
 ## Propagation API
 
-Cross-cutting concerns send their state to downstream processes via propagators: 
+Cross-cutting concerns send their state to the next process via propagators: 
 functions which read and write context into RPC requests. Each concern creates a 
 set of propagators for every type of supported medium - currently only HTTP 
 requests.
@@ -148,10 +148,10 @@ requests.
 In order to continue transmitting data injected earlier in the transaction, 
 the Propagation API provides a function which takes a context, a set of 
 HTTP_Injectors, and a set of HTTP headers, and returns a new context which 
-includes the state sent from the upstream system.
+includes the state sent from the prior process.
 
 **`Inject(context, []http_injector, headers) -> headers`**  
-To send the data for all concerns downstream to the next process, the 
+To send the data for all concerns to the next process in the transaction, the 
 Propagation API provides a function which takes a context and a set of 
 HTTP_Extractors, and adds the contents of the context in to HTTP headers to 
 include an HTTP Header representation of the context.
@@ -242,8 +242,8 @@ tracing and baggage concerns use the context object to handle state without
 breaking the encapsulation of the functions they are embedded in.
 
 ```php
-func HandleUpstreamRequest(context, request, project) -> (context) {
-  // Extract the upstream context from the HTTP headers. Because the list of 
+func ServeRequest(context, request, project) -> (context) {
+  // Extract the context from the HTTP headers. Because the list of 
   // extractors includes a trace extractor and a baggage extractor, the 
   // contents for both systems are included in the  request headers into the 
   // returned context.
@@ -251,12 +251,12 @@ func HandleUpstreamRequest(context, request, project) -> (context) {
   context = Propagation::Extract(context, extractors, request.Headers)
 
   // Start a span, setting the parent to the span context received from 
-  // the upstream. The new span will then be in the returned context.
+  // the client process. The new span will then be in the returned context.
   context = Tracer::StartSpan(context, [span options])
   
-  // Determine the version of the upstream client, in order to handle the data 
-  // migration and allow new clients access to a data source that older clients
-  // are unaware of.
+  // Determine the version of the client, in order to handle the data 
+  // migration and allow new clients access to a data source that older 
+  // clients are unaware of.
   version = Baggage::GetBaggage( context, "client-version")
 
   switch( version ){
@@ -299,7 +299,7 @@ In this version of pseudocode, assume that the current context can be stored as
 a thread local, and is implicitly passed to and returned from every function.
 
 ```php
-func HandleUpstreamRequest(request, project) {
+func ServeRequest(request, project) {
   extractors = Propagation::GetExtractors()
   Propagation::Extract(extractors, request.Headers)
   
@@ -374,7 +374,7 @@ assume again that the context is passed implicitly in a thread local.
     Context::SetValue( "trace.parentSpanID", spanData.spanID)
     
     // store the spanData object as well, for in-process propagation. Note that 
-    this key will not be propagated downstream.
+    // this key will not be propagated, it is for local use only.
     Context::SetValue( "trace.currentSpanData", spanData)
 
     return
@@ -458,9 +458,9 @@ extracted. The readable attributes are defined to match those found in the
 [W3C Trace Context specification](https://www.w3.org/TR/trace-context/). 
 
 **Baggage -** Transaction-level application data, meant to be shared with 
-downstream components. This data is readable, and must be propagated in-band. 
+all services. This data is readable, and must be propagated in-band. 
 Because of this, Baggage should be used sparingly, to avoid ballooning the size 
-of all downstream requests.
+of every request.
 
 Note that OpenTelemetry APIs calls should *always* be given access to the entire 
 context object, and never just a subset of the context, such as the value in a 
