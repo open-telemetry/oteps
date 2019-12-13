@@ -237,6 +237,7 @@ func InitializeOpentelemetry() {
   Propagation::SetInjectors(bagInject, traceInject)
 }
 ```
+
 ## Extracting and injecting from HTTP headers
 These propagators can then be used in the request handler for `service A`. The 
 tracing and baggage concerns use the context object to handle state without 
@@ -331,6 +332,7 @@ func FetchDataFromServiceB() -> (data) {
   return data
 }
 ```
+
 ## Implementing a propagator
 Digging into the details of the tracing system, what might the internals of a 
 span context propagator look like? Here is a crude example of extracting and 
