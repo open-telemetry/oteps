@@ -66,17 +66,15 @@ Counter instruments can be expressed as Observer instruments when they
 are expensive to pre-compute or will be instantaneously read.  There
 are two ways these can be treated using Observer instrument semantics.
 
-
 Observer instruments, like Gauge instruments, use a "last value"
 aggregation by default.  With this default interpretation in mind, a
 monotonic Counter can be expressed as a monotonic Observer instrument
 simply by reporting the current sum from `Observe()`, in which case
 the "last value" may be interpreted directly as a sum.  Systems with
 support for rate calculations over current sums (e.g., Prometheus)
-will be able to use these metrics directly.  Systems not designed to
-calculate rates from sums may not benefit from this treatment.
-Non-monotonic Counters may be expressed as their current value, but
-they cannot meaningfully be aggregated in this way.
+will be able to use these metrics directly.  Non-monotonic Counters
+may be expressed as their current value, but they cannot meaningfully
+be aggregated in this way.
 
 The preferred way to `Observe()` Counter-like data from an Observer
 instrument callback is to report deltas in the callback and configure
@@ -91,7 +89,8 @@ context (i.e., its distributed context), whereas the observer callback
 does not execute with any distributed context.  
 
 Whereas Gauge values do have context at the moment `Set()` is called,
-Observer callbacks do not.
+Observer callbacks do not.  Observer instruments are appropriate for
+reporting values that are not request specific.
 
 ## Details
 
@@ -131,11 +130,14 @@ observation.
 
 For a "bound" observation with using a bound observer instrument,
 first `Bind()` the instrument with a LabelSet, then call the bound
-instrument passing the result: `BoundInstrument.Observe(value,
-Result)`.  Callbacks MUST use bound instruments corresponding the
+instrument passing the result: `Result.ObserveBound(value,
+BoundInstrument)`.  Callbacks MUST use bound instruments corresponding the
 Observer instrument for which they are registered.  It is an error if
-`BoundInstrument.Observe(value, Result)` is called for a Result
+`Result.ObserveBound(value, BoundInstrument)` is called for a Result
 corresponding to a different Observer instrument.
+
+If the language supports method overloading, it may use `Observe` for
+both calling conventions.
 
 Multiple observations are possible in a single callback invocation.
 Likewise, it is permissible to mix bound and direct observations in a
@@ -167,7 +169,7 @@ class YourClass {
           @Override
           public void update(Result result) {
             for (int i = 0; i < NUM_CORES; i++) {
-              cpuTempByCore[i].Observe(getCPUTemp(i), result);
+              result.ObserveBound(getCPUTemp(i), cpuTempByCore[i]);
           }
         });
   }
