@@ -40,18 +40,19 @@ This RFC addresses the following topics:
 
 ## Explanation
 
+
 # OpenTelemetry layered architecture
 
-The design of OpenTelemetry is based on the priciples of aspect-oriented 
-programming, adopted to the needs of distributed systems.
+The design of OpenTelemetry is based on the priciples of [aspect-oriented 
+programming](https://en.wikipedia.org/wiki/Aspect-oriented_programming), 
+adopted to the needs of distributed systems.
 
-OpenTelemetry is separated into two layers: **cross-cutting concerns** which 
-intertwine with a program's application logic, and cannot be encapsulated. In 
-this architecture, each concern is modeled as an independent subsystem. 
-Multiple concerns - including the tracing and baggage systems provided 
-by OpenTelemetry - then share the same underlying **context propagation** 
-system, which allows these cross-cutting concerns to store and access their 
-data across the lifespan of a distributed transaction.
+OpenTelemetry is separated into two layers. The top layer contains a set of 
+independent **cross-cutting concerns**, which intertwine with a program's 
+application logic, and cannot be cleanly encapsulated. All concerns share an 
+underlying distributed **context propagation** layer, for storing state and 
+accessing data across the lifespan of a distributed transaction.
+
 
 # Cross-Cutting Concerns
 
@@ -444,6 +445,7 @@ Extract(headers)
 // context, fall back to the explicit API.
 otherContext = ExtractWithContext(Context::GetCurrent(), headers)
 ```
+
 
 # Internal details
 
