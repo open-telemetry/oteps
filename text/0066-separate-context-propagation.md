@@ -4,7 +4,7 @@
 * [OpenTelemetry layered architecture](#OpenTelemetry-layered-architecture)
   * [Cross-Cutting Concerns](#Cross-Cutting-Concerns)
     * [Observability API](#Observability-API)
-    * [Baggage API](#Baggage-API)
+    * [Correlations API](#Correlations-API)
   * [Context Propagation](#Context-Propagation)
     * [Context API](#Context-API)
     * [Propagation API](#Propagation-API)
@@ -30,7 +30,7 @@ This RFC addresses the following topics:
 
 **Separatation of concerns**  
 * Remove the Tracer dependency from context propagation mechanisms.
-* Handle user data (Baggage) and observability data (SpanContext, etc) 
+* Handle user data (Correlations) and observability data (SpanContext, etc) 
   separately.  
 
 **Extensibility**
@@ -67,42 +67,62 @@ design, all observability APIs would be modified to make use of the generalized
 context propagation mechanism described below, rather than the tracing-specific 
 propagation system it uses today.
 
-## Baggage API
+Note that OpenTelemetry APIs calls should *always* be given access to the entire 
+context object, and never just a subset of the context, such as the value in a 
+single key. This allows the SDK to make improvements and leverage additional 
+data that may be available, without changes to all of the call sites.
 
-In addition to observability, OpenTelemetry provides a simple mechanism for 
-propagating arbitrary user data, called Baggage. This mechanism is not related
-to tracing or observability, but it uses the same context propagation layer. 
+## Correlations API
 
-Baggage may be used to model new concerns which would benefit from the same 
-transaction-level context as tracing, e.g., for identity, versioning, and 
-network switching. 
+In addition to trace propagation, OpenTelemetry provides a simple mechanism for 
+propagating arbitrary transaction-level data, called Correlations. Correlations 
+implements an extremely basic form of cross-cutting concern - a transaction-level 
+key-value store. Values placed in the 
 
-To manage the state of these cross-cutting concerns, the Baggage API provides a 
-set of functions which read, write, and propagate data.
+Event correlation is a mechanism for indexing events in one service with 
+attributes provided by a prior service in the same transaction. This helps to 
+establish a causal relationship between these events. For example, determining 
+that a particular browser version is associated with a failure in an image 
+processing service.
 
-**`GetBaggage(context, key) -> value`**  
-To access the distributed state of a concern, the Baggage API provides a 
-function which takes a context and a key as input, and returns a value.
+Correlations is based on the [W3C Correlation-Context specification](https://w3c.github.io/correlation-context/), 
+and implements the protocol as it is defined in that working group.
 
-**`SetBaggage(context, key, value) -> context`**  
-To record the distributed state of a concern, the Baggage API provides a 
-function which takes a context, a key, and a value as input, and returns an 
-updated context which contains the new value.
+While Correlations can be used to prototype other cross-cutting concerns, this 
+mechanism is primarily intended to convey values for the OpenTelemetry 
+observability systems. New concerns with different criteria should be modeled 
+seperately, using the same underlying context propagation layer as building 
+blocks.
 
-**`RemoveBaggage(context, key) -> context`**  
-To delete distributed state from a concern, the Baggage API provides a function 
+For backwards compatibility, OpenTracing Baggage is propagated as Correlations 
+when using the OpenTracing bridge.
+
+As every correlation adds additional overhead to every request, correlations 
+should be used with care.
+
+**`GetCorrelation(context, key) -> value`**  
+To access the value for a label set by a prior event, the Correlations API 
+provides a function which takes a context and a key as input, and returns a value.
+
+**`SetCorrelation(context, key, value) -> context`**  
+To record the value for a label, the Correlations API provides a function which 
+takes a context, a key, and a value as input, and returns an updated context 
+which contains the new value.
+
+**`RemoveCorrelation(context, key) -> context`**  
+To delete a label, the Correlations API provides a function 
 which takes a context, a key, and a value as input, and returns an updated 
 context which contains the new value.
 
-**`ClearBaggage(context) -> context`**  
-To avoid sending baggage to an untrusted process, the Baggage API provides a 
-function to remove all baggage from a context.
+**`ClearCorrelations(context) -> context`**  
+To avoid sending any labels to an untrusted process, the Correlation API 
+provides a function to remove all Correlations from a context.
 
-**`GetBaggagePropagator() -> (HTTP_Extractor, HTTP_Injector)`**  
-To deserialize the state of the system sent from the the prior process, and to 
-serialize the the current state of the system and send it to the next process, 
-the Baggage API provides a function which returns a baggage-specific 
-implementation of the HTTPExtract and HTTPInject functions.
+**`GetCorrelationPropagator() -> (HTTP_Extractor, HTTP_Injector)`**  
+To deserialize the previous labels set by prior processes, and to serialize the 
+current total set of labels and send them to the next process, the Correlations 
+API provides a function which returns a Correlation-specific implementation of 
+the `HTTPExtract` and `HTTPInject` functions found in the Propagation API.
 
 # Context Propagation
 
@@ -221,15 +241,15 @@ system, in order to understand if requests to `service C` are slower or faster
 than `service B`. What might `service A` look like?
 
 ## Global initialization 
-First, during program initialization, `service A` configures baggage and tracing 
+First, during program initialization, `service A` configures correlation and tracing 
 propagation, and include them in the global list of injectors and extractors. 
 Let's assume this tracing system is configured to use B3, and has a specific 
 propagator for that format. Initializating the propagators might look like this:
 
 ```php
 func InitializeOpentelemetry() {
-  // create the propagators for tracing and baggage.
-  bagExtract, bagInject = Baggage::HTTPPropagator()
+  // create the propagators for tracing and correlations.
+  bagExtract, bagInject = Correlations::HTTPPropagator()
   traceExtract, traceInject = Tracer::B3Propagator()
   
   // add the propagators to the global list.
@@ -240,13 +260,13 @@ func InitializeOpentelemetry() {
 
 ## Extracting and injecting from HTTP headers
 These propagators can then be used in the request handler for `service A`. The 
-tracing and baggage concerns use the context object to handle state without 
+tracing and correlations concerns use the context object to handle state without 
 breaking the encapsulation of the functions they are embedded in.
 
 ```php
 func ServeRequest(context, request, project) -> (context) {
   // Extract the context from the HTTP headers. Because the list of 
-  // extractors includes a trace extractor and a baggage extractor, the 
+  // extractors includes a trace extractor and a correlations extractor, the 
   // contents for both systems are included in the  request headers into the 
   // returned context.
   extractors = Propagation::GetExtractors()
@@ -259,7 +279,7 @@ func ServeRequest(context, request, project) -> (context) {
   // Determine the version of the client, in order to handle the data 
   // migration and allow new clients access to a data source that older 
   // clients are unaware of.
-  version = Baggage::GetBaggage( context, "client-version")
+  version = Correlations::GetCorrelation( context, "client-version")
 
   switch( version ){
     case "v1.0":
@@ -280,7 +300,7 @@ func FetchDataFromServiceB(context) -> (context, data) {
   request = NewRequest([request options])
   
   // Inject the contexts to be propagated. Note that there is no direct 
-  // reference to tracing or baggage.
+  // reference to tracing or correlations.
   injectors = Propagation::GetInjectors()
   context = Propagation::Inject(context, injectors, request.Headers)
 
@@ -307,7 +327,7 @@ func ServeRequest(request, project) {
   
   Tracer::StartSpan([span options])
   
-  version = Baggage::GetBaggage("client-version")
+  version = Correlations::GetCorrelation("client-version")
   
   switch( version ){
     case "v1.0":
@@ -429,7 +449,7 @@ For example, if a concern wanted to merge the data beween two contexts, at
 least one of them will not be the current context.
 
 ```php
-mergedContext = MergeBaggage( Context::GetCurrent(), otherContext)
+mergedContext = MergeCorrelations( Context::GetCurrent(), otherContext)
 Context::SetCurrent(mergedContext)
 ```
 
@@ -453,26 +473,17 @@ otherContext = ExtractWithContext(Context::GetCurrent(), headers)
 
 ![drawing](img/context_propagation_details.png)
 
-## Context details
-OpenTelemetry currently intends to implement three context types of context 
-propagation.
+## Default HTTP headers
+OpenTelemetry currently uses two standard header formats for context propagation. 
+Their properties and requirements are integrated into the OpenTelemetry APIs.
 
-**Span Context -** The serializable portion of a span, which is injected and 
-extracted. The readable attributes are defined to match those found in the 
-[W3C Trace Context specification](https://www.w3.org/TR/trace-context/). 
+**Span Context -** The OpenTelemetry Span API is modeled on the `traceparent` 
+and `tracestate` headers defined in the [W3C Trace Context specification](https://www.w3.org/TR/trace-context/). 
 
-**Baggage -** Transaction-level application data, meant to be shared with 
-all services. This data is readable, and must be propagated in-band. 
-Because of this, Baggage should be used sparingly, to avoid ballooning the size 
-of every request.
+**Correlation Context -** The OpenTelemetry Correlations API is modeled on the 
+`Correlation-Context` headers defined in the [W3C Correlation Context specification](https://w3c.github.io/correlation-context/). 
 
-Note that OpenTelemetry APIs calls should *always* be given access to the entire 
-context object, and never just a subset of the context, such as the value in a 
-single key. This allows the SDK to make improvements and leverage additional 
-data that may be available, without changes to all of the call sites.
-
-
-## Context Management and in-process propagation
+## Context management and in-process propagation
 
 In order for Context to function, it must always remain bound to the execution 
 of code it represents. By default, this means that the programmer must pass a 
@@ -481,20 +492,17 @@ provide automated context management facilities, such as thread locals.
 OpenTelemetry should leverage these facilities when available, in order to 
 provide automatic context management.
 
-## Pre-existing Context implementations
+## Pre-existing context implementations
 
-In some languages, a single, widely used Context implementation exists. In other 
-languages, there many be too many  implementations, or none at all. For example, 
+In some languages, a single, widely used context implementation exists. In other 
+languages, there many be too many implementations, or none at all. For example, 
 Go has a the `context.Context` object, and widespread conventions for how to 
-pass it down the call stack.
+pass it down the call stack. Java has MDC, along with several other context 
+implementations, but none are so widely used that their presence can be 
+guranteed or assumed.
 
 In the cases where an extremely clear, pre-existing option is not available, 
-OpenTelemetry should provide its own Context implementation.
-
-## Default Propagators
-
-When available, OpenTelemetry defaults to propagating via HTTP header 
-definitions which have been standardized by the W3C.
+OpenTelemetry should provide its own context implementation.
 
 
 # FAQ
@@ -532,7 +540,6 @@ Related work on HTTP propagators has not been completed yet.
   accepted.
 * Work on [W3C Correlation-Context](https://w3c.github.io/correlation-context/) 
   has begun, but was halted to focus on Trace-Context. 
-* No work has begun on a theoretical W3C Baggage-Context.
 
 Given that we must ship with working propagators, and the W3C specifications are 
 not yet complete, how should we move forwards with implementing context 
