@@ -99,7 +99,9 @@ For backwards compatibility, OpenTracing Baggage is propagated as Correlations
 when using the OpenTracing bridge.
 
 As every correlation adds additional overhead to every request, correlations 
-should be used with care.
+should be used with care. The implementation MUST propagate these values. It is 
+entirely on the user to choose when to drop correlations, either by removing 
+them via the API, or by filtering them via a network proxy or service mesh.
 
 **`GetCorrelation(context, key) -> value`**  
 To access the value for a label set by a prior event, the Correlations API 
@@ -535,12 +537,7 @@ Prior art:
 
 # Open questions
 
-Related work on HTTP propagators has not been completed yet.
-
-* [W3C Trace-Context](https://www.w3.org/TR/trace-context/) candidate is not yet 
-  accepted.
-* Work on [W3C Correlation-Context](https://w3c.github.io/correlation-context/) 
-  has begun, but was halted to focus on Trace-Context. 
+The correlations API is related to the [W3C Correlation-Context](https://w3c.github.io/correlation-context/) specification. Work on this specification has begun, but 
 
 Given that we must ship with working propagators, and the W3C specifications are 
 not yet complete, how should we move forwards with implementing context 
