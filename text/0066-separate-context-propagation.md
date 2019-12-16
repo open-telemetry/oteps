@@ -535,13 +535,12 @@ Prior art:
 * OpenTracing spans
 * gRPC context
 
-# Open questions
+# Risks
 
-The correlations API is related to the [W3C Correlation-Context](https://w3c.github.io/correlation-context/) specification. Work on this specification has begun, but 
-
-Given that we must ship with working propagators, and the W3C specifications are 
-not yet complete, how should we move forwards with implementing context 
-propagation?
+The Correlations API is related to the [W3C Correlation-Context](https://w3c.github.io/correlation-context/) 
+specification. Work on this specification has begun, but is not complete. While 
+unlikely, it is possible that this W3C specification could diverge from the 
+design or guarantees needed by the Correlations API.
 
 # Future possibilities
 
