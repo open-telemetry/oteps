@@ -75,17 +75,18 @@ data that may be available, without changes to all of the call sites.
 ## Correlations API
 
 In addition to trace propagation, OpenTelemetry provides a simple mechanism for 
-propagating arbitrary transaction-level data, called Correlations. Correlations 
-implements an extremely basic form of cross-cutting concern - a transaction-level 
-key-value store. Values placed in the 
+propagating metric labels, called the Correlations API. Correlations are 
+intended for indexing events in one service with attributes provided by a prior 
+service in the same transaction. This helps to establish a causal relationship 
+between these events. For example, determining that a particular browser version 
+is associated with a failure in an image processing service.
 
-Event correlation is a mechanism for indexing events in one service with 
-attributes provided by a prior service in the same transaction. This helps to 
-establish a causal relationship between these events. For example, determining 
-that a particular browser version is associated with a failure in an image 
-processing service.
+Correlations are implemented as an extremely basic cross-cutting concern - a 
+transaction-level dictionary. All key-value pairs are stored in the context 
+object, and then injected by the Correlation propagator to be sent to the next 
+process. 
 
-Correlations is based on the [W3C Correlation-Context specification](https://w3c.github.io/correlation-context/), 
+The Correlations API is based on the [W3C Correlation-Context specification](https://w3c.github.io/correlation-context/), 
 and implements the protocol as it is defined in that working group.
 
 While Correlations can be used to prototype other cross-cutting concerns, this 
