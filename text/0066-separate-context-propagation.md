@@ -38,8 +38,6 @@ This RFC addresses the following topics:
   example: A/B testing, encrypted or authenticated data, and new, experimental 
   forms of observability.
 
-## Explanation
-
 
 # OpenTelemetry layered architecture
 
