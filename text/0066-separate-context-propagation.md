@@ -121,8 +121,8 @@ which contains the new value.
 
 **`RemoveCorrelation(context, key) -> context`**  
 To delete a label, the Correlations API provides a function 
-which takes a context, a key, and a value as input, and returns an updated 
-context which contains the new value.
+which takes a context and a key as input, and returns an updated context which 
+no longer contains the selected key-value pair.
 
 **`ClearCorrelations(context) -> context`**  
 To avoid sending any labels to an untrusted process, the Correlation API 
