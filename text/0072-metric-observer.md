@@ -121,30 +121,45 @@ re-entry.
 
 ### Observer calling conventions
 
-Observer callbacks accept a Result interface, which supports both
-bound and direct calls as follows.
+Observer callbacks are called with an `ObserverResult`, an interface
+that supports capturing both bound and direct calls, as follows.
 
-For a "direct" observation with a specific LabelSet, call the Result
-directly using `Result.Observe(value, LabelSet)` to report an
-observation.
+For a "direct" observation with a specific `LabelSet`, call the
+`ObserverResult` directly using `ObserverResult.Observe(value,
+LabelSet)` to report an observation.
 
-For a "bound" observation with using a bound observer instrument,
-first `Bind()` the instrument with a LabelSet, then call the bound
-instrument passing the result: `Result.ObserveBound(value,
-BoundInstrument)`.  Callbacks MUST use bound instruments corresponding the
-Observer instrument for which they are registered.  It is an error if
-`Result.ObserveBound(value, BoundInstrument)` is called for a Result
-corresponding to a different Observer instrument.
+For a "bound" observation, using a bound Observer instrument, first
+`Bind()` the instrument with a `LabelSet`, then call
+`ObserverResult.ObserveBound(value, BoundInstrument)`.  Callbacks MUST
+use bound instruments corresponding the Observer instrument for which
+they are registered.  It is an error if
+`ObserverResult.ObserveBound(value, BoundInstrument)` is called for an
+`ObserverResult` corresponding to a different Observer instrument.
 
-If the language supports method overloading, it may use `Observe` for
-both calling conventions.
+If the language supports method overloading, `ObserverResult` may
+overload the `Observe()` method for both calling conventions.
 
 Multiple observations are possible in a single callback invocation.
 Likewise, it is permissible to mix bound and direct observations in a
 single callback invocation.
 
-The Result passed to a callback should not be used outside the
+The `Observer`Result passed to a callback should not be used outside the
 invocation to which it is passed.
+
+#### One callback per instrument
+
+The API _could_ support registering independent callbacks for direct
+calls and individual bound instruments, but takes the approach of
+supporting one callback per instrument.  There are two cases to
+consider: (a) where the source of an instrument's values provides one
+value at a time, (b) where the source of an instrument's values
+provides several values at once.
+
+The decision to support one callback per instrument is justified
+because it is relatively easy in case (a) above to call the source
+multiple times for multiple values, while it is relatively difficult
+in case (b) above to call the source once and report values from
+multiple callbacks.
 
 ### Pseudocode
 
