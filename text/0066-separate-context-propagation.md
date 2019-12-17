@@ -43,13 +43,22 @@ This RFC addresses the following topics:
 
 The design of OpenTelemetry is based on the priciples of [aspect-oriented 
 programming](https://en.wikipedia.org/wiki/Aspect-oriented_programming), 
-adopted to the needs of distributed systems.
+adopted to the needs of distributed systems. 
 
-OpenTelemetry is separated into two layers. The top layer contains a set of 
-independent **cross-cutting concerns**, which intertwine with a program's 
-application logic, and cannot be cleanly encapsulated. All concerns share an 
-underlying distributed **context propagation** layer, for storing state and 
-accessing data across the lifespan of a distributed transaction.
+Some concerns "cut across" multiple abstractions in a program. Logging 
+exemplifies aspect orientation because a logging strategy necessarily affects 
+every logged part of the system. Logging thereby "cross-cuts" across all logged 
+classes and methods. Distributed tracing takes this strategy to the next level, 
+and cross-cuts across all classes and methods in all services in the entire 
+transaction. This requires a distributed form of the same aspect-oriented 
+programming principles in order to be implemented cleanly.
+
+OpenTelemetry approaches this by separating it's design into two layers. The top 
+layer contains a set of independent **cross-cutting concerns**, which intertwine 
+with a program's application logic and cannot be cleanly encapsulated. All 
+concerns share an underlying distributed **context propagation** layer, for 
+storing state and accessing data across the lifespan of a distributed 
+transaction.
 
 
 # Cross-Cutting Concerns
