@@ -12,7 +12,7 @@
 * [Examples](#Examples)
   * [Global initialization](#Global-initialization)
   * [Extracting and injecting from HTTP headers](#Extracting-and-injecting-from-HTTP-headers)
-  * [Simplfy the API with automated context propagation](#Simplfy-the-API-with-automated-context-propagation)
+  * [Simplify the API with automated context propagation](#Simplify-the-API-with-automated-context-propagation)
   * [Implementing a propagator](#Implementing-a-propagator)
   * [Implementing a concern](#Implementing-a-concern)
   * [The scope of current context](#The-scope-of-current-context)
@@ -28,7 +28,7 @@ operate on a shared context propagation mechanism.
 
 This RFC addresses the following topics:
 
-**Separatation of concerns**  
+**Separation of concerns**  
 * Remove the Tracer dependency from context propagation mechanisms.
 * Handle user data (Correlations) and observability data (SpanContext, etc) 
   separately.  
@@ -41,7 +41,7 @@ This RFC addresses the following topics:
 
 # OpenTelemetry layered architecture
 
-The design of OpenTelemetry is based on the priciples of [aspect-oriented 
+The design of OpenTelemetry is based on the principles of [aspect-oriented 
 programming](https://en.wikipedia.org/wiki/Aspect-oriented_programming), 
 adopted to the needs of distributed systems. 
 
@@ -99,7 +99,7 @@ and implements the protocol as it is defined in that working group.
 While Correlations can be used to prototype other cross-cutting concerns, this 
 mechanism is primarily intended to convey values for the OpenTelemetry 
 observability systems. New concerns with different criteria should be modeled 
-seperately, using the same underlying context propagation layer as building 
+separately, using the same underlying context propagation layer as building 
 blocks.
 
 For backwards compatibility, OpenTracing Baggage is propagated as Correlations 
@@ -254,7 +254,7 @@ than `service B`. What might `service A` look like?
 First, during program initialization, `service A` configures correlation and tracing 
 propagation, and include them in the global list of injectors and extractors. 
 Let's assume this tracing system is configured to use B3, and has a specific 
-propagator for that format. Initializating the propagators might look like this:
+propagator for that format. Initializing the propagators might look like this:
 
 ```php
 func InitializeOpentelemetry() {
@@ -323,7 +323,7 @@ func FetchDataFromServiceB(context) -> (context, data) {
 
 ## Simplify the API with automated context propagation
 In this version of pseudocode above, we assume that the context object is 
-explict,and is pass and returned from every function as an ordinary parameter. 
+explicit, and is pass and returned from every function as an ordinary parameter. 
 This is cumbersome, and in many languages, a mechanism exists which allows 
 context to be propagated automatically.
 
@@ -417,11 +417,11 @@ assume again that the context is passed implicitly in a thread local.
 ## The scope of current context
 Let's look at a couple other scenarios related to automatic context propagation.
 
-When are the values in the current context available? Scope managemenent may be 
-different in each langauge, but as long as the scope does not change (by 
-switching threads, for example) the current context follows the execuption of 
+When are the values in the current context available? Scope management may be 
+different in each language, but as long as the scope does not change (by 
+switching threads, for example) the current context follows the execution of 
 the program. This includes after a function returns. Note that the context 
-objects themselves are immutable, so explict handles to prior contexts will not 
+objects themselves are immutable, so explicit handles to prior contexts will not 
 be updated when the current context is changed.
 
 ```php
@@ -450,12 +450,12 @@ func DoWork(){
 ```
 
 ## Referencing multiple contexts
-If context propagation is automantic, does the user ever need to reference a 
+If context propagation is automatic, does the user ever need to reference a 
 context object directly? Sometimes. Even when automated context propagation is 
 an available option, there is no restriction which says that concerns must only 
 ever access the current context. 
 
-For example, if a concern wanted to merge the data beween two contexts, at 
+For example, if a concern wanted to merge the data between two contexts, at 
 least one of them will not be the current context.
 
 ```php
@@ -464,7 +464,7 @@ Context::SetCurrent(mergedContext)
 ```
 
 ## Falling back to explicit contexts
-Sometimes, suppling an additional version of a function which uses explict 
+Sometimes, suppling an additional version of a function which uses explicit 
 contexts is necessary, in order to handle edge cases. For example, in some cases 
 an extracted context is not intended to be set as current context. An 
 alternate extract method can be added to the API to handle this.
@@ -509,7 +509,7 @@ languages, there many be too many implementations, or none at all. For example,
 Go has a the `context.Context` object, and widespread conventions for how to 
 pass it down the call stack. Java has MDC, along with several other context 
 implementations, but none are so widely used that their presence can be 
-guranteed or assumed.
+guaranteed or assumed.
 
 In the cases where an extremely clear, pre-existing option is not available, 
 OpenTelemetry should provide its own context implementation.
@@ -551,7 +551,7 @@ design or guarantees needed by the Correlations API.
 
 # Future possibilities
 
-Cleanly splitting OpenTelemetry into Apects and Context Propagation layer may 
+Cleanly splitting OpenTelemetry into Aspects and Context Propagation layer may 
 allow us to move the Context Propagation layer into its own, stand-alone 
 project. This may facilitate adoption, by allowing us to share Context 
 Propagation with gRPC and other projects.
