@@ -67,7 +67,7 @@ transaction.
 Distributed tracing is one example of a cross-cutting concern. Tracing code is 
 interleaved with regular code, and ties together independent code modules which 
 would otherwise remain encapsulated. Tracing is also distributed, and requires 
-non-local, transaction-level context propagation in order to execute correctly.
+transaction-level context propagation in order to execute correctly.
 
 The various observability APIs are not described here directly. However, in this new 
 design, all observability APIs would be modified to make use of the generalized 
