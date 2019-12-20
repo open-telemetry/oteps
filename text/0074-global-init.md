@@ -27,7 +27,7 @@ lifetime.
 Global variables face significant opposition from some developers,
 which forces the question: "why support globals at all?".  In
 languages with automatic dependency injection support, then
-conceivably we do not need global variables.  In languges without
+conceivably we do not need global variables.  In languages without
 automatic dependency injection, without globals we could not have the
 "zero touch" instrumentation [given as a requirement for the
 project](https://github.com/open-telemetry/oteps/blob/master/text/0001-telemetry-without-manual-instrumentation.md).
