@@ -168,3 +168,9 @@ of instrumentation when no SDK will be installed, as opposed to
 leaving the default global instances in place, perpetually waiting to
 begin forwarding.  True No-op instances will be slightly less
 expensive than the default global instances.
+
+## Implemented prototype
+
+See the [OTel-Go
+prototype](https://github.com/open-telemetry/opentelemetry-go/pull/392)
+which implements forwarding for the global Meter instance.
