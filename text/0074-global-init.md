@@ -106,7 +106,7 @@ func SetMeterProvider(metric.Provider) { ... }
 // Correlation-Context propagation.
 func SetPropagators(propagation.Propagators) { ... }
 
-// SetPropagators initializes the global Tracer provider.  May only
+// SetTraceProvider initializes the global Tracer provider.  May only
 // be called once per process lifetime.  Subsequent calls will panic.
 //
 // Prior to setting the global Tracer provider, the default global
