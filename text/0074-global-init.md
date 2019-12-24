@@ -174,3 +174,15 @@ expensive than the default global instances.
 See the [OTel-Go
 prototype](https://github.com/open-telemetry/opentelemetry-go/pull/392)
 which implements forwarding for the global Meter instance.
+
+## Prior art
+
+The [OpenTracing global Tracer instance did similar
+forwarding](https://github.com/opentracing/opentracing-java/blob/master/opentracing-util/src/main/java/io/opentracing/util/GlobalTracer.java).
+
+An [early prototype for injecting an initialized SDK in Golang using
+the `plugin`
+package](https://github.com/jmacd/opentelemetry-go/pull/1) showed how
+to avoid use-before-initialization in that langauge.  It was not well
+received.
+
