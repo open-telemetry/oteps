@@ -122,34 +122,28 @@ re-entry.
 ### Observer calling conventions
 
 Observer callbacks are called with an `ObserverResult`, an interface
-that supports capturing both bound and direct calls, as follows.
+that supports capturing events directly in the callback, as follows.
 
-For a "direct" observation with a specific `LabelSet`, call the
+To capture an observation with a specific `LabelSet`, call the
 `ObserverResult` directly using `ObserverResult.Observe(value,
-LabelSet)` to report an observation.
+LabelSet)`.
 
-For a "bound" observation, using a bound Observer instrument, first
-`Bind()` the instrument with a `LabelSet`, then call
-`ObserverResult.ObserveBound(value, BoundInstrument)`.  Callbacks MUST
-use bound instruments corresponding the Observer instrument for which
-they are registered.  It is an error if
-`ObserverResult.ObserveBound(value, BoundInstrument)` is called for an
-`ObserverResult` corresponding to a different Observer instrument.
+There is no equivalent of a "bound" observer instrument as there is
+with Counter, Gauge, and Measure instruments.  A bound calling
+convention is not needed for Observer instruments because there is
+little if any performance benefit in doing so (as Observer instruments
+are called during collection, there is no need to maintain "active"
+records concurrent with collection).
 
-If the language supports method overloading, `ObserverResult` may
-overload the `Observe()` method for both calling conventions.
+Multiple observations are permitted in a single callback invocation.
 
-Multiple observations are possible in a single callback invocation.
-Likewise, it is permissible to mix bound and direct observations in a
-single callback invocation.
-
-The `Observer`Result passed to a callback should not be used outside the
+The `ObserverResult` passed to a callback should not be used outside the
 invocation to which it is passed.
 
 #### One callback per instrument
 
-The API _could_ support registering independent callbacks for direct
-calls and individual bound instruments, but takes the approach of
+The API _could_ support registering independent callbacks tied to
+registered ("bound") label sets, instead it takes the approach of
 supporting one callback per instrument.  There are two cases to
 consider: (a) where the source of an instrument's values provides one
 value at a time, (b) where the source of an instrument's values
@@ -163,35 +157,7 @@ multiple callbacks.
 
 ### Pseudocode
 
-An example of a bound call:
-
-```
-class YourClass {
-  private static final Meter meter = ...;
-  private static final ObserverDouble cpuTemp =
-      meter.observerDoubleBuilder("cpuTemp")
-           .withKeys("core")
-           .build();
-  private static final ObserverDouble[] cpuTempByCore = new ObserverDouble.Bound[NUM_CORES];
-
-  void init() {
-    for (int i = 0; i < NUM_CORES; i++) {
-        cpuTempByCore[i] = cpuTemp.Bind(meter.createLabelSet("core", i));
-    }
-
-    cpuTemp.setCallback(
-        new ObserverDouble.Callback<ObserverDouble.Result>() {
-          @Override
-          public void update(Result result) {
-            for (int i = 0; i < NUM_CORES; i++) {
-              result.ObserveBound(getCPUTemp(i), cpuTempByCore[i]);
-          }
-        });
-  }
-}
-```
-
-An example of a direct call:
+An example:
 
 ```
 class YourClass {
