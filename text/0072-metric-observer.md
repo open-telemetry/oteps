@@ -165,11 +165,12 @@ class YourClass {
   private static final ObserverDouble cpuLoad = ...;
 
   void init() {
+    LabelSet labelSet = meter.createLabelSet("low_power", isLowPowerMode());
     cpuLoad.setCallback(
         new ObserverDouble.Callback<ObserverDouble.Result>() {
           @Override
           public void update(Result result) {
-              result.Observe(getCPULoad(), meter.createLabelSet("low_power", isLowPowerMode()));
+              result.Observe(getCPULoad(), labelSet);
         });
   }
 }
