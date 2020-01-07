@@ -2,7 +2,7 @@
 
 **Status:** `approved`
 
-_Creating Tracers and Meters using a Registry mechanism and naming those Tracers / Meters in accordance with the library that provides the instrumentation for those components._
+_Associate Tracers and Meters with the name and version of the library which reports telemetry data by parameterizing the API which the library uses to acquire the Tracer or Meter._
 
 ## Suggested reading
 
@@ -14,13 +14,13 @@ _Creating Tracers and Meters using a Registry mechanism and naming those Tracers
 
 The mechanism of "Named Tracers and Meters" proposed here is motivated by the following scenarios:
 
-**Expensive instrumentation**
+**Faulty or expensive instrumentation**
 
 For an operator of an application using OpenTelemetry, there is currently no way to influence the amount of data produced by reporting libraries. Reporting libraries can easily "spam" backend systems, deliver bogus data, or -- in the worst case -- crash or slow down applications. These problems might even occur suddenly in production environments because of external factors such as increasing load or unexpected input data.
 
 **Reporting library identification**
 
-If a reporting library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize data produced by it selectively. The produced Spans or Metrics cannot be associated with the library which reported them later.
+If a reporting library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize data produced by it selectively. The produced Spans or Metrics cannot later be associated with the library which reported them, either in the processing pipeline or the backend.
 
 **Conflicting instrumentation libraries**
 
