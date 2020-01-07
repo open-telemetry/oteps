@@ -12,15 +12,15 @@ _Creating Tracers and Meters using a Registry mechanism and naming those Tracers
 
 ## Motivation
 
-The mechanism of "Named Tracers and Meters" proposed here is motivated by following scenarios:
+The mechanism of "Named Tracers and Meters" proposed here is motivated by the following scenarios:
 
 **Expensive instrumentation**
 
-For an operator of OpenTelemetry, there is currently no possibility of influencing the amount of the data produced by reporting libraries. Reporting libraries can easily "spam" backend systems, deliver bogus data, or - in the worst case - crash or slow down applications. These problems might even occur suddenly in production environments caused by external factors such as increasing load or unexpected input data.
+For an operator of an application using OpenTelemetry, there is currently no way to influence the amount of data produced by reporting libraries. Reporting libraries can easily "spam" backend systems, deliver bogus data, or -- in the worst case -- crash or slow down applications. These problems might even occur suddenly in production environments because of external factors such as increasing load or unexpected input data.
 
 **Reporting library identification**
 
-If a reporting library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize these data selectively. The produced Spans or Metrics cannot be associated with the library which reported them later.
+If a reporting library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize data produced by it selectively. The produced Spans or Metrics cannot be associated with the library which reported them later.
 
 **Conflicting instrumentation libraries**
 
@@ -136,4 +136,3 @@ Those given alternatives could be applied to Meters and Metrics in the same way.
 Based on the Resource information identifying a Tracer or Meter these could be configured (enabled / disabled) programmatically or via external configuration sources (e.g. environment).
 
 Based on this proposal, future "signal producers" (i.e. logs) can use the same or a similar creation approach.
-
