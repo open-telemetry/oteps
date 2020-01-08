@@ -30,13 +30,13 @@ It is the eventual goal of OpenTelemetry that library vendors implement the Open
 
 This proposal attempts to solve the stated problems by introducing the concept of:
  * _Named Tracers and Meters_ which are associated with the **name** (e.g. _"io.opentelemetry.contrib.mongodb"_) and **version** (e.g._"semver:1.0.0"_) of the library which acquired them.
- * A `TracerRegistry` / `MeterRegistry` as the only means of acquiring a Tracer or Meter.
+ * A `TracerProvider` / `MeterProvider` as the only means of acquiring a Tracer or Meter.
 
-Based on the name and version, a Registry could provide a no-op Tracer or Meter to specific instrumentation libraries, or a Sampler could be implemented that discards Spans or Metrics from certain libraries. Also, by providing custom Exporters, Span or Metric data could be sanitized before it gets processed in a back-end system. However, this is beyond the scope of this proposal, which only provides the fundamental mechanisms.
+Based on the name and version, a Provider could provide a no-op Tracer or Meter to specific instrumentation libraries, or a Sampler could be implemented that discards Spans or Metrics from certain libraries. Also, by providing custom Exporters, Span or Metric data could be sanitized before it gets processed in a back-end system. However, this is beyond the scope of this proposal, which only provides the fundamental mechanisms.
 
 ## Explanation
 
-From a user perspective, working with *Named Tracers / Meters* and `TracerRegistry` / `MeterRegistry` is conceptually similar to how e.g. the [Java logging API](https://docs.oracle.com/javase/7/docs/api/java/util/logging/Logger.html#getLogger(java.lang.String)) and logging frameworks like [log4j](https://www.slf4j.org/apidocs/org/slf4j/LoggerFactory.html) work. In analogy to requesting Logger objects through LoggerFactories, a trace reporting would create specific Tracer / Meter objects through a TracerRegistry / MeterRegistry.
+From a user perspective, working with *Named Tracers / Meters* and `TracerProvider` / `MeterProvider` is conceptually similar to how e.g. the [Java logging API](https://docs.oracle.com/javase/7/docs/api/java/util/logging/Logger.html#getLogger(java.lang.String)) and logging frameworks like [log4j](https://www.slf4j.org/apidocs/org/slf4j/LoggerFactory.html) work. In analogy to requesting Logger objects through LoggerFactories, a trace reporting would create specific Tracer / Meter objects through a TracerProvider / MeterProvider.
 
 New Tracers or Meters can be created by providing the name and version of an instrumentation library. The version (following the convention proposed in https://github.com/open-telemetry/oteps/pull/38) is basically optional but *should* be supplied since only this information enables following scenarios:
 * Only a specific range of versions of a given instrumentation library need to be suppressed, while other versions are allowed (e.g. due to a bug in those specific versions).
@@ -44,11 +44,11 @@ New Tracers or Meters can be created by providing the name and version of an ins
 
 ```java
 // Create a tracer/meter for a given instrumentation library in a specific version.
-Tracer tracer = OpenTelemetry.getTracerRegistry().getTracer("io.opentelemetry.contrib.mongodb", "semver:1.0.0");
-Meter meter = OpenTelemetry.getMeterRegistry().getMeter("io.opentelemetry.contrib.mongodb", "semver:1.0.0");
+Tracer tracer = OpenTelemetry.getTracerProvider().getTracer("io.opentelemetry.contrib.mongodb", "semver:1.0.0");
+Meter meter = OpenTelemetry.getMeterProvider().getMeter("io.opentelemetry.contrib.mongodb", "semver:1.0.0");
 ```
 
-These factories (`TracerRegistry` and `MeterRegistry`) replace the global `Tracer` / `Meter` singleton objects as ubiquitous points to request Tracer and Meter instances.
+These factories (`TracerProvider` and `MeterProvider`) replace the global `Tracer` / `Meter` singleton objects as ubiquitous points to request Tracer and Meter instances.
 
  The *name* used to create a Tracer or Meter must identify the *instrumentation* libraries (also referred to as *integrations* or *trace/meter reporting library*) and not the library being instrumented. These instrumentation libraries could be libraries developed in an OpenTelemetry repository, a 3rd party implementation, or even auto-injected code (see [Open Telemetry Without Manual Instrumentation OTEP](https://github.com/open-telemetry/oteps/blob/master/text/0001-telemetry-without-manual-instrumentation.md)). See also the examples for identifiers at the end.
 If a library (or application) has instrumentation built-in, it is both the instrumenting and instrumented library and should pass its own name here. In all other cases (and to distinguish them from that case), the distinction between instrumenting and instrumented library is very important. For example, if an HTTP library `com.example.http` is instrumented by either `io.opentelemetry.contrib.examplehttp`, then it is important that the Tracer is not named `com.example.http`, but `io.opentelemetry.contrib.examplehttp` after the actual instrumentation library.
@@ -76,7 +76,7 @@ Examples (based on existing contribution libraries from OpenTracing and OpenCens
 
 ## Internal details
 
-By providing a `TracerRegistry` / `MeterRegistry` and *Named Tracers / Meters*, a vendor or OpenTelemetry implementation gains more flexibility in providing Tracers and Meters and which attributes they set in the resulting Spans and Metrics that are produced.
+By providing a `TracerProvider` / `MeterProvider` and *Named Tracers / Meters*, a vendor or OpenTelemetry implementation gains more flexibility in providing Tracers and Meters and which attributes they set in the resulting Spans and Metrics that are produced.
 
 On an SDK level, the SpanData class and its Metrics counterpart are extended with a `getLibraryResource` function that returns the resource associated with the Tracer / Meter that created it.
 
@@ -91,7 +91,7 @@ examples:
 * `redis-client` (in this case, `redis-client` has instrumented itself with the OpenTelemetry API)
 
 #### Tracer name / Meter name
-When it is acquired from the tracer/meter registry, the tracer/meter is assigned a name and a version which is the name and version of the reporting library that acquired the tracer. In cases where a library has instrumented itself using the OpenTelemetry API, they may be the same.
+When it is acquired from the tracer/meter Provider, the tracer/meter is assigned a name and a version which is the name and version of the reporting library that acquired the tracer. In cases where a library has instrumented itself using the OpenTelemetry API, they may be the same.
 
 example: If the `http` library is being instrumented by a library with the name `io.opentelemetry.contrib.http`, then the tracer name is also `io.opentelemetry.contrib.http`. If that same `http` library has built-in instrumentation through use of the OpenTelemetry API, then the tracer name would be `http`.
 
@@ -108,14 +108,14 @@ example: `bytes_transmitted` may be overall network bytes transmitted, or bytes 
 
 This proposal originates from an `opentelemetry-specification` proposal on [components](https://github.com/open-telemetry/opentelemetry-specification/issues/10) since having a concept of named Tracers would automatically enable determining this semantic `component` property.
 
-Alternatively, instead of having a `TracerRegistry`, existing (global) Tracers could return additional indirection objects (called e.g. `TraceComponent`), which would be able to produce spans for specifically named traced components.
+Alternatively, instead of having a `TracerProvider`, existing (global) Tracers could return additional indirection objects (called e.g. `TraceComponent`), which would be able to produce spans for specifically named traced components.
 
 ```java
 TraceComponent traceComponent = OpenTelemetry.Tracing.getTracer().componentBuilder("io.opentelemetry.contrib.mongodb", "semver:1.0.0");
 Span span = traceComponent.spanBuilder("someMethod").startSpan();
 ```
 
-Overall, this would not change a lot compared to the `TracerRegistry` since the levels of indirection until producing an actual span are the same.
+Overall, this would not change a lot compared to the `TracerProvider` since the levels of indirection until producing an actual span are the same.
 
 Instead of setting the `component` property based on the given Tracer names, those names could also be used as *prefixes* for produced span names (e.g. `<TracerName-SpanName>`). However, with regard to data quality and semantic conventions, a dedicated `component` set on spans is probably preferred.
 
@@ -128,7 +128,7 @@ libraryLabels.put("name", "io.opentelemetry.contrib.mongodb");
 libraryLabels.put("version", "1.0.0");
 Resource libraryResource = Resource.create(libraryLabels);
 // Create tracer for given instrumentation library.
-Tracer tracer = OpenTelemetry.getTracerRegistry().getTracer(libraryResource);
+Tracer tracer = OpenTelemetry.getTracerProvider().getTracer(libraryResource);
 ```
 
 Those given alternatives could be applied to Meters and Metrics in the same way.
