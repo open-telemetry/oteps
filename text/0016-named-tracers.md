@@ -14,21 +14,23 @@ _Associate Tracers and Meters with the name and version of the library which rep
 
 The mechanism of "Named Tracers and Meters" proposed here is motivated by the following scenarios:
 
-**Faulty or expensive instrumentation**
+### Faulty or expensive instrumentation
 
 For an operator of an application using OpenTelemetry, there is currently no way to influence the amount of data produced by reporting libraries. Reporting libraries can easily "spam" backend systems, deliver bogus data, or -- in the worst case -- crash or slow down applications. These problems might even occur suddenly in production environments because of external factors such as increasing load or unexpected input data.
 
-**Reporting library identification**
+### Reporting library identification
 
 If a reporting library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize data produced by it selectively. The produced Spans or Metrics cannot later be associated with the library which reported them, either in the processing pipeline or the backend.
 
-**Conflicting instrumentation libraries**
+### Disable instrumentation of pre-instrumented libraries
 
-It is the eventual goal of OpenTelemetry that library vendors implement the OpenTelemetry API, obviating the need to auto-instrument their library. An operator should be able to disable built-in instrumentation even if the library does not provide an explicit configuration to disable instrumentation.
+It is the eventual goal of OpenTelemetry that library vendors implement the OpenTelemetry API, obviating the need to auto-instrument their library. An operator should be able to disable the telemetry that is built into some database driver or other library and provide their own integration if the built-in telemetry is lacking in some way. This should be possible even if the developer of that database driver has not provided a configuration to disable telemetry.
+
+## Solution
 
 This proposal attempts to solve the stated problems by introducing the concept of:
- * _Named Tracers and Meters_ identified via a **name** (e.g. _"io.opentelemetry.contrib.mongodb"_) and a **version** (e.g._"semver:1.0.0"_) which is associated with the Tracer / Meter and the Spans / Metrics it produces.
- * A `TracerRegistry` / `MeterRegistry` as the only means of creating a Tracer or Meter which stores references to all `Tracers` and `Meters` it has created.
+ * _Named Tracers and Meters_ which are associated with the **name** (e.g. _"io.opentelemetry.contrib.mongodb"_) and **version** (e.g._"semver:1.0.0"_) of the library which acquired them.
+ * A `TracerRegistry` / `MeterRegistry` as the only means of creating a Tracer or Meter.
 
 Based on such an identifier, a Registry could provide a no-op Tracer or Meter to specific instrumentation libraries, or a Sampler could be implemented that discards Spans or Metrics from certain libraries. Also, by providing custom Exporters, Span or Metric data could be sanitized before it gets processed in a back-end system. However, this is beyond the scope of this proposal, which only provides the fundamental mechanisms.
 
@@ -98,7 +100,7 @@ example: If the `http` library is being instrumented by a library with the name 
 #### Meter namespace
 This is included here because it is often confused with the meter name.
 
-This describes the component which is being instrumented. For instance, `latency` could be collected from a number of different things (http latency, disk latency, event loop latency) and a namespace ties the `latency` metric to the entity being metered.
+A Meter namespace describes the component which is being monitored. For instance, `latency` could be collected from a number of different things (http latency, disk latency, event loop latency) and a namespace ties the `latency` metric to the entity being metered.
 
 example: `bytes_transmitted` may be overall network bytes transmitted, or bytes transmitted specifically over `http`. In this case, it may be desirable to disambiguate these metrics by applying the `http` or `network` namespaces to the `bytes_transmitted` metric.
 
