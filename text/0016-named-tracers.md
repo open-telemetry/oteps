@@ -30,9 +30,9 @@ It is the eventual goal of OpenTelemetry that library vendors implement the Open
 
 This proposal attempts to solve the stated problems by introducing the concept of:
  * _Named Tracers and Meters_ which are associated with the **name** (e.g. _"io.opentelemetry.contrib.mongodb"_) and **version** (e.g._"semver:1.0.0"_) of the library which acquired them.
- * A `TracerRegistry` / `MeterRegistry` as the only means of creating a Tracer or Meter.
+ * A `TracerRegistry` / `MeterRegistry` as the only means of acquiring a Tracer or Meter.
 
-Based on such an identifier, a Registry could provide a no-op Tracer or Meter to specific instrumentation libraries, or a Sampler could be implemented that discards Spans or Metrics from certain libraries. Also, by providing custom Exporters, Span or Metric data could be sanitized before it gets processed in a back-end system. However, this is beyond the scope of this proposal, which only provides the fundamental mechanisms.
+Based on the name and version, a Registry could provide a no-op Tracer or Meter to specific instrumentation libraries, or a Sampler could be implemented that discards Spans or Metrics from certain libraries. Also, by providing custom Exporters, Span or Metric data could be sanitized before it gets processed in a back-end system. However, this is beyond the scope of this proposal, which only provides the fundamental mechanisms.
 
 ## Explanation
 
