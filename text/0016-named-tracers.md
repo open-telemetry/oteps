@@ -2,7 +2,7 @@
 
 **Status:** `approved`
 
-_Associate Tracers and Meters with the name and version of the library which reports telemetry data by parameterizing the API which the library uses to acquire the Tracer or Meter._
+_Associate Tracers and Meters with the name and version of the instrumentation library which reports telemetry data by parameterizing the API which the library uses to acquire the Tracer or Meter._
 
 ## Suggested reading
 
@@ -16,11 +16,11 @@ The mechanism of "Named Tracers and Meters" proposed here is motivated by the fo
 
 ### Faulty or expensive instrumentation
 
-For an operator of an application using OpenTelemetry, there is currently no way to influence the amount of data produced by reporting libraries. Reporting libraries can easily "spam" backend systems, deliver bogus data, or -- in the worst case -- crash or slow down applications. These problems might even occur suddenly in production environments because of external factors such as increasing load or unexpected input data.
+For an operator of an application using OpenTelemetry, there is currently no way to influence the amount of data produced by instrumentation libraries. Instrumentation libraries can easily "spam" backend systems, deliver bogus data, or -- in the worst case -- crash or slow down applications. These problems might even occur suddenly in production environments because of external factors such as increasing load or unexpected input data.
 
-### Reporting library identification
+### Instrumentation library identification
 
-If a reporting library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize data produced by it selectively. The produced Spans or Metrics cannot later be associated with the library which reported them, either in the processing pipeline or the backend.
+If an instrumentation library hasn't implemented [semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md) correctly or those conventions change over time, it's currently hard to interpret and sanitize data produced by it selectively. The produced Spans or Metrics cannot later be associated with the library which reported them, either in the processing pipeline or the backend.
 
 ### Disable instrumentation of pre-instrumented libraries
 
@@ -36,7 +36,7 @@ Based on the name and version, a Provider could provide a no-op Tracer or Meter 
 
 ## Explanation
 
-From a user perspective, working with *Named Tracers / Meters* and `TracerProvider` / `MeterProvider` is conceptually similar to how e.g. the [Java logging API](https://docs.oracle.com/javase/7/docs/api/java/util/logging/Logger.html#getLogger(java.lang.String)) and logging frameworks like [log4j](https://www.slf4j.org/apidocs/org/slf4j/LoggerFactory.html) work. In analogy to requesting Logger objects through LoggerFactories, a trace reporting would create specific Tracer / Meter objects through a TracerProvider / MeterProvider.
+From a user perspective, working with *Named Tracers / Meters* and `TracerProvider` / `MeterProvider` is conceptually similar to how e.g. the [Java logging API](https://docs.oracle.com/javase/7/docs/api/java/util/logging/Logger.html#getLogger(java.lang.String)) and logging frameworks like [log4j](https://www.slf4j.org/apidocs/org/slf4j/LoggerFactory.html) work. In analogy to requesting Logger objects through LoggerFactories, an instrumentation library would create specific Tracer / Meter objects through a TracerProvider / MeterProvider.
 
 New Tracers or Meters can be created by providing the name and version of an instrumentation library. The version (following the convention proposed in https://github.com/open-telemetry/oteps/pull/38) is basically optional but *should* be supplied since only this information enables following scenarios:
 * Only a specific range of versions of a given instrumentation library need to be suppressed, while other versions are allowed (e.g. due to a bug in those specific versions).
@@ -50,7 +50,7 @@ Meter meter = OpenTelemetry.getMeterProvider().getMeter("io.opentelemetry.contri
 
 These factories (`TracerProvider` and `MeterProvider`) replace the global `Tracer` / `Meter` singleton objects as ubiquitous points to request Tracer and Meter instances.
 
- The *name* used to create a Tracer or Meter must identify the *instrumentation* libraries (also referred to as *integrations* or *trace/meter reporting library*) and not the library being instrumented. These instrumentation libraries could be libraries developed in an OpenTelemetry repository, a 3rd party implementation, or even auto-injected code (see [Open Telemetry Without Manual Instrumentation OTEP](https://github.com/open-telemetry/oteps/blob/master/text/0001-telemetry-without-manual-instrumentation.md)). See also the examples for identifiers at the end.
+ The *name* used to create a Tracer or Meter must identify the *instrumentation* libraries (also referred to as *integrations*) and not the library being instrumented. These instrumentation libraries could be libraries developed in an OpenTelemetry repository, a 3rd party implementation, or even auto-injected code (see [Open Telemetry Without Manual Instrumentation OTEP](https://github.com/open-telemetry/oteps/blob/master/text/0001-telemetry-without-manual-instrumentation.md)). See also the examples for identifiers at the end.
 If a library (or application) has instrumentation built-in, it is both the instrumenting and instrumented library and should pass its own name here. In all other cases (and to distinguish them from that case), the distinction between instrumenting and instrumented library is very important. For example, if an HTTP library `com.example.http` is instrumented by either `io.opentelemetry.contrib.examplehttp`, then it is important that the Tracer is not named `com.example.http`, but `io.opentelemetry.contrib.examplehttp` after the actual instrumentation library.
 
 If no name (null or empty string) is specified, following the suggestions in ["error handling proposal"](https://github.com/open-telemetry/opentelemetry-specification/pull/153), a "smart default" will be applied and a default Tracer / Meter implementation is returned.
@@ -82,8 +82,8 @@ On an SDK level, the SpanData class and its Metrics counterpart are extended wit
 
 ## Glossary of Terms
 
-#### Reporting library
-Also known as the instrumentation library or the trace/metrics reporter, this may be either a library/module/plugin provided by OpenTelemetry that instruments an existing library, a third party integration which instruments some library, or a library that has implemented the OpenTelemetry API in order to instrument itself. In any case, the reporting library is the library which provides tracing and metrics data to OpenTelemetry.
+#### Instrumentation library
+Also known as the trace/metrics reporter, this may be either a library/module/plugin provided by OpenTelemetry that instruments an existing library, a third party integration which instruments some library, or a library that has implemented the OpenTelemetry API in order to instrument itself. In any case, the instrumentation library is the library which provides tracing and metrics data to OpenTelemetry.
 
 examples:
 * `@opentelemetry/plugin-http`
