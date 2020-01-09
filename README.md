@@ -1,45 +1,44 @@
-# OpenTelemetry
+# OpenTelemetry OTEPs
+
 [![Gitter chat][gitter-image]][gitter-url]
 [![Build Status][circleci-image]][circleci-url]
 
-# OpenTelemetry OTEPs
 ## Evolving OpenTelemetry at the speed of Markdown
 
 OpenTelemetry uses an "OTEP" (similar to a RFC) process for proposing changes to the [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification).
 
 ### Table of Contents
 
-- [OpenTelemetry](#opentelemetry)
 - [OpenTelemetry OTEPs](#opentelemetry-oteps)
-	- [Evolving OpenTelemetry at the speed of Markdown](#evolving-opentelemetry-at-the-speed-of-markdown)
-		- [Table of Contents](#table-of-contents)
-		- [What changes require an OTEP?](#what-changes-require-an-otep)
-			- [Extrapolating cross-cutting changes](#extrapolating-cross-cutting-changes)
-		- [OTEP scope](#otep-scope)
-		- [Writing an OTEP](#writing-an-otep)
-		- [Submitting the OTEP](#submitting-the-otep)
-		- [Integrating the OTEP into the Spec](#integrating-the-otep-into-the-spec)
-		- [Implementing the OTEP](#implementing-the-otep)
-	- [Changes to the OTEP process](#changes-to-the-otep-process)
-	- [Background on the OpenTelemetry OTEP process](#background-on-the-opentelemetry-otep-process)
+  - [Evolving OpenTelemetry at the speed of Markdown](#evolving-opentelemetry-at-the-speed-of-markdown)
+    - [Table of Contents](#table-of-contents)
+    - [What changes require an OTEP](#what-changes-require-an-otep)
+      - [Extrapolating cross-cutting changes](#extrapolating-cross-cutting-changes)
+    - [OTEP scope](#otep-scope)
+    - [Writing an OTEP](#writing-an-otep)
+    - [Submitting the OTEP](#submitting-the-otep)
+    - [Integrating the OTEP into the Spec](#integrating-the-otep-into-the-spec)
+    - [Implementing the OTEP](#implementing-the-otep)
+  - [Changes to the OTEP process](#changes-to-the-otep-process)
+  - [Background on the OpenTelemetry OTEP process](#background-on-the-opentelemetry-otep-process)
 
-### What changes require an OTEP?
+### What changes require an OTEP
 
 The OpenTelemetry OTEP process is intended for changes that are **cross-cutting** - that is, applicable across *languages* and *implementations* - and either **introduce new behaviour**, **change desired behaviour**, or otherwise **modify requirements**.
 
 In practice, this means that OTEPs should be used for such changes as:
 
-* New tracer configuration options
-* Additions to span data
-* New metric types
-* Modifications to extensibility requirements
+- New tracer configuration options
+- Additions to span data
+- New metric types
+- Modifications to extensibility requirements
 
 On the other hand, they do not need to be used for such changes as:
 
-* Bug fixes
-* Rephrasing, grammatical fixes, typos, etc.
-* Refactoring
-* Things that affect only a single language or implementation
+- Bug fixes
+- Rephrasing, grammatical fixes, typos, etc.
+- Refactoring
+- Things that affect only a single language or implementation
 
 **Note:** The above lists are intended only as examples and are not meant to be exhaustive. If you don't know whether a change requires an OTEP, please feel free to ask!
 
@@ -55,25 +54,28 @@ For example, an OTEP proposing configurable sampling *and* various samplers shou
 
 ### Writing an OTEP
 
-* First, [fork](https://help.github.com/en/articles/fork-a-repo) this [repo](https://github.com/open-telemetry/oteps).
-* Copy [`0000-template.md`](./0000-template.md) to `text/0000-my-OTEP.md`, where `my-OTEP` is a title relevant to your proposal, and `0000` is the OTEP ID. Leave the number as is for now. Once a Pull Request is made, update this ID to match the PR ID.
-* Fill in the template. Put care into the details: It is important to present convincing motivation, demonstrate an understanding of the design's impact, and honestly assess the drawbacks and potential alternatives.
+- First, [fork](https://help.github.com/en/articles/fork-a-repo) this [repo](https://github.com/open-telemetry/oteps).
+- Copy [`0000-template.md`](./0000-template.md) to `text/0000-my-OTEP.md`, where `my-OTEP` is a title relevant to your proposal, and `0000` is the OTEP ID. Leave the number as is for now. Once a Pull Request is made, update this ID to match the PR ID.
+- Fill in the template. Put care into the details: It is important to present convincing motivation, demonstrate an understanding of the design's impact, and honestly assess the drawbacks and potential alternatives.
 
 ### Submitting the OTEP
-* An OTEP is `proposed` by posting it as a PR. Once the PR is created, update the OTEP file name to use the PR ID as the OTEP ID.
-* An OTEP is `approved` when four reviewers github-approve the PR. The OTEP is then merged.
-* If an OTEP is `rejected` or `withdrawn`, the PR is closed. Note that these OTEPs submissions are still recorded, as Github retains both the discussion and the proposal, even if the branch is later deleted.
-* If an OTEP discussion becomes long, and the OTEP then goes through a major revision, the next version of the OTEP can be posted as a new PR, which references the old PR. The old PR is then closed. This makes OTEP review easier to follow and participate in.
+
+- An OTEP is `proposed` by posting it as a PR. Once the PR is created, update the OTEP file name to use the PR ID as the OTEP ID.
+- An OTEP is `approved` when four reviewers github-approve the PR. The OTEP is then merged.
+- If an OTEP is `rejected` or `withdrawn`, the PR is closed. Note that these OTEPs submissions are still recorded, as Github retains both the discussion and the proposal, even if the branch is later deleted.
+- If an OTEP discussion becomes long, and the OTEP then goes through a major revision, the next version of the OTEP can be posted as a new PR, which references the old PR. The old PR is then closed. This makes OTEP review easier to follow and participate in.
 
 ### Integrating the OTEP into the Spec
-* Once an OTEP is `approved`, an issue is created in the [specification repo](https://github.com/open-telemetry/opentelemetry-specification) to integrate the OTEP into the spec.
-* When reviewing the spec PR for the OTEP, focus on whether the spec is written clearly, and reflects the changes approved in the OTEP. Please abstain from relitigating the approved OTEP changes at this stage.
-* An OTEP is `integrated` when four reviewers github-approve the spec PR. The PR is then merged, and the spec is versioned.
+
+- Once an OTEP is `approved`, an issue is created in the [specification repo](https://github.com/open-telemetry/opentelemetry-specification) to integrate the OTEP into the spec.
+- When reviewing the spec PR for the OTEP, focus on whether the spec is written clearly, and reflects the changes approved in the OTEP. Please abstain from relitigating the approved OTEP changes at this stage.
+- An OTEP is `integrated` when four reviewers github-approve the spec PR. The PR is then merged, and the spec is versioned.
 
 ### Implementing the OTEP
-* Once an OTEP is `integrated` into the spec, an issue is created in the backlog of every relevant OpenTelemetry implementation.
-* PRs are made until the all the requested changes are implemented.
-* The status of the OpenTelemetry implementation is updated to reflect that it is implementing a new version of the spec.
+
+- Once an OTEP is `integrated` into the spec, an issue is created in the backlog of every relevant OpenTelemetry implementation.
+- PRs are made until the all the requested changes are implemented.
+- The status of the OpenTelemetry implementation is updated to reflect that it is implementing a new version of the spec.
 
 ## Changes to the OTEP process
 
