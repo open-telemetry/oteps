@@ -9,7 +9,7 @@ OpenTelemetry uses an "OTEP" (similar to a RFC) process for proposing changes to
 
 ### Table of Contents
 
-- [OpenTelemetry OTEPs](#opentelemetry-oteps)
+- [OpenTelemetry Enhancement Proposals (OTEPs)](#opentelemetry-enhancement-proposals-oteps)
   - [Evolving OpenTelemetry at the speed of Markdown](#evolving-opentelemetry-at-the-speed-of-markdown)
     - [Table of Contents](#table-of-contents)
     - [What changes require an OTEP](#what-changes-require-an-otep)
