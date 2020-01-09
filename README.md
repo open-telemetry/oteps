@@ -1,4 +1,4 @@
-# OpenTelemetry OTEPs
+# OpenTelemetry Enhancement Proposals (OTEPs)
 
 [![Gitter chat][gitter-image]][gitter-url]
 [![Build Status][circleci-image]][circleci-url]
