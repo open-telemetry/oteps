@@ -1,4 +1,4 @@
-# OpenTelemetry Enhancement Proposals (OTEPs)
+# OpenTelemetry Enhancement Proposal (OTEP)
 
 [![Gitter chat][gitter-image]][gitter-url]
 [![Build Status][circleci-image]][circleci-url]
@@ -9,7 +9,7 @@ OpenTelemetry uses an "OTEP" (similar to a RFC) process for proposing changes to
 
 ### Table of Contents
 
-- [OpenTelemetry Enhancement Proposals (OTEPs)](#opentelemetry-enhancement-proposals-oteps)
+- [OpenTelemetry Enhancement Proposal (OTEP)](#opentelemetry-enhancement-proposal-otep)
   - [Evolving OpenTelemetry at the speed of Markdown](#evolving-opentelemetry-at-the-speed-of-markdown)
     - [Table of Contents](#table-of-contents)
     - [What changes require an OTEP](#what-changes-require-an-otep)
