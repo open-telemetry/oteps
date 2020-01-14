@@ -21,7 +21,9 @@
 * [Internal details](#Internal-details)
 * [FAQ](#faq)
 
-Refactor OpenTelemetry into a set of separate cross-cutting concerns which 
+![drawing](img/context_propagation_overview.png)
+
+A proposal to refactor OpenTelemetry into a set of separate cross-cutting concerns which 
 operate on a shared context propagation mechanism.
 
 # Motivation
@@ -29,14 +31,21 @@ operate on a shared context propagation mechanism.
 This RFC addresses the following topics:
 
 **Separation of concerns**  
-* Remove the Tracer dependency from context propagation mechanisms.
-* Handle user data (Correlations) and observability data (SpanContext, etc) 
-  separately.  
+* Cleaner package layout results in an easier to learn system. It is possible to
+  understand Context Propagation without needing to understand Observability.
+* Allow for multiple types of context propagation, each self contained with 
+  different rules. For example, TraceContext may be sampled, while 
+  CorrelationContext never is.
+* Allow the Observability and Contet Propagation to have different defaults. 
+  The Observability systems ships with a no-op implementation and a pluggable SDK, 
+  the context propagation system ships with a canonical, working implementation.
 
 **Extensibility**
+* A clean separation allows the context propagation mechanisms to be used on 
+  their own, so they may be consumed by other systems which do not want to 
+  depend on an observability tool for their non-observability concerns.
 * Allow developers to create new applications for context propagation. For 
-  example: A/B testing, encrypted or authenticated data, and new, experimental 
-  forms of observability.
+  example: A/B testing, authentication, and network switching.
 
 
 # OpenTelemetry layered architecture
@@ -165,8 +174,6 @@ provides a function which takes no arguments and returns a Context.
 **`SetCurrent(context)`**  
 To associate a context with program execution, the Context API provides a 
 function which takes a Context.
-
-
 
 ## Propagation API
 
@@ -301,7 +308,7 @@ func ServeRequest(context, request, project) -> (context) {
   context = request.Response(context, data)
 
   // End the current span
-  context = Tracer::EndSpan(context)
+  Tracer::EndSpan(context)
 
   return context
 }
@@ -482,6 +489,48 @@ otherContext = ExtractWithContext(Context::GetCurrent(), headers)
 # Internal details
 
 ![drawing](img/context_propagation_details.png)
+
+## Example Package Layout
+```
+  Context
+    ContextAPI
+  Observability
+    Correlations
+      CorrelationAPI
+      HttpInjector
+      HttpExtractor
+    Metrics
+      MetricAPI
+    Trace
+      TracerAPI
+      HttpInjector
+      HttpExtractor
+  Propagation
+    Registry
+    HttpInjectorInterface
+    HttpExtractorInterface
+```
+
+## Edge Cases
+There are some complications that can arise when managing a span context extracted off the wire and in-process spans for tracer operations that operate on an implicit parent. In order to ensure that a context key references an object of the expected type and that the proper implicit parent is used, the following conventions have been established:
+
+
+### Extract
+When extracting a remote context, the extracted span context MUST be stored separately from the current span. 
+
+### Default Span Parentage
+When a new span is created from a context, a default parent for the span can be assigned. The order is of assignment is as follows:
+
+* The current span.
+* The extracted span.
+* The root span.
+
+### Inject
+When injecting a span to send over the wire, the default order is of 
+assignment is as follows:
+
+* The current span.
+* The extracted span.
 
 ## Default HTTP headers
 OpenTelemetry currently uses two standard header formats for context propagation. 
