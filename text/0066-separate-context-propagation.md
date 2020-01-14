@@ -231,7 +231,7 @@ takes an injector.
 **Erlang:** https://github.com/open-telemetry/opentelemetry-erlang-api/pull/4  
 **Go:** https://github.com/open-telemetry/opentelemetry-go/pull/381  
 **Java:** https://github.com/open-telemetry/opentelemetry-java/pull/655  
-**Python:** https://github.com/open-telemetry/opentelemetry-python/pull/278  
+**Python:** https://github.com/open-telemetry/opentelemetry-python/pull/325  
 **Ruby:** https://github.com/open-telemetry/opentelemetry-ruby/pull/147  
 
 # Examples
