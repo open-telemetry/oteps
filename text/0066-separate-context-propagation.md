@@ -191,7 +191,7 @@ includes the state sent from the prior process.
 **`Inject(context, []http_injector, headers) -> headers`**  
 To send the data for all concerns to the next process in the transaction, the 
 Propagation API provides a function which takes a context and a set of 
-HTTP_Extractors, and adds the contents of the context in to HTTP headers to 
+HTTP_Injectors, and adds the contents of the context in to HTTP headers to 
 include an HTTP Header representation of the context.
 
 **`HTTP_Extractor(context, headers) -> context`**  
