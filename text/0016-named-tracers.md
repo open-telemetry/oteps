@@ -91,18 +91,14 @@ examples:
 * `redis-client` (in this case, `redis-client` has instrumented itself with the OpenTelemetry API)
 
 #### Tracer name / Meter name
-When it is acquired from the tracer/meter Provider, the tracer/meter is assigned a name and a version which is the name and version of the reporting library that acquired the tracer. In cases where a library has instrumented itself using the OpenTelemetry API, they may be the same.
+When an instrumentation library acquires a Tracer/Meter, it provides its own name and version to the Tracer/Meter Provider. This name/version two-tuple is said to be the Tracer/Meter's _name_. Note that this is the name and version of the library which acquires the Tracer/Meter, and not the library it is monitoring. In cases where the library is instrumenting itself using the OpenTelemetry API, they may be the same.
 
 example: If the `http` library is being instrumented by a library with the name `io.opentelemetry.contrib.http`, then the tracer name is also `io.opentelemetry.contrib.http`. If that same `http` library has built-in instrumentation through use of the OpenTelemetry API, then the tracer name would be `http`.
 
-### Disambiguation with related terms
-
 #### Meter namespace
-This is included here because it is often confused with the meter name.
+Meter name is used as a namespace for all metrics created by it. This allows a telemetry library to register a metric using any name, such as `latency`, without worrying about collisions with a metric registered under the same name by a different library.
 
-A Meter namespace describes the component which is being monitored. For instance, `latency` could be collected from a number of different things (http latency, disk latency, event loop latency) and a namespace ties the `latency` metric to the entity being metered.
-
-example: `bytes_transmitted` may be overall network bytes transmitted, or bytes transmitted specifically over `http`. In this case, it may be desirable to disambiguate these metrics by applying the `http` or `network` namespaces to the `bytes_transmitted` metric.
+example: The libraries `mongodb` and `postgresql` may both register metrics with the name `latency`. These metrics can still be uniquely identified even  though they have the same name because they are registered under different namespaces (`mongodb` and `postgresql` respectively).
 
 ## Prior art and alternatives
 
