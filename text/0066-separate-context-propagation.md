@@ -185,7 +185,7 @@ requests.
 **`Extract(context, []http_extractor, headers) -> context`**  
 In order to continue transmitting data injected earlier in the transaction, 
 the Propagation API provides a function which takes a context, a set of 
-HTTP_Injectors, and a set of HTTP headers, and returns a new context which 
+HTTP_Extractors, and a set of HTTP headers, and returns a new context which 
 includes the state sent from the prior process.
 
 **`Inject(context, []http_injector, headers) -> headers`**  
