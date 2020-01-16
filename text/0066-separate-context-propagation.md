@@ -88,40 +88,47 @@ context object, and never just a subset of the context, such as the value in a
 single key. This allows the SDK to make improvements and leverage additional 
 data that may be available, without changes to all of the call sites.
 
+The following are notes on the API, and not meant as final.
+
+**`StartSpan(context, options) -> context`**
+When a span is started, a new context is returned, with the new span set as the 
+current span. 
+
+**`GetSpanPropagator() -> (HTTP_Extractor, HTTP_Injector)`**  
+When a span is extracted, the extracted value is stored in the context seprately 
+from the current span.
+
+
 ## Correlations API
 
 In addition to trace propagation, OpenTelemetry provides a simple mechanism for 
-propagating metric labels, called the Correlations API. Correlations are 
-intended for indexing events in one service with attributes provided by a prior 
-service in the same transaction. This helps to establish a causal relationship 
-between these events. For example, determining that a particular browser version 
-is associated with a failure in an image processing service.
-
-Correlations are implemented as an extremely basic cross-cutting concern - a 
-transaction-level dictionary. All key-value pairs are stored in the context 
-object, and then injected by the Correlation propagator to be sent to the next 
-process. 
+propagating indexes, called the Correlations API. Correlations are 
+intended for indexing observability events in one service with attributes 
+provided by a prior service in the same transaction. This helps to establish a 
+causal relationship between these events. For example, determining that a 
+particular browser version is associated with a failure in an image processing 
+service.
 
 The Correlations API is based on the [W3C Correlation-Context specification](https://w3c.github.io/correlation-context/), 
-and implements the protocol as it is defined in that working group.
+and implements the protocol as it is defined in that working group. There are 
+few details provided here as it is outside the scope of this OTEP to finalize 
+this API.
 
 While Correlations can be used to prototype other cross-cutting concerns, this 
 mechanism is primarily intended to convey values for the OpenTelemetry 
-observability systems. New concerns with different criteria should be modeled 
-separately, using the same underlying context propagation layer as building 
-blocks.
+observability systems. 
 
 For backwards compatibility, OpenTracing Baggage is propagated as Correlations 
-when using the OpenTracing bridge.
+when using the OpenTracing bridge. New concerns with different criteria should 
+be modeled separately, using the same underlying context propagation layer as 
+building blocks.
 
-As every correlation adds additional overhead to every request, correlations 
-should be used with care. The implementation MUST propagate these values. It is 
-entirely on the user to choose when to drop correlations, either by removing 
-them via the API, or by filtering them via a network proxy or service mesh.
+The following is an example API, and not meant as final.
 
 **`GetCorrelation(context, key) -> value`**  
 To access the value for a label set by a prior event, the Correlations API 
-provides a function which takes a context and a key as input, and returns a value.
+provides a function which takes a context and a key as input, and returns a 
+value.
 
 **`SetCorrelation(context, key, value) -> context`**  
 To record the value for a label, the Correlations API provides a function which 
@@ -151,14 +158,27 @@ Cross-cutting concerns access data in-process using the same, shared context
 object. Each concern uses its own namespaced set of keys in the context, 
 containing all of the data for that cross-cutting concern.
 
+The following is an example API, and not meant as final.
+
+**`CreateKey(name) -> key`**
+To allow concerns to control access to their data, the Context API uses keys 
+which cannot be guessed by third parties which have not been explictly handed 
+the key. It is recommended that concerns mediate data access via an API, rather 
+than provide direct public access to their keys.
+
 **`GetValue(context, key) -> value`**  
 To access the local state of an concern, the Context API provides a function 
 which takes a context and a key as input, and returns a value.
 
 **`SetValue(context, key, value) -> context`**  
 To record the local state of a cross-cutting concern, the Context API provides a 
-function which takes a context, a key, and a value as input, and returns an 
-updated context which contains the new value.
+function which takes a context, a key, and a value as input, and returns a 
+new context which contains the new value. Note that the new value is not present 
+in the old context.
+
+**`RemoveValue(context, key) -> context`**
+RemoveValue returns a new context with the key cleared. Note that the removed 
+value still remains present in the old context.
 
 
 ### Optional: Automated Context Management
@@ -181,6 +201,8 @@ Cross-cutting concerns send their state to the next process via propagators:
 functions which read and write context into RPC requests. Each concern creates a 
 set of propagators for every type of supported medium - currently only HTTP 
 requests.
+
+The following is an example API, and not meant as final.
 
 **`Extract(context, []http_extractor, headers) -> context`**  
 In order to continue transmitting data injected earlier in the transaction, 
@@ -232,11 +254,17 @@ takes an injector.
 **Go:** https://github.com/open-telemetry/opentelemetry-go/pull/381  
 **Java:** https://github.com/open-telemetry/opentelemetry-java/pull/655  
 **Python:** https://github.com/open-telemetry/opentelemetry-python/pull/325  
-**Ruby:** https://github.com/open-telemetry/opentelemetry-ruby/pull/147  
+**Ruby:** https://github.com/open-telemetry/opentelemetry-ruby/pull/147
+**C#/.NET:** https://github.com/open-telemetry/opentelemetry-dotnet/pull/399
 
 # Examples
 
-It might be helpful to look at an example, written in pseudocode. Let's describe 
+It might be helpful to look at some examples, written in pseudocode. Note that 
+the pseudocode only uses simple functions and immutable values. Most mutable, 
+object-orient languages will use objects, such as a Span object, to encapsulate 
+the context object and hide it from the user in most cases.
+
+Let's describe 
 a simple scenario, where `service A` responds to an HTTP request from a `client` 
 with the result of a request to `service B`.
 
