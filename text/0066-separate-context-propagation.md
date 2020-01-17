@@ -36,7 +36,7 @@ This RFC addresses the following topics:
 * Allow for multiple types of context propagation, each self contained with 
   different rules. For example, TraceContext may be sampled, while 
   CorrelationContext never is.
-* Allow the Observability and Contet Propagation to have different defaults. 
+* Allow the Observability and Context Propagation to have different defaults. 
   The Observability systems ships with a no-op implementation and a pluggable SDK, 
   the context propagation system ships with a canonical, working implementation.
 
