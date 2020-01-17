@@ -162,7 +162,7 @@ The following is an example API, and not meant as final.
 
 **`CreateKey(name) -> key`**
 To allow concerns to control access to their data, the Context API uses keys 
-which cannot be guessed by third parties which have not been explictly handed 
+which cannot be guessed by third parties which have not been explicitly handed 
 the key. It is recommended that concerns mediate data access via an API, rather 
 than provide direct public access to their keys.
 
