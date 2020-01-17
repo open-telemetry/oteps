@@ -347,7 +347,7 @@ func FetchDataFromServiceB(context) -> (context, data) {
   // Inject the contexts to be propagated. Note that there is no direct 
   // reference to tracing or correlations.
   injectors = Propagation::GetInjectors()
-  context = Propagation::Inject(context, injectors, request.Headers)
+  request.Headers = Propagation::Inject(context, injectors, request.Headers)
 
   // make an http request
   data = request.Do()
