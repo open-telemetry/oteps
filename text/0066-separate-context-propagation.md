@@ -603,14 +603,6 @@ implementation details behind the Propagator interface. Therefore, the
 propagation system itself does not need to provide an mechanism for chaining 
 together propagators or other additional facilities.
 
-
-## Did you add a context parameter to every API call because Go has infected your brain?
-
-No. The concept of an explicit context is fundamental to a model where 
-independent cross-cutting concerns share the same context propagation layer. 
-How this context appears or is expressed is language specific, but it must be 
-present in some form.
-
 # Prior art and alternatives
 
 Prior art:  
