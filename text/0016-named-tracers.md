@@ -90,7 +90,7 @@ examples:
 * `io.opentelemetry.redis`
 * `redis-client` (in this case, `redis-client` has instrumented itself with the OpenTelemetry API)
 
-#### Tracer name / Meter name and version
+#### Tracer / Meter name and version
 When an instrumentation library acquires a Tracer/Meter, it provides its own name and version to the Tracer/Meter Provider. This name/version two-tuple is said to be the Tracer/Meter's _name_ and _version_. Note that this is the name and version of the library which acquires the Tracer/Meter, and not the library it is monitoring. In cases where the library is instrumenting itself using the OpenTelemetry API, they may be the same.
 
 example: If the `http` version `semver:3.0.0` library is being instrumented by a library with the name `io.opentelemetry.contrib.http` and version `semver:1.3.2`, then the tracer name and version are also `io.opentelemetry.contrib.http` and `semver:1.3.2`. If that same `http` library has built-in instrumentation through use of the OpenTelemetry API, then the tracer name and version would be `http` and `semver:3.0.0`.
