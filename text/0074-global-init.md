@@ -185,6 +185,6 @@ forwarding](https://github.com/opentracing/opentracing-java/blob/master/opentrac
 An [early prototype for injecting an initialized SDK in Golang using
 the `plugin`
 package](https://github.com/jmacd/opentelemetry-go/pull/1) showed how
-to avoid use-before-initialization in that langauge.  It was not well
+to avoid use-before-initialization in that language.  It was not well
 received.
 
