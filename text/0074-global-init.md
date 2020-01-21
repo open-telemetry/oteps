@@ -27,7 +27,7 @@ lifetime.
 Global variables face significant opposition from some developers,
 which forces the question: "why support globals at all?".  In
 languages with automatic dependency injection support, then
-conceivably we do not need global variables.  In languages without
+conceivably we may not need global variables.  In languages without
 automatic dependency injection, without globals we could not have the
 "zero touch" instrumentation [given as a requirement for the
 project](https://github.com/open-telemetry/oteps/blob/master/text/0001-telemetry-without-manual-instrumentation.md).
@@ -54,8 +54,8 @@ cannot be performed by automatic dependency injection.
 There are two acceptable ways to provide default instances in
 OpenTelemetry: (1) through dependency injection, (2) through global
 variables initialized at most once.  The feasibility of each approach
-varies by language.  The implementation MUST select one of the
-following strategies.
+varies by language.  The implementation MUST support at least one of
+the following strategies.
 
 ### Service provider mechanism
 
@@ -65,9 +65,13 @@ Interface) supports loading and configuring the SDK before it is first
 used.  This kind of support is the preferred choice in languages with
 common support for automatic dependency injection.
 
-In this case, there is no use-before-configuration question to
-address, as there is in some languages with support for static
-initialization.
+There may be cases where dependency injection is not universally
+preferred or simply not as convenient as explicitly setting a
+configured SDK.  Languages with support for dependency injection MAY
+elect to support both mechanisms, provided they are consistent each
+other and satisfy the rules: (1) functionality accessed through the
+global Tracer and Meter should begin functioning when a configured SDK
+is installed, and (2) each global may only be configured once.
 
 ### Explicit initializer mechanism
 
@@ -163,17 +167,15 @@ Since the global instances are required to begin working once the real
 implementations are installed, there is some implied synchronization
 overhead and cost.  This overhead SHOULD be minimal.
 
-We recommend to explicitly install a No-op instance to lower the cost
-of instrumentation when no SDK will be installed, as opposed to
-leaving the default global instances in place, perpetually waiting to
-begin forwarding.  True No-op instances will be slightly less
-expensive than the default global instances.
-
 ## Implemented prototype
 
-See the [OTel-Go
-prototype](https://github.com/open-telemetry/opentelemetry-go/pull/392)
-which implements forwarding for the global Meter instance.
+The OTel-Go SDK has implemented this feature for both the global
+Tracer and Meter instances.  It does not support dependency injection.
+
+The OTel-Java SDK supports the Java SPI mechanism to inject a
+configured SDK.  [OTel-Java also has a pending
+PR](https://github.com/open-telemetry/opentelemetry-java/pull/724)
+to implement explicit initializer support.
 
 ## Prior art
 
