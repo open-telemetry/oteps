@@ -98,7 +98,7 @@ example: If the `http` version `semver:3.0.0` library is being instrumented by a
 #### Meter namespace
 Meter name is used as a namespace for all metrics created by it. This allows a telemetry library to register a metric using any name, such as `latency`, without worrying about collisions with a metric registered under the same name by a different library.
 
-example: The libraries `mongodb` and `postgresql` may both register metrics with the name `latency`. These metrics can still be uniquely identified even  though they have the same name because they are registered under different namespaces (`mongodb` and `postgresql` respectively).
+example: The libraries `redis` and `io.opentelemetry.redis` may both register metrics with the name `latency`. These metrics can still be uniquely identified even though they have the same name because they are registered under different namespaces (`redis` and `io.opentelemetry.redis` respectively). In this case, the operator may disable one of these metrics because they are measuring the same thing.
 
 ## Prior art and alternatives
 
