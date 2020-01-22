@@ -2,7 +2,7 @@
 
 The [Observer instrument](./0072-metric-observer.md) is semantically
 identical to the metric Gauge instrument, only it is reported via a
-callback instead of synchronous API calls.  Implentation has shown
+callback instead of synchronous API calls.  Implementation has shown
 that Gauge instruments are difficult to reason about because the
 semantics of a "last value" Aggregator have to address questions about
 statefulness--the SDK's ability to recall old values.  Observer
@@ -39,7 +39,7 @@ replace Gauge instruments in the text.
 ## Trade-offs and mitigations
 
 Not much is lost to the user from removing Gauge instruments.  There
-may be situations where it is undesireable to be interrupted by the
+may be situations where it is undesirable to be interrupted by the
 Metric SDK in order to execute an Observer callback--situations where
 Observer semantics are correct but a synchronous API is more
 acceptable.  These cases can be addressed by Observer instruments
