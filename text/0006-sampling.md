@@ -67,7 +67,7 @@ Examples: gRPC, Express, Django developers.
 
 **Solution:**
 
-* For the moment opentelemetry API will not offer any `SamplingHint` functionality for the last use case,
+* For the moment, the OpenTelemetry API will not offer any `SamplingHint` functionality for the last use case.
 This is intentional to avoid premature optimizations, and it is based on the fact that changing an API is
 backwards incompatible compared to adding a new API.
 
