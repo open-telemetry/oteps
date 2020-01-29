@@ -6,7 +6,6 @@
 This section tries to summarize all the changes proposed in this RFC:
  1. Move the `Sampler` interface from the API to SDK package. Apply some minor changes to the
  `Sampler` API.
- 1. Add a new `SamplerHint` concept to the API package.
  1. Add capability to record `Attributes` that can be used for sampling decision during the `Span`
  creation time.
  1. Remove `addLink` APIs from the `Span` interface, and allow recording links only during the span
@@ -68,9 +67,10 @@ Examples: gRPC, Express, Django developers.
 
 **Solution:**
 
- * On the start Span operation, the OpenTelemetry API will allow marking a span with one of three
- choices for the [SamplingHint](#samplinghint).
- 
+* For the moment, the OpenTelemetry API will not offer any `SamplingHint` functionality for the last use case.
+This is intentional to avoid premature optimizations, and it is based on the fact that changing an API is
+backwards incompatible compared to adding a new API.
+
 ### Infrastructure package/binary developer
 Examples: HBase, Envoy developers.
 
@@ -79,8 +79,8 @@ Examples: HBase, Envoy developers.
  OpenTelemetry SDKTracer, and OpenTelemetry wire format exporter.
  * They may have their own recommendations for sampling rates, but don't run the binaries in
  production, only provide packaged binaries. So their sampling rate configs, and sampling strategies
- need to a finite "built in" set from OpenTelemetry's SDK.
- * They need to deal with upstream sampling decisions made by services calling them.
+ need to be a finite "built in" set from OpenTelemetry's SDK.
+ * They need to deal with upstream sampling decisions made by services that call them.
 
 **Solution:**
  * Allow different sampling strategies by default in OpenTelemetry SDK, all configurable easily via
@@ -138,12 +138,12 @@ or the cost to store all the Spans may be too high. In order to support this use
 ensure the quality of the data we send, OpenTelemetry needs to natively support sampling with some
 requirements:
  * Send as many complete traces as possible. Sending just a subset of the spans from a trace is 
- less useful because in this case the interaction between the spans may miss.
+ less useful because in this case the interaction between the spans may be missing.
  * Allow application operator to configure the sampling frequency.
  
-For new modern systems that need to collect all the Spans and later may or may not do a deferred 
+For new modern systems that need to collect all the Spans and later may or may not make a deferred 
 sampling decision, OpenTelemetry needs to natively support a way to configure the library to 
-collect and export all the Spans. This is possible even though OpenTelemetry supports sampling by
+collect and export all the Spans. This is possible (even though OpenTelemetry supports sampling) by
 setting a default config to always collect all the spans.
 
 ### Sampling flags
@@ -170,32 +170,17 @@ distributed trace, and because of this OpenTelemetry API should NOT allow this c
 It is safe to assume that users of the API should only access the `RecordEvents` property when 
 instrumenting code and never access `SampledFlag` unless used in context propagators.
 
-### SamplingHint
-This is a new concept added in the OpenTelemetry API that allows to suggest sampling hints to the
-implementation of the API:
- * `NOT_RECORD`
-   * Suggest to not `RecordEvents = false` and not propagate `SampledFlag = false`.
- * `RECORD`
-   * Suggest `RecordEvents = true` and `SampledFlag = false`.
- * `RECORD_AND_PROPAGATE`
-   * Suggest to `RecordEvents = true` and propagate `SampledFlag = true`.
-
-The default option for the span creation is to not have any suggestion (or suggestion is not
-specified). This can be implemented by using `null` as the default option or any language specific
-mechanism to achieve the same result.
-
 ### Sampler interface
 The interface for the Sampler class that is available only in the OpenTelemetry SDK:
  * `TraceID`
  * `SpanID`
  * Parent `SpanContext` if any
- * `SamplerHint`
  * `Links`
  * Span name
  * `SpanKind`
  * Initial set of `Attributes` for the `Span` being constructed
 
-It produces as an output called `SamplingResult`:
+It produces an output called `SamplingResult` that includes:
  * A `SamplingDecision` enum [`NOT_RECORD`, `RECORD`, `RECORD_AND_PROPAGATE`].
  * A set of span Attributes that will also be added to the `Span`.
    * These attributes will be added after the initial set of `Attributes`.
@@ -204,19 +189,13 @@ It produces as an output called `SamplingResult`:
 ### Default Samplers
 These are the default samplers implemented in the OpenTelemetry SDK:
  * ALWAYS_ON
-   * Ignores all values in SamplingHint.
  * ALWAYS_OFF
-   * Ignores all values in SamplingHint.
  * ALWAYS_PARENT
-   * Ignores all values in SamplingHint.
    * Trust parent sampling decision (trusting and propagating parent `SampledFlag`).
    * For root Spans (no parent available) returns `NOT_RECORD`.
  * Probability
-   * Allows users to configure to ignore or not the SamplingHint for every value different than 
-   `UNSPECIFIED`. 
-     * Default is to NOT ignore `NOT_RECORD` and `RECORD_AND_PROPAGATE` but ignores `RECORD`.
    * Allows users to configure to ignore the parent `SampledFlag`.
-   * Allows users to configure if probability applies only for "root spans", "root spans and remote 
+   * Allows users to configure if probability applies only for "root spans", "root spans and remote
    parent", or "all spans".
      * Default is to apply only for "root spans and remote parent".
      * Remote parent property should be added to the SpanContext see specs [PR/216][specs-pr-216]
@@ -229,7 +208,7 @@ These are the default samplers implemented in the OpenTelemetry SDK:
 |ALWAYS_ON|`True`|`True`|
 |ALWAYS_OFF|`False`|`False`|
 |ALWAYS_PARENT|`False`|`False`|
-|Probability|`SamplingHint==RECORD OR SampledFlag`|`SamplingHint==RECORD_AND_PROPAGATE OR Probability`|
+|Probability|`Same as SampledFlag`|`Probability`|
 
 **Child Span Decision:**
 
@@ -238,7 +217,7 @@ These are the default samplers implemented in the OpenTelemetry SDK:
 |ALWAYS_ON|`True`|`True`|
 |ALWAYS_OFF|`False`|`False`|
 |ALWAYS_PARENT|`ParentSampledFlag`|`ParentSampledFlag`|
-|Probability|`SamplingHint==RECORD OR SampledFlag`|`ParentSampledFlag OR SamplingHint==RECORD_AND_PROPAGATE OR Probability`|
+|Probability|`Same as SampledFlag`|`ParentSampledFlag OR Probability`|
 
 ### Links
 This RFC proposes that Links will be recorded only during the start `Span` operation, because:
@@ -263,7 +242,7 @@ There are two important use-cases to be considered:
  * Some information that may be used for sampling decision are NOT available at the moment when the
  logical `Span` operation should start (e.g. `http.route` may be determine later).
 
-The current [span creation logic][span-creation] facilitates very well the first use-case, but
+The current [span creation logic][span-creation] facilitates the first use-case very well, but
 the second use-case requires users to record the logical `start_time` and collect all the
 information necessarily to start the `Span` in custom objects, then when all the properties are
 available call the span creation API.
