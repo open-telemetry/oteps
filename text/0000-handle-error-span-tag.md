@@ -1,41 +1,69 @@
-# Replace this with your awesome OTEP title
+# Addressing discrepancy related to "error" span tag between opentracing and opencensus spec
 
-Short (one sentence) summary, e.g., something that would be appropriate for a [CHANGELOG](https://keepachangelog.com/) or release notes.
+Adding error span tag from opentracing specification to opentelemtery specification.  
 
 ## Motivation
 
-Why should we make this change? What new value would it bring? What use cases does it enable?
+Why should we make this change? 
+    Tracing backends such as jaeger adhere to opentracing spec https://github.com/opentracing/specification/blob/master/semantic_conventions.md#span-tags-table. Where "error" span tag is a boolean value that helps in filtering spans those are in error state. Since opentelemetry doesn not have "error" span tag in the spec, error span tags are passed as is to the exported backend. According to opentracing spec error tag is boolean, but when zipkin span is translated to jaeger span format error tag continues to be a string carrying complete error message. This violates opentracing spec and also breaks jaeger functionality, as jaeger expects error to be boolean and error.message to be String type that carries description of the error message.    
+    For example  : Zipkin spans have "error" tag as a string datatype and they carry short error message
+    # Zipkin Span
+    {
+        "traceId": "631ef3c9f9250805","id": "631ef3c9f9250805","kind": "SERVER","name": "http:/one","timestamp": 1580830219488000,"duration": 29312,"localEndpoint": {"serviceName": "foo-service", "ipv4": "192.168.1.8", "port": 9001 },
+        "tags": {
+            "error": "Request processing failed; nested exception is org.springframework.web.client.HttpServerErrorException: 500",
+            "http.host": "localhost", "http.method": "GET", "http.path": "/one", "http.status_code": "200", "http.url": "http://localhost:9001/one", "mvc.controller.class": "FooController", "mvc.controller.method": "one","spring.instance_id": "192.168.1.8:order-service-sleuth:9001"
+        }
+    }
+
+    # Jaeger Span [Actual] OpenTelemetry exported jaeger span.
+    {"traceIdLow":8380789575664951000,"traceIdHigh":0,"spanId":8380789575664951000,"parentSpanId":0,"operationName":"http:/one","flags":0,"startTime":1580830714594000,"duration":79701,
+    "tags":[{"key":"http.url","vType":"STRING","vStr":"http://localhost:9001/one"},{"key":"mvc.controller.class","vType":"STRING","vStr":"FooController"},{"key":"mvc.controller.method","vType":"STRING","vStr":"one"},
+    {
+        "key":"error",
+        "vType":"STRING",
+        "vStr":"Request processing failed; nested exception is org.springframework.web.client.HttpServerErrorException: 500"
+        },
+        {"key":"http.method","vType":"STRING","vStr":"GET"},{"key":"http.host","vType":"STRING","vStr":"localhost"},{"key":"http.path","vType":"STRING","vStr":"/one"},{"key":"spring.instance_id","vType":"STRING","vStr":"192.168.1.8:order-service-sleuth:9001"},{"key":"http.status_code","vType":"STRING","vStr":"200"},{"key":"span.kind","vType":"STRING","vStr":"server"},{"key":"status.code","vType":"LONG","vLong":2}
+        ]
+    }
+
+    # Jaeger Span [Expected]
+    {"traceIdLow":8380789575664951000,"traceIdHigh":0,"spanId":8380789575664951000,"parentSpanId":0,"operationName":"http:/one","flags":0,"startTime":1580830714594000,"duration":79701,
+    "tags":[{"key":"http.url","vType":"STRING","vStr":"http://localhost:9001/one"},{"key":"mvc.controller.class","vType":"STRING","vStr":"FooController"},{"key":"mvc.controller.method","vType":"STRING","vStr":"one"},
+    {
+        "key":"error",
+        "vType":"BOOL",
+        "vBool":true
+        },
+        {"key":"error.message",
+        "vType":"STRING",
+        "vStr":"Request processing failed; nested exception is org.springframework.web.client.HttpServerErrorException: 500"
+        },
+        {"key":"http.method","vType":"STRING","vStr":"GET"},{"key":"http.host","vType":"STRING","vStr":"localhost"},{"key":"http.path","vType":"STRING","vStr":"/one"},{"key":"spring.instance_id","vType":"STRING","vStr":"192.168.1.8:order-service-sleuth:9001"},{"key":"http.status_code","vType":"STRING","vStr":"200"},{"key":"span.kind","vType":"STRING","vStr":"server"},{"key":"status.code","vType":"LONG","vLong":2}
+        ]
+    }
+
+What new value would it bring? 
+    Adding below tags to opentelemtery spec would help in non lossy translation of spans
+    error	            bool	true if and only if the application considers the operation represented by the Span to have failed
+    error.message       String  Short description of the error
+    
+What use cases does it enable?
+    This is in accordance with opentracing spec and also fix issues w.r.t lossy translations as explained above.
 
 ## Explanation
+    
+    Adding below tags to opentelemtery spec would help in non lossy translation of spans
+    error	            bool	true if and only if the application considers the operation represented by the Span to have failed
+    error.message       String  Short description of the error
 
-Explain the proposed change as though it was already implemented and you were explaining it to a user. Depending on which layer the proposal addresses, the "user" may vary, or there may even be multiple.
-
-We encourage you to use examples, diagrams, or whatever else makes the most sense!
+Refer above motivation section for examples and more details.
+    
 
 ## Internal details
 
 From a technical perspective, how do you propose accomplishing the proposal? In particular, please explain:
 
 * How the change would impact and interact with existing functionality
-* Likely error modes (and how to handle them)
-* Corner cases (and how to handle them)
-
-While you do not need to prescribe a particular implementation - indeed, OTEPs should be about **behaviour**, not implementation! - it may be useful to provide at least one suggestion as to how the proposal *could* be implemented. This helps reassure reviewers that implementation is at least possible, and often helps them inspire them to think more deeply about trade-offs, alternatives, etc.
-
-## Trade-offs and mitigations
-
-What are some (known!) drawbacks? What are some ways that they might be mitigated?
-
-Note that mitigations do not need to be complete *solutions*, and that they do not need to be accomplished directly through your proposal. A suggested mitigation may even warrant its own OTEP!
-
-## Prior art and alternatives
-
-What are some prior and/or alternative approaches? For instance, is there a corresponding feature in OpenTracing or OpenCensus? What are some ideas that you have rejected?
-
-## Open questions
-
-What are some questions that you know aren't resolved yet by the OTEP? These may be questions that could be answered through further discussion, implementation experiments, or anything else that the future may bring.
-
-## Future possibilities
-
-What are some future changes that this proposal would enable?
+  This would need a minor change in translation logic accross all the formats.
