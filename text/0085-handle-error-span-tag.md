@@ -24,6 +24,10 @@ Adding error span tag from opentracing specification to opentelemtery specificat
 
 ###### What new value would it bring? 
 Adding below tags to opentelemtery spec would help in non lossy translation of spans
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4c8149320180d48a10357bce84602d7f4f1e5aad
 |SpanTag | DataType | Description|
 ------------ | -------------| -------------
 |error|bool|true if and only if the application considers the operation represented by the Span to have failed
@@ -34,13 +38,25 @@ This is in accordance with opentracing spec and also fix issues w.r.t lossy tran
 
 ## Explanation
 This would need a minor change in translation logic across all the formats.
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4c8149320180d48a10357bce84602d7f4f1e5aad
 |SpanTag | DataType | Description|
 ------------ | -------------| -------------
 |error|bool|true if and only if the application considers the operation represented by the Span to have failed
 |error.message|string|short description of the error 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4c8149320180d48a10357bce84602d7f4f1e5aad
 Refer above motivation section for examples and more details.
 
 ## Internal details
 From a technical perspective, how do you propose accomplishing the proposal? In particular, please explain:
 ###### How the change would impact and interact with existing functionality
+<<<<<<< HEAD
   This would need a minor change in translation logic across all the formats.
+=======
+  This would need a minor change in translation logic across all the formats.
+>>>>>>> 4c8149320180d48a10357bce84602d7f4f1e5aad
