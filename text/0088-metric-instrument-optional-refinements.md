@@ -123,7 +123,7 @@ counted, by default, only the `Sum`.
 #### Language-level refinements
 
 OpenTelemetry implementations may wish to add instrument refinements
-to accomdate built-in types.  Languages with distinct integer and
+to accommodate built-in types.  Languages with distinct integer and
 floating point should offer instrument refinements for each, leading
 to type names like `Int64Measure` and `Float64Measure`.
 
@@ -144,7 +144,7 @@ instrument.
 ## Internal details
 
 This is a change of understanding.  It does not request any new
-instruments be created, only specifiy how we should think about adding
+instruments be created, only specify how we should think about adding
 new instruments.
 
 No API changes are called for in this proposal.
