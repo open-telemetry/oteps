@@ -15,7 +15,7 @@ values which are non-negative (absolute) determine metric events
 define a monotonic Counter.  The confusion arises, in this case,
 because `Absolute` refers to the captured values, whereas `Monotonic`
 refers to the instrument or, more precisely, to a property of the
-standard aggregation for Counters.
+standard aggregation for Counter instrumenrts.
 
 From a different perspective, Counter instruments might be treated as
 as refinements of the Measure instrument.  Whereas the Measure
@@ -34,94 +34,139 @@ specification: Measure, Observer, and Counter (a refinement).
 
 The Measure and Observer instrument are defined as _foundational_
 here, in the sense that any kind of metric instrument must reduce to
-one of these archetypes.  The foundational instruments are
-unrestricted, in the sense that metric events support any numerical
-value, positive or negative, zero or infinity.
+one of these.  The foundational instruments are unrestricted, in the
+sense that metric events support any numerical value, positive or
+negative, zero or infinity.
 
-The distinction between the two instrument archetypes is in their
-synchronicity.  Measure instruments are called synchronously by the
-user, while Observer instruments are called asynchronously by the SDK.
-Synchronous instruments (Measure and refinements) have three calling
-patterns (_Bound_, _Unbound_, and _Batch_) to capture measurements.
-Asynchronous instruments (Observer any refinements) use callbacks to
-capture measurements.
+The distinction between the two foundational instruments is whether
+they are synchronous.  Measure instruments are called synchronously by
+the user, while Observer instruments are called asynchronously by the
+implementation.  Synchronous instruments (Measure and refinements)
+have three calling patterns (_Bound_, _Unbound_, and _Batch_) to
+capture measurements.  Asynchronous instruments (Observer and
+refinements) use callbacks to capture measurements.
 
-All measurements, synchronous or asynchronous, produce a metric event
-([Context, timestamp, instrument descriptor, label set, and numerical
-value](api-metrics.md#metric-event-format)), however there exists a
-semantic distinction between synchronous and asynchronous events
-related to the definition of "last value".  This is due to the
-relationship with time.
+All measurements produce a metric event consisting of [timestamp,
+instrument descriptor, label set, and numerical
+value](api-metrics.md#metric-event-format).  Synchronous instrument
+events additionally have [Context](api-context.md), describing
+properties of the associated trace and distributed correlation values.
 
-Synchronous events happen concurrently, meaning we can only determine
-whether one event happens before another by referring to timestamp
-When querying events from synchronous instruments, you may find
-multiple events for the same instrument, label set, and timestamp.
+Observer instruments have a well-defined _last value_ of the
+measurement that can be useful in defining aggregations.  To maintain
+this property, we impose this requirement: two or more calls to
+`Observer()` in a single Observer callback invocation are treated as
+duplicates of each other, and the last call to `Observe()` wins.
 
-Asynchronous events are captured sequentially, meaning there is always
-a well-defined _last value_.  When querying events from asynchronous
-instruments, you cannot find more than one event for the same
-instrument, label set, and timestamp.  Values observed asynchronously
-are referred to as the _last value_ that was observed.
+Measure instruments do not define a _last value_ relationship.
 
-### Standard implementation
+### Standard implementation of Measure and Observer
 
-Sum and Count for both Measure and Observer.
+OpenTelemetry specifies how the default SDK should treat metric
+events, by default, when asked to export data from an instrument.
+Usually, an aggregation is specified along with the label keys used in
+the aggregation.  Measure and Observer instruments use `Sum` and
+`Count` aggregators by default, in the standard implementation.  This
+pair of measurements, of course, defines an average value.  There are
+no restrictions placed on the numerical value in an event by one of
+the foundational instruments.
 
-### First Refinement: Counter
+### Refinements to Measure and Observer
 
-Captures non-negative increments (deltas).
+Options like `Monotonic` and `Absolute` were removed in the 0.3
+specification.  Here, we propose to regain the equivalent effects
+through _instrument refinements_, which declare instruments with
+calling patterns like Measure and Observer, but with different
+standard implementations and standard-alternative implementations.  
 
-And it matters because Prometheus needs to know.  (Duh.)
+We have done away with options on instruments, in other words, in
+favor of optional metric instruments.  Here we discuss three important
+capabilities used to make up instrument refinements.
 
-### More refinements: Monotonic, Non-negative
+#### Non-negative
 
-Measures
---------
-Measure            unstricted, sumcount
-Counter            non-negative, sum
-UpDownCounter      unrestricted, sum
-NonNegativeMeasure non-negative, sumcount
+For some instruments, such as those that measure real quantities,
+negative values are meaningless.  For example, it is impossible for a
+person to weigh a negative amount.
 
-Observers
----------
-Observer            unrestricted, sumcount
-MonotonicObserver   unrestricted/monotonic, sum
-NonNegativeObserver non-negative, sumcount
-DeltaObserver       unrestricted, sum
+A non-negative instrument refinement accepts only non-negative values.
+For instruments with this property, negative values are considered
+measurement errors.
 
+#### Monotonic
 
-## Explanation
+A monotonic instrument is one where the user promises that successive
+metric events for a given instrument definition and label set will
+differ by a non-negative value.  This is defined in terms of the last
+value relationship, therefore only applies to refinements of the
+Observer instrument. For example, the CPU time used by a process as
+read in successive collection intervals cannot change by a negative
+amount, because it is impossible to use a negative amount of CPU time.
 
-Explain the proposed change as though it was already implemented and you were explaining it to a user. Depending on which layer the proposal addresses, the "user" may vary, or there may even be multiple.
+A monotonic instrument refinement accepts only values that are greater
+than or equal to the last-captured value of the instrument, for a
+given label set.  For instruments with this property, values that are
+less than some prior value are considered a measurement error.
 
-We encourage you to use examples, diagrams, or whatever else makes the most sense!
+#### Sum-Only
+
+A sum-only instrument is one where only the sum is considered of
+interest.  For a Sum-Only instrument refinement, we have a semantic
+property that two events with numeric values `M` and `N` are
+semantically equivalent to a single event with value `M+N`.  For
+example, in a count of users arriving by bus to an event, we are not
+concerned with the number of buses that arrived.
+
+A sum-only instrument is one where the number of events is not
+counted, by default, only the `Sum`.
+
+#### Language-level refinements
+
+OpenTelemetry implementations may wish to add instrument refinements
+to accomdate built-in types.  Languages with distinct integer and
+floating point should offer instrument refinements for each, leading
+to type names like `Int64Measure` and `Float64Measure`.
+
+A language with support for unsigned integer types may wish to create
+dedicated instruments to report these values, leading to type names
+like `UnsignedInt64Observer` and `UnsignedFloat64Observer`.
+
+Other uses for built-in type refinements involve the type for duration
+measurements.  Where there is built-in type for the difference between
+two clock measurements, OpenTelemetry languages should offer a
+refinement to automatically apply the correct units.
+
+### Counter refinement
+
+Counter is a non-negative, sum-only refinement of the Measure
+instrument.
 
 ## Internal details
 
-From a technical perspective, how do you propose accomplishing the proposal? In particular, please explain:
+This is a change of understanding.  It does not request any new
+instruments be created, only specifiy how we should think about adding
+new instruments.
 
-* How the change would impact and interact with existing functionality
-* Likely error modes (and how to handle them)
-* Corner cases (and how to handle them)
-
-While you do not need to prescribe a particular implementation - indeed, OTEPs should be about **behaviour**, not implementation! - it may be useful to provide at least one suggestion as to how the proposal *could* be implemented. This helps reassure reviewers that implementation is at least possible, and often helps them inspire them to think more deeply about trade-offs, alternatives, etc.
+No API changes are called for in this proposal.
 
 ## Trade-offs and mitigations
 
-What are some (known!) drawbacks? What are some ways that they might be mitigated?
-
-Note that mitigations do not need to be complete *solutions*, and that they do not need to be accomplished directly through your proposal. A suggested mitigation may even warrant its own OTEP!
+The trade-off explicitly introduced here is that we will prefer to
+create new instruments for each dedicated purpose, rather than create
+generic instruments with support for multiple semantic options.
 
 ## Prior art and alternatives
 
-What are some prior and/or alternative approaches? For instance, is there a corresponding feature in OpenTracing or OpenCensus? What are some ideas that you have rejected?
+The optional behaviors `Monotonic` and `Absolute` were first discussed
+in the August 2019 Metrics working group meeting.
 
 ## Open questions
 
-What are some questions that you know aren't resolved yet by the OTEP? These may be questions that could be answered through further discussion, implementation experiments, or anything else that the future may bring.
+This approach allows questions about new instruments to be addressed
+on a case-by-case basis.
 
 ## Future possibilities
 
-What are some future changes that this proposal would enable?
-
+A future OTEP will request the introduction of several new standard
+refinements.  For example, a monotonic observer instrument named
+`MonotonicObserver` and a timing instrument named `TimingMeasure`.
