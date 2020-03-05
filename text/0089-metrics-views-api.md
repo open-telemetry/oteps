@@ -127,23 +127,13 @@ Aggregations are assumed to be [mergeable](https://www.cs.utah.edu/~jeffp/papers
 
 Said differently: given an aggregation function `agg` and sequence of measurements `S`, there should exist a function `merge` such that:
 
-<!-- <img src="https://render.githubusercontent.com/render/math?math=\mathrm{agg}(S) = \mathrm{merge}(\mathrm{agg}(S_1), \mathrm{agg}(S_2), \ldots, \mathrm{agg}(S_N))"> -->
-
 ```
 agg(S) = merge(agg(S_1), agg(S_2), ..., agg(S_N))
 ```
 
-<!-- For every partition -->
-<!-- <img src="https://render.githubusercontent.com/render/math?math=\{S_1, \ldots, S_N\}"> -->
-<!-- of -->
-<!-- <img src="https://render.githubusercontent.com/render/math?math=S"> -->
-<!-- . -->
-
 For every partition `{S_1, ..., S_N}` of `S`.
 
 For example, the _min_ aggregation is trivially mergeable:
-
-<!-- <img src="https://render.githubusercontent.com/render/math?math=\mathrm{min}([1, 2, 3, 4, 5, 6]) = \mathrm{min}([\mathrm{min}([1]), \mathrm{min}([2, 3]), \mathrm{min}([4, 5, 6])])"> -->
 
 ```
 min([1, 2, 3, 4, 5, 6]) = min([min([1]), min([2, 3]), min([4, 5, 6])])
