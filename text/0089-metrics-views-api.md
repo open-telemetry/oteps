@@ -104,7 +104,7 @@ Implementations should refuse to register two views with the same name.
 
 Note that a view does not describe the type (e.g. `int`, `float`) or unit of measurement (e.g. "bytes", "milliseconds") of the metric to be exported.
 The unit is determined by the metric instrument, and the aggregation and exporter may preserve or change the unit.
-For example, a hypothetical MinMaxSumMeanCount aggregation of an int-valued millisecond latency measure may be exported as five separate metrics to the APM backend:
+For example, a hypothetical _MinMaxSumMeanCount_ aggregation of an int-valued millisecond latency measure may be exported as five separate metrics to the APM backend:
 
 - An int-valued _min_ metric with "ms" units
 - An int-valued _max_ metric with "ms" units
@@ -133,8 +133,11 @@ Said differently: given an aggregation function `agg` and sequence of measuremen
 agg(S) = merge(agg(S_1), agg(S_2), ..., agg(S_N))
 ```
 
+<!-- For every partition -->
 <!-- <img src="https://render.githubusercontent.com/render/math?math=\{S_1, \ldots, S_N\}"> -->
+<!-- of -->
 <!-- <img src="https://render.githubusercontent.com/render/math?math=S"> -->
+<!-- . -->
 
 For every partition `{S_1, ..., S_N}` of `S`.
 
@@ -166,9 +169,9 @@ By default, if the user doesn't specify a set of label keys to track, the aggreg
 Users have three options to configure a view's label keys:
 
 1. Record all label keys.
-    This is the default option, and the behavior of the "defaultkeys" integrator in opentelemetry-specification#347.
+    This is the default option, and the behavior of the "defaultkeys" integrator in [opentelemetry-specification#347](https://github.com/open-telemetry/opentelemetry-specification/pull/347).
 2. Specify a set of label keys to track at view creation time, and drop other keys from the labelsets of recorded measurements before aggregating.
-    This is the behavior of the "ungrouped" integrator in opentelemetry-specification#347.
+    This is the behavior of the "ungrouped" integrator in [opentelemetry-specification#347](https://github.com/open-telemetry/opentelemetry-specification/pull/347).
 3. Drop all label keys, and aggregate all measurements from the metric instrument together regardless of their labelsets.
     This is equivalent to using an empty list with option 2.
 
