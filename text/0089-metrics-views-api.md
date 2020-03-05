@@ -11,7 +11,6 @@ The potentially contentious changes this OTEP proposes include:
 - Drop support for LastValue aggregations, don't allow multiple Observer calls per export interval.
 - Don't allow views to specify how "dropped" keys are aggregated, since we can safely ignore aggregation order for measurement instruments other than observers.
 
-
 ## Motivation
 
 As of [opentelemetry-specification#430](https://github.com/open-telemetry/opentelemetry-specification/pull/430), the spec describes three different metric instrument types, and a default aggregation for each.
@@ -36,7 +35,7 @@ This limitation prevents users from:
 - Configuring aggregation options, e.g. histogram bucket boundaries
 - Specifying multiple aggregations for a single metric
 
-In addition, it's often desirable to aggregate metrics with respect to a specific set of label keys.
+In addition, it's often desirable to aggregate metrics with respect to a specific set of label keys to reduce memory use and export data size.
 
 A _view API_ would allow users to use custom aggregation types, associate individual metrics with one or more aggregations, configure aggregation options, and specify the set of label keys to use to aggregate each metric.
 
@@ -86,7 +85,6 @@ A well-designed view API should not require extensive configuration for typical 
 It should also be expressive enough to support custom aggregations and exposition formats without requiring APM vendors to write custom SDKs.
 In short, it should make easy things easy and hard things possible.
 
-
 ## Internal details
 
 A view is defined by:
@@ -102,10 +100,11 @@ For example, a _Histogram_ aggregation may be configured with bucket boundaries,
 A _Sketch_ aggregation that estimates order statistics (i.e. quantiles), may be configured with a set of predetermined quantiles, e.g. `{.5, .95, .99, 1.00}`.
 
 Each view has a unique name, which may be automatically determined from the metric instrument and aggregation.
-If the same metric instrument and aggregation appear in two separate views, at least one view must specify a name.
+Implementations should refuse to register two views with the same name.
 
 Note that a view does not describe the type (e.g. `int`, `float`) or unit of measurement (e.g. "bytes", "milliseconds") of the metric to be exported.
-For example, a hypothetical _MinMaxSumMeanCount_ aggregation of an int-valued millisecond latency measure may be exported as five separate metrics to the APM backend:
+The unit is determined by the metric instrument, and the aggregation and exporter may preserve or change the unit.
+For example, a hypothetical MinMaxSumMeanCount aggregation of an int-valued millisecond latency measure may be exported as five separate metrics to the APM backend:
 
 - An int-valued _min_ metric with "ms" units
 - An int-valued _max_ metric with "ms" units
@@ -113,20 +112,18 @@ For example, a hypothetical _MinMaxSumMeanCount_ aggregation of an int-valued mi
 - A **float**-valued _mean_ metric with "ms" units
 - An **int** valued, unitless (i.e. unit "1") _count_ metric
 
-
 This OTEP doesn't propose a particular API for Aggregators, just that the API is sufficient for exporters to get all this information, including:
 
 - That the _min_, _max_, and _sum_ metrics preserve the type and unit of the underlying Measure
 - That the _mean_ metric is float-valued, but preserves the underlying measure's unit
 - That the _count_ metric is int-valued with unit "1", regardless of the underlying measure's unit
 
-
 ### Aggregating over time
 
 An aggregation describes how multiple measurements captured via the same metric instrument in a single collection interval are combined.
 _Aggregators_ are SDK objects, and the default SDK includes an Aggregator interface (see [opentelemetry-specification#347](https://github.com/open-telemetry/opentelemetry-specification/pull/347) for details).
 
-Aggregations are assumed to be [_mergeable_](https://www.cs.utah.edu/~jeffp/papers/mergeSumm-MASSIVE11.pdf): aggregating a sequence of measurements should produce the same result as partitioning the sequence into subsequences, aggregating each subsequence, and combining the results.
+Aggregations are assumed to be [mergeable](https://www.cs.utah.edu/~jeffp/papers/mergeSumm-MASSIVE11.pdf): aggregating a sequence of measurements should produce the same result as partitioning the sequence into subsequences, aggregating each subsequence, and combining the results.
 
 Said differently: given an aggregation function `agg` and sequence of measurements `S`, there should exist a function `merge` such that:
 
@@ -154,20 +151,26 @@ Applications that export quantile metrics should use a mergeable aggregations su
 
 We require aggregations to be mergeable so that they produce the same results regardless of the collection interval, or the number of collection events per export interval.
 
-
 ### Aggregating across label keys
 
 Every measurement is associated with a _LabelSet_, a set of key-value pairs that describes the environment in which the measurement was captured.
 Label keys and values may be extracted from the [correlation context](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-correlationcontext.md) at the time of measurement.
 They may also be set by the user [at the time of measurement](https://github.com/open-telemetry/opentelemetry-specification/blob/f4aeb318a5b77c9c39132a8cbc5d995e222d124f/specification/api-metrics-user.md#direct-instrument-calling-convention) or at the time at which [the metric instrument is bound](https://github.com/open-telemetry/opentelemetry-specification/blob/f4aeb318a5b77c9c39132a8cbc5d995e222d124f/specification/api-metrics-user.md#bound-instrument-calling-convention).
 
-In each collection interval, measurements with the same labelset are aggregated together.
-In effect, there is a single Aggregator for each unique labelset.
+For each registered view, in each collection interval, measurements with the same labelset are aggregated together.
 
 The view API should allow the user to specify the set of label keys to track for a given view.
 Other label keys should be dropped before aggregation.
 By default, if the user doesn't specify a set of label keys to track, the aggregator should record all label keys.
-These options correspond with the "defaultkeys" and "ungrouped" integrators described in [opentelemetry-specification#347](https://github.com/open-telemetry/opentelemetry-specification/pull/347).
+
+Users have three options to configure a view's label keys:
+
+1. Record all label keys.
+    This is the default option, and the behavior of the "defaultkeys" integrator in opentelemetry-specification#347.
+2. Specify a set of label keys to track at view creation time, and drop other keys from the labelsets of recorded measurements before aggregating.
+    This is the behavior of the "ungrouped" integrator in opentelemetry-specification#347.
+3. Drop all label keys, and aggregate all measurements from the metric instrument together regardless of their labelsets.
+    This is equivalent to using an empty list with option 2.
 
 Because we don't require the user to specify the set of label keys up front, and because we don't prevent users from recording measurements with missing labels in the API, some label values may be undefined.
 Aggregators should preserve undefined label values, and exporters may convert them as required by the backend.
@@ -175,16 +178,16 @@ Aggregators should preserve undefined label values, and exporters may convert th
 For example, consider a Sum-aggregated Counter instrument that captures four consecutive measurements:
 
 1. `{labelset: {'k1': 'v11'}, value: 1}`
-1. `{labelset: {'k1': 'v12'}, value: 10}`
-1. `{labelset: {'k1': 'v11', 'k2': 'v21'}, value: 100}`
-1. `{labelset: {'k1': 'v12', 'k2': 'v22'}, value: 1000}`
+2. `{labelset: {'k1': 'v12'}, value: 10}`
+3. `{labelset: {'k1': 'v11', 'k2': 'v21'}, value: 100}`
+4. `{labelset: {'k1': 'v12', 'k2': 'v22'}, value: 1000}`
 
 And consider three different views, one that tracks label key _k1_, one that tracks label key _k2_, and one that tracks both.
 
 After each measurement, the aggregator associated with each view has a different set of aggregated values:
 
 | time        | k1                                  | k2  | value | agg([k1])                                   | agg([k2])                                                                | agg([k1, k2]) (default)                                                                                                                  |
-| ----------- | ----------------------------------- | --- | ----- | -----------------------------------         | ------------------------------------------------------------             | --------------------------------------------------------------------------------------------------------------------                     |
+| ----------- | ----------------------------------- | --- | ----- | ------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | 1           | v11                                 | -   | 1     | `({k1: v11}, 1)`                            | `({k2: undefined}, 1)`                                                   | `({k1: v11, k2: undefined}, 1)`                                                                                                          |
 | 2           | v12                                 | -   | 10    | `({k1: v11}: 1)` <br> `({k1: v12}: 10)`     | `({k2: undefined}, 11)`                                                  | `({k1: v11, k2: undefined}, 1)` <br> `({k1: v12, k2: undefined}, 10)`                                                                    |
 | 3           | v11                                 | v21 | 100   | `({k1: v11}: 101)` <br> `({k1: v12}: 10)`   | `({k2: undefined}, 11)` <br> `({k2: v21}, 100)`                          | `({k1: v11, k2: undefined}, 1)` <br> `({k1: v12, k2: undefined}, 10)` <br> `({k1: v11, k2: v21}, 100)`                                   |
@@ -193,8 +196,7 @@ After each measurement, the aggregator associated with each view has a different
 Aggregated values are mergeable with respect to labelsets as well as time, as long as the intermediate aggregations preserve the label keys to be included in the final result.
 Note that it's possible to reconstruct the aggregated values at each step for _agg([k1])_ and _agg([k2])_ from _agg([k1, k2])_, but not vice versa.
 
-
-# Prior art and alternatives
+## Prior art and alternatives
 
 One alternative is not to include a view API, and require users to configure metric instruments and aggregations individually.
 This approach is partially described in the current spec.
