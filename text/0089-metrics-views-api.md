@@ -1,7 +1,7 @@
 # Metrics View API
 
 This OTEP addresses the [Future Work: Configurable Aggregations / View API](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-metrics.md#future-work-configurable-aggregations--view-api) section of [api-metrics.md](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-metrics.md).
-It proposes a specification for a _view API_ that allows users to configure aggregations for individual metric instruments.
+It proposes a specification for a _view API_ that allows application owners and administrators to configure aggregations for individual metric instruments.
 
 ## TL;DR
 
