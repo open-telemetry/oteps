@@ -198,3 +198,18 @@ See the motivation section for an argument against this approach.
 This API borrows heavily from [OpenCensus views](https://opencensus.io/stats/view/).
 
 See also [DataDog metric types](https://docs.datadoghq.com/developers/metrics/types/?tab=distribution#metric-types) and [Prometheus metric types](https://prometheus.io/docs/concepts/metric_types).
+
+## Open questions
+
+Should we ignore calls to record measurements from instruments that don't appear in any view?
+This is potentially a nice optimization, but it would mean that no metrics are exported by default from instrumented code.
+
+If we do ignore these calls, is there still a reason to have default aggregation types?
+
+Should we treat correlation context label keys and user-specified label keys differently?
+
+Should it be possible to create aggregator instances, and is there any use for these in the SDK?
+
+As written, we expect exporters to infer the exposition format from the aggregation type in the view.
+Some aggregations may map to multiple exposition formats for a given backend.
+What should we do in this case?
