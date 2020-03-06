@@ -251,3 +251,14 @@ Should the spec include a list of standard aggregations included in the SDK, inc
 The spec suggests this now:
 
 > [Other standard aggregations are available, especially for Measure instruments, where we are generally interested in a variety of forms of statistics, such as histogram and quantile summaries.](https://github.com/open-telemetry/opentelemetry-specification/blob/ac75cfea2243ac46232cbc05c595bb0c018e2b58/specification/api-metrics.md#aggregations)
+
+## Future Possibilities
+
+### Automatic view creation
+
+Configuring views for each metric instrument separately requires detailed knowledge about the instrumenting code, including the list of metric instrument names and possible label keys.
+One solution for integrations, i.e. libraries that instrument other libraries, is to include a list of default views that the application owner or operator can choose to enable.
+See, for example, the [list of default views for the Java OpenCensus gRPC integration](https://github.com/census-instrumentation/opencensus-java/blob/8b1fd5bbf98b27d0ad27394891e0c64c1171cb2b/contrib/grpc_metrics/src/main/java/io/opencensus/contrib/grpc/metrics/RpcViewConstants.java).
+
+This solution doesn't apply to APM vendors, who provide backend-specific exporters and aggregators, and doesn't apply in situations where the instrumentation owner doesn't know _a priori_ which metric instruments need to be registered in views.
+We should consider a configuration option that automatically creates a view for each metric instrument with a default aggregation based on its type.
