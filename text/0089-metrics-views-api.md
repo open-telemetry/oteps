@@ -213,3 +213,8 @@ Should it be possible to create aggregator instances, and is there any use for t
 As written, we expect exporters to infer the exposition format from the aggregation type in the view.
 Some aggregations may map to multiple exposition formats for a given backend.
 What should we do in this case?
+
+Should the spec include a list of standard aggregations included in the SDK, including histogram and sketch?
+The spec suggests this now:
+
+> [Other standard aggregations are available, especially for Measure instruments, where we are generally interested in a variety of forms of statistics, such as histogram and quantile summaries.](https://github.com/open-telemetry/opentelemetry-specification/blob/ac75cfea2243ac46232cbc05c595bb0c018e2b58/specification/api-metrics.md#aggregations)
