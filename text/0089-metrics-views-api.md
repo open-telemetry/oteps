@@ -189,6 +189,38 @@ After each measurement, the aggregator associated with each view has a different
 Aggregated values are mergeable with respect to labelsets as well as time, as long as the intermediate aggregations preserve the label keys to be included in the final result.
 Note that it's possible to reconstruct the aggregated values at each step for _agg([k1])_ and _agg([k2])_ from _agg([k1, k2])_, but not vice versa.
 
+### Special considerations for Observers
+
+This OTEP describes aggregation as it applies to the Measure instrument and its refinements, e.g. Counter and Timer, which do not support LastValue aggregation (see [oteps#88](https://github.com/open-telemetry/oteps/pull/88) for details).
+For these instruments, aggregating across label keys is straightforward: for a particular view, label keys that do not appear in the view definition can be safely dropped before aggregation.
+In the example above, the aggregated values for _agg([k1])_/_agg([k2])_ would be the same at each timestamp if none of the measurements included values for _k2_/_k1_.
+
+Observers, which may be aggregated by last recorded value, do not have this property.
+
+Consider an application with two jobs, A and B.
+Each job runs on a separate thread, and each thread runs on a single CPU core.
+Two instances of the application run on a single host with two CPU cores.
+Per-core CPU usage is reported in terms of cumulative seconds by the host.
+
+In this example, the instrumentation should emit:
+
+- The current per-core CPU usage (_agg[core]_)
+- The total CPU usage of each job, across all cores and instances (_agg[job]_)
+
+| time | core | job | value | agg([core])                               | agg([job])                               | agg([core, job])                                                                                                         |
+|------|------|-----|-------|-------------------------------------------|------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| 1    | 1    | A   | 1     | `({core: 1}, 1)`                          | `({job: A}, 1)`                          | `({core: 1, job: A}, 1)`                                                                                                 |
+| 2    | 2    | A   | 10    | `({core: 1}: 1)` <br> `({core: 2}: 10)`   | `({job: A}, 11)`                         | `({core: 1, job: A}, 1)` <br> `({core: 2, job: A}, 10)`                                                                  |
+| 3    | 1    | B   | 100   | `({core: 1}: 100)` <br> `({core: 2}: 10)` | `({job: A}, 11)` <br> `({job: B}, 100)`  | `({core: 1, job: A}, 1)` <br> `({core: 2, job: A}, 10)` <br> `({core: 1, job: B}, 100)`                                  |
+| 4    | 2    | B   | 1000  | `({core: 1}: 1)` <br> `({core: 2}: 1000)` | `({job: A}, 11)` <br> `({job: B}, 1100)` | `({core: 1, job: A}, 1)` <br> `({core: 2, job: A}, 10)` <br> `({core: 1, job: B}, 100)` <br> `({core: 2, job: B}, 1000)` |
+
+Here the aggregated value of _agg([job])_ depends on the value of the "core" label, even though it's not preserved in the aggregation: it is the sum over the last-reported value for each core.
+
+This makes configuring views for Observers significantly more complicated than for Measures.
+
+This OTEP does not attempt to solve this problem.
+We propose to make LastValue the only valid aggregation for Observer instruments, and leave it up to the user to specify label keys that produce coherent metrics for each registered Observer.
+
 ## Prior art and alternatives
 
 One alternative is not to include a view API, and require users to configure metric instruments and aggregations individually.
