@@ -159,9 +159,9 @@ By default, if the user doesn't specify a set of label keys to track, the aggreg
 Users have three options to configure a view's label keys:
 
 1. Record all label keys.
-    This is the default option, and the behavior of the "defaultkeys" integrator in [opentelemetry-specification#347](https://github.com/open-telemetry/opentelemetry-specification/pull/347).
+    This is the default option, and the behavior of the "ungrouped" integrator in [opentelemetry-specification#347](https://github.com/open-telemetry/opentelemetry-specification/pull/347).
 2. Specify a set of label keys to track at view creation time, and drop other keys from the labelsets of recorded measurements before aggregating.
-    This is the behavior of the "ungrouped" integrator in [opentelemetry-specification#347](https://github.com/open-telemetry/opentelemetry-specification/pull/347).
+    This is the behavior of the "defaultkeys" integrator in [opentelemetry-specification#347](https://github.com/open-telemetry/opentelemetry-specification/pull/347).
 3. Drop all label keys, and aggregate all measurements from the metric instrument together regardless of their labelsets.
     This is equivalent to using an empty list with option 2.
 
