@@ -192,6 +192,7 @@ Note that it's possible to reconstruct the aggregated values at each step for _a
 ### Special considerations for Observers
 
 This OTEP describes aggregation as it applies to the Measure instrument and its refinements, e.g. Counter and Timer, which do not support LastValue aggregation (see [oteps#88](https://github.com/open-telemetry/oteps/pull/88) for details).
+
 For these instruments, aggregating across label keys is straightforward: for a particular view, label keys that do not appear in the view definition can be safely dropped before aggregation.
 In the example above, the aggregated values for _agg([k1])_/_agg([k2])_ would be the same at each timestamp if none of the measurements included values for _k2_/_k1_.
 
