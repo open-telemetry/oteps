@@ -150,7 +150,7 @@ meaning the rate aggregation is defined by computing a difference
 across timestamps or collection intervals.
 
 A precomputed sum refinement implies a sum-only refinement.  Note that
-values assocaited with a precomputed sum are still sums.  Precomputed
+values associated with a precomputed sum are still sums.  Precomputed
 sum values are combined using addition, when aggregating over the
 spatial dimensions; only the time dimension receives special treatment.
 
