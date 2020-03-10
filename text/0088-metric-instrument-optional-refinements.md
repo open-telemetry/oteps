@@ -238,6 +238,22 @@ should think about adding new instruments.
 
 No API changes are called for in this proposal.
 
+## Example
+
+Suppose you wish to capture the CPU usage of a process broken down by
+the CPU core ID.  The operating system provides a mechanism to read
+the current usage from the `/proc` file system, which will be reported
+once per collection interval using an Observer instrument.  Because
+this is a precomputed sum with a non-negative rate, use a
+_CumulativeObserver_ to report this quantity with a metric label
+indicating the CPU core ID.
+
+It will be common to compute a rate of CPU usage over this data.  The
+rate can be calculated for an individual CPU core by computing a
+difference between the value of two metric events.  To compute the
+aggregate rate across all cores–a spatial aggregation–these
+differences are added together.
+
 ## Open question
 
 Eleven instruments have been given hyptothetical names in the table
@@ -277,10 +293,12 @@ in the August 2019 Metrics working group meeting.
 
 ## Future possibilities
 
-A future OTEP will request the introduction of several standard
-refinements for the 0.4 API specification.  These will be the
-`DeltaObserver` and `CumulativeObserver` instruments described above
-plus a synchronous timing instrument named `TimingMeasure`.
+A future OTEP will request the introduction of two standard
+refinements for the 0.4 API specification.  This will be the
+`CumulativeObserver` instrument described above plus a synchronous
+timing instrument named `TimingMeasure` that is equivalent to
+_AbsoluteMeasure_ with the correct unit and a language-specific
+duration type for measuring time.
 
 If the above open question is decided in favor of treating the
 foundational instruments as abstract, instrument names like
