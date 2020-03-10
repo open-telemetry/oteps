@@ -195,24 +195,40 @@ the measurement.
 
 ### Counter refinement
 
-Counter is a non-negative, sum-only refinement of the Measure
-instrument.
+Counter is a sum-only, non-negative, thus non-negative-rate refinement
+of the Measure instrument.
 
-### Future refinements
+### Standardizing new instruments
 
-This leaves the potential to include other refinements by combining
-the above elements.  The following are current and proposed names for
-three instruments that support non-negative rate reporting:
+With these refinements we can exhaustively list each distinct kind of
+instrument.  There are a total of twelve hypothetical instruments
+listed in the table below, of which only one has been standardized.
+Hypothetical future instrument names are _italicized_.
 
-| Foundation | Refinements | Name |
-|--|--|--|
-| Measure | non-negative, sum-only, non-negative-rate | Counter |
-| Observer | non-negative, sum-only, non-negative-rate | DeltaObserver |
-| Observer | sum-only, precomputed-sum, non-negative-rate | CumulativeObserver |
+| Foundation instrument | Sum-only? | Precomputed-sum? | Non-negative? | Non-negative-rate? | Instrument name _(hyptothetical)_ |
+|--|--|--|--|--|--|
+| Measure  | sum-only |                 | non-negative  | non-negative-rate | Counter |
+| Measure  | sum-only | precomputed-sum |               | non-negative-rate | _CumulativeCounter_ |
+| Measure  | sum-only |                 |               |                   | _UpDownCounter_ |
+| Measure  | sum-only | precomputed-sum |               |                   | _UpDownCumulativeCounter_ |
+| Measure  |          |                 | non-negative  |                   | _AbsoluteMeasure_ |
+| Measure  |          |                 |               |                   | _NonAbsoluteMeasure_ |
+| Observer | sum-only |                 | non-negative  | non-negative-rate | _DeltaObserver_ |
+| Observer | sum-only | precomputed-sum |               | non-negative-rate | _CumulativeObserver_ |
+| Observer | sum-only |                 |               |                   | _UpDownDeltaObserver_ |
+| Observer | sum-only | precomputed-sum |               |                   | _UpDownCumulativeObserver_ |
+| Observer |          |                 | non-negative  |                   | _AbsoluteObserver_ |
+| Observer |          |                 |               |                   | _NonAbsoluteObserver_ |
 
-The Counter instrument is already part of the specification.  A
-proposal to introduce DeltaObserver and CumulativeObserver will follow
-in a future OTEP.
+To arrive at this listing, several assumptions have been made.  For
+example, the precomputed-sum and non-negative-rate refeinments are only
+applicable in conjunction with a sum-only refinement.
+
+For the precomputed-sum instruments, we technically do not care
+whether the inputs are non-negative, because rate aggregation computes
+differences.  However, it is useful for other aggregations to assume
+that precomputed sums start at zero, and we will ignore the case where
+a precomputed sum has an initial value other than zero.
 
 ## Internal details
 
@@ -221,6 +237,31 @@ instruments be created or APIs be changed, but it does specify how we
 should think about adding new instruments.
 
 No API changes are called for in this proposal.
+
+## Open question
+
+Eleven instruments have been given hyptothetical names in the table
+above, but only a subset of these should be included in the
+specification.
+
+An open question is whether the foundational instruments should be
+considered "abstract", meaning that users can only create refined
+instruments.
+
+An argument in favor of treating the foundation instruments as
+abstract goes like this: users will be confused because sometimes the
+documentation and specification discusses Measure and Observer
+instruments generally, and sometimes it discusses them specifically.
+If the foundation instruments are abstract, this confusion is
+eliminated.
+
+An argument against treating the foundation instruments as abstract
+goes like this: by excluding these short, well-understood names from
+use in the API, we force long, less-well understood names on the user,
+which will leave them confused.  For example, _NonAbsoluteObserver_ is
+a completely unrefined Observer, and wouldn't you rather read and
+write "Observer" in code?  (Likewise for _NonAbsoluteMeasure_ vs
+Measure.)
 
 ## Trade-offs and mitigations
 
@@ -240,3 +281,8 @@ A future OTEP will request the introduction of several standard
 refinements for the 0.4 API specification.  These will be the
 `DeltaObserver` and `CumulativeObserver` instruments described above
 plus a synchronous timing instrument named `TimingMeasure`.
+
+If the above open question is decided in favor of treating the
+foundational instruments as abstract, instrument names like
+_NonAbsoluteMeasure_ and _NonAbsoluteCounter_ will need to be
+standardized.
