@@ -50,7 +50,7 @@ Application servers) every Application will have it's own `TracerProvider` and
 
 ## Internal details
 
-This change affects only the OpenTelemtry protocol, and propose a way to
+This proposal affects only the OpenTelemtry protocol, and proposes a way to
 represent the telemetry data in a structural way, here is an example for
 metrics:
 
