@@ -113,4 +113,5 @@ now?
 
 In the future the `InstrumentationLibrary` can be extended to support multiple
 properties (attributes) that apply to the specific instance of the
-instrumenting or instrumented library.
+instrumenting library.
+Also, information about the instrumented library could be added, but that will require additional consideration about grouping, like grouping by the pair (instrumenting lib, instrumenting lib) instead of just by instrumenting lib.
