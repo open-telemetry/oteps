@@ -95,7 +95,7 @@ message InstrumentationLibraryMetrics {
 
 Adding a new concept into the OpenTelemetry protocol and the exporter framework
 may be overkill, but this concept maps easily to an already existing concept
-in the API, and it is easy to explain to the users.
+in the API, and it is easy to explain to users.
 
 ## Prior art and alternatives
 
