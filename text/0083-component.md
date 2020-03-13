@@ -112,5 +112,5 @@ now?
 ## Future possibilities
 
 In the future the `InstrumentationLibrary` can be extended to support multiple
-properties (attributes) that apply to the specific `instance` of the
+properties (attributes) that apply to the specific instance of the
 instrumenting or instrumented library.
