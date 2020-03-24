@@ -401,7 +401,7 @@ Instruments that are not standardized but may be in the future (and why):
 
 - _CumulativeCounter_: Support a synchronous monotonic cumulative instrument
 - _AbsoluteMeasure_: Support non-negative valued distributions
-- _LastValueMeasure_: Support a last value aggregation without configuring a view.
+- _LastValueMeasure_: Support a last value aggregation without configuring a view (could be "Gauge").
 
 Instruments that are probably not seen as widely useful:
 
@@ -440,6 +440,21 @@ rate can be calculated for an individual CPU core by computing a
 difference between the value of two metric events.  To compute the
 aggregate rate across all cores–a spatial aggregation–these
 differences are added together.
+
+## Open Questions
+
+Are there still questions surrounding the former Monotonic refinement?
+
+Should the _CumulativeObserver_ instrument be named
+_MonotonicObserver_?  In this proposal, we prefer _Cumulative_ and
+_UpDownCumulative_.  _Cumulative_ is a good descriptive term in this
+setting (i.e., some additive values are _cumulative_, some are
+_delta_).  Being _Cumulative_ and not _UpDownCumulative_ implies
+monotonicity in this proposal.
+
+For synchronous instruments, this proposals does not standardize
+_CumulativeCounter_. Such an instrument might be named
+_MonotonicCounter_.
 
 ## Trade-offs and mitigations
 
