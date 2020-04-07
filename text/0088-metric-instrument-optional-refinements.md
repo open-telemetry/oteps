@@ -24,8 +24,8 @@ measurements of changes in a sum, therefore it uses `Add()` instead of
 `Record()`, and it specifies `Sum` as the standard aggregation.
 
 What this illustrates is that we have modeled this space poorly.  This
-does not propose to change any existing metrics APIs, only our
-understanding of the three instruments currently included in the
+proposal does not propose to change any existing metrics APIs, only
+our understanding of the three instruments currently included in the
 specification: Measure, Observer, and Counter.
 
 ## Explanation
@@ -53,20 +53,40 @@ properties of the associated trace and distributed correlation values.
 ### Last-value relationship
 
 Observer instruments have a well-defined _Last Value_ measured by the
-instrument, that can be useful in defining aggregations.  To maintain
-this property, we impose this requirement: two or more `Observe()`
-calls with an identical LabelSet during a single Observer callback
-invocation are treated as duplicates of each other, where the last
-call to `Observe()` wins.  (This is also the specified way that
-`Labels()` treats duplicates for a given label key.)
+instrument, that can be useful in defining aggregations.  The Last
+Value of an Observer instrument is the value that was captured during
+the last-completed collection interval, and it is a useful
+relationship because it is defined without relation to collection
+interval timing.  The Last Value of an Observer is determined by the
+single most-recently completed collection interval--it is not
+necessary to consider prior collection intervals.  The Last Value of
+an Observer is undefined when it is not observed during a collection
+interval.
 
-Unlike Observer instruments, Measure instruments do not define the
-Last Value relationship.  One reason is that [synchronous events can
-happen
+To maintain this property, we impose a requirement: two or more
+`Observe()` calls with an identical LabelSet during a single Observer
+callback invocation are treated as duplicates of each other, where the
+last call to `Observe()` wins.
+
+Based on the Last Value relationship, we can ask and answer questions
+such as "what is the average last value of a metric at a point in
+time?".  Observer instruments define the Last Value relationship
+without referring to the collection interval and without ambiguity.
+
+#### Last-value and Measure instruments
+
+Measure instruments do not define a Last Value relationship.  One
+reason is that [synchronous events can happen
 simultaneously](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-metrics.md#time).
-The Last Value relationship refers to values read in a single
-collection period, whereas with Measure instruments we can define a
-last-value aggregation.
+
+For Measure instruments, it is possible to compute an aggregation that
+computes the last-captured value in a collection interval, but it is
+potentially not unique and the result will vary depending on the
+timing of the collection interval.  For example, a synchronous metric
+event that last took place one minute ago will appear as the last
+value for collection intervals one minute or longer, but the last
+value will be undefined if the collection interval is shorter than one
+minute.  
 
 ### Aggregating changes to a sum: Rate calculation
 
