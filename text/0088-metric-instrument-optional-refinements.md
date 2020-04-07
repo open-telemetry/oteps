@@ -278,14 +278,14 @@ Hypothetical future instrument names are _italicized_.
 | Measure  | sum-only | precomputed-sum |               | non-negative-rate | _CumulativeCounter_ |
 | Measure  | sum-only |                 |               |                   | _UpDownCounter_ |
 | Measure  | sum-only | precomputed-sum |               |                   | _UpDownCumulativeCounter_ |
-| Measure  |          |                 | non-negative  |                   | _AbsoluteMeasure_ |
-| Measure  |          |                 |               |                   | _NonAbsoluteMeasure_ |
+| Measure  |          |                 | non-negative  |                   | _AbsoluteDistribution_ |
+| Measure  |          |                 |               |                   | _Distribution_ |
 | Observer | sum-only |                 | non-negative  | non-negative-rate | _DeltaObserver_ |
 | Observer | sum-only | precomputed-sum |               | non-negative-rate | _CumulativeObserver_ |
 | Observer | sum-only |                 |               |                   | _UpDownDeltaObserver_ |
 | Observer | sum-only | precomputed-sum |               |                   | _UpDownCumulativeObserver_ |
-| Observer |          |                 | non-negative  |                   | _AbsoluteObserver_ |
-| Observer |          |                 |               |                   | _NonAbsoluteObserver_ |
+| Observer |          |                 | non-negative  |                   | _AbsoluteLastValueObserver_ |
+| Observer |          |                 |               |                   | _LastValueObserver_ |
 
 To arrive at this listing, several assumptions have been made.  For
 example, the precomputed-sum and non-negative-rate refeinments are
@@ -332,7 +332,7 @@ instrument](https://prometheus.io/docs/concepts/metric_types).
 | Prometheus | Gauge        | Set()               | Last Value           | Non-additive or monotonic cumulative |
 | Prometheus | Gauge        | Inc()/Dec()         | Sum                  | Sum of deltas |
 | Prometheus | Gauge        | Add()/Sub()         | Sum                  | Sum of deltas |
-| Prometheus | Histogram    | Observe()           | Histogram            | |
+| Prometheus | Histogram    | Observe()           | Histogram            | Non-negative values |
 | Prometheus | Summary      | Observe()           | Summary              | Aggregation does not merge |
 
 Note that the Prometheus Gauge supports five methods (`Set`, `Inc`,
@@ -366,7 +366,7 @@ The Statsd system supports only synchronous reporting.
 | Statsd | Gauge        | Gauge()             | Last Value           |     |
 | Statsd | Histogram    | Histogram()         | Histogram            |     |
 | Statsd | Distribution | Distribution()      | _Not specified_      | A distribution summary |
-| Statsd | Timing       | Timing()            | _Not specified_      | A distribution summary |
+| Statsd | Timing       | Timing()            | _Not specified_      | Non-negative, distribution summary, Millisecond units |
 | Statsd | Set          | Set()               | Cardinality          | Unique value count |
 
 The Statsd Count operation translates into either a Counter, if
@@ -417,51 +417,48 @@ An asynchronous Last-value Gauge would be replaced by AbsoluteObserver
 or just the unrestricted Observer.  An asynchronous Additive Gauge
 would be replaced by a DeltaObserver.
 
-### Proposals
+### Sample Proposal
 
-Using the information above, we can propose a set of refinements for
-both synchronous and asynchronous instruments.
+The the information above will be used to propose a set of refinements
+for both synchronous and asynchronous instruments in a follow-on OTEP.
+What follows is a sample of the forthcoming proposal, to motivate the
+discussion here.
 
 #### Synchronous instruments
 
 The foundational `Measure` instrument without refinements or
-restrictions shall continue to be called a `Measure` instrument. It is
-not an abstract kind of instrument, therefore the hypothetical
-`NonAbsoluteMeasure` instrument is not needed.
+restrictions will be called a `Distribution` instrument.  
 
-Along with `Counter` and `Measure`, we recognize several less-common
+Along with `Counter` and `Distribution`, we recognize several less-common
 but still important cases and reasons why they should be standardized:
 
 - _UpDownCounter_: Support Prometheus additive Gauge instrument use
-- _TimingMeasure_: Support Prometheus and Statsd timing measurements.
+- _Timing_: Support Prometheus and Statsd timing measurements.
 
 Instruments that are not standardized but may be in the future (and why):
 
 - _CumulativeCounter_: Support a synchronous monotonic cumulative instrument
-- _AbsoluteMeasure_: Support non-negative valued distributions
-- _LastValueMeasure_: Support a last value aggregation without configuring a view (could be "Gauge").
+- _AbsoluteDistribution_: Support non-negative valued distributions
 
 Instruments that are probably not seen as widely useful:
 
-- _UpDownCumulativeCounter_: We believe this is better handled asynchronously
+- _UpDownCumulativeCounter_: We believe this is better handled asynchronously.
 
 #### Observer instruments
 
 The foundational `Observer` instrument without refinements or
-restrictions shall continue to be called an `Observer` instrument. It
-is not an abstract kind of instrument, therefore the hypothetical
-`NonAbsoluteObserver` instrument is not needed.
+restrictions shall be called a `LastValueObserver` instrument.
 
 We have identified important cases that should be standardized:
 
 - _CumulativeObserver_: Support a cumulative monotone counter
-- _UpDownDeltaObserver_: Support an asynchronous delta counter.
+- _DeltaObserver_: Support an asynchronous delta counter.
 
 Observer refinements that could be standardized in the future:
 
-- _UpDownCumulativeObserver_: Observer a non-monotonic cumluative counter
-- _DeltaObserver_: Observe a sum of non-negative deltas
-- _AbsoluteObserver_: Observe non-negative current values.
+- _UpDownCumulativeObserver_: Observe a non-monotonic cumluative counter
+- _UpDownDeltaObserver_: Observe positive and negative deltas
+- _AbsoluteLastValueObserver_: Observe non-negative current values.
 
 ## Example: Observer aggregation
 
