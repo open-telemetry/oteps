@@ -50,6 +50,29 @@ value](api-metrics.md#metric-event-format).  Synchronous instrument
 events additionally have [Context](api-context.md), describing
 properties of the associated trace and distributed correlation values.
 
+#### Terminology: Kinds of Aggregation
+
+_Aggregation_ refers to the technique used to summarize many
+measurements and/or observations into _some_ kind of summary of the
+data.  As detailed in the [metric SDK specification (TODO:
+WIP)](https://github.com/open-telemetry/opentelemetry-specification/pull/347/files?short_path=5b01bbf#diff-5b01bbf3430dde7fc5789b5919d03001),
+there are generally two relevant modes of aggregation:
+
+1. Within one collection interval, for one label set, the SDK's
+`Aggregator.Add()` interface method incorporates one new measurement
+value into the current aggregation value.  This happens at run time,
+therefore is referred to as _temporal aggregation_.  This mode applies
+only to Measure instruments.
+2. Within one collection interval, when combining label sets, the
+SDK's `Aggregator.Merge()` interface method incorporates two
+aggregation values into one aggregation value.  This is referred to as
+_spatial aggregation_.  This mode applies to both Measure and Observer
+instruments.
+
+As discussed below, we are especially interested in aggregating rate
+information, which sometimes requires that temporal and spatial
+aggregation be treated differently.
+
 ### Last-value relationship
 
 Observer instruments have a well-defined _Last Value_ measured by the
@@ -86,7 +109,7 @@ timing of the collection interval.  For example, a synchronous metric
 event that last took place one minute ago will appear as the last
 value for collection intervals one minute or longer, but the last
 value will be undefined if the collection interval is shorter than one
-minute.  
+minute.
 
 ### Aggregating changes to a sum: Rate calculation
 
@@ -104,20 +127,13 @@ refinements introduced in this proposal is to facilitate rate
 calculations in more than one way.
 
 When delta reporting, a rate is calculated by summing individual
-measurements or observations.  For Measure instruments, these values
-fall into a range of time, as indicated by the event timestamp.  For
-Observer instruments, these values fall into a range of collection
-intervals.
+measurements or observations.  When cumulative reporting, a rate is
+calculated by computing a difference between individual values.
 
-When cumulative reporting, a rate is calculated by computing a
-difference between individual values.  For an Observer instrument, we
-compute rate over a range of collection intervals, and for a Measure
-instrument we compute rate over a range of timestamps.  In either
-case, we are interested in subtracting the final value from the prior
-value measured or observed on the instrument.
-
-Note that rate aggregation, as illustrated above, treats the time
-dimension differently than the other dimensions used for aggregation.
+Note that cumulative-reported metric data requires special treatment
+of the time dimension when computing rates.  When aggregating across
+the time dimension, the difference should be computed.  When
+aggregating across spatial dimensions, the sum should be computed.
 
 ### Standard implementation of Measure and Observer
 
@@ -201,16 +217,18 @@ collection intervals, cannot change by a negative amount, because it
 is impossible to use a negative amount of CPU time.  CPU time a
 typical value to report through an Observer instrument, so the rate
 for a specific set of labels is defined by subtracting the prior
-observation from the current observation.
+observation from the current observation.  Using a non-negative-rate
+refinement asserts that the values increases by a non-negative amount
+on subsequent collection intervals.
 
 #### Discussion: Additive vs. Non-Additive numbers
 
 The refinements proposed above may leave us wondering about the
 distinction between an unrefined Measure and the
 _UpDownCumulativeCounter_.  Both values are unrestricted, in terms of
-their range, so why should they be treated differntly?
+range, so why should they be treated differently?
 
-The _UpDownCumulativeCounter_ has sum-only, precomputed-sum
+The _UpDownCumulativeCounter_ has sum-only and precomputed-sum
 refinements, which indicate that the numbers being observed are the
 result of addition.  These instruments have the additive property that
 observing `N` and `M` separately is equivalent to observing `N+M`.
