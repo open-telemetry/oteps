@@ -18,6 +18,20 @@ The four instrument refinements discussed in OTEP 88 are:
 * Precomputed-sum: When the application has computed a cumulative sum itself
 * Non-negative-rate: When a negative rate is invalid.
 
+These refinements are not for exposing directly to users at the API
+level.  These concepts are purely explanatory, used to define the
+properties of the metric instruments presented in the API.  Following
+OTEP 88:
+
+* Users will select instruments based on their specified properties
+* Instruments are associated with a Descriptor, that includes the instrument kind (an enumeration)
+* Exported metric events include the instrument Descriptor, allowing exporters to interpret event values.
+
+In other words, these refinements serve to define the set of
+instruments.  Both users and exporters will deal in concrete kinds of
+instrument, these refinements are just for explaining their
+properties.
+
 OTEP 88 describes how we are meant to compute rate information from
 instruments having the Non-negative-rate refinement.  Temporal
 aggregation (over time) must be treated as a special case, compared
