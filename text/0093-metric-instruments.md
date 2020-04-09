@@ -50,29 +50,42 @@ as well, to support built-in value types (e.g., timestamps).
 
 ## Internal details
 
-The existing specification includes three instruments.  In this
-proposal, the two foundational instruments become abstract, in the
-sense that all synchronous instruments are instances of a Measure
-instrument and all asynchronous instruments are instances of an
-Observer instrument.  New instrument names are given to the
-unrestricted, unrefined versions of rthe foundational instruments:
+The existing specification includes three instruments: Counter,
+Measure, and Observer.  In this proposal, the two foundational
+instruments, Measure and Observer (synchronous and asynchronous,
+respectively), become abstract names, in the sense that all
+synchronous instruments are instances of a Measure instrument and all
+asynchronous instruments are instances of an Observer instrument.  New
+instrument names are given to the unrestricted, unrefined versions of
+the foundational instruments.  The following table summarizes this
+proposal:
 
-1. **Distribution** is an an unrefined Measure instrument.  Distribution accepts positive or negative values and uses MinMaxSumCount aggregation by default.
-2. **LastValueObserver** is an unrefined Observer instrument.  LastValueObserver accepts positive or negative values and uses MinMaxSumCount aggregation by default.
+| Existing name | Proposed name | Sync or Async | Refinements |
+| ------------- | ------------- | ------------- | ----------- |
+| Counter       | Counter       | Sync          | Sum-only, Non-negative, Non-negative-rate |
+| Measure       | Distribution  | Sync          | _None_  |
+|               | UpDownCounter | Sync          | Sum-only |
+|               | Timing        | Sync          | Non-negative, correct Duration units  |
+| Observer      | LastValueObserver | Async     | _None_ |
+|               | DeltaObserver | Async         | Sum-only, Non-negative, Non-negative-rate |
+|               | CumulativeObserver | Async    | Sum-only, Precomputed-sum, Non-negative-rate |
 
-The existing Counter instrument is unchanged in this proposal.  It has
-Sum-only and Non-negative refinements, which imply the
-Non-negative-rate refinement.  Counter uses Sum aggregation by default
+### Synchronous instruments
 
-Two new synchronous instruments are introduced in this proposal.
+Two new synchronous instruments are introduced in this proposal, bringing the total to four.
 
-1. **UpDownCounter** is a Sum-only instrument with no other refinements.  It supports capturing positive and negative changes to a sum (deltas).  UpDownCounter uses Sum aggregation by default.
-2. **Timing** is a Non-negative instrument specialized for the native clock duration measured on the platform.  It ensures that duration values are always captured with correct units, that ensures exporters can convert duration measurements correctly.
+1. **Counter** remains unchanged.  It uses Sum aggregation by default.
+2. **Distribution** is an an unrefined Measure instrument.  Distribution accepts positive or negative values and uses MinMaxSumCount aggregation by default.
+3. **UpDownCounter** is a Sum-only instrument with no other refinements.  It supports capturing positive and negative changes to a sum (deltas).  UpDownCounter uses Sum aggregation by default.
+4. **Timing** is a Non-negative instrument specialized for the native clock duration measured on the platform.  It ensures that duration values are always captured with correct units, that ensures exporters can convert duration measurements correctly.
 
-Two new asynchronous instruments are introduced in this proposal.
+### Asynchronous instruments
 
-1. **CumulativeObserver** is a Sum-only, Precomputed-sum, Non-negative, Non-negative-rate instrument useful when reporting precomputed sums.
+Two new asynchronous instruments are introduced in this proposal, bringing the total to three.
+
+1. **LastValueObserver** is an unrefined Observer instrument.  LastValueObserver accepts positive or negative values and uses MinMaxSumCount aggregation by default.
 2. **DeltaObserver** is a Sum-only, Non-negative, Non-negative-rate instrument useful for capturing deltas that accumulate during a collection interval.
+3. **CumulativeObserver** is a Sum-only, Precomputed-sum, Non-negative, Non-negative-rate instrument useful when reporting precomputed sums.
 
 Both new asynchronous instruments are meant to be used for aggregating rate information from a callback.
 
@@ -103,7 +116,7 @@ instruments.
 
 There are potential incompatibilities related to the input range of
 existing exporters and the new instruments.  For example, a Prometheus
-Histogram is used to capture distribution with non-negative values.
+Histogram is used to capture a distribution with non-negative values.
 This proposal does not specify a standard AbsoluteDistribution
 instrument, which has the corresponding input-range restriction.
 
