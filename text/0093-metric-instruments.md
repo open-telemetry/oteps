@@ -53,7 +53,7 @@ Non-negative-rate refinement.  Counter uses Sum aggregation by default
 Two new synchronous instruments are introduced in this proposal.
 
 1. **UpDownCounter** is a Sum-only instrument with no other refinements.  It supports capturing positive and negative changes to a sum (deltas).  UpDownCounter uses Sum aggregation by default.
-2. **Timing** is a Non-negative instrument specialized for the native timestamp of the platform.  It ensures that values are always reported in conventional units (milliseconds).
+2. **Timing** is a Non-negative instrument specialized for the native clock duration measured on the platform.  It ensures that duration values are always captured with correct units, that ensures exporters can convert duration measurements correctly.
 
 Two new asynchronous instruments are introduced in this proposal.
 
