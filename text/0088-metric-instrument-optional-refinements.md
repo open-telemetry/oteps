@@ -5,6 +5,15 @@ for metric instruments, declares the Measure and Observer instruments
 as _foundational_, and introduces a process for standardizing new
 instrument _refinements_.
 
+Note that [OTEP 93](https://github.com/open-telemetry/oteps/pull/93)
+contains a final proposal for the set of instruments, of which there
+are seven.  Note that [OTEP
+96](https://github.com/open-telemetry/oteps/pull/96) contains a final
+proposal for the names of the seven standard instruments.  These three
+OTEPs will be applied as a group to the specification, using the names
+finalized in OTEP 96.
+
+
 ## Motivation
 
 With the removal of Gauge instruments and the addition of Observer
