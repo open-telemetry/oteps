@@ -9,6 +9,14 @@ instruments with various refinements and ended with a [sample
 proposal](https://github.com/open-telemetry/oteps/pull/88#sample-proposal).
 This proposal uses that proposal as a starting point.
 
+Note that this proposal is meant to establish the set of standard
+instruments in terms of their refinements.  This proposal raised
+several open questions about naming and default aggregations that were
+best addressed in a separate OTEP.  See [OTEP
+96](https://github.com/open-telemetry/oteps/pull/96) and consider the
+names used in this proposal to be provisional--OTEP 96 proposes a
+final naming scheme with greater consistency.
+
 ## Explanation
 
 The four instrument refinements discussed in OTEP 88 are:
