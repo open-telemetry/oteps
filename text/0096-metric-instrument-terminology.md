@@ -92,7 +92,7 @@ aggregation for any Sum-only instrument since, by definition, the
 Sum aggregation provides complete information.
 
 The three instruments with a default "MinMaxSumCount" are all used to
-record a value that is, by defintion, more than only a sum.  In this
+record a value that is, by definition, more than only a sum.  In this
 case, "complete information" requires recording every value, i.e., no
 aggregation.  MinMaxSumCount is applied in these cases because it
 provides the maximum amount of information that can be recorded using
