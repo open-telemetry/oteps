@@ -13,7 +13,6 @@ proposal for the names of the seven standard instruments.  These three
 OTEPs will be applied as a group to the specification, using the names
 finalized in OTEP 96.
 
-
 ## Motivation
 
 With the removal of Gauge instruments and the addition of Observer
