@@ -49,7 +49,9 @@ Aggregator for each kind of instrument.
 
 ## Explanation
 
-The following table explains this set of proposals.
+The following table summarizes the four synchronous instruments and
+three asynchronous instruments that will be standardized as a result
+of this set of proposals.
 
 | Existing name | OTEP 93 name       | Final name         | Sync or Async | Default Aggregation | Rate support |
 | ------------- | ------------------ | ------------------ | ----------- | ---------- | ---- |
