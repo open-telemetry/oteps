@@ -57,11 +57,11 @@ of this set of proposals.
 | ------------- | ------------------ | ---------------------- | ----------- | ------------- | ---------- | ---- |
 | Counter       | Counter            | **Counter**            | Sync  | Add() | Sum | Yes | 
 |               | UpDownCounter      | **UpDownCounter**      | Sync  | Add() | Sum | Yes |
-| Measure       | Distribution       | **Recorder**           | Sync  | Record | MinMaxSumCount | No |
-|               | Timing             | **TimingRecorder**     | Sync  | Record | MinMaxSumCount  | No |
-| Observer      | LastValueObserver  | **GaugeObserver**      | Async | Observe | MinMaxSumCount | No |
-|               | DeltaObserver      | **DeltaObserver**      | Async | Observe | Sum | Yes |
-|               | CumulativeObserver | **CumulativeObserver** | Async | Observe | Sum | Yes |
+| Measure       | Distribution       | **Recorder**           | Sync  | Record() | MinMaxSumCount | No |
+|               | Timing             | **TimingRecorder**     | Sync  | Record() | MinMaxSumCount  | No |
+| Observer      | LastValueObserver  | **GaugeObserver**      | Async | Observe() | MinMaxSumCount | No |
+|               | DeltaObserver      | **DeltaObserver**      | Async | Observe() | Sum | Yes |
+|               | CumulativeObserver | **CumulativeObserver** | Async | Observe() | Sum | Yes |
 
 The argument for "Recorder" instead of "Distribution" is that we
 should prefer instrument descriptives associated with the action being
