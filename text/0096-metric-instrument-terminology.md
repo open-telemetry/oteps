@@ -53,15 +53,15 @@ The following table summarizes the four synchronous instruments and
 three asynchronous instruments that will be standardized as a result
 of this set of proposals.
 
-| Existing name | OTEP 93 name       | **Final name**         | Sync or Async | Default aggregation | Rate support |
-| ------------- | ------------------ | ---------------------- | ----------- | ---------- | ---- |
-| Counter       | Counter            | **Counter**            | Sync  | Sum | Yes | 
-|               | UpDownCounter      | **UpDownCounter**      | Sync  | Sum | Yes |
-| Measure       | Distribution       | **Recorder**           | Sync  | MinMaxSumCount | No |
-|               | Timing             | **TimingRecorder**     | Sync  | MinMaxSumCount  | No |
-| Observer      | LastValueObserver  | **GaugeObserver**      | Async | MinMaxSumCount | No |
-|               | DeltaObserver      | **DeltaObserver**      | Async | Sum | Yes |
-|               | CumulativeObserver | **CumulativeObserver** | Async | Sum | Yes |
+| Existing name | OTEP 93 name       | **Final name**         | Sync or Async | Function | Default aggregation | Rate support |
+| ------------- | ------------------ | ---------------------- | ----------- | ------------- | ---------- | ---- |
+| Counter       | Counter            | **Counter**            | Sync  | Add() | Sum | Yes | 
+|               | UpDownCounter      | **UpDownCounter**      | Sync  | Add() | Sum | Yes |
+| Measure       | Distribution       | **Recorder**           | Sync  | Record | MinMaxSumCount | No |
+|               | Timing             | **TimingRecorder**     | Sync  | Record | MinMaxSumCount  | No |
+| Observer      | LastValueObserver  | **GaugeObserver**      | Async | Observe | MinMaxSumCount | No |
+|               | DeltaObserver      | **DeltaObserver**      | Async | Observe | Sum | Yes |
+|               | CumulativeObserver | **CumulativeObserver** | Async | Observe | Sum | Yes |
 
 The argument for "Recorder" instead of "Distribution" is that we
 should prefer instrument descriptives associated with the action being
@@ -77,6 +77,35 @@ value ("reads a gauge").  A "Recorder" records an arbitrary value.  A
 This proposal consolidates OTEP 88 and OTEP 93 and proposes a consistent
 pattern for naming instruments.  It will be the source of truth when
 applying OTEP 88 and OTEP 93 to the OpenTelemetry metrics specification.
+
+### Function names
+
+The function names of the standard instruments are determined as
+follows.
+
+#### Counter and UpDownCounter
+
+Counter and UpDownCounter instruments use `Add()` as the function
+name, since they capture deltas to a Sum-only instrument.  We prefer
+`Add()` as opposed to `Count()`, since floating point numbers are
+supported, to avoid some an association with "Countable" numbers, a
+mathemtical term associated with natural numbers.
+
+#### Recorder and TimingRecorder
+
+Recorder and TimingRecorder use `Record()` as the function name, as in
+the existing specification for Measure instruments.  This conveys the
+fact that these are not a sum, and that individual events are of
+importance.
+
+#### Asynchronous instruments
+
+Asynchronous instruments use `Observe()` as the function name.  This
+signifies that the instrument passively captures a measurement, is not
+an active participant, as implied by `Record()`.  _Observation_ also
+conveys the last-value relationship specified for asynchronous
+instruments.  The observer can only observe one value at a time, where
+the last-observed value wins.
 
 ### Default aggregations
 
