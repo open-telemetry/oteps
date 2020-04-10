@@ -53,11 +53,11 @@ The following table summarizes the four synchronous instruments and
 three asynchronous instruments that will be standardized as a result
 of this set of proposals.
 
-| Existing name | OTEP 93 name       | Final name             | Sync or Async | Default aggregation | Rate support |
+| Existing name | OTEP 93 name       | **Final name**         | Sync or Async | Default aggregation | Rate support |
 | ------------- | ------------------ | ---------------------- | ----------- | ---------- | ---- |
 | Counter       | Counter            | **Counter**            | Sync  | Sum | Yes | 
-| Measure       | Distribution       | **Recorder**           | Sync  | MinMaxSumCount | No |
 |               | UpDownCounter      | **UpDownCounter**      | Sync  | Sum | Yes |
+| Measure       | Distribution       | **Recorder**           | Sync  | MinMaxSumCount | No |
 |               | Timing             | **TimingRecorder**     | Sync  | MinMaxSumCount  | No |
 | Observer      | LastValueObserver  | **GaugeObserver**      | Async | MinMaxSumCount | No |
 |               | DeltaObserver      | **DeltaObserver**      | Async | Sum | Yes |
