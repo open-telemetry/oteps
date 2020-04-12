@@ -56,7 +56,7 @@ of this set of proposals.
 | Existing name | OTEP 93 name       | **Final name**         | Sync or Async | Function | Default aggregation | Rate support |
 | ------------- | ------------------ | ---------------------- | ----------- | ------------- | ---------- | ---- |
 | Counter       | Counter            | **Counter**            | Sync  | Add() | Sum | Yes | 
-|               | UpDownCounter      | **UpDownCounter**      | Sync  | Add() | Sum | Yes |
+|               | UpDownCounter      | **UpDownCounter**      | Sync  | Add() | Sum | No |
 | Measure       | Distribution       | **Recorder**           | Sync  | Record() | MinMaxSumCount | No |
 |               | Timing             | **TimingRecorder**     | Sync  | Record() | MinMaxSumCount  | No |
 | Observer      | LastValueObserver  | **GaugeObserver**      | Async | Observe() | MinMaxSumCount | No |
