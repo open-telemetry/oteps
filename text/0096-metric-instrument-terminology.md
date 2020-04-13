@@ -54,7 +54,7 @@ three asynchronous instruments that will be standardized as a result
 of this set of proposals.
 
 | Existing name | OTEP 93 name       | **Final name**         | Sync or Async | Function | Default aggregation | Measurement kind | Rate support |
-| ------------- | ------------------ | ---------------------- | ----------- | ------------- | ---------- | ---- |
+| ------------- | ------------------ | ---------------------- | ----------- | ------------- | ---------- | ---- | --- |
 | Counter       | Counter            | **Counter**            | Sync  | Add() | Sum | Delta | Yes | 
 |               | UpDownCounter      | **UpDownCounter**      | Sync  | Add() | Sum | Delta | No |
 | Measure       | Distribution       | **Recorder**           | Sync  | Record() | MinMaxSumCount | Instantaneous | No |
