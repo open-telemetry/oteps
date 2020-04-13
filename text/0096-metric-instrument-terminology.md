@@ -53,15 +53,15 @@ The following table summarizes the four synchronous instruments and
 three asynchronous instruments that will be standardized as a result
 of this set of proposals.
 
-| Existing name | OTEP 93 name       | **Final name**         | Sync or Async | Function | Default aggregation | Rate support |
+| Existing name | OTEP 93 name       | **Final name**         | Sync or Async | Function | Default aggregation | Measurement kind | Rate support |
 | ------------- | ------------------ | ---------------------- | ----------- | ------------- | ---------- | ---- |
-| Counter       | Counter            | **Counter**            | Sync  | Add() | Sum | Yes | 
-|               | UpDownCounter      | **UpDownCounter**      | Sync  | Add() | Sum | No |
-| Measure       | Distribution       | **Recorder**           | Sync  | Record() | MinMaxSumCount | No |
-|               | Timing             | **TimingRecorder**     | Sync  | Record() | MinMaxSumCount  | No |
-| Observer      | LastValueObserver  | **GaugeObserver**      | Async | Observe() | MinMaxSumCount | No |
-|               | DeltaObserver      | **DeltaObserver**      | Async | Observe() | Sum | Yes |
-|               | CumulativeObserver | **CumulativeObserver** | Async | Observe() | Sum | Yes |
+| Counter       | Counter            | **Counter**            | Sync  | Add() | Sum | Delta | Yes | 
+|               | UpDownCounter      | **UpDownCounter**      | Sync  | Add() | Sum | Delta | No |
+| Measure       | Distribution       | **Recorder**           | Sync  | Record() | MinMaxSumCount | Instantaneous | No |
+|               | Timing             | **TimingRecorder**     | Sync  | Record() | MinMaxSumCount  | Instantaneous | No |
+| Observer      | LastValueObserver  | **GaugeObserver**      | Async | Observe() | MinMaxSumCount  | Instantaneous | No |
+|               | DeltaObserver      | **DeltaObserver**      | Async | Observe() | Sum | Delta | Yes |
+|               | CumulativeObserver | **CumulativeObserver** | Async | Observe() | Sum | Cumulative | Yes |
 
 The argument for "Recorder" instead of "Distribution" is that we
 should prefer instrument descriptives associated with the action being
