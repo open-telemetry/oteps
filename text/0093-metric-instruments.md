@@ -56,6 +56,24 @@ properties of the instrument.
 OTEP 88 also also proposes to support language-specific specialization
 as well, to support built-in value types (e.g., timestamps).
 
+### Delta, Cumulative, and Instantaneous instruments
+
+Instruments can be categorized as to whether their values are "Delta",
+"Cumulative", or "Instantaneous".  This depends on which refinements
+are present and is required knowledge for exporters of the Sum-only
+instruments, since they may need to convert back and forth between
+delta-values and cumulative-values.  The categorization is determined
+as follows:
+
+Instruments with the Sum-only refinement, but without the
+Precomputed-sum refinement, produce delta instruments.
+
+Instruments with the Sum-only and Precomputed-sum refinements produce
+cumulative instruments.
+
+Instruments without the Sum-only refinement produce instantaneous
+measurements.
+
 ## Internal details
 
 The existing specification includes three instruments: Counter,
@@ -68,15 +86,15 @@ instrument names are given to the unrestricted, unrefined versions of
 the foundational instruments.  The following table summarizes this
 proposal:
 
-| Existing name | Proposed name | Sync or Async | Refinements |
-| ------------- | ------------- | ------------- | ----------- |
-| Counter       | Counter       | Sync          | Sum-only, Non-negative, Non-negative-rate |
-| Measure       | Distribution  | Sync          | _None_  |
-|               | UpDownCounter | Sync          | Sum-only |
-|               | Timing        | Sync          | Non-negative, correct Duration units  |
-| Observer      | LastValueObserver | Async     | _None_ |
-|               | DeltaObserver | Async         | Sum-only, Non-negative, Non-negative-rate |
-|               | CumulativeObserver | Async    | Sum-only, Precomputed-sum, Non-negative-rate |
+| Existing name | Proposed name | Sync or Async | Refinements | Measurement kind |
+| ------------- | ------------- | ------------- | ----------- | ---------------- | 
+| Counter       | Counter       | Sync          | Sum-only, Non-negative, Non-negative-rate | Delta |
+|               | UpDownCounter | Sync          | Sum-only | Delta |
+| Measure       | Distribution  | Sync          | _None_  | Instantaneous |
+|               | Timing        | Sync          | Non-negative, correct Duration units  | Instantaneous |
+| Observer      | LastValueObserver | Async     | _None_ | Instantaneous |
+|               | DeltaObserver | Async         | Sum-only, Non-negative, Non-negative-rate | Delta |
+|               | CumulativeObserver | Async    | Sum-only, Precomputed-sum, Non-negative-rate | Cumulative |
 
 ### Synchronous instruments
 
