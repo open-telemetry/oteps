@@ -71,7 +71,7 @@ Cumulative measurements are those that report the current value of a sum.  Cumul
 
 Delta and Cumulative instruments are referred to, collectively, as Additive instruments.  Cumulative, synchronous instruments are not included in the standard because, although they are logically sensible, there exists little demand for these instruments.
 
-Instantaneous measurements are those that report a non-additive measurement, one where it is not natural to compute a sum.  Instantaneous instruments are usually chosen to when the distribution of values is of interest, not only the sum.
+Instantaneous measurements are those that report a non-additive measurement, one where it is not natural to compute a sum.  Instantaneous instruments are usually chosen when the distribution of values is of interest, not only the sum.
 
 ### Function names
 
