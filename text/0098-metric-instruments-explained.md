@@ -20,7 +20,7 @@ This proposal also repeats the current specification--and the justification--for
 The following table summarizes the final proposed standard instruments resulting from this set of proposals.  The columns are described in more detail below.
 
 | Existing name | **Standard name** | Instrument kind | Function name | Default aggregation | Measurement kind | Kind of data | Rate support (Monotonic) | Notes |
-| ------------- | ----------------------- | ----- | --------- | -------------- | ------------- | --- | ------------------------------------ |
+| ------------- | ----------------------- | ----- | --------- | -------------- | ------------- | --- | ------------------------------------ | --- |
 | Counter       | **Counter**             | Sync  | Add()     | Sum            | Delta         | Additive | Yes | Per-request, part of a monotonic sum |
 |               | **UpDownCounter**       | Sync  | Add()     | Sum            | Delta         | Additive | No  | Per-request, part of a non-monotonic sum |
 | Measure       | **ValueRecorder**       | Sync  | Record()  | MinMaxSumCount | Instantaneous | Event    | No  | Per-request, any non-additive measurement |
