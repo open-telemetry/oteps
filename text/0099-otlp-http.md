@@ -1,7 +1,5 @@
 # OTLP/HTTP: HTTP Transport Extension for OTLP
 
-_Author: Tigran Najaryan, Splunk._
-
 This is a proposal to add HTTP Transport extension for
 [OTLP](0035-opentelemetry-protocol.md) (OpenTelemetry Protocol).
 
@@ -46,70 +44,37 @@ connection cannot be established.
 
 ### Request
 
-Telemetry data is sent via HTTP POST request. The request body is a
-ProtoBuf-encoded message `TelemetryRequest` as defined below:
+Telemetry data is sent via HTTP POST request.
 
-```protobuf
-enum RequestType {
-    _ = 0;
-    TraceExport = 1;
-    MetricExport = 2;
-}
-message TelemetryRequest {
-    RequestType request_type = 1;
+The default URL path for requests that carry trace data is `/v1/traces` (for
+example the full URL when connecting to "example.com" server will be
+`https://example.com/v1/traces`). The request body is a ProtoBuf-encoded
+[`ExportTraceServiceRequest`](https://github.com/open-telemetry/opentelemetry-proto/blob/e6c3c4a74d57f870a0d781bada02cb2b2c497d14/opentelemetry/proto/collector/trace/v1/trace_service.proto#L38)
+message.
 
-    // Only one of the following fields is supposed to contain data (determined
-    // by `request_type` field). This is deliberately not using ProtoBuf `oneof`
-    // for performance reasons (verified by benchmarks).
-    ExportTraceServiceRequest export_trace_request = 2;
-    ExportMetricsServiceRequest export_metrics_request = 3;
-}
-```
-
-`TelemetryRequest` references `ExportTraceServiceRequest` and
-`ExportMetricsServiceRequest` message types that are defined in
-[OTLP ProtoBuf schema](https://github.com/open-telemetry/opentelemetry-proto/tree/master/opentelemetry/proto)
-specification.
+The default URL path for requests that carry metric data is `/v1/metrics` and the
+request body is a ProtoBuf-encoded
+[`ExportMetricsServiceRequest`](https://github.com/open-telemetry/opentelemetry-proto/blob/e6c3c4a74d57f870a0d781bada02cb2b2c497d14/opentelemetry/proto/collector/metrics/v1/metrics_service.proto#L35)
+message.
 
 The client MUST set "Content-Type: application/x-protobuf" request header. The
 client MAY gzip the content and in that case SHOULD include "Content-Encoding:
 gzip" request header. The client MAY include "Accept-Encoding: gzip" request
 header if it can receive gzip-encoded responses.
 
-The default request URL path is `/telemetry` (for example the full URL when
-connecting to "example.com" server will be `https://example.com/telemetry`). A
-different URL path MAY be configured on the client and server sides.
+Non-default URL paths for requests MAY be configured on the client and server
+sides.
 
 ### Response
 
 #### Success
 
-On success the server MUST respond with `HTTP 200 OK` and include
-ProtoBuf-encoded `TelemetryResponse` message in the response body.
-`TelemetryResponse` is defined as follows:
-
-```protobuf
-enum ResponseType {
-    _ = 0;
-    TraceExport = 1;
-    MetricExport = 2;
-}
-
-message TelemetryResponse {
-    ResponseType response_type = 1;
-
-    // Only one of the following fields is supposed to contain data (determined
-    // by `response_type` field). This is deliberately not using ProtoBuf
-    // `oneof` for performance reasons (verified by benchmarks).
-    ExportTraceServiceResponse export_trace_response = 2;
-    ExportMetricsServiceResponse export_metrics_response = 3;
-}
-```
-
-`TelemetryResponse` references `ExportTraceServiceResponse` and
-`ExportTraceServiceResponse` message types that are defined in [OTLP Protocol
-Buffers](https://github.com/open-telemetry/opentelemetry-proto/tree/master/opentelemetry/proto)
-specification.
+On success the server MUST respond with `HTTP 200 OK`. Response body MUST be
+ProtoBuf-encoded
+[`ExportTraceServiceResponse`](https://github.com/open-telemetry/opentelemetry-proto/blob/e6c3c4a74d57f870a0d781bada02cb2b2c497d14/opentelemetry/proto/collector/trace/v1/trace_service.proto#L47)
+message for traces and
+[`ExportMetricsServiceResponse`](https://github.com/open-telemetry/opentelemetry-proto/blob/e6c3c4a74d57f870a0d781bada02cb2b2c497d14/opentelemetry/proto/collector/metrics/v1/metrics_service.proto#L44)
+message for metrics.
 
 The server MUST set "Content-Type: application/x-protobuf" response header. If
 the request header "Accept-Encoding: gzip" is present in the request the server
