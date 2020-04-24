@@ -85,21 +85,49 @@ decoding and validating the request.
 
 #### Failures
 
+If the processing of the request fails the server MUST respond with appropriate
+`HTTP 4xx` or `HTTP 5xx` status code. See sections below for more details about
+specific failure cases and HTTP status codes that should be used.
+
+Response body for all `HTTP 4xx` and `HTTP 5xx` responses MUST be a
+ProtoBuf-encoded
+[Status](https://godoc.org/google.golang.org/genproto/googleapis/rpc/status#Status)
+message that describes the problem.
+
+This specification does not use `Status.code` field and the server MAY omit
+`Status.code` field. The clients are not expected to alter their behavior based
+on `Status.code` field but MAY record it for troubleshooting purposes.
+
+The `Status.message` field SHOULD contain a developer-facing error message as
+defined in `Status` message schema.
+
+The server MAY include `Status.details` field with additional details. Read
+below about what this field can contain in each specific failure case.
+
+#### Bad Data
+
 If the processing of the request fails because the request contains data that
 cannot be decoded or is otherwise invalid and such failure is permanent then the
-server MUST respond with `HTTP 400 Bad Request`. The client MUST NOT retry the
-request when it receives `HTTP 400 Bad Request` response.
+server MUST respond with `HTTP 400 Bad Request`. The `Status.details` field in
+the response SHOULD contain a
+[BadRequest](https://github.com/googleapis/googleapis/blob/d14bf59a446c14ef16e9931ebfc8e63ab549bf07/google/rpc/error_details.proto#L166)
+that describes the bad data.
+
+The client MUST NOT retry the request when it receives `HTTP 400 Bad Request`
+response.
 
 #### Throttling
 
 If the server receives more requests than the client is allowed or the server is
 overloaded the server SHOULD respond with `HTTP 429 Too Many Requests` or
-`HTTP 503 Service Unavailable` and MAY include "Retry-After" header with a
-recommended time interval in seconds to wait before retrying. The client SHOULD
-honour the waiting interval specified in "Retry-After" header if it is present.
-If the client receives `HTTP 429` or `HTTP 503` response and "Retry-After"
-header is not present in the response then the client SHOULD implement an
-exponential backoff strategy between retries.
+`HTTP 503 Service Unavailable` and MAY include
+["Retry-After"](https://tools.ietf.org/html/rfc7231#section-7.1.3) header with a
+recommended time interval in seconds to wait before retrying.
+
+The client SHOULD honour the waiting interval specified in "Retry-After" header
+if it is present. If the client receives `HTTP 429` or `HTTP 503` response and
+"Retry-After" header is not present in the response then the client SHOULD
+implement an exponential backoff strategy between retries.
 
 #### All Other Responses
 
@@ -116,8 +144,7 @@ If the client is unable to connect to the server the client SHOULD retry the
 connection using exponential backoff strategy between retries. The interval
 between retries must have a random jitter.
 
-The client SHOULD keep the connection alive between requests. The client SHOULD
-use "Connection: Keep-Alive" request header.
+The client SHOULD keep the connection alive between requests.
 
 Server implementations MAY handle OTLP/gRPC and OTLP/HTTP requests on the same
 port and multiplex the connections to the corresponding transport handler based
