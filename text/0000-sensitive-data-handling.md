@@ -1,6 +1,6 @@
 #  Sensitive Data Handling
 
-By default, OpenTelemetry libraries never capture potentially-sensitive data
+By default, OpenTelemetry libraries never capture potentially-sensitive data.
 
 ## Motivation
 
@@ -21,7 +21,7 @@ meaning of `ID` values, we decided to be "safe by default" and drop all numeric 
 captured in our system is just table names, field names, clause structures, etc. (metadata about your data's structure and how you access it).
 
 Yes, this also has the pleasant side effect of reducing the cardinality of these dimensions, making it easier to build metrics or indices on them. 
-If you want to reduce it further, our collector has features for that.  Again, the goal of our auto-instrumentation is to protect you from 
+If you want to reduce it further, our collector has features for that.  Again, our design goal is to protect you from 
 liability or exposure due to captured sensitive data.
 
 We use similar techniques for all other protocols/query/command mechanisms.  One exception is how we treat URLs.  We will by
@@ -61,7 +61,7 @@ attribute in the first place.  In pseudo-code:
 This work will affect all auto-instrumenting libraries, as well as any official (or recommended) manually wrapped libraries that are 
 produced as part of the ecosystem.  As appropriate to each such library, features designed to properly handle sensitive data should
 be highlighted in the documentation.  Sticking with the SQL example, for the Java auto library this could take the form of an additional column
-with a hyperlink to the documentation describing exactly what we do:
+on the "Supported Frameworks" table with a hyperlink to the documentation describing exactly what we do:
 
 | Library/Framework                                                                                    | Versions                       | Notes                                      |
 |------------------------------------------------------------------------------------------------------|--------------------------------|--------------------------------------------|
@@ -76,7 +76,7 @@ processing pipeline, which would use separate threads for its work).  For sql no
 further work on this issue may put pressure here.
 
 One drawback of this "safe by default" approach is that it puts a configuration burden on some users who are not handling sensitive data but
-want to have as much visibility as possible into their system.  Staying with the sql normalization theme however, the vast majority of sql in the world doesn't 
+want to have as much visibility as possible into their system.  Staying with the sql normalization example however, the vast majority of sql in the world doesn't 
 have different performance characteristics based on the exact values passed in, but on the number of them, or the complexity of the `WHERE` clauses, 
 the number of values in an `IN` list, presence of an index on fields, etc.
 
