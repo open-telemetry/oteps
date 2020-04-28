@@ -63,6 +63,8 @@ Cumulative measurements are those that report the current value of a sum.  Cumul
 
 Instantaneous measurements are those that report a non-additive measurement, one where it is not natural to compute a sum.  Instantaneous instruments are usually chosen when the distribution of values is of interest, not only the sum.
 
+The terms "Delta", "Cumulative", and "Instantaneous" as used in this proposal refer to measurement values passed to the Metric API.  The argument to an (additive) instrument with the Delta temporal quality is the change in a sum.  The argument to an (additive) instrument with the Cumulative temporal quality is itself a sum.  The argument to an instrument with the Instantaneous temporal quality is simply a value.  In the SDK specification, as measurements are aggregated and transformed for export, these terms will be used again, with the same meanings, to describe aggregates.
+
 ### Function names
 
 Synchronous delta instruments support an `Add()` function, signifying that they add to a sum and are not cumulative.
