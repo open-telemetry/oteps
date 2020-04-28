@@ -19,7 +19,7 @@ This proposal also repeats the current specification--and the justification--for
 
 The following table summarizes the final proposed standard instruments resulting from this set of proposals.  The columns are described in more detail below.
 
-| Existing name | **Standard name** | Instrument kind | Function name | Default aggregation | Measurement kind | Rate support (Monotonic) | Notes |
+| Existing name | **Standard name** | Instrument kind | Function name | Default aggregation | Temporal quality | Rate support (Monotonic) | Notes |
 | ------------- | ----------------------- | ----- | --------- | -------------- | ------------- | --- | ------------------------------------ |
 | Counter       | **Counter**             | Sync  | Add()     | Sum            | Delta         | Yes | Per-request, part of a monotonic sum |
 |               | **UpDownCounter**       | Sync  | Add()     | Sum            | Delta         | No  | Per-request, part of a non-monotonic sum |
@@ -79,7 +79,7 @@ The `UpDown-` forms of additive instrument are not suitable for aggregating rate
 
 Non-additive instruments can be used to derive a sum, meaning rate aggregation is possible when the values are non-negative. There is not a standard non-additive instrument with a non-negative refinement in the standard.
 
-### Defalt Aggregations
+### Default Aggregations
 
 Additive instruments use `Sum` aggregation by default, since by definition they are used when only the sum is of interest.
 
@@ -183,6 +183,14 @@ Consider how to report the (cumulative) size of a queue asynchronously.  Both `V
 The recommendation is to choose the instrument with the more-appropriate default aggregation.  If you are observing a queue size across a group of machines and the only thing you want to know is the aggregate queue size, use `SumObserver`.  If you are observing a queue size across a group of machines and you are interested in knowing the distribution of queue sizes across those machines, use `ValueObserver`.
 
 Other names considered: `GaugeObserver`, `LastValueObserver`, `DistributionObserver`.
+
+## Details Q&A
+
+### Why MinMaxSumCount for `ValueRecorder`, `ValueObserver`?
+
+There has been a question about the choice of `MinMaxSumCount` for the two non-additive instruments. The use of four values in the default aggregation for these instruments means that four values will be exported for these two instrument kinds.  The choice of Min, Max, Sum, and Count was intended to be an inexpensive default, but there is an even-more-minimal default aggregation we could choose.  The question was: Should "SumCount" be the default aggregation for these instruments?  The use of "SumCount" implies the ability to monitor the rate and the average, but not the range of values.
+
+This proposal continues to specify the use of MinMaxSumCount for these two instruments.  Our belief is that in cases where performance and cost are concerns, usually the is an additive instruments that can be applied to lower cost.  In the case of `ValueObserver`, consider using a `SumObserver` or `UpDownSumObserver`.  In the case of `ValueRecorder`, consider configuring a less expensive view of these instruments than the default.
 
 ## Open Questions
 
