@@ -1,17 +1,19 @@
 # Explain the metric instruments
 
-Propose and explain final names for the standard metric instruments theorized in [OTEP 88](https://github.com/open-telemetry/oteps/blob/master/text/0088-metric-instrument-optional-refinements.md) and address related confusion.
+Propose and explain final names for the standard metric instruments theorized in [OTEP 88][otep-88] and address related confusion.
+
+[otep-88]: https://github.com/open-telemetry/oteps/blob/master/text/0088-metric-instrument-optional-refinements.md
 
 ## Motivation
 
-[OTEP 88]() introduced a logical structure for metric instruments with two foundational categories of instrument, called "synchronous" vs. "asynchronous", named "Measure" and "Observer" in the abstract sense.  The proposal identified four kinds of "refinement" and mapped out the space of _possible_ instruments, while not proposing which would actually be included in the standard.
+[OTEP 88][otep-88] introduced a logical structure for metric instruments with two foundational categories of instrument, called "synchronous" vs. "asynchronous", named "Measure" and "Observer" in the abstract sense.  The proposal identified four kinds of "refinement" and mapped out the space of _possible_ instruments, while not proposing which would actually be included in the standard.
 
 [OTEP 93](https://github.com/open-telemetry/oteps/pull/93) proposed with a list of six standard instruments, the most necessary and useful combination of instrument refinements, plus one special case used to record timing measurements.  OTEP 93 was closed without merging after a more consistent approach to naming was uncovered.  [OTEP 96](https://github.com/open-telemetry/oteps/pull/96) made another proposal, that was closed in favor of this one after more debate surfaced.
 
 This proposal finalizes the naming proposal for the standard instruments, seeking to address core confusion related to the "Measure" and "Observer" terms:
 
-1. OTEP 88 stipulates that the terms currently in use to name synchronous and asynchronous instruments--"Measure" and "Observer"--become _abstract_ terms.  It also used phrases like "Measure-like" and "Observer-like" to discuss instruments with refinements.  This proposal states that we shall prefer the adjectives, commonly abbreviated "Sync" and "Async", when describing the kind of an instrument.  "Measure-like" means an instrument is synchronous.  "Observer-like" means that an instrument is asynchronous.
-2. There is inconsistency in the hypothetical naming scheme for instruments presented in OTEP 88.  Note that "Counter" and "Observer" end in "-er", a noun suffix used in the sense of "[person occupationally connected with](https://www.merriam-webster.com/dictionary/-er)", while the term "Measure" does not fit this pattern.  This proposal proposes to replace the abstract term "Measure" by "Recorder", since the associated function name (verb) is specified as `Record()`.
+1. [OTEP 88][otep-88] stipulates that the terms currently in use to name synchronous and asynchronous instruments--"Measure" and "Observer"--become _abstract_ terms.  It also used phrases like "Measure-like" and "Observer-like" to discuss instruments with refinements.  This proposal states that we shall prefer the adjectives, commonly abbreviated "Sync" and "Async", when describing the kind of an instrument.  "Measure-like" means an instrument is synchronous.  "Observer-like" means that an instrument is asynchronous.
+2. There is inconsistency in the hypothetical naming scheme for instruments presented in [OTEP 88][otep-88].  Note that "Counter" and "Observer" end in "-er", a noun suffix used in the sense of "[person occupationally connected with](https://www.merriam-webster.com/dictionary/-er)", while the term "Measure" does not fit this pattern.  This proposal proposes to replace the abstract term "Measure" by "Recorder", since the associated function name (verb) is specified as `Record()`.
 
 This proposal also repeats the current specification--and the justification--for the default aggregation of each standard instrument.
 
@@ -28,13 +30,13 @@ The following table summarizes the final proposed standard instruments resulting
 |               | **UpDownSumObserver**   | Async | Observe() | Sum            | Cumulative    | No  | Per-interval, reporting a non-monotonic sum |
 | Observer      | **ValueObserver**       | Async | Observe() | MinMaxSumCount | Instantaneous | No  | Per-interval, any non-additive measurement |
 
-There are three synchronous instruments and three asunchronous instruments in this proposal, although a hypothetical 10 instruments were discussed in [OTEP 88]().  Although we consider them rational and logical, two categories of instrument are excluded in this proposal: synchronous cumulative instruments and asynchronous delta instruments.
+There are three synchronous instruments and three asynchronous instruments in this proposal, although a hypothetical 10 instruments were discussed in [OTEP 88][otep-88].  Although we consider them rational and logical, two categories of instrument are excluded in this proposal: synchronous cumulative instruments and asynchronous delta instruments.
 
 Synchronous cumulative instruments are excluded from the standard based on the [OpenTelemetry library performance guidelines](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/performance.md).  To report a cumulative value correctly at runtime requires a degree of order dependence--thus synchronization--that OpenTelemetry API will not itself admit.  In a hypothetical example, if two actors both synchronously modify a sum and were to capture it using a synchronous cumulative metric event, the OpenTelemetry library would have to guarantee those measurements were processed in order.  The library guidelines do not support this level of synchronization; we cannot block for the sake of instrumentation, therefore we do not support synchronous cumulative instruments.
 
 Asynchronous delta instruments are excluded from the standard based on the lack of motivating examples, but we could also justify this as a desire to keep asynchronous callbacks stateless. An observer has to have memory in order to compute deltas; it is simpler for asynchronous code to report cumulative values.
 
-With six instruments in total, one may be curious--how does the historical Metrics API term _Gauge_ translate into this specification?  _Gauge_, in Metrics API terminology, may cover all of these instrument use-cases with the exception of `Counter`.  As defined in [OTEP 88](), the OpenTelemetry Metrics API will disambiguate these use-cases by requiring *single purpose instruments*.  The choice of instrument implies a default interpretation, a standard aggregation, and suggests how to treat Metric data in observability systems, out of the box.  Uses of `Gauge` translate into the various OpenTelemetry Metric instruments depending on what kind of values is being captured and whether the measurement is made synchronously or not.
+With six instruments in total, one may be curious--how does the historical Metrics API term _Gauge_ translate into this specification?  _Gauge_, in Metrics API terminology, may cover all of these instrument use-cases with the exception of `Counter`.  As defined in [OTEP 88][otep-88], the OpenTelemetry Metrics API will disambiguate these use-cases by requiring *single purpose instruments*.  The choice of instrument implies a default interpretation, a standard aggregation, and suggests how to treat Metric data in observability systems, out of the box.  Uses of `Gauge` translate into the various OpenTelemetry Metric instruments depending on what kind of values is being captured and whether the measurement is made synchronously or not.
 
 Summarizing the naming scheme:
 
@@ -43,9 +45,9 @@ Summarizing the naming scheme:
   - If synchronous and not monotonic, use `UpDownCounter` with arbitrary values
   - If asynchronous and a cumulative, monotonic sum is measured, use `SumObserver`
   - If asynchronous and a cumulative, arbitrary sum is measured, use `UpDownSumObserver`
-- If the measurements are non-additive or additive with an interest in the distribution, use event instrument:
+- If the measurements are non-additive or additive with an interest in the distribution, use an instantaneous instrument:
   - If synchronous, use `ValueRecorder` to record a value that is part of a distribution
-  - if asynchronous use `ValueObserver` to record a single measurement nearing the end of a collection interval.
+  - If asynchronous use `ValueObserver` to record a single measurement nearing the end of a collection interval.
 
 ### Sync vs Async instruments
 
@@ -200,13 +202,13 @@ There has been a question about labeling `ValueObserver` measurements with the t
 
 The purpose of defining the default aggregation, when there is only one measurement per interval, is to specify how values will be aggregated across multiple collection intervals.  When there is no aggregation being applied, the result of MinMaxSumCount aggregation for a single collection interval is a single measurement equal to the Min, the Max, and the Sum, as well as a Count equal to 1.  Before we apply aggregation to a `ValueObserver` measurement, we can clearly define it as an Intantaneous measurement.  A measurement, captured at an instant near the end of the collection interval, is neither a cumulative nor a delta with respect to the prior collection interval.
 
-OTEP 88 discusses the Last Value relationship to help address this question.  After capturing a single `ValueObserver` measurement for a given instrument and label set, that measurement becomes the Last value associated with that instrument until the next measurement is taken.
+[OTEP 88][otep-88] discusses the Last Value relationship to help address this question.  After capturing a single `ValueObserver` measurement for a given instrument and label set, that measurement becomes the Last value associated with that instrument until the next measurement is taken.
 
 To aggregate `ValueObserver` measurements across spatial dimensions means to combine last values into a distribution at an effective moment in time.  MinMaxSumCount aggregation, in this case, means computing the Min and Max values, the measurement sum, and the count of distinct label sets that contributed measurements.  The aggregated result is considered instantaneous: it may have been computed using data points from different machines, potentially using different collection intervals.  The aggregate value must be considered approximate, with respect to time, since it averages the results from uncoordinated collection intervals.  We may have combined the last-value from a 1-minute collection interval with the last-value from a 10-second collection interval: the result is an instantaneous summary of the distribution across spatial dimensions.
 
 Aggregating `ValueObserver` measurements across the time dimension for a given instrument and label set yields a set of measurements that were taken across a span of time, but this does not automatically lead us to consider them delta measurements.  If we aggregate 10 consecutive collection intervals for a given label set, what we have is distribution of instantaneous measurements with Count equal to 10, with the Min, Max and Sum serving to convey the average value and the range of values present in the distribution.  The result is a time-averaged distribution of instantaneous measurements.
 
-Whether aggregating across time or space, it has been argued, the result of a `ValueObserver` instrument is has the Instantaneous temporal quality.
+Whether aggregating across time or space, it has been argued, the result of a `ValueObserver` instrument has the Instantaneous temporal quality.
 
 #### Temporal and spatial aggregation of `ValueObserver` measurements
 
@@ -223,7 +225,7 @@ Steps 2 and 3 ensure that measurements taken less frequently have equal represen
 
 ### Timing instrument
 
-One potentially important special-purpose instrument, found in some metrics APIs, is a dedicated instrument for reporting timings.  The rationale is that when reporting timings, getting the units right is important and often not easy.  Many programming languages use a different type to represent time or a difference between times.  To correctly report a timing distribution in OpenTelemetry requires using a `ValueRecorder` but also configuring it for the units output by the clock that was used.
+One potentially important special-purpose instrument, found in some metrics APIs, is a dedicated instrument for reporting timings.  The rationale is that when reporting timings, getting the units right is important and often not easy.  Many programming languages use a different type to represent time or a difference between times.  To correctly report a timing distribution, OpenTelemetry requires using a `ValueRecorder` but also configuring it for the units output by the clock that was used.
 
 In the past, a proposal to create a dedicated `TimingValueRecorder` instrument was rejected.  This instrument would be identical to a `ValueRecorder`, but its `Record()` method would be specialized for the correct type used to represent a duration, so that the units could be set correctly and automatically.  A related pattern is a `Timer` or `StopWatch` instrument, one responsible for both measuring and capturing a timing.  
 
@@ -233,7 +235,7 @@ This may be revisited in the future.
 
 ### Synchronous cumulative and asynchronous delta helpers
 
-A cumulative measurement can be converted into delta measurement by remember the last-reported value.  A helper instrument could offer to emulate synchronous cumulative measurements by remembering the last-reported value and reporting deltas synchronously.
+A cumulative measurement can be converted into delta measurement by remembering the last-reported value.  A helper instrument could offer to emulate synchronous cumulative measurements by remembering the last-reported value and reporting deltas synchronously.
 
 A delta measurement can be converted into a cumluative measurement by remembering the sum of all reported values.  A helper instrument could offer to emulate asynchronous delta measurements in this way. 
 
