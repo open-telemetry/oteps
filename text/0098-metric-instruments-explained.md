@@ -38,7 +38,7 @@ With six instruments in total, one may be curious--how does the historical Metri
 
 Summarizing the naming scheme:
 
-- If you've measured an amount of something that adds up to a total, where you are mainly interested in that total, use one of the additive instrument:
+- If you've measured an amount of something that adds up to a total, where you are mainly interested in that total, use one of the additive instruments:
   - If synchronous and monotonic, use `Counter` with non-negative values
   - If synchronous and not monotonic, use `UpDownCounter` with arbitrary values
   - If asynchronous and a cumulative, monotonic sum is measured, use `SumObserver`
@@ -77,7 +77,7 @@ Rate aggregation is supported for Counter and SumObserver instruments in the def
 
 The `UpDown-` forms of additive instrument are not suitable for aggregating rates because the up- and down-changes in state may cancel each other. 
 
-Non-additive instruments can be used to derive sum, meaning rate aggregation is possible when the values are non-negative. There is not a standard non-additive instrument with a non-negative refinement in the standard.
+Non-additive instruments can be used to derive a sum, meaning rate aggregation is possible when the values are non-negative. There is not a standard non-additive instrument with a non-negative refinement in the standard.
 
 ### Defalt Aggregations
 
@@ -161,6 +161,7 @@ Other names considered: `CumulativeObserver`.
 Example uses for `SumObserver`.
 - capture process heap size
 - capture number of active shards
+- capture number of requests started/completed
 - capture current queue size.
 
 The same considerations mentioned for choosing `SumObserver` over the synchronous `Counter` apply for choosing `UpDownSumObserver` over the synchronous `UpDownCounter`.  If a measurement is expensive to compute, or if the corresponding delta events happen so frequently that it would be impractical to instrument them, use a `UpDownSumObserver`.
