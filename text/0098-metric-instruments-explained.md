@@ -20,7 +20,7 @@ This proposal also repeats the current specification--and the justification--for
 The following table summarizes the final proposed standard instruments resulting from this set of proposals.  The columns are described in more detail below.
 
 | Existing name | **Standard name** | Instrument kind | Function name | Default aggregation | Measurement kind | Rate support (Monotonic) | Notes |
-| ------------- | ----------------------- | ----- | --------- | -------------- | ------------- | --- | ------------------------------------ | --- |
+| ------------- | ----------------------- | ----- | --------- | -------------- | ------------- | --- | ------------------------------------ |
 | Counter       | **Counter**             | Sync  | Add()     | Sum            | Delta         | Yes | Per-request, part of a monotonic sum |
 |               | **UpDownCounter**       | Sync  | Add()     | Sum            | Delta         | No  | Per-request, part of a non-monotonic sum |
 | Measure       | **ValueRecorder**       | Sync  | Record()  | MinMaxSumCount | Instantaneous | No  | Per-request, any non-additive measurement |
@@ -118,24 +118,27 @@ Other names considered: `NonMonotonicCounter`.
 
 ### ValueRecorder
 
-`ValueRecorder` is a non-additive synchronous instrument useful for recording any non-additive number, positive or negative.  Values captured by a `ValueRecorder` are treated as individual events belonging to a distribution that is being summarized.  `ValueRecorder` should be chosen when capturing measurements that do not contribute meaningfully to a sum.
+`ValueRecorder` is a non-additive synchronous instrument useful for recording any non-additive number, positive or negative.  Values captured by a `ValueRecorder` are treated as individual events belonging to a distribution that is being summarized.  `ValueRecorder` should be chosen either when capturing measurements that do not contribute meaningfully to a sum, or when capturing numbers that are additive in nature, but where the distribution of individual increments is considered interesting.
 
 One of the most common uses for `ValueRecorder` is to capture latency measurements.  Latency measurements are not additive in the sense that there is little need to know the latency-sum of all processed requests.  We use a `ValueRecorder` instrument to capture latency measurements typically because we are interested in knowing mean, median, and other summary statistics about individual events.
 
-The default aggregation for `ValueRecorder` computes the minimum and maximum values, the sum of event values, and the count of events, allowing the rate and range of input values to be monitored.
+The default aggregation for `ValueRecorder` computes the minimum and maximum values, the sum of event values, and the count of events, allowing the rate, the mean, and and range of input values to be monitored.
 
 Example uses for `ValueRecorder` that are non-additive:
-- capture any kind of timing information.
+- capture any kind of timing information
+- capture the acceleration experienced by a pilot
+- capture nozzle pressure of a fuel injector
+- capture the velocity of a MIDI key-press.
 
-Example _additive_ uses of `ValueRecorder` capture measurements that are cumulative or delta values, by nature.  These are recommended `ValueRecorder` applications, as opposed to the hypothetical synthronous cumulative instrument:
+Example _additive_ uses of `ValueRecorder` capture measurements that are cumulative or delta values, but where we may have an interest in the distribution of values and not only the sum:
 - capture a request size
 - capture an account balance
 - capture a queue length
 - capture a number of board feet of lumber.
 
-These examples show that although they are additive in nature, choosing `ValueRecorder` as opposed to `Counter` or `UpDownCounter` implies an interest in more than the sum.  If you did not care to collect information about the distribution, you would have chosen one of the additive instruments instead.  Using `ValueRecorder` makes sense for distributions that are likely to be important, in an observability setting.
+These examples show that although they are additive in nature, choosing `ValueRecorder` as opposed to `Counter` or `UpDownCounter` implies an interest in more than the sum.  If you did not care to collect information about the distribution, you would have chosen one of the additive instruments instead.  Using `ValueRecorder` makes sense for distributions that are likely to be important in an observability setting.
 
-Use these with caution because they naturally cost more than capturing additive measurements.
+Use these with caution because they naturally cost more than the use of additive measurements.
 
 ### SumObserver
 
@@ -158,15 +161,18 @@ Example uses for `SumObserver`.
 ...
 
 Example uses for `SumObserver`.
-- CPU fan speed
-- CPU temperature
+- capture CPU fan speed
+- capture CPU temperature
+- capture input queue length
 
 ## Open Questions
 
 Helpers:
 
-- A timing-specific ValueRecorder?
-- A synchronous cumulative?
+- A timing-specific ValueRecorder
+- A synchronous cumulative
+- Current bandwidth allocation
+
 
 
 
