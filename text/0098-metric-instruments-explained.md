@@ -158,7 +158,7 @@ Other names considered: `CumulativeObserver`.
 
 `UpDownSumObserver` is the asynchronous instrument corresponding to `UpDownCounter`, used to capture a non-monotonic count.  "Sum" appears in the name to remind users that it is a cumulative instrument.  Use a `UpDownSumObserver` to capture any value that starts at zero and rises or falls throughout the process lifetime.
 
-Example uses for `SumObserver`.
+Example uses for `UpDownSumObserver`.
 - capture process heap size
 - capture number of active shards
 - capture number of requests started/completed
@@ -172,7 +172,7 @@ Other names considered: `UpDownCumulativeObserver`.
 
 `ValueObserver` is the asynchronous instrument corresponding to `ValueRecorder`, used to capture non-additive measurements that are expensive to compute and/or are not request-oriented.  
 
-Example uses for `SumObserver`:
+Example uses for `ValueObserver`:
 - capture CPU fan speed
 - capture CPU temperature.
 
