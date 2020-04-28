@@ -180,7 +180,7 @@ Note that these examples use non-additive measurements.  In the `ValueRecorder` 
 
 Consider how to report the (cumulative) size of a queue asynchronously.  Both `ValueObserver` and `UpDownSumObserver` logically apply in this case.  Asynchronous instruments capture only one measurement per interval, so in this example the `SumObserver` reports a current sum, while the `ValueObserver` reports a current sum (equal to the max and the min) and a count equal to 1.  When there is no aggregation, these results are equivalent.
 
-The recommendation is to choose the instrument with the more-appropriate default aggregation.  If you are observing a queue size across a group of machines and the only thing you want to know is the aggregation queue size, use `SumObserver`.  If you are observing a queue size across a group of machines and you are interested in knowing the distribution of queue sizes across those machines, use `ValueObserver`.
+The recommendation is to choose the instrument with the more-appropriate default aggregation.  If you are observing a queue size across a group of machines and the only thing you want to know is the aggregate queue size, use `SumObserver`.  If you are observing a queue size across a group of machines and you are interested in knowing the distribution of queue sizes across those machines, use `ValueObserver`.
 
 Other names considered: `GaugeObserver`, `LastValueObserver`, `DistributionObserver`.
 
@@ -188,7 +188,7 @@ Other names considered: `GaugeObserver`, `LastValueObserver`, `DistributionObser
 
 ### Timing instrument
 
-One potentially important special-purpose instrument, found in some metrics APIs, is a dedicated instrument for reporting timings.  The rationale is that when reporting timings, getting the units right is important and often not easy.  Many programming languages use a different type to represent time or a difference between times.  To correctly report a timing metric in OpenTelemetry requires choosing using a `ValueRecorder` but also configuring it for the units output by the clock in use.  
+One potentially important special-purpose instrument, found in some metrics APIs, is a dedicated instrument for reporting timings.  The rationale is that when reporting timings, getting the units right is important and often not easy.  Many programming languages use a different type to represent time or a difference between times.  To correctly report a timing distribution in OpenTelemetry requires using a `ValueRecorder` but also configuring it for the units output by the clock that was used.
 
 In the past, a proposal to create a dedicated `TimingValueRecorder` instrument was rejected.  This instrument would be identical to a `ValueRecorder`, but its `Record()` method would be specialized for the correct type used to represent a duration, so that the units could be set correctly and automatically.  A related pattern is a `Timer` or `StopWatch` instrument, one responsible for both measuring and capturing a timing.  
 
