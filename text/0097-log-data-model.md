@@ -7,36 +7,39 @@ Introduce Data Model for Log Records as it is understood by OpenTelemetry.
   * [Requirements](#requirements)
   * [Field Kinds](#field-kinds)
 * [Log and Event Record Definition](#log-and-event-record-definition)
-  * [Field: `timestamp`](#field-timestamp)
+  * [Field: `Timestamp`](#field-timestamp)
   * [Trace Context Fields](#trace-context-fields)
-    * [Field: `trace_id`](#field-traceid)
-    * [Field: `span_id`](#field-spanid)
-    * [Field: `trace_flags`](#field-traceflags)
+    * [Field: `TraceId`](#field-traceid)
+    * [Field: `SpanId`](#field-spanid)
+    * [Field: `TraceFlags`](#field-traceflags)
   * [Severity Fields](#severity-fields)
-    * [Field: `severity_text`](#field-severitytext)
-    * [Field: `severity_number`](#field-severitynumber)
+    * [Field: `SeverityText`](#field-severitytext)
+    * [Field: `SeverityNumber`](#field-severitynumber)
+    * [Mapping of `SeverityNumber`](#mapping-of-severitynumber)
+    * [Reverse Mapping](#reverse-mapping)
+    * [Error Semantics](#error-semantics)
     * [Displaying Severity](#displaying-severity)
     * [Comparing Severity](#comparing-severity)
-  * [Field: `short_name`](#field-shortname)
-  * [Field: `body`](#field-body)
-  * [Field: `resource`](#field-resource)
-  * [Field: `attributes`](#field-attributes)
+  * [Field: `ShortName`](#field-shortname)
+  * [Field: `Body`](#field-body)
+  * [Field: `Resource`](#field-resource)
+  * [Field: `Attributes`](#field-attributes)
 * [Example Log Records](#example-log-records)
 * [Open Questions](#open-questions)
 * [Alternate Design](#alternate-design)
 * [Prior Art](#prior-art)
   * [RFC5424 Syslog](#rfc5424-syslog)
   * [Fluentd Forward Protocol Model](#fluentd-forward-protocol-model)
-* [Appendix A. Example Mappings.](#appendix-a-example-mappings)
+* [Appendix A. Example Mappings](#appendix-a-example-mappings)
   * [RFC5424 Syslog](#rfc5424-syslog-1)
   * [Windows Event Log](#windows-event-log)
   * [SignalFx Events](#signalfx-events)
   * [Splunk HEC](#splunk-hec)
   * [Log4j](#log4j)
   * [Zap](#zap)
-  * [Apache](#apache)
+  * [Apache HTTP Server access log](#apache-http-server-access-log)
   * [CloudTrail Log Event](#cloudtrail-log-event)
-* [Appendix B: `severity_number` example mappings.](#appendix-b-severitynumber-example-mappings)
+* [Appendix B: `SeverityNumber` example mappings](#appendix-b-severitynumber-example-mappings)
 * [References](#references)
 
 ## Motivation
@@ -50,6 +53,12 @@ extent that the target log format has equivalent capabilities.
 The purpose of the data model is to have a common understanding of what a log
 record is, what data needs to be recorded, transferred, stored and interpreted
 by a logging system.
+
+This proposal defines a data model for [Standalone
+Logs](https://github.com/open-telemetry/oteps/blob/master/text/logs/0091-logs-vocabulary.md#standalone-log).
+Relevant parts of it may be adopted for
+[Embedded Logs](https://github.com/open-telemetry/oteps/blob/master/text/logs/0091-logs-vocabulary.md#embedded-log)
+in a future OTEP.
 
 ## Design Notes
 
@@ -106,7 +115,7 @@ fields:
   of different types. The keys and values for well-known fields follow semantic
   conventions for key names and possible values that allow all parties that work
   with the field to have the same interpretation of the data. See references to
-  semantic conventions for `resource` and `attributes` fields and examples in
+  semantic conventions for `Resource` and `Attributes` fields and examples in
   [Appendix A](#appendix-a-example-mappings).
 
 The reasons for having these 2 kinds of fields are:
@@ -126,9 +135,9 @@ When designing this data model I followed the following reasoning to make a
 decision about when to use use a top-level named field:
 
 - The field needs to be either mandatory for all records or be frequently
-  present in well-known log and event formats (such as `timestamp`) or is
+  present in well-known log and event formats (such as `Timestamp`) or is
   expected to be often present in log records in upcoming logging systems (such
-  as `trace_id`).
+  as `TraceId`).
 
 - The field’s semantics must be the same for all known log and event formats and
   can be mapped directly and unambiguously to this data model.
@@ -149,97 +158,98 @@ about the meaning of the field reviewing the examples may be helpful.
 
 Here is the list of fields in a log record:
 
-Field Name     |
----------------|
-timestamp      |
-trace_id       |
-span_id        |
-trace_flags    |
-severity_text  |
-severity_number|
-short_name     |
-body           |
-resource       |
-attributes     |
+Field Name     |Description
+---------------|--------------------------------------------
+Timestamp      |Time when the event occurred.
+TraceId        |Request trace id.
+SpanId         |Request span id.
+TraceFlags     |W3C trace flag.
+SeverityText   |The severity text (also known as log level).
+SeverityNumber |Numerical value of the severity.
+ShortName      |Short event identifier.
+Body           |The body of the log record.
+Resource       |Describes the source of the log.
+Attributes     |Additional information about the event.
 
 Below is the detailed description of each field.
 
-### Field: `timestamp`
+### Field: `Timestamp`
 
-Type: Timestamp, uint64 nanosecods since Unix epoch.
+Type: Timestamp, uint64 nanoseconds since Unix epoch.
 
 Description: Time when the event occurred measured by the origin clock. This
 field is optional, it may be missing the timestamp is unknown.
 
 ### Trace Context Fields
 
-#### Field: `trace_id`
+#### Field: `TraceId`
 
 Type: byte sequence.
 
-Description: Optional request trace id. Can be set for logs that are part of
-request processing and have an assigned trace id.
+Description: Optional request trace id as defined in
+[W3C Trace Context](https://www.w3.org/TR/trace-context/#trace-id). Can be set
+for logs that are part of request processing and have an assigned trace id.
 
-#### Field: `span_id`
+#### Field: `SpanId`
 
 Type: byte sequence.
 
 Description: Optional span id. Can be set for logs that are part of a particular
-processing span. If span_id is present trace_id SHOULD be also present.
+processing span. If SpanId is present TraceId SHOULD be also present.
 
-#### Field: `trace_flags`
+#### Field: `TraceFlags`
 
 Type: byte.
 
 Description: Optional trace flag as defined in
-[W3C trace context](https://www.w3.org/TR/trace-context/#trace-flags)
+[W3C Trace Context](https://www.w3.org/TR/trace-context/#trace-flags)
 specification. At the time of writing the specification defines one flag - the
 SAMPLED flag.
 
 ### Severity Fields
 
-#### Field: `severity_text`
+#### Field: `SeverityText`
 
 Type: string.
 
 Description: the severity text (also known as log level). This is an optional
 field and is the original string representation as it is known at the source. If
-this field is missing and `severity_number` is present then the short name that
-corresponds to the `severity_number` can be used as a substitution.
+this field is missing and `SeverityNumber` is present then the short name that
+corresponds to the `SeverityNumber` can be used as a substitution.
 
-#### Field: `severity_number`
+#### Field: `SeverityNumber`
 
 Type: number.
 
 Description: numerical value of the severity, normalized to values described in
-this document. This is an optional field. If `severity_number` is missing and
-severity_text is present then it may be assumed that `severity_number` is equal
+this document. This is an optional field. If `SeverityNumber` is missing and
+SeverityText is present then it may be assumed that `SeverityNumber` is equal
 to INFO (numeric 9) (see the meaning below).
 
-`severity_number` is an integer number. Smaller numerical values correspond to
+`SeverityNumber` is an integer number. Smaller numerical values correspond to
 less severe events (such as debug events), larger numerical values correspond to
 more severe events (such as errors and critical events). The following table
-defines the meaning of `severity_number` value:
+defines the meaning of `SeverityNumber` value:
 
-severity_number range|Range name|Meaning
----------------------|----------|-------
-1-4                  |TRACE     |A fine-grained debugging event. Typically disabled in default configurations.
-5-8                  |DEBUG     |A debugging event.
-9-12                 |INFO      |An informational event. Indicates that an event happened.
-13-16                |WARN      |A warning event. Not an error but is likely more important than an informational event.
-17-20                |ERROR     |An error event. Something went wrong.
-21-24                |FATAL     |A fatal error such as application or system crash.
+SeverityNumber range|Range name|Meaning
+--------------------|----------|-------
+1-4                 |TRACE     |A fine-grained debugging event. Typically disabled in default configurations.
+5-8                 |DEBUG     |A debugging event.
+9-12                |INFO      |An informational event. Indicates that an event happened.
+13-16               |WARN      |A warning event. Not an error but is likely more important than an informational event.
+17-20               |ERROR     |An error event. Something went wrong.
+21-24               |FATAL     |A fatal error such as application or system crash.
 
 Smaller numerical values in each range represent less important (less severe)
 events. Larger numerical values in each range represent more important (more
-severe) events. For example `severity_number=17` describes an error that is less
-critical than an error with `severity_number=20`.
+severe) events. For example `SeverityNumber=17` describes an error that is less
+critical than an error with `SeverityNumber=20`.
 
-*Mapping of `severity_number`*
+#### Mapping of `SeverityNumber`
 
 Mappings from existing logging systems and formats (or **source format** for
 short) must define how severity (or log level) of that particular format
-corresponds to `severity_number` of this data model based on the meaning given
+corresponds to `SeverityNumber` of this data model based on the meaning given
 for each range in the above table.
 
 If the source format has more than one severity that matches a single range in
@@ -249,7 +259,7 @@ is.
 
 For example if the source format defines "Error" and "Critical" as error events
 and "Critical" is a more important and more severe situation then we can choose
-the following `severity_number` values for the mapping: "Error"->17,
+the following `SeverityNumber` values for the mapping: "Error"->17,
 "Critical"->18.
 
 If the source format has only a single severity that matches the meaning of the
@@ -258,28 +268,28 @@ range.
 
 For example if the source format has an "Informational" log level and no other
 log levels with similar meaning then it is recommended to use
-`severity_number=9` for "Informational".
+`SeverityNumber=9` for "Informational".
 
 Source formats that do not define a concept of severity or log level MAY omit
-`severity_number` and `severity_text` fields. Backend and UI may represent log
+`SeverityNumber` and `SeverityText` fields. Backend and UI may represent log
 records with missing severity information distinctly or may interpret log
-records with missing `severity_number` and `severity_text` fields as if the
-`severity_number` was set equal to INFO (numeric value of 9).
+records with missing `SeverityNumber` and `SeverityText` fields as if the
+`SeverityNumber` was set equal to INFO (numeric value of 9).
 
-*Reverse Mapping*
+#### Reverse Mapping
 
-When performing a reverse mapping from `severity_number` to a specific format
-and the `severity_number` has no corresponding mapping entry for that format
+When performing a reverse mapping from `SeverityNumber` to a specific format
+and the `SeverityNumber` has no corresponding mapping entry for that format
 then it is recommended to choose the target severity that is in the same
 severity range and is closest numerically.
 
 For example Zap has only one severity in the INFO range, called "Info". When
-doing reverse mapping all `severity_number` values in INFO range (numeric 9-12)
+doing reverse mapping all `SeverityNumber` values in INFO range (numeric 9-12)
 will be mapped to Zap’s "Info" level.
 
-*Error Semantics*
+#### Error Semantics
 
-If `severity_number` is present and has a value of ERROR (numeric 17) or higher
+If `SeverityNumber` is present and has a value of ERROR (numeric 17) or higher
 then it is an indication that the log record represents an erroneous situation.
 It is up to the reader of this value to make a decision on how to use this fact
 (e.g. UIs may display such errors in a different color or have a feature to find
@@ -287,53 +297,53 @@ all erroneous log records).
 
 If the log record represents an erroneous event and the source format does not
 define a severity or log level concept then it is recommended to set
-`severity_number` to ERROR (numeric 17) during the mapping process. If the log
-record represents a non-erroneous event the `severity_number` field may be
+`SeverityNumber` to ERROR (numeric 17) during the mapping process. If the log
+record represents a non-erroneous event the `SeverityNumber` field may be
 omitted or may be set to any numeric value less than ERROR (numeric 17). The
 recommended value in this case is INFO (numeric 9). See
 [Appendix B](#appendix-b-severitynumber-example-mappings) for more mapping
 examples.
 
-#### Displaying Severity 
+#### Displaying Severity
 
 The following table defines the recommended short name for each
-`severity_number` value. The hosrt name can be used for example for representing
-the `severity_number` in the UI:
+`SeverityNumber` value. The short name can be used for example for representing
+the `SeverityNumber` in the UI:
 
-severity_number|Short Name
----------------|----------
-1              |TRACE
-2              |TRACE2
-3              |TRACE3
-4              |TRACE4
-5              |DEBUG
-6              |DEBUG2
-7              |DEBUG3
-8              |DEBUG4
-9              |INFO
-10             |INFO2
-11             |INFO3
-12             |INFO4
-13             |WARN
-14             |WARN2
-15             |WARN3
-16             |WARN4
-17             |ERROR
-18             |ERROR2
-19             |ERROR3
-20             |ERROR4
-21             |FATAL
-22             |FATAL2
-23             |FATAL3
-24             |FATAL4
+SeverityNumber|Short Name
+--------------|----------
+1             |TRACE
+2             |TRACE2
+3             |TRACE3
+4             |TRACE4
+5             |DEBUG
+6             |DEBUG2
+7             |DEBUG3
+8             |DEBUG4
+9             |INFO
+10            |INFO2
+11            |INFO3
+12            |INFO4
+13            |WARN
+14            |WARN2
+15            |WARN3
+16            |WARN4
+17            |ERROR
+18            |ERROR2
+19            |ERROR3
+20            |ERROR4
+21            |FATAL
+22            |FATAL2
+23            |FATAL3
+24            |FATAL4
 
 When an individual log record is displayed it is recommended to show both
-`severity_text` and `severity_number` values. A recommended combined string in
-this case begins with the short name followed by `severity_text` in parenthesis.
+`SeverityText` and `SeverityNumber` values. A recommended combined string in
+this case begins with the short name followed by `SeverityText` in parenthesis.
 
 For example "Informational" Syslog record will be displayed as **INFO
-(Informational)**. When for a particular log record the `severity_number` is
-defined but the `severity_text` is missing it is recommended to only show the
+(Informational)**. When for a particular log record the `SeverityNumber` is
+defined but the `SeverityText` is missing it is recommended to only show the
 short name, e.g. **INFO**.
 
 When drop down lists (or other UI elements that are intended to represent the
@@ -342,36 +352,36 @@ to display the short name in such UI elements.
 
 For example a dropdown list of severities that allows filtering log records by
 severities is likely to be more usable if it contains the short names of
-`severity_number` (and thus has a limited upper bound of elements) compared to a
-dropdown list, which lists all distinct `severity_text` values that are known to
+`SeverityNumber` (and thus has a limited upper bound of elements) compared to a
+dropdown list, which lists all distinct `SeverityText` values that are known to
 the system (which can be a large number of elements, often differing only in
 capitalization or abbreviated, e.g. "Info" vs "Information").
 
 #### Comparing Severity
 
 In the contexts where severity participates less-than / greater-than comparisons
-`severity_number` field should be used. `severity_number` can be compared to
-another `severity_number` or to numbers in the 1..24 range (or to the
+`SeverityNumber` field should be used. `SeverityNumber` can be compared to
+another `SeverityNumber` or to numbers in the 1..24 range (or to the
 corresponding short names).
 
 When severity is used in equality or inequality comparisons (for example in
-filters in the UIs) the recommendation is to attempt to use both `severity_text`
-and short name of `severity_number` to perform matches. For example if we have a
-record with `severity_text` field equal to "Informational" and `severity_number`
+filters in the UIs) the recommendation is to attempt to use both `SeverityText`
+and short name of `SeverityNumber` to perform matches. For example if we have a
+record with `SeverityText` field equal to "Informational" and `SeverityNumber`
 field equal to INFO then it may be preferable from the user experience
 perspective to ensure that **severity="Informational"** and **severity="INFO"**
 conditions both to are TRUE for that record.
 
-### Field: `short_name`
+### Field: `ShortName`
 
 Type: string.
 
 Description: Short event identifier that does not contain varying parts.
-`short_name` describes what happened (e.g. "ProcessStarted"). Recommended to be
+`ShortName` describes what happened (e.g. "ProcessStarted"). Recommended to be
 no longer than 50 characters. Optional. Not guaranteed to be unique in any way.
 Typically used for filtering and grouping purposes in backends.
 
-### Field: `body`
+### Field: `Body`
 
 Type: any.
 
@@ -381,7 +391,7 @@ of `any` type above). Can be for example a human-readable string message
 structured data composed of arrays and maps of other values. Can vary for each
 occurrence of the event coming from the same source.
 
-### Field: `resource`
+### Field: `Resource`
 
 Type: key/value pair list.
 
@@ -389,20 +399,20 @@ Description: Describes the source of the log, aka
 [resource](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/overview.md#resources).
 "value" of each pair is of `any` type. Multiple occurrences of events coming
 from the same event source can happen across time and they all have the same
-value of `resource`. Can contain for example information about the application
+value of `Resource`. Can contain for example information about the application
 that emits the record or about the infrastructure where the application runs.
 Data formats that represent this data model may be designed in a manner that
-allows the `resource` field to be recorded only once per batch of log records
+allows the `Resource` field to be recorded only once per batch of log records
 that come from the same source. SHOULD follow OpenTelemetry
 [semantic conventions for Resources](https://github.com/open-telemetry/opentelemetry-specification/tree/master/specification/resource/semantic_conventions).
 
-### Field: `attributes`
+### Field: `Attributes`
 
 Type: key/value pair list.
 
 Description: Additional information about the specific event occurrence. "value"
-of each pair is of `any` type. Unlike the `resource` field, which is fixed for a
-particular source, `attributes` can vary for each occurrence of the event coming
+of each pair is of `any` type. Unlike the `Resource` field, which is fixed for a
+particular source, `Attributes` can vary for each occurrence of the event coming
 from the same source. Can contain information about the request context (other
 than TraceId/SpanId). SHOULD follow OpenTelemetry
 [semantic conventions for Attributes](https://github.com/open-telemetry/opentelemetry-specification/tree/master/specification/trace/semantic_conventions).
@@ -419,35 +429,36 @@ records may be represented as msgpack, JSON, Protocol Buffer messages, etc).
 
 Example 1
 
-```json
+```javascript
 {
-  "timestamp": 1586960586000, // JSON needs to make a decision about 
+  "Timestamp": 1586960586000, // JSON needs to make a decision about
                               // how to represent nanoseconds.
-  "attributes": {
+  "Attributes": {
     "http.status_code": 500,
     "http.url": "http://example.com",
     "my.custom.application.tag": "hello",
   },
-  "resource": {
+  "Resource": {
     "service.name": "donut_shop",
     "service.version": "semver:2.0.0",
     "k8s.pod.uid": "1138528c-c36e-11e9-a1a7-42010a800198",
   },
-  "trace_id": "f4dbb3edd765f620", // this is a byte sequence 
+  "TraceId": "f4dbb3edd765f620", // this is a byte sequence
                                   // (hex-encoded in JSON)
-  "span_id": "43222c2d51a7abe3",
-  "severity": "INFO",
-  "body": "20200415T072306-0700 INFO I like donuts"
+  "SpanId": "43222c2d51a7abe3",
+  "SeverityText": "INFO",
+  "SeverityNumber": 9,
+  "Body": "20200415T072306-0700 INFO I like donuts"
 }
 ```
 
 Example 2
 
-```json
+```javascript
 {
-  "timestamp": 1586960586000,
+  "Timestamp": 1586960586000,
   ...
-  "body": {
+  "Body": {
     "i": "am",
     "an": "event",
     "of": {
@@ -457,15 +468,32 @@ Example 2
 }
 ```
 
+Example 3
+
+```javascript
+{
+   "Timestamp": 1586960586000,
+   "Attributes":{
+      "http.scheme":"https",
+      "http.host":"donut.mycie.com",
+      "http.target":"/order",
+      "http.method":"post",
+      "http.status_code":500,
+      "http.flavor":"1.1",
+      "http.user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
+   }
+}
+```
+
 ## Open Questions
 
 - Should we store entire
   [W3C Trace Context](https://www.w3.org/TR/trace-context/), including
-  `traceparent` and `tracestate` fields instead of only `trace_flags`?
+  `traceparent` and `tracestate` fields instead of only `TraceFlags`?
   
-- Is `severity_text`/`severity_number` fields design good enough?
+- Is `SeverityText`/`SeverityNumber` fields design good enough?
 
-- Early draft of this proposal specified that `timestamp` should be populated
+- Early draft of this proposal specified that `Timestamp` should be populated
   from a monotonic, NTP-synchronized source. I removed this requirement to avoid
   confusion. Do we need any requirements for timestamp sources?
 
@@ -518,10 +546,10 @@ some drawbacks:
   values. This lack of any naming convention or standardization of key/value
   pairs makes interoperability difficult.
 
-## Appendix A. Example Mappings.
+## Appendix A. Example Mappings
 
-This section contains examples of mapping of legacy events and logs formats to
-the new universal data model.
+This section contains examples of mapping of other events and logs formats to
+this data model.
 
 ### RFC5424 Syslog
 
@@ -601,7 +629,6 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
   </tr>
 </table>
 
-
 ### Windows Event Log
 
 <table>
@@ -649,7 +676,6 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
   </tr>
 </table>
 
-
 ### SignalFx Events
 
 <table>
@@ -690,7 +716,6 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
     <td>attributes</td>
   </tr>
 </table>
-
 
 ### Splunk HEC
 
@@ -751,7 +776,6 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
   </tr>
 </table>
 
-
 ### Log4j
 
 <table>
@@ -786,7 +810,6 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
     <td>attributes</td>
   </tr>
 </table>
-
 
 ### Zap
 
@@ -830,8 +853,7 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
   </tr>
 </table>
 
-
-### Apache
+### Apache HTTP Server access log
 
 <table>
   <tr>
@@ -890,7 +912,6 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
   </tr>
 </table>
 
-
 ### CloudTrail Log Event
 
 <table>
@@ -944,25 +965,24 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
   </tr>
 </table>
 
+## Appendix B: `SeverityNumber` example mappings
 
-## Appendix B: `severity_number` example mappings.
-
-|Syslog       |WinEvtLog  |Log4j |Zap   |severity_number|
-|-------------|-----------|------|------|---------------|
-|             |           |TRACE |      |TRACE          |
-|Debug        |Verbose    |DEBUG |Debug |DEBUG          |
-|Informational|Information|INFO  |Info  |INFO           |
-|Notice       |           |      |      |INFO2          |
-|Warning      |Warning    |WARN  |Warn  |WARN           |
-|Error        |Error      |ERROR |Error |ERROR          |
-|Critical     |Critical   |      |Dpanic|ERROR2         |
-|             |           |      |Panic |ERROR3         |
-|Alert        |           |FATAL |Fatal |FATAL          |
+|Syslog       |WinEvtLog  |Log4j |Zap   |java.util.logging|SeverityNumber|
+|-------------|-----------|------|------|-----------------|--------------|
+|             |           |TRACE |      | TRACE           |TRACE         |
+|Debug        |Verbose    |DEBUG |Debug | FINER           |DEBUG         |
+|             |           |      |      | FINE            |DEBUG2        |
+|             |           |      |      | CONFIG          |DEBUG3        |
+|Informational|Information|INFO  |Info  | INFO            |INFO          |
+|Notice       |           |      |      |                 |INFO2         |
+|Warning      |Warning    |WARN  |Warn  | WARNING         |WARN          |
+|Error        |Error      |ERROR |Error | SEVERE          |ERROR         |
+|Critical     |Critical   |      |Dpanic|                 |ERROR2        |
+|Emergency    |           |      |Panic |                 |ERROR3        |
+|Alert        |           |FATAL |Fatal |                 |FATAL         |
 
 ## References
 
-- Draft discussion of Data Model:
-  https://docs.google.com/document/d/1ix9_4TQO3o-qyeyNhcOmqAc1MTyr-wnXxxsdWgCMn9c/edit#
+- [Draft discussion of Data Model](https://docs.google.com/document/d/1ix9_4TQO3o-qyeyNhcOmqAc1MTyr-wnXxxsdWgCMn9c/edit#)
 
-- Discussion of Severity field:
-  https://docs.google.com/document/d/1WQDz1jF0yKBXe3OibXWfy3g6lor9SvjZ4xT-8uuDCiA/edit#
+- [Discussion of Severity field](https://docs.google.com/document/d/1WQDz1jF0yKBXe3OibXWfy3g6lor9SvjZ4xT-8uuDCiA/edit#)
