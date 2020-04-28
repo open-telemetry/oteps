@@ -192,6 +192,31 @@ There has been a question about the choice of `MinMaxSumCount` for the two non-a
 
 This proposal continues to specify the use of MinMaxSumCount for these two instruments.  Our belief is that in cases where performance and cost are concerns, usually the is an additive instruments that can be applied to lower cost.  In the case of `ValueObserver`, consider using a `SumObserver` or `UpDownSumObserver`.  In the case of `ValueRecorder`, consider configuring a less expensive view of these instruments than the default.
 
+### `ValueObserver` temporal quality: Delta or Instantaneous?
+
+There has been a question about labeling `ValueObserver` measurements with the temporal quality Delta vs. Instantaneous.  There is a related question: What does it mean aggregate a Min and Max value for an asynchronous instrument, which may only produce one measurement per collection interval?  
+
+The purpose of defining the default aggregation, when there is only one measurement per interval, is to specify how values will be aggregated across multiple collection intervals.  When there is no aggregation being applied, the result of MinMaxSumCount aggregation for a single collection interval is a single measurement equal to the Min, the Max, and the Sum, as well as a Count equal to 1.  Before we apply aggregation to a `ValueObserver` measurement, we can clearly define it as an Intantaneous measurement.  A measurement, captured at an instant near the end of the collection interval, is neither a cumulative nor a delta with respect to the prior collection interval.
+
+OTEP 88 discusses the Last Value relationship to help address this question.  After capturing a single `ValueObserver` measurement for a given instrument and label set, that measurement becomes the Last value associated with that instrument until the next measurement is taken.
+
+To aggregate `ValueObserver` measurements across spatial dimensions means to combine last values into a distribution at an effective moment in time.  MinMaxSumCount aggregation, in this case, means computing the Min and Max values, the measurement sum, and the count of distinct label sets that contributed measurements.  The aggregated result is considered instantaneous: it may have been computed using data points from different machines, potentially using different collection intervals.  The aggregate value must be considered approximate, with respect to time, since it averages the results from uncoordinated collection intervals.  We may have combined the last-value from a 1-minute collection interval with the last-value from a 10-second collection interval: the result is an instantaneous summary of the distribution across spatial dimensions.
+
+Aggregating `ValueObserver` measurements across the time dimension for a given instrument and label set yields a set of measurements that were taken across a span of time, but this does not automatically lead us to consider them delta measurements.  If we aggregate 10 consecutive collection intervals for a given label set, what we have is distribution of instantaneous measurements with Count equal to 10, with the Min, Max and Sum serving to convey the average value and the range of values present in the distribution.  The result is a time-averaged distribution of instantaneous measurements.
+
+Whether aggregating across time or space, it has been argued, the result of a `ValueObserver` instrument is has the Instantaneous temporal quality.
+
+#### Temporal and spatial aggregation of `ValueObserver` measurements
+
+Aggregating `ValueObserver` measurements across both spatial and time dimensions must be done carefully to avoid a bias toward results computed over shorter collection intervals.  A time-averaged aggregation across spatial dimensions must take the collection interval into account, which can be done as follows:
+
+1. Decide the time span being queried, say [T_begin, T_end].
+2. Divide the time span into a list of timestamps, say [T_begin, T_begin+(T_end-T_begin)/2, T_end].
+3. For each distinct label set and timestamp, compute the spatial aggregation using the last-value definition at that timestamp.  This results in a set of timestamped aggregate measurements with comparable counts.
+4. Aggregate the timestamped measurements from step 3.
+
+Steps 2 and 3 ensure that measurements taken less frequently have equal representation in the output, by virtue of computing the spatial aggregation first.  If we were to compute the temporal aggregation first, then aggreagate across spatial dimensions, then instruments collected at a higher frequency will contribute correspondingly more points to the aggregation.  Thus, we must aggregate across `ValueObserver` instruments across spatial dimensions before averaging across time.
+
 ## Open Questions
 
 ### Timing instrument
