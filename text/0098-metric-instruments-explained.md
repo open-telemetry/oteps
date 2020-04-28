@@ -28,11 +28,11 @@ The following table summarizes the final proposed standard instruments resulting
 |               | **UpDownSumObserver**   | Async | Observe() | Sum            | Cumulative    | No  | Per-interval, reporting a non-monotonic sum |
 | Observer      | **ValueObserver**       | Async | Observe() | MinMaxSumCount | Instantaneous | No  | Per-interval, any non-additive measurement |
 
-There are three synchronous instruments and three asunchronous instruments in this proposal, although a hypothetical 10 instruments were discussed in [OTEP 88]().  Although we considered them reasonable and logical, two categories of instrument are excluded in this proposal: synchronous cumulative instruments and asynchronous delta instruments.
+There are three synchronous instruments and three asunchronous instruments in this proposal, although a hypothetical 10 instruments were discussed in [OTEP 88]().  Although we considere them rational and logical, two categories of instrument are excluded in this proposal: synchronous cumulative instruments and asynchronous delta instruments.
 
 Synchronous cumulative instruments are excluded from the standard based on the [OpenTelemetry library performance guidelines](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/performance.md).  To report a cumulative value correctly at runtime requires a degree of order dependence--thus synchronization--that OpenTelemetry API will not itself admit.  In a hypothetical example, if two actors both synchronously modify a sum and were to capture it using a synchronous cumulative metric event, the OpenTelemetry library would have to guarantee those measurements were processed in order.  The library guidelines do not support this level of synchronization; we cannot block for the sake of instrumentation, therefore we do not support synchronous cumulative instruments.
 
-Asynchronous delta instruments are excluded from the standard based on the lack of motivating examples, but we could also justify this as a desire to keep asynchronous callbacks stateless. An observer has to have memory in order to compute deltas, and it is simpler for asynchronous code to report cumulative values.
+Asynchronous delta instruments are excluded from the standard based on the lack of motivating examples, but we could also justify this as a desire to keep asynchronous callbacks stateless. An observer has to have memory in order to compute deltas; it is simpler for asynchronous code to report cumulative values.
 
 With six instruments in total, one may be curious--how does the historical Metrics API term _Gauge_ translate into this specification?  _Gauge_, in Metrics API terminology, may cover all of these instrument use-cases with the exception of `Counter`.  As defined in [OTEP 88](), the OpenTelemetry Metrics API will disambiguate these use-cases by requiring *single purpose instruments*.  The choice of instrument implies a default interpretation, a standard aggregation, and suggests how to treat Metric data in observability systems, out of the box.  Uses of `Gauge` translate into the various OpenTelemetry Metric instruments depending on what kind of values is being captured and whether the measurement is made synchronously or not.
 
@@ -101,7 +101,7 @@ Example uses for `Counter`:
 
 These example instruments would be useful for monitoring the rate of any of these quantities.  In these situations, it is usually more convenient to report a change of the associated sums, as the change happens, as opposed to maintaining and reporting the sum.
 
-Other names considered: `Adder`.
+Other names considered: `Adder`, `SumCounter`.
 
 ### UpDownCounter
 
@@ -140,38 +140,68 @@ These examples show that although they are additive in nature, choosing `ValueRe
 
 Use these with caution because they naturally cost more than the use of additive measurements.
 
+Other names considered: `Distribution`, `Measure`, `LastValueRecorder`, `GaugeRecorder`, `DistributionRecorder`.
+
 ### SumObserver
 
-...
+`SumObserver` is the asynchronous instrument corresponding to `Counter`, used to capture a monotonic count.  "Sum" appears in the name to remind users that it is a cumulative instrument.  Use a `SumObserver` to capture any value that starts at zero and rises throughout the process lifetime but never falls.
 
 Example uses for `SumObserver`.
 - capture process user/system CPU seconds
-- capture the number of cache misses
+- capture the number of cache misses.
+
+A `SumObserver` is a good choice in situations where a measurement is expensive to compute, such that it would be wasteful to compute on every request.  For example, a system call is needed to capture process CPU usage, therefore it should be done periodically, not on each request.  A `SumObserver` is also a good choice in situations where it would be impractical or wasteful to instrument individual deltas that comprise a sum.  For example, even though the number of cache misses is a sum of individual cache-miss events, it would be too expensive to synchronously capture each event using a `Counter`.
+
+Other names considered: `CumulativeObserver`.
 
 ### UpDownSumObserver
 
-...
+`UpDownSumObserver` is the asynchronous instrument corresponding to `UpDownCounter`, used to capture a non-monotonic count.  "Sum" appears in the name to remind users that it is a cumulative instrument.  Use a `UpDownSumObserver` to capture any value that starts at zero and rises or falls throughout the process lifetime.
 
 Example uses for `SumObserver`.
 - capture process heap size
+- capture number of active shards
+- capture current queue size.
 
+The same considerations mentioned for choosing `SumObserver` over the synchronous `Counter` apply for choosing `UpDownSumObserver` over the synchronous `UpDownCounter`.  If a measurement is expensive to compute, or if the corresponding delta events happen so frequently that it would be impractical to instrument them, use a `UpDownSumObserver`.
 
 ### ValueObserver
 
-...
+`ValueObserver` is the asynchronous instrument corresponding to `ValueRecorder`, used to capture non-additive measurements that are expensive to compute and/or are not request-oriented.  
 
-Example uses for `SumObserver`.
+Example uses for `SumObserver`:
 - capture CPU fan speed
-- capture CPU temperature
-- capture input queue length
+- capture CPU temperature.
+
+Note that these examples use non-additive measurements.  In the `ValueRecorder` case above, example uses were given for capturing synchronous cumulative measurements in a request context (e.g., current queue size seen by a request).  In the asynchronous case, however, how should users decide whether to use `ValueObserver` as opposed to `UpDownSumObserver`?
+
+Consider how to report the (cumulative) size of a queue asynchronously.  Both `ValueObserver` and `UpDownSumObserver` logically apply in this case.  Asynchronous instruments capture only one measurement per interval, so in this example the `SumObserver` reports a current sum, while the `ValueObserver` reports a current sum (equal to the max and the min) and a count equal to 1.  When there is no aggregation, these results are equivalent.
+
+The recommendation is to choose the instrument with the more-appropriate default aggregation.  If you are observing a queue size across a group of machines and the only thing you want to know is the aggregation queue size, use `SumObserver`.  If you are observing a queue size across a group of machines and you are interested in knowing the distribution of queue sizes across those machines, use `ValueObserver`.
 
 ## Open Questions
 
-Helpers:
+### Timing instrument
 
-- A timing-specific ValueRecorder
-- A synchronous cumulative
-- Current bandwidth allocation
+One potentially important special-purpose instrument, found in some metrics APIs, is a dedicated instrument for reporting timings.  The rationale is that when reporting timings, getting the units right is important and often not easy.  Many programming languages use a different type to represent time or a difference between times.  To correctly report a timing metric in OpenTelemetry requires choosing using a `ValueRecorder` but also configuring it for the units output by the clock in use.  
+
+In the past, a proposal to create a dedicated `TimingValueRecorder` instrument was rejected.  This instrument would be identical to a `ValueRecorder`, but its `Record()` method would be specialized for the correct type used to represent a duration, so that the units could be set correctly and automatically.  A related pattern is a `Timer` or `StopWatch` instrument, one responsible for both measuring and capturing a timing.  
+
+Should types such as these be added as helpers?  For example, should `TimingValueRecorder` be a real instrument, or should it be a helper that wraps around a `ValueRecorder`?  There is a concern that making `TimingValueRecorder` into a helper makes it less visible, less standard, and that not having it at all will encourage instrumentation mistakes.
+
+This may be revisited in the future.
+
+### Synchronous cumulative and asynchronous delta helpers
+
+A cumulative measurement can be converted into delta measurement by remember the last-reported value.  A helper instrument could offer to emulate synchronous cumulative measurements by remembering the last-reported value and reporting deltas synchronously.
+
+A delta measurement can be converted into a cumluative measurement by remembering the sum of all reported values.  A helper instrument could offer to emulate asynchronous delta measurements in this way. 
+
+Should helpers of this nature be standardized, if there is demand?  These helpers are excluded from the standard because they carry a number of caveats, but as helpers they can easily do what an OpenTelemery SDK cannot do in general.  For example, we are avoiding synchronous cumulative instruments because they seem to imply ordering that an SDK is not required to support, however an instrument helper that itself uses a lock can easily convert to deltas.
+
+Should such helpers be standardized?  The answer is probably no.
+
+    
 
 
 
