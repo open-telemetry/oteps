@@ -1,6 +1,6 @@
 #  Sensitive Data Handling
 
-By default, OpenTelemetry libraries never capture potentially-sensitive data.
+By default, OpenTelemetry libraries never capture potentially-sensitive data, except for the full URL.
 
 ## Motivation
 
