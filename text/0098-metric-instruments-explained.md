@@ -28,7 +28,7 @@ The following table summarizes the final proposed standard instruments resulting
 |               | **UpDownSumObserver**   | Async | Observe() | Sum            | Cumulative    | No  | Per-interval, reporting a non-monotonic sum |
 | Observer      | **ValueObserver**       | Async | Observe() | MinMaxSumCount | Instantaneous | No  | Per-interval, any non-additive measurement |
 
-There are three synchronous instruments and three asunchronous instruments in this proposal, although a hypothetical 10 instruments were discussed in [OTEP 88]().  Although we considere them rational and logical, two categories of instrument are excluded in this proposal: synchronous cumulative instruments and asynchronous delta instruments.
+There are three synchronous instruments and three asunchronous instruments in this proposal, although a hypothetical 10 instruments were discussed in [OTEP 88]().  Although we consider them rational and logical, two categories of instrument are excluded in this proposal: synchronous cumulative instruments and asynchronous delta instruments.
 
 Synchronous cumulative instruments are excluded from the standard based on the [OpenTelemetry library performance guidelines](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/performance.md).  To report a cumulative value correctly at runtime requires a degree of order dependence--thus synchronization--that OpenTelemetry API will not itself admit.  In a hypothetical example, if two actors both synchronously modify a sum and were to capture it using a synchronous cumulative metric event, the OpenTelemetry library would have to guarantee those measurements were processed in order.  The library guidelines do not support this level of synchronization; we cannot block for the sake of instrumentation, therefore we do not support synchronous cumulative instruments.
 
@@ -165,6 +165,8 @@ Example uses for `SumObserver`.
 
 The same considerations mentioned for choosing `SumObserver` over the synchronous `Counter` apply for choosing `UpDownSumObserver` over the synchronous `UpDownCounter`.  If a measurement is expensive to compute, or if the corresponding delta events happen so frequently that it would be impractical to instrument them, use a `UpDownSumObserver`.
 
+Other names considered: `UpDownCumulativeObserver`.
+
 ### ValueObserver
 
 `ValueObserver` is the asynchronous instrument corresponding to `ValueRecorder`, used to capture non-additive measurements that are expensive to compute and/or are not request-oriented.  
@@ -178,6 +180,8 @@ Note that these examples use non-additive measurements.  In the `ValueRecorder` 
 Consider how to report the (cumulative) size of a queue asynchronously.  Both `ValueObserver` and `UpDownSumObserver` logically apply in this case.  Asynchronous instruments capture only one measurement per interval, so in this example the `SumObserver` reports a current sum, while the `ValueObserver` reports a current sum (equal to the max and the min) and a count equal to 1.  When there is no aggregation, these results are equivalent.
 
 The recommendation is to choose the instrument with the more-appropriate default aggregation.  If you are observing a queue size across a group of machines and the only thing you want to know is the aggregation queue size, use `SumObserver`.  If you are observing a queue size across a group of machines and you are interested in knowing the distribution of queue sizes across those machines, use `ValueObserver`.
+
+Other names considered: `GaugeObserver`, `LastValueObserver`, `DistributionObserver`.
 
 ## Open Questions
 
@@ -200,9 +204,3 @@ A delta measurement can be converted into a cumluative measurement by rememberin
 Should helpers of this nature be standardized, if there is demand?  These helpers are excluded from the standard because they carry a number of caveats, but as helpers they can easily do what an OpenTelemery SDK cannot do in general.  For example, we are avoiding synchronous cumulative instruments because they seem to imply ordering that an SDK is not required to support, however an instrument helper that itself uses a lock can easily convert to deltas.
 
 Should such helpers be standardized?  The answer is probably no.
-
-    
-
-
-
-
