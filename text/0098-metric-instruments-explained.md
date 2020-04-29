@@ -19,7 +19,7 @@ This proposal also repeats the current specification--and the justification--for
 
 The following table summarizes the final proposed standard instruments resulting from this set of proposals.  The columns are described in more detail below.
 
-| Existing name | **Standard name** | Instrument kind | Function name | Temporal quality | Default aggregation | Rate support (Monotonic) | Notes |
+| Existing name | **Standard name** | Instrument kind | Function name | Input temporal quality | Default aggregation | Rate support (Monotonic) | Notes |
 | ------------- | ----------------------- | ----- | --------- | -------------- | ------------- | --- | ------------------------------------ |
 | Counter       | **Counter**             | Sync  | Add()     | Delta | Sum | Yes | Per-request, part of a monotonic sum |
 |               | **UpDownCounter**       | Sync  | Add()     | Delta | Sum | No  | Per-request, part of a non-monotonic sum |
