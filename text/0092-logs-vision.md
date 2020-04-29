@@ -1,6 +1,6 @@
 # OpenTelemetry Logs Vision
 
-The following are high-level items that define our long-term vision for 
+The following are high-level items that define our long-term vision for
 Logs support in OpenTelemetry project, what we aspire to achieve.
 
 This a vision document that reflects our current desires. It is not a commitment
@@ -34,8 +34,8 @@ of logs. The purpose of the data model is to have a common understanding of what
 a log record is, what data needs to be recorded, transferred, stored and
 interpreted by a logging system.
 
-Existing log formats can be unambiguously mapped to this data model. Reverse 
-mapping from this data model is also possible to the extent that the target log 
+Existing log formats can be unambiguously mapped to this data model. Reverse
+mapping from this data model is also possible to the extent that the target log
 format has equivalent capabilities.
 
 We will produce mapping recommendations for commonly used log formats.
@@ -95,6 +95,17 @@ libraries for languages where gaps exist.
 This is important because we believe software that was created before
 OpenTelemetry should not be disregarded and should benefit from OpenTelemetry
 efforts where possible.
+
+Specifically, we should be able to collect the following sources:
+- Log files, especially those emitted by container runtimes
+- Syslog
+- Systemd/Journald
+- Windows Event Log
+- Gelf
+- Event Tracing for Windows (ETW)
+- JSON over TCP or UDP
+- Fluent Forward Protocol
+
 
 ### Auto-instrumentation
 
