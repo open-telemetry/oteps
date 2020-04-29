@@ -2,8 +2,6 @@
 
 Propose and explain final names for the standard metric instruments theorized in [OTEP 88][otep-88] and address related confusion.
 
-[otep-88]: https://github.com/open-telemetry/oteps/blob/master/text/0088-metric-instrument-optional-refinements.md
-
 ## Motivation
 
 [OTEP 88][otep-88] introduced a logical structure for metric instruments with two foundational categories of instrument, called "synchronous" vs. "asynchronous", named "Measure" and "Observer" in the abstract sense.  The proposal identified four kinds of "refinement" and mapped out the space of _possible_ instruments, while not proposing which would actually be included in the standard.
@@ -242,3 +240,6 @@ A delta measurement can be converted into a cumluative measurement by rememberin
 Should helpers of this nature be standardized, if there is demand?  These helpers are excluded from the standard because they carry a number of caveats, but as helpers they can easily do what an OpenTelemery SDK cannot do in general.  For example, we are avoiding synchronous cumulative instruments because they seem to imply ordering that an SDK is not required to support, however an instrument helper that itself uses a lock can easily convert to deltas.
 
 Should such helpers be standardized?  The answer is probably no.
+
+[otep-88]: https://github.com/open-telemetry/oteps/blob/master/text/0088-metric-instrument-optional-refinements.md
+
