@@ -1,6 +1,6 @@
 # OpenTelemetry Logs Vision
 
-The following are high-level items that define our long-term vision for 
+The following are high-level items that define our long-term vision for
 Logs support in OpenTelemetry project, what we aspire to achieve.
 
 This a vision document that reflects our current desires. It is not a commitment
@@ -34,8 +34,8 @@ of logs. The purpose of the data model is to have a common understanding of what
 a log record is, what data needs to be recorded, transferred, stored and
 interpreted by a logging system.
 
-Existing log formats can be unambiguously mapped to this data model. Reverse 
-mapping from this data model is also possible to the extent that the target log 
+Existing log formats can be unambiguously mapped to this data model. Reverse
+mapping from this data model is also possible to the extent that the target log
 format has equivalent capabilities.
 
 We will produce mapping recommendations for commonly used log formats.
@@ -72,6 +72,15 @@ Unified collection is important for the following reasons:
 - Uniform tagging of all 3 types of telemetry data (enrichment by attributes
   of resources where the data comes from or by user-defined attributes),
   enabling correct correlation across Resource dimensions later on the backend.
+
+#### Performance
+
+The unified collector must be performant; its resource utilization should be minimal for most use cases, but must also handle high throughput when needed.
+
+We have identified three sets of use cases for the collector with differing requirements:
+- *Side-car*: There are a set of use cases where a single instance of the collector will be deployed alongside a single instance of an application- a 1:1 relationship. This set includes many serverless environments. A single instance of an application may produce telemetry events (logs, metrics, traces) measured in 10s to 1000s per second. For these use cases, the collector's resource consumption should not exceed 100 MB memory, or 20% of a CPU on a modern server. We will try to optimize the collector so that for many users in this group, the collector will consume less than 50 MB of memory and less than 10% of a CPU.
+- *Daemon*: Many users will deploy the collector as a daemon, a single instance per node or host, to collect telemetry from multiple applications. In containerized environments, [roughly 10-20 containers are generally run per node](https://www.datadoghq.com/docker-adoption/). As noted above, these applications may emit 10s to 1000s of telemetry events per second. For this segment, our goal is that the collector not be a significant consumer of resources when compared with applications deployed on that node. Its resource consumption should be a fraction of the usage of the applications that it serves; preferably <10%, ideally <5%.
+- *Service*: The collector may also be deployed as a standalone service that serves multiple applications across multiple nodes. For this use case, low resource consumption is not the primary concern; high throughput is the goal.
 
 ## Cloud Native
 
