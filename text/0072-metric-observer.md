@@ -44,7 +44,7 @@ purpose.  If the simpler alternative suggested above--registering
 non-instrument-specific callbacks--were implemented instead, callers
 would demand a way to ask whether an instrument was "recording" or
 not, similar to the [`Span.IsRecording`
-API](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-tracing.md#isrecording).
+API](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#isrecording).
 
 Observer instruments are semantically equivalent to gauge instruments,
 except they support callbacks instead of a `Set()` operation.
@@ -52,7 +52,7 @@ Observer callbacks support `Observe()` instead.  Why support callbacks
 with Gauge semantics but not do the same for Counter and Measure
 semantics?
 
-### Why not Measure callbacks?
+### Why not Measure callbacks
 
 Measure instruments, by definition, carry information about the
 individual measurements, so there is no benefit to be had in deferring
@@ -60,7 +60,7 @@ evaluation to a callback.  Observer callbacks are designed to reduce
 the number of measurements, which is incompatible with the semantics
 of Measure instruments.
 
-### Why not Counter callbacks?
+### Why not Counter callbacks
 
 Counter instruments can be expressed as Observer instruments when they
 are expensive to pre-compute or will be instantaneously read.  There
