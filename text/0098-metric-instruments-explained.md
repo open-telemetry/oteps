@@ -49,13 +49,13 @@ Summarizing the naming scheme:
 
 ### Sync vs Async instruments
 
-Synchronous instruments are called in a request context, meaning they potentially have an associated tracing context and distributed correlation values.  Multiple metric events may occur for a synchronous instrument within a given collection interval.
+Synchronous instruments are called in a request context, meaning they potentially have an associated tracing context and distributed correlation values.  Multiple metric events may occur for a synchronous instrument within a given collection interval.  Note that synchronous instruments may be called outside of a request context, such as for background computation.  In these scenarios, we may simply consider the Context to be empty.
 
 Asynchronous instruments are reported by a callback, once per collection interval, and lack request context.  They are permitted to report only one value per distinct label set per period.  If the application observes multiple values in a single callback, for one collection interval, the last value "wins".
 
 ### Temporal quality
 
-Measurements can be described in terms of their relationship with time.
+Measurements can be described in terms of their relationship with time.  Note: although this term logically applies and is used throughout this OTEP, discussion in the Metrics SIG meeting (4/30/2020) leads us to exclude this term from use in documenting the Metric API.  The explanation of terms here is consistent with the [terminology used in the protocol], but we will prefer to use these adjectives to describe properties of an aggregation, not properties of an instrument (despite this document continuing to use the terms freely).  In the API specification, this distinction will be described using "additive synchronous" in contrast with "additive asynchronous".
 
 Delta measurements are those that measure a change to a sum.  Delta instruments are usually selected because the program does not need to compute the sum for itself, but is able to measure the change.  In these cases, it would require extra state for the user to report cumulative values and reporting deltas is natural.
 
