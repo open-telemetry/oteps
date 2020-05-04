@@ -9,7 +9,7 @@ document is to ensure all contributors work in alignment. As our vision changes
 over time maintainers reserve the right to add, modify, and remove items from
 this document.
 
-This document uses vocabulary introduced in <https://github.com/open-telemetry/oteps/pull/91.>
+This document uses vocabulary introduced in <https://github.com/open-telemetry/oteps/pull/91>.
 
 ## First-class Citizen
 
