@@ -106,7 +106,7 @@ These are the folks we've been thinking the most about for OpenTelemetry in gene
 * Allow application developers to link in custom samplers or write their own when using the
  official SDK.
   * These might include dynamic per-field sampling to achieve a target rate
-   (e.g. <https://github.com/honeycombio/dynsampler-go)>
+   (e.g. <https://github.com/honeycombio/dynsampler-go>)
 * Sampling decisions are made within the start Span operation, after attributes relevant to the
  span have been added to the Span start operation but before a concrete Span object exists (so that
  either a NoOpSpan can be made, or an actual Span instance can be produced depending upon the
