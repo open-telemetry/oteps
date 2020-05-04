@@ -22,7 +22,7 @@ I'd like to propose getting rid of SpanData and `tracer.recordSpanData()` and re
 
 ## Trade-offs and mitigations
 
-From <https://github.com/open-telemetry/opentelemetry-specification/issues/71:> If the underlying SDK automatically adds tags to spans such as thread-id, stacktrace, and cpu-usage when a span is started, they would be incorrect for out of band spans as the tracer would not know the difference between in and out of band spans. This can be mitigated by indicating that the span is out of band to prevent attaching incorrect information, possibly with an `isOutOfBand()` option on `startSpan()`.
+From <https://github.com/open-telemetry/opentelemetry-specification/issues/71>: If the underlying SDK automatically adds tags to spans such as thread-id, stacktrace, and cpu-usage when a span is started, they would be incorrect for out of band spans as the tracer would not know the difference between in and out of band spans. This can be mitigated by indicating that the span is out of band to prevent attaching incorrect information, possibly with an `isOutOfBand()` option on `startSpan()`.
 
 ## Prior art and alternatives
 
