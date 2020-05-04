@@ -37,7 +37,7 @@ Based on the name and version, a Provider could provide a no-op Tracer or Meter 
 
 From a user perspective, working with *Named Tracers / Meters* and `TracerProvider` / `MeterProvider` is conceptually similar to how e.g. the [Java logging API](https://docs.oracle.com/javase/7/docs/api/java/util/logging/Logger.html#getLogger(java.lang.String)) and logging frameworks like [log4j](https://www.slf4j.org/apidocs/org/slf4j/LoggerFactory.html) work. In analogy to requesting Logger objects through LoggerFactories, an instrumentation library would create specific Tracer / Meter objects through a TracerProvider / MeterProvider.
 
-New Tracers or Meters can be created by providing the name and version of an instrumentation library. The version (following the convention proposed in <https://github.com/open-telemetry/oteps/pull/38)> is basically optional but *should* be supplied since only this information enables following scenarios:
+New Tracers or Meters can be created by providing the name and version of an instrumentation library. The version (following the convention proposed in <https://github.com/open-telemetry/oteps/pull/38>) is basically optional but *should* be supplied since only this information enables following scenarios:
 
 * Only a specific range of versions of a given instrumentation library need to be suppressed, while other versions are allowed (e.g. due to a bug in those specific versions).
 * Go modules allow multiple versions of the same middleware in a single build so those need to be determined at runtime.
