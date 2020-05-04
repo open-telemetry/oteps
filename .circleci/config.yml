@@ -27,7 +27,9 @@ jobs:
           name: Run Tools
           command: |
             make markdown-lint
-            make enforce-markdown-link-check
+            # Disabled for the moment because too many requests to github.com
+            # and we receive errors for valid links.
+            # make enforce-markdown-link-check
 workflows:
   version: 2
   check-errors:
