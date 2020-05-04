@@ -119,7 +119,7 @@ Overall, this would not change a lot compared to the `TracerProvider` since the 
 
 Instead of setting the `component` property based on the given Tracer names, those names could also be used as *prefixes* for produced span names (e.g. `<TracerName-SpanName>`). However, with regard to data quality and semantic conventions, a dedicated `component` set on spans is probably preferred.
 
-Instead of using plain strings as an argument for creating new Tracers, a `Resource` identifying an instrumentation library could be used. Such resources must have a _version_ and a _name_ label (there could be semantic convention definitions for those labels). This implementation alternative mainly depends on the availability of the `Resource` data type on an API level (see <https://github.com/open-telemetry/opentelemetry-specification/pull/254).>
+Instead of using plain strings as an argument for creating new Tracers, a `Resource` identifying an instrumentation library could be used. Such resources must have a _version_ and a _name_ label (there could be semantic convention definitions for those labels). This implementation alternative mainly depends on the availability of the `Resource` data type on an API level (see <https://github.com/open-telemetry/opentelemetry-specification/pull/254>).
 
 ```java
 // Create resource for given instrumentation library information (name + version)
