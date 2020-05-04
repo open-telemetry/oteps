@@ -8,7 +8,7 @@ The purpose of OpenTelemetry is to make robust, portable telemetry a built-in fe
 
 One way to navigate situations like these is with a software layer that adds OpenTelemetry instrumentation to a service without modifying the source code for that service. (In the conventional APM world, these software layers are often called “agents”, though that term is overloaded and ambiguous so we try avoid it in this document.)
 
-### Why “cross-language”
+### Why “cross-language”?
 
 Many people have correctly observed that “agent” design is highly language-dependent. This is certainly true, but there are still higher-level “product” objectives for OpenTelemetry that can guide the design choices we make across languages and help users form a consistent impression of what OpenTelemetry provides (and what it does not).
 
@@ -53,7 +53,7 @@ There is also a school of thought that we should only be focusing on the bits an
 
 ## Proposal
 
-### What is our desired end state for OpenTelemetry end-users
+### What is our desired end state for OpenTelemetry end-users?
 
 To reiterate much of the above:
 
@@ -64,7 +64,7 @@ To reiterate much of the above:
 * Broad vendor support for OpenTelemetry
 * All other things being equal, get all of these ^^ benefits ASAP!
 
-### What's the basic proposal
+### What's the basic proposal?
 
 Given the desired end state, the Datadog tracers seem like the closest-fit, permissively-licensed option out there today. We asked Datadog's leadership whether they would be interested in donating that code to OpenTelemetry, and they were receptive to the idea. (I.e., this would not be a "hard fork" that must be maintained in parallel forever)
 
