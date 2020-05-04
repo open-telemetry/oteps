@@ -1,11 +1,38 @@
 version: 2
 
 jobs:
-  build:
+  misspell:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.14
     steps:
       - checkout
       - run:
-          name: Verify
-          command: make precommit
+          name: Misspell Install
+          command: make install-misspell
+      - run:
+          name: Misspell check
+          command: make misspell
+
+  markdownlint:
+    docker:
+      - image: node:13
+    steps:
+      - checkout
+      - run:
+          name: Install Tools
+          command: |
+            make install-markdown-lint
+            make install-markdown-link-check
+      - run:
+          name: Run Tools
+          command: |
+            make markdown-lint
+            # Disabled for the moment because too many requests to github.com
+            # and we receive errors for valid links.
+            # make enforce-markdown-link-check
+workflows:
+  version: 2
+  check-errors:
+    jobs:
+      - misspell
+      - markdownlint
