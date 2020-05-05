@@ -96,6 +96,7 @@ Here we discuss the six proposed instruments individually and mention other name
 `Counter` is the most common synchronous instrument.  This instrument supports an `Add(delta)` function for reporting a sum, and is restricted to non-negative deltas.  The default aggregation is `Sum`, as for any additive instrument, which are those instruments with Delta or Cumulative measurement kind.
 
 Example uses for `Counter`:
+
 - count the number of bytes received
 - count the number of accounts created
 - count the number of checkpoints run
