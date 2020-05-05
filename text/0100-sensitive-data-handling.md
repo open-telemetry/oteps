@@ -80,8 +80,11 @@ want to have as much visibility as possible into their system.  Staying with the
 have different performance characteristics based on the exact values passed in, but on the number of them, or the complexity of the `WHERE` clauses, 
 the number of values in an `IN` list, presence of an index on fields, etc.
 
-Some might consider doing most of this work at the collector, rather than in-process with the app.  For users who are already exposed to this 
-issue, I don't think the statement "yes, by default we scrub the credit card number immediately after it is sent over the wire to our collector" is a very reassuring one.
+This "safe by default" behavior should be applied for a "default install", including the collector.  While individual instrumentation
+libraries can (and are encouraged to) apply appropriate scrubbing themselves, the collector will act as a cross-language backstop, with appropriate
+semantic transformations based on received data (e.g., looking at the`db.type` field to determine whether to treat a string
+as sql or a mongo query).  This approach should reduce maintenance costs across the ecosystem as well as reduce pressure on needing 
+the in-app span processing pipeline mentioned above.
 
 ## Prior art and alternatives
 
