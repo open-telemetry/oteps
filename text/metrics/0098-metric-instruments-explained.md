@@ -77,7 +77,7 @@ Asynchronous instruments all support an `Observe()` function, signifying that th
 
 Rate aggregation is supported for Counter and SumObserver instruments in the default implementation.
 
-The `UpDown-` forms of additive instrument are not suitable for aggregating rates because the up- and down-changes in state may cancel each other. 
+The `UpDown-` forms of additive instrument are not suitable for aggregating rates because the up- and down-changes in state may cancel each other.
 
 Non-additive instruments can be used to derive a sum, meaning rate aggregation is possible when the values are non-negative. There is not a standard non-additive instrument with a non-negative refinement in the standard.
 
@@ -110,6 +110,7 @@ Other names considered: `Adder`, `SumCounter`.
 `UpDownCounter` is similar to `Counter` except that `Add(delta)` supports negative deltas.  This makes `UpDownCounter` not useful for computing a rate aggregation.  It aggregates a `Sum`, only the sum is non-monotonic.  It is generally useful for counting changes in an amount of resources used, or any quantity that rises and falls, in a request context.
 
 Example uses for `UpDownCounter`:
+
 - count memory in use by instrumenting `new` and `delete`
 - count queue size by instrumenting `enqueue` and `dequeue`
 - count semaphore `up` and `down` operations.
@@ -127,12 +128,14 @@ One of the most common uses for `ValueRecorder` is to capture latency measuremen
 The default aggregation for `ValueRecorder` computes the minimum and maximum values, the sum of event values, and the count of events, allowing the rate, the mean, and and range of input values to be monitored.
 
 Example uses for `ValueRecorder` that are non-additive:
+
 - capture any kind of timing information
 - capture the acceleration experienced by a pilot
 - capture nozzle pressure of a fuel injector
 - capture the velocity of a MIDI key-press.
 
 Example _additive_ uses of `ValueRecorder` capture measurements that are cumulative or delta values, but where we may have an interest in the distribution of values and not only the sum:
+
 - capture a request size
 - capture an account balance
 - capture a queue length
@@ -149,6 +152,7 @@ Other names considered: `Distribution`, `Measure`, `LastValueRecorder`, `GaugeRe
 `SumObserver` is the asynchronous instrument corresponding to `Counter`, used to capture a monotonic count.  "Sum" appears in the name to remind users that it is a cumulative instrument.  Use a `SumObserver` to capture any value that starts at zero and rises throughout the process lifetime but never falls.
 
 Example uses for `SumObserver`.
+
 - capture process user/system CPU seconds
 - capture the number of cache misses.
 
@@ -161,6 +165,7 @@ Other names considered: `CumulativeObserver`.
 `UpDownSumObserver` is the asynchronous instrument corresponding to `UpDownCounter`, used to capture a non-monotonic count.  "Sum" appears in the name to remind users that it is a cumulative instrument.  Use a `UpDownSumObserver` to capture any value that starts at zero and rises or falls throughout the process lifetime.
 
 Example uses for `UpDownSumObserver`.
+
 - capture process heap size
 - capture number of active shards
 - capture number of requests started/completed
@@ -172,9 +177,10 @@ Other names considered: `UpDownCumulativeObserver`.
 
 ### ValueObserver
 
-`ValueObserver` is the asynchronous instrument corresponding to `ValueRecorder`, used to capture non-additive measurements that are expensive to compute and/or are not request-oriented.  
+`ValueObserver` is the asynchronous instrument corresponding to `ValueRecorder`, used to capture non-additive measurements that are expensive to compute and/or are not request-oriented.
 
 Example uses for `ValueObserver`:
+
 - capture CPU fan speed
 - capture CPU temperature.
 
@@ -196,7 +202,7 @@ This proposal continues to specify the use of MinMaxSumCount for these two instr
 
 ### `ValueObserver` temporal quality: Delta or Instantaneous?
 
-There has been a question about labeling `ValueObserver` measurements with the temporal quality Delta vs. Instantaneous.  There is a related question: What does it mean aggregate a Min and Max value for an asynchronous instrument, which may only produce one measurement per collection interval?  
+There has been a question about labeling `ValueObserver` measurements with the temporal quality Delta vs. Instantaneous.  There is a related question: What does it mean aggregate a Min and Max value for an asynchronous instrument, which may only produce one measurement per collection interval?
 
 The purpose of defining the default aggregation, when there is only one measurement per interval, is to specify how values will be aggregated across multiple collection intervals.  When there is no aggregation being applied, the result of MinMaxSumCount aggregation for a single collection interval is a single measurement equal to the Min, the Max, and the Sum, as well as a Count equal to 1.  Before we apply aggregation to a `ValueObserver` measurement, we can clearly define it as an Intantaneous measurement.  A measurement, captured at an instant near the end of the collection interval, is neither a cumulative nor a delta with respect to the prior collection interval.
 
@@ -225,7 +231,7 @@ Steps 2 and 3 ensure that measurements taken less frequently have equal represen
 
 One potentially important special-purpose instrument, found in some metrics APIs, is a dedicated instrument for reporting timings.  The rationale is that when reporting timings, getting the units right is important and often not easy.  Many programming languages use a different type to represent time or a difference between times.  To correctly report a timing distribution, OpenTelemetry requires using a `ValueRecorder` but also configuring it for the units output by the clock that was used.
 
-In the past, a proposal to create a dedicated `TimingValueRecorder` instrument was rejected.  This instrument would be identical to a `ValueRecorder`, but its `Record()` method would be specialized for the correct type used to represent a duration, so that the units could be set correctly and automatically.  A related pattern is a `Timer` or `StopWatch` instrument, one responsible for both measuring and capturing a timing.  
+In the past, a proposal to create a dedicated `TimingValueRecorder` instrument was rejected.  This instrument would be identical to a `ValueRecorder`, but its `Record()` method would be specialized for the correct type used to represent a duration, so that the units could be set correctly and automatically.  A related pattern is a `Timer` or `StopWatch` instrument, one responsible for both measuring and capturing a timing.
 
 Should types such as these be added as helpers?  For example, should `TimingValueRecorder` be a real instrument, or should it be a helper that wraps around a `ValueRecorder`?  There is a concern that making `TimingValueRecorder` into a helper makes it less visible, less standard, and that not having it at all will encourage instrumentation mistakes.
 
@@ -235,11 +241,10 @@ This may be revisited in the future.
 
 A cumulative measurement can be converted into delta measurement by remembering the last-reported value.  A helper instrument could offer to emulate synchronous cumulative measurements by remembering the last-reported value and reporting deltas synchronously.
 
-A delta measurement can be converted into a cumluative measurement by remembering the sum of all reported values.  A helper instrument could offer to emulate asynchronous delta measurements in this way. 
+A delta measurement can be converted into a cumluative measurement by remembering the sum of all reported values.  A helper instrument could offer to emulate asynchronous delta measurements in this way.
 
 Should helpers of this nature be standardized, if there is demand?  These helpers are excluded from the standard because they carry a number of caveats, but as helpers they can easily do what an OpenTelemery SDK cannot do in general.  For example, we are avoiding synchronous cumulative instruments because they seem to imply ordering that an SDK is not required to support, however an instrument helper that itself uses a lock can easily convert to deltas.
 
 Should such helpers be standardized?  The answer is probably no.
 
 [otep-88]: https://github.com/open-telemetry/oteps/blob/master/text/0088-metric-instrument-optional-refinements.md
-
