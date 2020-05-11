@@ -132,7 +132,7 @@ The reasons for having these 2 kinds of fields are:
   includes well-known data that has standardized semantics as well as arbitrary
   custom data that the application may want to include in the logs.
 
-When designing this data model I followed the following reasoning to make a
+When designing this data model we followed the following reasoning to make a
 decision about when to use use a top-level named field:
 
 - The field needs to be either mandatory for all records or be frequently
@@ -216,16 +216,14 @@ Type: string.
 Description: the severity text (also known as log level). This is an optional
 field and is the original string representation as it is known at the source. If
 this field is missing and `SeverityNumber` is present then the short name that
-corresponds to the `SeverityNumber` can be used as a substitution.
+corresponds to the `SeverityNumber` may be used as a substitution.
 
 #### Field: `SeverityNumber`
 
 Type: number.
 
 Description: numerical value of the severity, normalized to values described in
-this document. This is an optional field. If `SeverityNumber` is missing and
-SeverityText is present then it may be assumed that `SeverityNumber` is equal
-to INFO (numeric 9) (see the meaning below).
+this document. This is an optional field.
 
 `SeverityNumber` is an integer number. Smaller numerical values correspond to
 less severe events (such as debug events), larger numerical values correspond to
@@ -360,9 +358,9 @@ capitalization or abbreviated, e.g. "Info" vs "Information").
 
 #### Comparing Severity
 
-In the contexts where severity participates less-than / greater-than comparisons
-`SeverityNumber` field should be used. `SeverityNumber` can be compared to
-another `SeverityNumber` or to numbers in the 1..24 range (or to the
+In the contexts where severity participates in less-than / greater-than
+comparisons `SeverityNumber` field should be used. `SeverityNumber` can be
+compared to another `SeverityNumber` or to numbers in the 1..24 range (or to the
 corresponding short names).
 
 When severity is used in equality or inequality comparisons (for example in
@@ -986,7 +984,7 @@ All other fields |                    |                                         
 
 |Syslog       |WinEvtLog  |Log4j |Zap   |java.util.logging|SeverityNumber|
 |-------------|-----------|------|------|-----------------|--------------|
-|             |           |TRACE |      | TRACE           |TRACE         |
+|             |           |TRACE |      | FINEST          |TRACE         |
 |Debug        |Verbose    |DEBUG |Debug | FINER           |DEBUG         |
 |             |           |      |      | FINE            |DEBUG2        |
 |             |           |      |      | CONFIG          |DEBUG3        |
