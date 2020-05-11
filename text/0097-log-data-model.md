@@ -39,6 +39,7 @@ Introduce Data Model for Log Records as it is understood by OpenTelemetry.
   * [Zap](#zap)
   * [Apache HTTP Server access log](#apache-http-server-access-log)
   * [CloudTrail Log Event](#cloudtrail-log-event)
+  * [Google Cloud Logging](#google-cloud-logging)
 * [Appendix B: `SeverityNumber` example mappings](#appendix-b-severitynumber-example-mappings)
 * [References](#references)
 
@@ -562,51 +563,51 @@ this data model.
   </tr>
   <tr>
     <td>TIMESTAMP</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
     <td>Time when an event occurred measured by the origin clock.</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
   </tr>
   <tr>
     <td>SEVERITY</td>
     <td>enum</td>
     <td>Defines the importance of the event. Example: `Debug`</td>
-    <td>severity</td>
+    <td>Severity</td>
   </tr>
   <tr>
     <td>FACILITY</td>
     <td>enum</td>
     <td>Describes where the event originated. A predefined list of Unix processes. Part of event source identity. Example: `mail system`</td>
-    <td>attributes["syslog.facility"]</td>
+    <td>Attributes["syslog.facility"]</td>
   </tr>
   <tr>
     <td>VERSION</td>
     <td>number</td>
     <td>Meta: protocol version, orthogonal to the event.</td>
-    <td>attributes["syslog.version"]</td>
+    <td>Attributes["syslog.version"]</td>
   </tr>
   <tr>
     <td>HOSTNAME</td>
     <td>string</td>
     <td>Describes the location where the event originated. Possible values are FQDN, IP address, etc.</td>
-    <td>resource["host.hostname"]</td>
+    <td>Resource["host.hostname"]</td>
   </tr>
   <tr>
     <td>APP-NAME</td>
     <td>string</td>
     <td>User-defined app name. Part of event source identity.</td>
-    <td>resource["service.name"]</td>
+    <td>Resource["service.name"]</td>
   </tr>
   <tr>
     <td>PROCID</td>
     <td>string</td>
     <td>Not well defined. May be used as a meta field for protocol operation purposes or may be part of event source identity.</td>
-    <td>attributes["syslog.procid"]</td>
+    <td>Attributes["syslog.procid"]</td>
   </tr>
   <tr>
     <td>MSGID</td>
     <td>string</td>
     <td>Defines the type of the event. Part of event source identity. Example: "TCPIN"</td>
-    <td>short_description</td>
+    <td>ShortName</td>
   </tr>
   <tr>
     <td>STRUCTURED-DATA</td>
@@ -615,17 +616,17 @@ this data model.
 Can describe event source identity
 Can include data that describes particular occurrence of the event.
 Can be meta-information, e.g. quality of timestamp value.</td>
-    <td>SDID origin.swVersion map to resource["service.version"]
+    <td>SDID origin.swVersion map to Resource["service.version"]
 
 SDID origin.ip map to attribute[net.host.ip"]
 
-Rest of SDIDs -> attributes["syslog.*"]</td>
+Rest of SDIDs -> Attributes["syslog.*"]</td>
   </tr>
   <tr>
     <td>MSG</td>
     <td>string</td>
     <td>Free-form text message about the event. Typically human readable.</td>
-    <td>body</td>
+    <td>Body</td>
   </tr>
 </table>
 
@@ -640,39 +641,39 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
   </tr>
   <tr>
     <td>TimeCreated</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
     <td>The time stamp that identifies when the event was logged.</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
   </tr>
   <tr>
     <td>Level</td>
     <td>enum</td>
     <td>Contains the severity level of the event.</td>
-    <td>severity</td>
+    <td>Severity</td>
   </tr>
   <tr>
     <td>Computer</td>
     <td>string</td>
     <td>The name of the computer on which the event occurred.</td>
-    <td>resource["host.hostname"]</td>
+    <td>Resource["host.hostname"]</td>
   </tr>
   <tr>
     <td>EventID</td>
     <td>uint</td>
     <td>The identifier that the provider used to identify the event.</td>
-    <td>short_description</td>
+    <td>ShortName</td>
   </tr>
   <tr>
     <td>Message</td>
     <td>string</td>
     <td>The message string.</td>
-    <td>body</td>
+    <td>Body</td>
   </tr>
   <tr>
     <td>Rest of the fields.</td>
     <td>any</td>
     <td>All other fields in the event.</td>
-    <td>attributes["winlog.*"]</td>
+    <td>Attributes["winlog.*"]</td>
   </tr>
 </table>
 
@@ -687,33 +688,33 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
   </tr>
   <tr>
     <td>Timestamp</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
     <td>Time when the event occurred measured by the origin clock.</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
   </tr>
   <tr>
     <td>EventType</td>
     <td>string</td>
     <td>Short machine understandable string describing the event type. SignalFx specific concept. Non-namespaced. Example: k8s Event Reason field.</td>
-    <td>short_description</td>
+    <td>ShortName</td>
   </tr>
   <tr>
     <td>Category</td>
     <td>enum</td>
     <td>Describes where the event originated and why. SignalFx specific concept. Example: AGENT. </td>
-    <td>attributes["com.splunk.signalfx.event_category"]</td>
+    <td>Attributes["com.splunk.signalfx.event_category"]</td>
   </tr>
   <tr>
     <td>Dimensions</td>
     <td>map of string to string</td>
     <td>Helps to define the identity of the event source together with EventType and Category. Multiple occurrences of events coming from the same event source can happen across time and they all have the value of Dimensions. </td>
-    <td>resource</td>
+    <td>Resource</td>
   </tr>
   <tr>
     <td>Properties</td>
     <td>map of string to any</td>
     <td>Additional information about the specific event occurrence. Unlike Dimensions which are fixed for a particular event source, Properties can have different values for each occurrence of the event coming from the same event source.</td>
-    <td>attributes</td>
+    <td>Attributes</td>
   </tr>
 </table>
 
@@ -730,7 +731,7 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
     <td>time</td>
     <td>numeric, string</td>
     <td>The event time in epoch time format, in seconds.</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
   </tr>
   <tr>
     <td></td>
@@ -742,31 +743,31 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
     <td>host</td>
     <td>string</td>
     <td>The host value to assign to the event data. This is typically the host name of the client that you are sending data from.</td>
-    <td>resource["host.hostname"]</td>
+    <td>Resource["host.hostname"]</td>
   </tr>
   <tr>
     <td>source</td>
     <td>string</td>
     <td>The source value to assign to the event data. For example, if you are sending data from an app you are developing, you could set this key to the name of the app.</td>
-    <td>resource["service.name"]</td>
+    <td>Resource["service.name"]</td>
   </tr>
   <tr>
     <td>sourcetype</td>
     <td>string</td>
     <td>The sourcetype value to assign to the event data.</td>
-    <td>attributes["source.type"]</td>
+    <td>Attributes["source.type"]</td>
   </tr>
   <tr>
     <td>event</td>
     <td>any</td>
     <td>The JSON representation of the raw body of the event. It can be a string, number, string array, number array, JSON object, or a JSON array.</td>
-    <td>body</td>
+    <td>Body</td>
   </tr>
   <tr>
     <td>fields</td>
     <td>Map of any</td>
     <td>Specifies a JSON object that contains explicit custom fields.</td>
-    <td>attributes</td>
+    <td>Attributes</td>
   </tr>
   <tr>
     <td>index</td>
@@ -787,27 +788,27 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
   </tr>
   <tr>
     <td>Instant</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
     <td>Time when an event occurred measured by the origin clock.</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
   </tr>
   <tr>
     <td>Level</td>
     <td>enum</td>
     <td>Log level.</td>
-    <td>severity</td>
+    <td>Severity</td>
   </tr>
   <tr>
     <td>Message</td>
     <td>string</td>
     <td>Human readable message.</td>
-    <td>body</td>
+    <td>Body</td>
   </tr>
   <tr>
     <td>All other fields</td>
     <td>any</td>
     <td>Structured data.</td>
-    <td>attributes</td>
+    <td>Attributes</td>
   </tr>
 </table>
 
@@ -822,34 +823,34 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
   </tr>
   <tr>
     <td>ts</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
     <td>Time when an event occurred measured by the origin clock.</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
   </tr>
   <tr>
     <td>level</td>
     <td>enum</td>
     <td>Logging level.</td>
-    <td>severity</td>
+    <td>Severity</td>
   </tr>
   <tr>
     <td>caller</td>
     <td>string</td>
     <td>Calling function's filename and line number.
 </td>
-    <td>attributes, key=TBD</td>
+    <td>Attributes, key=TBD</td>
   </tr>
   <tr>
     <td>msg</td>
     <td>string</td>
     <td>Human readable message.</td>
-    <td>body</td>
+    <td>Body</td>
   </tr>
   <tr>
     <td>All other fields</td>
     <td>any</td>
     <td>Structured data.</td>
-    <td>attributes</td>
+    <td>Attributes</td>
   </tr>
 </table>
 
@@ -864,51 +865,51 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
   </tr>
   <tr>
     <td>%t</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
     <td>Time when an event occurred measured by the origin clock.</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
   </tr>
   <tr>
     <td>%a</td>
     <td>string</td>
     <td>Client IP</td>
-    <td>attributes["net.peer.ip"]</td>
+    <td>Attributes["net.peer.ip"]</td>
   </tr>
   <tr>
     <td>%A</td>
     <td>string</td>
     <td>Server IP</td>
-    <td>attributes["net.host.ip"]</td>
+    <td>Attributes["net.host.ip"]</td>
   </tr>
   <tr>
     <td>%h</td>
     <td>string</td>
     <td>Remote hostname. </td>
-    <td>attributes["net.peer.name"]</td>
+    <td>Attributes["net.peer.name"]</td>
   </tr>
   <tr>
     <td>%m</td>
     <td>string</td>
     <td>The request method.</td>
-    <td>attributes["http.method"]</td>
+    <td>Attributes["http.method"]</td>
   </tr>
   <tr>
     <td>%v,%p,%U,%q</td>
     <td>string</td>
     <td>Multiple fields that can be composed into URL.</td>
-    <td>attributes["http.url"]</td>
+    <td>Attributes["http.url"]</td>
   </tr>
   <tr>
     <td>%>s</td>
     <td>string</td>
     <td>Response status.</td>
-    <td>attributes["http.status_code"]</td>
+    <td>Attributes["http.status_code"]</td>
   </tr>
   <tr>
     <td>All other fields</td>
     <td>any</td>
     <td>Structured data.</td>
-    <td>attributes, key=TBD</td>
+    <td>Attributes, key=TBD</td>
   </tr>
 </table>
 
@@ -925,45 +926,61 @@ Rest of SDIDs -> attributes["syslog.*"]</td>
     <td>eventTime</td>
     <td>string</td>
     <td>The date and time the request was made, in coordinated universal time (UTC).</td>
-    <td>timestamp</td>
+    <td>Timestamp</td>
   </tr>
   <tr>
     <td>eventSource</td>
     <td>string</td>
     <td>The service that the request was made to. This name is typically a short form of the service name without spaces plus .amazonaws.com.</td>
-    <td>resource["service.name"]?</td>
+    <td>Resource["service.name"]?</td>
   </tr>
   <tr>
     <td>awsRegion</td>
     <td>string</td>
     <td>The AWS region that the request was made to, such as us-east-2.</td>
-    <td>resource["cloud.region"]</td>
+    <td>Resource["cloud.region"]</td>
   </tr>
   <tr>
     <td>sourceIPAddress</td>
     <td>string</td>
     <td>The IP address that the request was made from.</td>
-    <td>resource["net.peer.ip"] or resource["net.host.ip"]? TBD</td>
+    <td>Resource["net.peer.ip"] or Resource["net.host.ip"]? TBD</td>
   </tr>
   <tr>
     <td>errorCode</td>
     <td>string</td>
     <td>The AWS service error if the request returns an error.</td>
-    <td>short_description</td>
+    <td>ShortName</td>
   </tr>
   <tr>
     <td>errorMessage</td>
     <td>string</td>
     <td>If the request returns an error, the description of the error.</td>
-    <td>body</td>
+    <td>Body</td>
   </tr>
   <tr>
     <td>All other fields</td>
     <td>*</td>
     <td></td>
-    <td>attributes["cloudtrail.*"]</td>
+    <td>Attributes["cloudtrail.*"]</td>
   </tr>
 </table>
+
+### Google Cloud Logging
+
+Field            | Type               | Description                                             | Maps to Unified Model Field
+-----------------|--------------------| ------------------------------------------------------- | ---------------------------
+timestamp        | string             | The time the event described by the log entry occurred. | Timestamp
+resource         | MonitoredResource  | The monitored resource that produced this log entry.    | Resource
+log_name         | string             | The URL-encoded LOG_ID suffix of the log_name field identifies which log stream this entry belongs to. | ShortName
+json_payload     | google.protobuf.Struct | The log entry payload, represented as a structure that is expressed as a JSON object. | Body
+proto_payload    | google.protobuf.Any | The log entry payload, represented as a protocol buffer. | Body
+text_payload     | string             | The log entry payload, represented as a Unicode string (UTF-8). | Body
+severity         | LogSeverity        | The severity of the log entry.                          | Severity
+trace            | string             | The trace associated with the log entry, if any.        | TraceId
+span_id          | string             | The span ID within the trace associated with the log entry. | SpanId
+labels           | map<string,string> | A set of user-defined (key, value) data that provides additional information about the log entry. | Attributes
+All other fields |                    |                                                         | Attributes["google.*"]
 
 ## Appendix B: `SeverityNumber` example mappings
 
