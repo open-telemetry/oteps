@@ -484,19 +484,41 @@ Example 3
 }
 ```
 
-## Open Questions
+## Questions Resolved during OTEP discussion
 
-- Should we store entire
-  [W3C Trace Context](https://www.w3.org/TR/trace-context/), including
-  `traceparent` and `tracestate` fields instead of only `TraceFlags`?
-  
-- Is `SeverityText`/`SeverityNumber` fields design good enough?
+These were Open Questions that were discussed and resolved in
+[OTEP Pull Request]( https://github.com/open-telemetry/oteps/pull/97)
 
-- Early draft of this proposal specified that `Timestamp` should be populated
-  from a monotonic, NTP-synchronized source. I removed this requirement to avoid
-  confusion. Do we need any requirements for timestamp sources?
+### TraceFlags vs TraceParent and TraceState
 
-- Is there a need for special treatment of security logs?
+Question: Should we store entire
+[W3C Trace Context](https://www.w3.org/TR/trace-context/), including
+`traceparent` and `tracestate` fields instead of only `TraceFlags`?
+
+Answer: the discussion did not reveal any evidence that `traceparent` and
+`tracestate` are needed.
+
+### Severity Fields  
+
+Question: Is `SeverityText`/`SeverityNumber` fields design good enough?
+
+Answer: Discussions have shown that the design is reasonable.
+
+### Timestamp Requirements
+
+Question: Early draft of this proposal specified that `Timestamp` should be
+populated from a monotonic, NTP-synchronized source. We removed this requirement
+to avoid confusion. Do we need any requirements for timestamp sources?
+
+Answer: discussions revealed that it is not data model's responsibility to
+specify such requirements.
+
+### Security Logs
+
+Question: Is there a need for special treatment of security logs?
+
+Answer: discussions in the OTEP did not reveal the need for any special
+treatment of security logs in the context of the data model proposal.
 
 ## Alternate Design
 
