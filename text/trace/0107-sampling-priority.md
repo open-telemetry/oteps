@@ -25,7 +25,7 @@ Propagating this field alongside the trace will allow for many improvements and
 as a very minimum will simplify transition of customers from SDKs using
 different `trace-id` based hash functions to OpenTelemetry SDK.
 
-Also see discussion here: https://github.com/open-telemetry/opentelemetry-specification/pull/570
+Also see discussion here: <https://github.com/open-telemetry/opentelemetry-specification/pull/570>
 
 ## Explanation
 
@@ -70,14 +70,10 @@ respect incoming `sampling.priority`. And inserting it into `tracestate` when
 not present. A setting can be exposed to NOT write `sampling.priority` to
 `tracestate`.
 
-
 ## Trade-offs and mitigations
-
 
 ## Prior art and alternatives
 
-
 ## Open questions
-
 
 ## Future possibilities
