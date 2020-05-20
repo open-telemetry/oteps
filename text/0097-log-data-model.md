@@ -179,7 +179,7 @@ Below is the detailed description of each field.
 Type: Timestamp, uint64 nanoseconds since Unix epoch.
 
 Description: Time when the event occurred measured by the origin clock. This
-field is optional, it may be missing the timestamp is unknown.
+field is optional, it may be missing if the timestamp is unknown.
 
 ### Trace Context Fields
 
@@ -423,7 +423,7 @@ These are just examples to help understand the data model. Don’t treat the
 examples as _the_ way to represent this data model in JSON.
 
 This document does not define the actual encoding and format of the log record
-representation. Format definitions will be done in separate OTEPs (e.g the log
+representation. Format definitions will be done in separate OTEPs (e.g. the log
 records may be represented as msgpack, JSON, Protocol Buffer messages, etc).
 
 Example 1
@@ -754,12 +754,6 @@ Rest of SDIDs -> Attributes["syslog.*"]</td>
     <td>Timestamp</td>
   </tr>
   <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
     <td>host</td>
     <td>string</td>
     <td>The host value to assign to the event data. This is typically the host name of the client that you are sending data from.</td>
@@ -1001,6 +995,327 @@ trace            | string             | The trace associated with the log entry,
 span_id          | string             | The span ID within the trace associated with the log entry. | SpanId
 labels           | map<string,string> | A set of user-defined (key, value) data that provides additional information about the log entry. | Attributes
 All other fields |                    |                                                         | Attributes["google.*"]
+
+## Elastic Common Schema
+
+<table>
+  <tr>
+    <td>Field</td>
+    <td>Type</td>
+    <td>Description</td>
+    <td>Maps to Unified Model Field</td>
+  </tr>
+  <tr>
+    <td>@timestamp</td>
+    <td>datetime</td>
+    <td>Time the event was recorded</td>
+    <td>timestamp</td>
+  </tr>
+  <tr>
+    <td>message</td>
+    <td>string</td>
+    <td>Any type of message</td>
+    <td>body</td>
+  </tr>
+  <tr>
+    <td>labels</td>
+    <td>key/value</td>
+    <td>Arbitrary labels related to the event</td>
+    <td>attributes[*]</td>
+  </tr>
+  <tr>
+    <td>tags</td>
+    <td>array of string</td>
+    <td>List of values related to the event</td>
+    <td>?</td>
+  </tr>
+  <tr>
+    <td>trace.id</td>
+    <td>string</td>
+    <td>Trace ID</td>
+    <td>trace_id</td>
+  </tr>
+  <tr>
+    <td>span.id*</td>
+    <td>string</td>
+    <td>Span ID</td>
+    <td>span_id</td>
+  </tr>
+  <tr>
+    <td>agent.ephemeral_id</td>
+    <td>string</td>
+    <td>Ephemeral ID created by agent</td>
+    <td>**resource</td>
+  </tr>
+  <tr>
+    <td>agent.id</td>
+    <td>string</td>
+    <td>Unique identifier of this agent</td>
+    <td>**resource</td>
+  </tr>
+  <tr>
+    <td>agent.name</td>
+    <td>string</td>
+    <td>Name given to the agent</td>
+    <td>resource["telemetry.sdk.name"]</td>
+  </tr>
+  <tr>
+    <td>agent.type</td>
+    <td>string</td>
+    <td>Type of agent</td>
+    <td>resource["telemetry.sdk.language"]</td>
+  </tr>
+  <tr>
+    <td>agent.version</td>
+    <td>string</td>
+    <td>Version of agent</td>
+    <td>resource["telemetry.sdk.version"]</td>
+  </tr>
+  <tr>
+    <td>source.ip, client.ip</td>
+    <td>string</td>
+    <td>The IP address that the request was made from.</td>
+    <td>attributes["net.peer.ip"] or attributes["net.host.ip"]</td>
+  </tr>
+  <tr>
+    <td>cloud.account.id</td>
+    <td>string</td>
+    <td>ID of the account in the given cloud</td>
+    <td>resource["cloud.account.id"]</td>
+  </tr>
+  <tr>
+    <td>cloud.availability_zone</td>
+    <td>string</td>
+    <td>Availability zone in which this host is running.</td>
+    <td>resource["cloud.zone"]</td>
+  </tr>
+  <tr>
+    <td>cloud.instance.id</td>
+    <td>string</td>
+    <td>Instance ID of the host machine.</td>
+    <td>**resource</td>
+  </tr>
+  <tr>
+    <td>cloud.instance.name</td>
+    <td>string</td>
+    <td>Instance name of the host machine.</td>
+    <td>**resource</td>
+  </tr>
+  <tr>
+    <td>cloud.machine.type</td>
+    <td>string</td>
+    <td>Machine type of the host machine.</td>
+    <td>**resource</td>
+  </tr>
+  <tr>
+    <td>cloud.provider</td>
+    <td>string</td>
+    <td>Name of the cloud provider. Example values are aws, azure, gcp, or digitalocean.</td>
+    <td>resource["cloud.provider"]</td>
+  </tr>
+  <tr>
+    <td>cloud.region</td>
+    <td>string</td>
+    <td>Region in which this host is running.</td>
+    <td>resource["cloud.region"]</td>
+  </tr>
+  <tr>
+    <td>cloud.image.id*</td>
+    <td>string</td>
+    <td></td>
+    <td>resource["host.image.name"]</td>
+  </tr>
+  <tr>
+    <td>container.id</td>
+    <td>string</td>
+    <td>Unique container id</td>
+    <td>resource["container.id"]</td>
+  </tr>
+  <tr>
+    <td>container.image.name</td>
+    <td>string</td>
+    <td>Name of the image the container was built on.</td>
+    <td>resource["container.image.name"]</td>
+  </tr>
+  <tr>
+    <td>container.image.tag</td>
+    <td>Array of string</td>
+    <td>Container image tags.</td>
+    <td>**resource</td>
+  </tr>
+  <tr>
+    <td>container.labels</td>
+    <td>key/value</td>
+    <td>Image labels.</td>
+    <td>attributes[*]</td>
+  </tr>
+  <tr>
+    <td>container.name</td>
+    <td>string</td>
+    <td>Container name.</td>
+    <td>resource["container.name"]</td>
+  </tr>
+  <tr>
+    <td>container.runtime</td>
+    <td>string</td>
+    <td>Runtime managing this container. Example: "docker"</td>
+    <td>**resource</td>
+  </tr>
+  <tr>
+    <td>destination.address</td>
+    <td>string</td>
+    <td>Destination address for the event</td>
+    <td>attributes["destination.address"]</td>
+  </tr>
+  <tr>
+    <td>error.code</td>
+    <td>string</td>
+    <td>Error code describing the error.</td>
+    <td>attributes["error.code"]</td>
+  </tr>
+  <tr>
+    <td>error.id</td>
+    <td>string</td>
+    <td>Unique identifier for the error.</td>
+    <td>attributes["error.id"]</td>
+  </tr>
+  <tr>
+    <td>error.message</td>
+    <td>string</td>
+    <td>Error message.</td>
+    <td>attributes["error.message"]</td>
+  </tr>
+  <tr>
+    <td>error.stack_trace</td>
+    <td>string</td>
+    <td>The stack trace of this error in plain text.</td>
+    <td>attributes["error.stack_trace]</td>
+  </tr>
+  <tr>
+    <td>host.architecture</td>
+    <td>string</td>
+    <td>Operating system architecture</td>
+    <td>**resource</td>
+  </tr>
+  <tr>
+    <td>host.domain</td>
+    <td>string</td>
+    <td>Name of the domain of which the host is a member.
+
+For example, on Windows this could be the host’s Active Directory domain or NetBIOS domain name. For Linux this could be the domain of the host’s LDAP provider.</td>
+
+<td>**resource</td>
+  </tr>
+  <tr>
+    <td>host.hostname</td>
+    <td>string</td>
+    <td>Hostname of the host.
+
+It normally contains what the hostname command returns on the host machine.</td>
+
+<td>resource["host.hostname"]</td>
+
+  </tr>
+  <tr>
+    <td>host.id</td>
+    <td>string</td>
+    <td>Unique host id.</td>
+    <td>resource["host.id"]</td>
+  </tr>
+  <tr>
+    <td>host.ip</td>
+    <td>Array of string</td>
+    <td>Host IP</td>
+    <td>resource["host.ip"]</td>
+  </tr>
+  <tr>
+    <td>host.mac</td>
+    <td>array of string</td>
+    <td>MAC addresses of the host</td>
+    <td>resource["host.mac"]</td>
+  </tr>
+  <tr>
+    <td>host.name</td>
+    <td>string</td>
+    <td>Name of the host.
+
+It may contain what hostname returns on Unix systems, the fully qualified, or a name specified by the user. </td>
+
+<td>resource["host.name"]</td>
+
+  </tr>
+  <tr>
+    <td>host.type</td>
+    <td>string</td>
+    <td>Type of host.</td>
+    <td>resource["host.type"]</td>
+  </tr>
+  <tr>
+    <td>host.uptime</td>
+    <td>string</td>
+    <td>Seconds the host has been up.</td>
+    <td>?</td>
+  </tr>
+  <tr>
+    <td>service.ephemeral_id
+
+</td>
+    <td>string</td>
+    <td>Ephemeral identifier of this service</td>
+    <td>**resource</td>
+  </tr>
+  <tr>
+    <td>service.id</td>
+    <td>string</td>
+    <td>Unique identifier of the running service. If the service is comprised of many nodes, the service.id should be the same for all nodes.</td>
+    <td>**resource</td>
+  </tr>
+  <tr>
+    <td>service.name</td>
+    <td>string</td>
+    <td>Name of the service data is collected from.</td>
+    <td>resource["service.name"]</td>
+  </tr>
+  <tr>
+    <td>service.node.name</td>
+    <td>string</td>
+    <td>Specific node serving that service</td>
+    <td>resource["service.instance.id"]</td>
+  </tr>
+  <tr>
+    <td>service.state</td>
+    <td>string</td>
+    <td>Current state of the service.</td>
+    <td>attributes["service.state"]</td>
+  </tr>
+  <tr>
+    <td>service.type</td>
+    <td>string</td>
+    <td>The type of the service data is collected from.</td>
+    <td>**resource</td>
+  </tr>
+  <tr>
+    <td>service.version</td>
+    <td>string</td>
+    <td>Version of the service the data was collected from.</td>
+    <td>resource["service.version"]</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
+\* Not yet formalized into ECS.
+
+\*\* A resource that doesn’t exist in the
+[OpenTelemetry resource semantic convention](https://github.com/open-telemetry/opentelemetry-specification/tree/master/specification/resource/semantic_conventions).
+
+This is a selection of the most relevant fields. See
+[for the full reference](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html)
+for an exhaustive list.
 
 ## Appendix B: `SeverityNumber` example mappings
 
