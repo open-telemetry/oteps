@@ -118,13 +118,15 @@ All Java runtime metrics should be within the `runtime.java.*` namespace.
 * `runtime.java.heap_alloc`
 * `runtime.java.gc` with labels `gc.count` and `gc.time`
 
-#### Node
+#### Node.js
 
-All Node runtime metrics should be within the `runtime.node.*` namespace.
+All Node runtime metrics should be within the `runtime.nodejs.*` namespace.
 
-* `runtime.node.gc` with labels `pause.time` and `pause.count`
-* `runtime.node.heap_alloc` with labels `heap.total_size`, `heap.available_size`, `heap.used_heap_size` **TODO** confirm
-* `runtime.node.event_loop` with TBD labels **TODO**
+* `runtime.nodejs.gc` with labels `pause.time` and `pause.count`
+* `runtime.nodejs.heap_alloc` with labels `heap.total_size`, `heap.available_size`, `heap.used_heap_size` **TODO** confirm
+* `runtime.nodejs.event_loop` with TBD labels **TODO**
+
+Note: We use `nodejs` here to disambiguate from the `node` term in Kubernetes and elsewhere.
 
 #### More runtimes
 
