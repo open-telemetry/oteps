@@ -103,7 +103,7 @@ All runtime metric names should be reported with a namespace that includes the n
 
 #### Go
 
-All Go runtime should be within the `runtime.go.*` namespace.
+All Go runtime metrics should be within the `runtime.go.*` namespace.
 
 Common metrics include:
 * `runtime.go.goroutines`
@@ -112,9 +112,19 @@ Common metrics include:
 
 #### Java
 
+All Java runtime metrics should be within the `runtime.java.*` namespace.
+
 * `runtime.java.threads` with optional labels for thread pools, eg, `runtime.java.thread_pool.[name]`
 * `runtime.java.heap_alloc`
 * `runtime.java.gc` with labels `gc.count` and `gc.time`
+
+#### Node
+
+All Node runtime metrics should be within the `runtime.node.*` namespace.
+
+* `runtime.node.gc` with labels `pause.time` and `pause.count`
+* `runtime.node.heap_alloc` with labels `heap.total_size`, `heap.available_size`, `heap.used_heap_size` **TODO** confirm
+* `runtime.node.event_loop` with TBD labels **TODO**
 
 #### More runtimes
 
