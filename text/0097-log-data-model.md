@@ -133,7 +133,7 @@ The reasons for having these 2 kinds of fields are:
   custom data that the application may want to include in the logs.
 
 When designing this data model we followed the following reasoning to make a
-decision about when to use use a top-level named field:
+decision about when to use a top-level named field:
 
 - The field needs to be either mandatory for all records or be frequently
   present in well-known log and event formats (such as `Timestamp`) or is
@@ -187,25 +187,27 @@ field is optional, it may be missing if the timestamp is unknown.
 
 Type: byte sequence.
 
-Description: Optional request trace id as defined in
+Description: Request trace id as defined in
 [W3C Trace Context](https://www.w3.org/TR/trace-context/#trace-id). Can be set
-for logs that are part of request processing and have an assigned trace id.
+for logs that are part of request processing and have an assigned trace id. This
+field is optional.
 
 #### Field: `SpanId`
 
 Type: byte sequence.
 
-Description: Optional span id. Can be set for logs that are part of a particular
-processing span. If SpanId is present TraceId SHOULD be also present.
+Description: Span id. Can be set for logs that are part of a particular
+processing span. If SpanId is present TraceId SHOULD be also present. This field
+is optional.
 
 #### Field: `TraceFlags`
 
 Type: byte.
 
-Description: Optional trace flag as defined in
+Description: Trace flag as defined in
 [W3C Trace Context](https://www.w3.org/TR/trace-context/#trace-flags)
 specification. At the time of writing the specification defines one flag - the
-SAMPLED flag.
+SAMPLED flag. This field is optional.
 
 ### Severity Fields
 
@@ -213,17 +215,18 @@ SAMPLED flag.
 
 Type: string.
 
-Description: the severity text (also known as log level). This is an optional
-field and is the original string representation as it is known at the source. If
-this field is missing and `SeverityNumber` is present then the short name that
-corresponds to the `SeverityNumber` may be used as a substitution.
+Description: severity text (also known as log level). This is the original
+string representation of the severity as it is known at the source. If this
+field is missing and `SeverityNumber` is present then the short name that
+corresponds to the `SeverityNumber` may be used as a substitution. This field is
+optional.
 
 #### Field: `SeverityNumber`
 
 Type: number.
 
 Description: numerical value of the severity, normalized to values described in
-this document. This is an optional field.
+this document. This field is optional.
 
 `SeverityNumber` is an integer number. Smaller numerical values correspond to
 less severe events (such as debug events), larger numerical values correspond to
@@ -365,11 +368,12 @@ corresponding short names).
 
 When severity is used in equality or inequality comparisons (for example in
 filters in the UIs) the recommendation is to attempt to use both `SeverityText`
-and short name of `SeverityNumber` to perform matches. For example if we have a
-record with `SeverityText` field equal to "Informational" and `SeverityNumber`
-field equal to INFO then it may be preferable from the user experience
-perspective to ensure that **severity="Informational"** and **severity="INFO"**
-conditions both to are TRUE for that record.
+and short name of `SeverityNumber` to perform matches (i.e. equality with either
+of these fields should be considered a match). For example if we have a record
+with `SeverityText` field equal to "Informational" and `SeverityNumber` field
+equal to INFO then it may be preferable from the user experience perspective to
+ensure that **severity="Informational"** and **severity="INFO"** conditions both
+to are TRUE for that record.
 
 ### Field: `ShortName`
 
@@ -377,8 +381,8 @@ Type: string.
 
 Description: Short event identifier that does not contain varying parts.
 `ShortName` describes what happened (e.g. "ProcessStarted"). Recommended to be
-no longer than 50 characters. Optional. Not guaranteed to be unique in any way.
-Typically used for filtering and grouping purposes in backends.
+no longer than 50 characters. Not guaranteed to be unique in any way. Typically
+used for filtering and grouping purposes in backends. This field is optional.
 
 ### Field: `Body`
 
@@ -388,7 +392,7 @@ Description: A value containing the body of the log record (see the description
 of `any` type above). Can be for example a human-readable string message
 (including multi-line) describing the event in a free form or it can be a
 structured data composed of arrays and maps of other values. Can vary for each
-occurrence of the event coming from the same source.
+occurrence of the event coming from the same source. This field is optional.
 
 ### Field: `Resource`
 
@@ -396,25 +400,29 @@ Type: key/value pair list.
 
 Description: Describes the source of the log, aka
 [resource](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/overview.md#resources).
-"value" of each pair is of `any` type. Multiple occurrences of events coming
-from the same event source can happen across time and they all have the same
-value of `Resource`. Can contain for example information about the application
-that emits the record or about the infrastructure where the application runs.
-Data formats that represent this data model may be designed in a manner that
-allows the `Resource` field to be recorded only once per batch of log records
-that come from the same source. SHOULD follow OpenTelemetry
+"key" of each pair is a `string` and "value" is of `any` type. Multiple
+occurrences of events coming from the same event source can happen across time
+and they all have the same value of `Resource`. Can contain for example
+information about the application that emits the record or about the
+infrastructure where the application runs. Data formats that represent this data
+model may be designed in a manner that allows the `Resource` field to be
+recorded only once per batch of log records that come from the same source.
+SHOULD follow OpenTelemetry
 [semantic conventions for Resources](https://github.com/open-telemetry/opentelemetry-specification/tree/master/specification/resource/semantic_conventions).
+This field is optional.
 
 ### Field: `Attributes`
 
 Type: key/value pair list.
 
-Description: Additional information about the specific event occurrence. "value"
-of each pair is of `any` type. Unlike the `Resource` field, which is fixed for a
-particular source, `Attributes` can vary for each occurrence of the event coming
-from the same source. Can contain information about the request context (other
-than TraceId/SpanId). SHOULD follow OpenTelemetry
+Description: Additional information about the specific event occurrence. "key"
+of each pair is a `string` and "value" is of `any` type. Unlike the `Resource`
+field, which is fixed for a particular source, `Attributes` can vary for each
+occurrence of the event coming from the same source. Can contain information
+about the request context (other than TraceId/SpanId). SHOULD follow
+OpenTelemetry
 [semantic conventions for Attributes](https://github.com/open-telemetry/opentelemetry-specification/tree/master/specification/trace/semantic_conventions).
+This field is optional.
 
 ## Example Log Records
 
@@ -443,7 +451,7 @@ Example 1
     "k8s.pod.uid": "1138528c-c36e-11e9-a1a7-42010a800198",
   },
   "TraceId": "f4dbb3edd765f620", // this is a byte sequence
-                                  // (hex-encoded in JSON)
+                                 // (hex-encoded in JSON)
   "SpanId": "43222c2d51a7abe3",
   "SeverityText": "INFO",
   "SeverityNumber": 9,
@@ -1033,13 +1041,13 @@ All other fields |                    |                                         
     <td>trace.id</td>
     <td>string</td>
     <td>Trace ID</td>
-    <td>trace_id</td>
+    <td>TraceId</td>
   </tr>
   <tr>
     <td>span.id*</td>
     <td>string</td>
     <td>Span ID</td>
-    <td>span_id</td>
+    <td>SpanId</td>
   </tr>
   <tr>
     <td>agent.ephemeral_id</td>
