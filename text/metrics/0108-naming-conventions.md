@@ -10,6 +10,8 @@ Namespace similar metrics together. Define top-level namespaces for common metri
 
 Provide consistent names for common label. Provides discoverability and disambiguation similar to metric names.
 
+"As a rule of thumb, [aggregations] over all the dimensions of a given metric should be meaningful," as Prometheus recommends.
+
 Avoid semantic ambiguity. Use namespaced metric names in cases where similar metrics have significantly different implementations across the holistics of metrics. For example, every garbage collected runtime has a slightly different strategies and measures. Using common metric names for GC, not namespaces by the runtime, could create dissimilar comparisons and confusion for end users. Measures of operating system memory are similar.
 
 ## Conventions
