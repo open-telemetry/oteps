@@ -8,7 +8,7 @@ Names and labels for metric instruments are primarily how humans interact with m
 
 Metric names and labels exist within a single universe and a single hierarchy. Metric names and labels should be considered within the universe of all existing metric names. When defining new metric names and labels, consider the prior art of existing standard metrics and metrics from frameworks/libraries.
 
-Nest similar metrics together in a hierarchy based on their usage. Define a top-level hierarchy for common metric categories: for OS metrics, like CPU and network; for app runtimes, like GC internals. This aids in discovery and adhoc comparison. This allows a user to find similar metrics given a certain metric.
+Nest similar metrics together in a hierarchy based on their usage. Define a top-level hierarchy for common metric categories: for OS metrics, like CPU and network; for app runtimes, like GC internals. Libraries and frameworks should nest their metrics into a hierarchy as well. This aids in discovery and adhoc comparison. This allows a user to find similar metrics given a certain metric.
 
 The hierarchical structure of metrics defines the namespacing. Supporting OpenTelemetry artifacts define the metric structures and hierarchies for some categories of metrics, and these can assist decisions when creating future metrics.
 
@@ -30,20 +30,16 @@ Goal heading out of this document: when this merges, start writing specific sema
 
 ## TODO TODO Working Area and Outstanding Questions TODO TODO
 
-What is a metric?
+### Fundamental questions - do we need to address this?
+* What is a metric?
+* What separates a metric from a label?
 
-What separates a metric from a label?
-
--Instrumentation library != namespace- (see note above)
-
--Hierarchy vs namespace; HTTP request latency in two namespaces-
+~Instrumentation library != namespace~ (see note above)
 
 Resource?
 
-Labels, key:vvalue
+Labels, key:value
 - one common label name or metric-specific label names, eg, for CPU metric, **kind**:idle or **cpu**:idle
-
-Note: We chose the word hierarchy and avoided the word namespace
 
 * What about things that overlap with tracing span data like upstream/downstream callers or originating systems?
 
