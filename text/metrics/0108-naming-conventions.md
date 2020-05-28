@@ -34,7 +34,6 @@ Goal heading out of this document: when this merges, start writing specific sema
 * What is a metric?
 * What separates a metric from a label?
 
-
 ### General questions
 
 ~Instrumentation library != namespace~ (see note above)
