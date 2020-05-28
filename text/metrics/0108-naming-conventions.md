@@ -53,4 +53,4 @@ Labels, key:value
   * word-token separtors inside a metric name, eg, `heap_alloc`
 * Fixed gear? 10 speed?
 * Do we need fenders? -- not in the rain and it's summer?
-* Why aren't we more upset about the nuclear power plant than the bike shed color?
+* Why aren't we more concerned about the nuclear power plant than the bike shed color?
