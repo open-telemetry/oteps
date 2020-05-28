@@ -74,7 +74,7 @@ not present. A setting can be exposed to NOT write `sampling.priority` to
 ## Trade-offs and mitigations
 
 ## Prior art and alternatives
-https://github.com/open-telemetry/opentelemetry-collector/blob/60b03d0d2d503351501291b30836d2126487a741/processor/samplingprocessor/probabilisticsamplerprocessor/testdata/config.yaml#L10
+<https://github.com/open-telemetry/opentelemetry-collector/blob/60b03d0d2d503351501291b30836d2126487a741/processor/samplingprocessor/probabilisticsamplerprocessor/testdata/config.yaml#L10>
 
 ## Open questions
 
