@@ -34,6 +34,9 @@ Goal heading out of this document: when this merges, start writing specific sema
 * What is a metric?
 * What separates a metric from a label?
 
+
+### General questions
+
 ~Instrumentation library != namespace~ (see note above)
 
 Resource?
@@ -48,5 +51,6 @@ Labels, key:value
 * Separators
   * namespace separators, eg, `runtime.go`
   * word-token separtors inside a metric name, eg, `heap_alloc`
-
-* Fixed gear? 10 speed? Do we need fenders? -- not in the rain
+* Fixed gear? 10 speed?
+* Do we need fenders? -- not in the rain and it's summer?
+* Why aren't we more upset about the nuclear power plant than the bike shed color?
