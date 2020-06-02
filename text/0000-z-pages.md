@@ -1,0 +1,31 @@
+# Replace this with your awesome OTEP title
+
+Make zPages a standard OpenTelemetry component.
+
+## Motivation
+
+ZPages are in-process web pages that display collected data from the process they are attached to. They are used to provide in-process diagnostics without the need of any backend to examine traces or metrics. Various implementations of zPages are widely used in many environments. The standard extensible implementation of zPages in OpenTelemetry will benefit everybody. 
+
+## Explanation
+
+This OTEP is a request to get a general approval for zPages development as an experimental feature https://github.com/open-telemetry/opentelemetry-specification/pull/632. See https://opencensus.io/zpages/ for the overview of zPages.
+
+## Internal details
+
+This is a request for a general direction approval, not specific details.
+
+## Trade-offs and mitigations
+
+We may discover that implementation of zPages as a vendor-specific or user-specific plugins may be preferable. Based on initial investigation, extensible standard implementation will benefit everybody.
+
+## Prior art and alternatives
+
+https://opencensus.io/zpages/
+
+## Open questions
+
+N/A
+
+## Future possibilities
+
+N/A
