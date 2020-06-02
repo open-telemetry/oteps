@@ -1,5 +1,4 @@
-# Replace this with your awesome OTEP title
-
+# zPages: general direction (#110)
 Make zPages a standard OpenTelemetry component.
 
 ## Motivation
