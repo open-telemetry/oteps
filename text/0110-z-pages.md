@@ -4,7 +4,7 @@ Make zPages a standard OpenTelemetry component.
 
 ## Motivation
 
-ZPages are in-process web pages that display collected data from the process they are attached to. They are used to provide in-process diagnostics without the need of any backend to examine traces or metrics. Various implementations of zPages are widely used in many environments. The standard extensible implementation of zPages in OpenTelemetry will benefit everybody.
+ZPages or self-introspection debug pages are in-process web pages that display collected data from the process they are attached to. They are used to provide in-process diagnostics without the need of any backend to examine traces or metrics. Various implementations of zPages are widely used in many environments. The standard extensible implementation of zPages in OpenTelemetry will benefit everybody.
 
 ## Explanation
 
@@ -12,7 +12,11 @@ This OTEP is a request to get a general approval for zPages development as an ex
 
 ## Internal details
 
-This is a request for a general direction approval, not specific details.
+This is a request for a general direction approval. There are a few principles for the development:
+
+1. ZPages framework MUST NOT be hardcoded into OpenTelemetry SDK.
+2. OpenTelemetry implementation MUST be implemented as two separate components - one for data, another for rendering. So that, for example, data providers could be also integrated into other rendering frameworks.
+3. ZPages framework SHOULD provide a way to extend information exposed from the process. Ideally all the way to replace OpenTelemetry SDK with alternative source of information.
 
 ## Trade-offs and mitigations
 
