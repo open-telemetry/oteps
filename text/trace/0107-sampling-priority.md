@@ -51,7 +51,7 @@ function of `trace-id` to make a sampling decision.
 It is suggested to extend the sampler behavior to expose a `tracestate` field
 called `sampling.priority` with the floating point value `[0-1]` that will indicate
 sampling priority of the current span. The sampling.priority is the probability as calculated
-by the hashing function. 
+by the hashing function.
 
 This will allow to align sampling algorithms between various components.
 Especially for the transition scenarios where components are using different
