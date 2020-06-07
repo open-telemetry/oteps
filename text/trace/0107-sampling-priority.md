@@ -39,8 +39,8 @@ via
 class.
 
 This recommendation suggests OpenTelemetry will allow to return the
-`sampling.priority` that will be appended to the tracestate for a newly created `Span`. 
-This will allow samplers from a single vendor coordinate sampling decision across 
+`sampling.priority` that will be appended to the tracestate for a newly created `Span`.
+This will allow samplers from a single vendor coordinate sampling decision across
 the different components of the trace.
 
 ### Probability Sampler default behavior
@@ -58,7 +58,7 @@ Especially for the transition scenarios where components are using different
 versions of the SDKs with different sampling algorithms. The components would
 respect the sampling.priority if passed in to make sampling decision and not re-calculate
 the sampling probability. So let's assume head component A started the trace and
-sampled in 60% of the traces and then next component B has sampling policy of 
+sampled in 60% of the traces and then next component B has sampling policy of
 30% but is using different sampling algorithm. In this scenario how can we make sure
 that the 30% of the traces sampled in by component B are subset of the 60% traces
 sampled in by component A. So, by passing the sampling priority component B can use
