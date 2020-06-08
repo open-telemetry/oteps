@@ -47,13 +47,13 @@ Exemplar collection should be enabled through an optional parameter, and when no
 
 #### HistogramAggregator
 
-Every bucket in the HistogramAggregator MUST (when enabled) maintain a list of exemplars whose values are within the boundaries of the bucket. Implementations should attempt to retain at least one exemplar per bucket, with a preference for exemplars with a sampled trace context and exemplars that were recorded later in the time period. They should also not retain an unbounded number of exemplars.
+Every bucket in the HistogramAggregator MUST (when enabled) maintain a list of exemplars whose values are within the boundaries of the bucket (for buckets containing a population of one or more). Implementations SHOULD attempt to retain at least one exemplar per bucket, with a preference for exemplars with a sampled trace context and exemplars that were recorded later in the time period. They SHOULD NOT retain an unbounded number of exemplars.
 
 #### Sketch
 
-A Sketch aggregation should maintain a list of exemplars whose values are spaced out across the distribution. There is no specific number of exemplars that should be retained (although the amount should not be unbounded), but the implementation should pick exemplars that represent as much of the distribution as possible. Preference should be given to exemplars with a sampled trace context. (Specific details not defined, see open questions.)
+A Sketch aggregation SHOULD maintain a list of exemplars whose values are spaced out across the distribution. There is no specific number of exemplars that should be retained (although the amount SHOULD NOT be unbounded), but the implementation SHOULD pick exemplars that represent as much of the distribution as possible. Preference SHOULD be given to exemplars with a sampled trace context. (Specific details not defined, see open questions.)
 
-#### Gauge
+#### Last-Value
 
 Most (if not all) Gauges operate asynchronously and do not ever interact with traces. Since the value of a Gauge is the last measurement (essentially the other parts of an exemplar), exemplars are not worth implementing for Gauge.
 
@@ -87,8 +87,8 @@ There are other aggregations that can benefit from exemplars, but they do not ha
 
 #### Counter
 
-Exemplars give value to counter aggregations by tying metric and trace data together. When enabled, the aggregator will retain a small bounded list of exemplars at each checkpoint, containing at least the minimum and maximum value measurements whose trace context was sampled. Measurements should only be retained if there is a sampled trace context when the measurement was recorded.
+Exemplars give value to counter aggregations by tying metric and trace data together. When enabled, the aggregator will retain a small bounded list of exemplars at each checkpoint, containing at least the minimum and maximum value measurements whose trace context was sampled. Measurements SHOULD be retained only if there is a sampled trace context when the measurement was recorded.
 
 #### MinMaxSumCount
 
-The aggregator should maintain a list of at least two exemplars (when enabled), one near the maximum value and one near the minimum value. Preference should be given to exemplars with sampled traces, and if those are not available then the actual min and max values should be used.
+The aggregator should maintain a list of at least two exemplars (when enabled), one near the maximum value and one near the minimum value. Preference SHOULD be given to exemplars with sampled traces, and if those are not available then the actual min and max values SHOULD be used.
