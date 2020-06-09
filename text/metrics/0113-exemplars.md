@@ -19,7 +19,7 @@ Exemplars are meaningful for all aggregations where relevant traces can provide 
 An exemplar is defined as:
 
 ```
-message Exemplar {
+message RawValue {
   // Numerical value of the measurement that was recorded. Only one of these two fields is
   // used for the data, depending on its type
   double double_value = 0;
@@ -31,15 +31,19 @@ message Exemplar {
   // 'label:value' map of all labels that were provided by the user recording the measurement
   repeated opentelemetry.proto.common.v1.StringKeyValue labels = 3;
 
-  // Span ID of the current trace [Optional]
-  string span_id = 4;
+  // Span ID of the current trace
+  optional string span_id = 4;
 
-  // Trace ID of the current trace [Optional]
-  string trace_id = 5;
+  // Trace ID of the current trace
+  optional string trace_id = 5;
+
+  // When sample_count is non-zero, this exemplar has been chosen in a statistically
+  // unbiased way such that the exemplar is representative of `sample_count` individual events
+  optional double sample_count = 6;
 }
 ```
 
-Exemplar collection should be enabled through an optional parameter, and when not enabled, there should be no collection/logic performed related to exemplars. This is to ensure that when necessary, aggregations are as high performance as possible.
+Exemplar collection should be enabled through an optional parameter (disabled by default), and when not enabled, there should be no collection/logic performed related to exemplars. This is to ensure that when necessary, aggregations are as high performance as possible. Aggregations should also have a parameter to determine whether exemplars should only be collected if they are recorded during a sampled trace, or if tracing should have no effect on which exemplars are sampled. This allows aggregations to prioritize either the link between metrics and traces or the statistical significance of exemplars, when necessary.
 
 [#347](https://github.com/open-telemetry/opentelemetry-specification/pull/347) describes a set of standard aggregations in the metrics SDK. Here we describe how exemplars could be implemented for each aggregation.
 
@@ -47,11 +51,11 @@ Exemplar collection should be enabled through an optional parameter, and when no
 
 #### HistogramAggregator
 
-Every bucket in the HistogramAggregator MUST (when enabled) maintain a list of exemplars whose values are within the boundaries of the bucket (for buckets containing a population of one or more). Implementations SHOULD attempt to retain at least one exemplar per bucket, with a preference for exemplars with a sampled trace context and exemplars that were recorded later in the time period. They SHOULD NOT retain an unbounded number of exemplars.
+The HistogramAggregator MUST (when enabled) maintain a list of exemplars whose values are distributed across all buckets of the histogram (there should be one or more exemplars in every bucket that has a population of at least one sample-able measurement). Implementations SHOULD NOT retain an unbounded number of exemplars.
 
 #### Sketch
 
-A Sketch aggregation SHOULD maintain a list of exemplars whose values are spaced out across the distribution. There is no specific number of exemplars that should be retained (although the amount SHOULD NOT be unbounded), but the implementation SHOULD pick exemplars that represent as much of the distribution as possible. Preference SHOULD be given to exemplars with a sampled trace context. (Specific details not defined, see open questions.)
+A Sketch aggregation SHOULD maintain a list of exemplars whose values are spaced out across the distribution. There is no specific number of exemplars that should be retained (although the amount SHOULD NOT be unbounded), but the implementation SHOULD pick exemplars that represent as much of the distribution as possible. (Specific details not defined, see open questions.)
 
 #### Last-Value
 
@@ -59,9 +63,27 @@ Most (if not all) Gauges operate asynchronously and do not ever interact with tr
 
 #### Exact
 
-The Exact aggregator does not aggregate measurements. If exemplars are enabled, implementations may attach a separate exemplar to each measurement in an exact aggregation including the trace context and full set of labels.
+The Exact aggregation will function by maintaining a list of `RawValue`s, which contain all of the information exemplars would carry. Therefore the Exact aggregation will not need to maintain any exemplars.
 
-Exemplars will always be retrieved from aggregations (by the exporter) as a list of Exemplar objects.
+#### Counter
+
+Exemplars give value to counter aggregations in two ways: One, by tying metric and trace data together, and two, by providing necessary information to re-create the input distribution. When enabled, the aggregator will retain a bounded list of exemplars at each checkpoint, sampled from across the distribution of the data. Exemplars should be sampled in a statistically significant way.
+
+#### MinMaxSumCount
+
+Similar to Counter, MinMaxSumCount should retain a bounded list of exemplars that were sampled from across the input distribution in a statistically significant way.
+
+#### Custom Aggregations
+
+Custom aggregations MAY support exemplars by maintaining a list of exemplars that can be retrieved by exporters. Custom aggregations should select exemplars based on their usage by the connected exporter (for example, exemplars recorded for Stackdriver should only be retained if they were recorded within a sampled trace).
+
+Exemplars will always be retrieved from aggregations (by the exporter) as a list of RawValue objects. They will be communicated via a
+
+```
+optional repeated RawValue exemplars = 6
+```
+
+attribute on the `metric_descriptor` object.
 
 ## Trade-offs and mitigations
 
@@ -80,15 +102,3 @@ Exemplars are implemented in [OpenCensus](https://github.com/census-instrumentat
 - We don’t have a strong grasp on how the sketch aggregator works in terms of implementation - so we don’t have enough information to design how exemplars should work properly.
 
 - The spec doesn't yet define a standard set of aggregations, just default aggregations for standard metric instruments. Since exemplars are always attached to particular aggregations, it's impossible to fully specify the behavior of exemplars.
-
-### Which aggregations should include exemplars?
-
-There are other aggregations that can benefit from exemplars, but they do not have well defined exemplar implementations and they are not supported by any known exporter. Should these be included in the OTEP or should they be left out?:
-
-#### Counter
-
-Exemplars give value to counter aggregations by tying metric and trace data together. When enabled, the aggregator will retain a small bounded list of exemplars at each checkpoint, containing at least the minimum and maximum value measurements whose trace context was sampled. Measurements SHOULD be retained only if there is a sampled trace context when the measurement was recorded.
-
-#### MinMaxSumCount
-
-The aggregator should maintain a list of at least two exemplars (when enabled), one near the maximum value and one near the minimum value. Preference SHOULD be given to exemplars with sampled traces, and if those are not available then the actual min and max values SHOULD be used.
