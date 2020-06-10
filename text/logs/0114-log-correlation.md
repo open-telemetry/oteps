@@ -1,10 +1,10 @@
 # Conventions for Trace and Resource Association in Logs
 
-To set out standards for correlating traces and resources in existing logs
+To set out standards for correlating traces and resources in existing logs.
 
 ## Motivation
 
-In order to correlate log entries with the tracing spans that were occurring 
+In order to correlate standalone log entries with the spans that were occurring 
 when the log entry was created, we need to emit certain information in the logs 
 to correlate the data entries. This document attempts to lay out the information 
 that needs to be emitted, and sets forth several approaches for doing so.
@@ -124,7 +124,7 @@ of this advice may be difficult to implement in certain circumstances.
 
 Elastic Common Schema [has standards](https://www.elastic.co/guide/en/ecs/current/ecs-tracing.html#ecs-tracing) 
 for adding trace information to JSON log formats, but they do not support the 
-full OT correlation model
+full OpenTelemetry correlation model.
 
 ## Open questions
 
