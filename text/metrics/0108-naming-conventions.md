@@ -14,7 +14,7 @@ The hierarchical structure of metrics defines the namespacing. Supporting OpenTe
 
 Common labels SHOULD be consistently named. This aids in discoverability and disambiguates similar labels to metric names.
 
-"As a rule of thumb, **aggregations** over all the dimensions of a given metric should be meaningful," as Prometheus recommends.
+["As a rule of thumb, **aggregations** over all the dimensions of a given metric **SHOULD** be meaningful,"](https://prometheus.io/docs/practices/naming/#metric-names) as Prometheus recommends.
 
 Avoid semantic ambiguity. Use prefixed metric names in cases where similar metrics have significantly different implementations across the breadth of all existing metrics. For example, every garbage collected runtime has a slightly different strategies and measures. Using common metric names for GC, not namespaced by the runtime, could create dissimilar comparisons and confusion for end users. (For example, prefer `runtime.java.gc*` over `runtime.gc*`.) Measures of many operating system metrics are similar.
 
