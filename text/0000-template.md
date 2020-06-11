@@ -1,4 +1,4 @@
-# A Dynamic Configuration Service for the Agent
+# A Dynamic Configuration Service for the SDK
 
 This proposal adds a configuration service to dynamically configure metric collection and tracing.
 
