@@ -20,7 +20,7 @@ Common labels SHOULD be consistently named. This aids in discoverability and dis
 
 Avoid semantic ambiguity. Use prefixed metric names in cases where similar metrics have significantly different implementations across the breadth of all existing metrics. For example, every garbage collected runtime has a slightly different strategies and measures. Using common metric names for GC, not namespaced by the runtime, could create dissimilar comparisons and confusion for end users. (For example, prefer `runtime.java.gc*` over `runtime.gc*`.) Measures of many operating system metrics are similar.
 
-For conventional metrics or metrics that have their units covered by OpenTelemetry metadata (eg `Metric.WithUnit` in Go), do not include the units in the metric name. Units may be included when it provides additional meaning to the metric name. Metrics must, above all, be understandable and usable.
+For conventional metrics or metrics that have their units included in OpenTelemetry metadata (eg `metric.WithUnit` in Go), SHOULD NOT include the units in the metric name. Units may be included when it provides additional meaning to the metric name. Metrics MUST, above all, be understandable and usable.
 
 ## End of document
 
