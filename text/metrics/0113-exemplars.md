@@ -16,7 +16,7 @@ Exemplars are meaningful for all aggregations where relevant traces can provide 
 
 ## Internal details
 
-An exemplar is defined as:
+An exemplar is a `RawValue`, which is defined as:
 
 ```
 message RawValue {
@@ -43,11 +43,11 @@ message RawValue {
 }
 ```
 
-Exemplar collection should be enabled through an optional parameter (disabled by default), and when not enabled, there should be no collection/logic performed related to exemplars. This is to ensure that when necessary, aggregations are as high performance as possible. Aggregations should also have a parameter to determine whether exemplars should only be collected if they are recorded during a sampled trace, or if tracing should have no effect on which exemplars are sampled. This allows aggregations to prioritize either the link between metrics and traces or the statistical significance of exemplars, when necessary.
+Exemplar collection should be enabled through an optional parameter (disabled by default), and when not enabled, there should be no collection/logic performed related to exemplars. This is to ensure that when necessary, aggregators are as high performance as possible. Aggregators should also have a parameter to determine whether exemplars should only be collected if they are recorded during a sampled trace, or if tracing should have no effect on which exemplars are sampled. This allows aggregations to prioritize either the link between metrics and traces or the statistical significance of exemplars, when necessary.
 
-[#347](https://github.com/open-telemetry/opentelemetry-specification/pull/347) describes a set of standard aggregations in the metrics SDK. Here we describe how exemplars could be implemented for each aggregation.
+[#347](https://github.com/open-telemetry/opentelemetry-specification/pull/347) describes a set of standard aggregators in the metrics SDK. Here we describe how exemplars could be implemented for each aggregator.
 
-### Exemplar behaviour for standard aggregations
+### Exemplar behaviour for standard aggregators
 
 #### HistogramAggregator
 
@@ -55,15 +55,15 @@ The HistogramAggregator MUST (when enabled) maintain a list of exemplars whose v
 
 #### Sketch
 
-A Sketch aggregation SHOULD maintain a list of exemplars whose values are spaced out across the distribution. There is no specific number of exemplars that should be retained (although the amount SHOULD NOT be unbounded), but the implementation SHOULD pick exemplars that represent as much of the distribution as possible. (Specific details not defined, see open questions.)
+A Sketch aggregator SHOULD maintain a list of exemplars whose values are spaced out across the distribution. There is no specific number of exemplars that should be retained (although the amount SHOULD NOT be unbounded), but the implementation SHOULD pick exemplars that represent as much of the distribution as possible. (Specific details not defined, see open questions.)
 
 #### Last-Value
 
-Most (if not all) Gauges operate asynchronously and do not ever interact with traces. Since the value of a Gauge is the last measurement (essentially the other parts of an exemplar), exemplars are not worth implementing for Gauge.
+Most (if not all) Last-Value aggregators operate asynchronously and do not ever interact with context. Since the value of a Last-Value is the last measurement (essentially the other parts of an exemplar), exemplars are not worth implementing for Gauge.
 
 #### Exact
 
-The Exact aggregation will function by maintaining a list of `RawValue`s, which contain all of the information exemplars would carry. Therefore the Exact aggregation will not need to maintain any exemplars.
+The Exact aggregator will function by maintaining a list of `RawValue`s, which contain all of the information exemplars would carry. Therefore the Exact aggregator will not need to maintain any exemplars.
 
 #### Counter
 
@@ -73,9 +73,9 @@ Exemplars give value to counter aggregations in two ways: One, by tying metric a
 
 Similar to Counter, MinMaxSumCount should retain a bounded list of exemplars that were sampled from across the input distribution in a statistically significant way.
 
-#### Custom Aggregations
+#### Custom Aggregators
 
-Custom aggregations MAY support exemplars by maintaining a list of exemplars that can be retrieved by exporters. Custom aggregations should select exemplars based on their usage by the connected exporter (for example, exemplars recorded for Stackdriver should only be retained if they were recorded within a sampled trace).
+Custom aggregators MAY support exemplars by maintaining a list of exemplars that can be retrieved by exporters. Custom aggregators should select exemplars based on their usage by the connected exporter (for example, exemplars recorded for Stackdriver should only be retained if they were recorded within a sampled trace).
 
 Exemplars will always be retrieved from aggregations (by the exporter) as a list of RawValue objects. They will be communicated via a
 
@@ -83,7 +83,7 @@ Exemplars will always be retrieved from aggregations (by the exporter) as a list
 optional repeated RawValue exemplars = 6
 ```
 
-attribute on the `metric_descriptor` object.
+attribute on the `Metric` object.
 
 ## Trade-offs and mitigations
 
