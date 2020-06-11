@@ -12,7 +12,7 @@ Associated metrics SHOULD be nested together in a hierarchy based on their usage
 
 The hierarchical structure of metrics defines the namespacing. Supporting OpenTelemetry artifacts define the metric structures and hierarchies for some categories of metrics, and these can assist decisions when creating future metrics.
 
-Provide consistent names for common labels. This aids in discoverability and disambiguates similar labels to metric names.
+Common labels SHOULD be consistently named. This aids in discoverability and disambiguates similar labels to metric names.
 
 "As a rule of thumb, **aggregations** over all the dimensions of a given metric should be meaningful," as Prometheus recommends.
 
