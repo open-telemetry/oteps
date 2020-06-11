@@ -19,7 +19,7 @@ such as a host, a pod, or a virtual machine.
 
 ### Request Correlation
 
-Trace correlation is achieved primarily with two values- a trace identifier and 
+Trace correlation is achieved primarily with two values, a trace identifier and 
 a span identifier. A trace may contain multiple spans, arranged as a tree, and 
 may also contain links to other related spans. The combination of a trace 
 identifier and a span identifier corresponds to a specific scope of work. In the 
@@ -27,9 +27,9 @@ tracing API, that scope can also contain attributes and events that describe
 what work the program being traced was currently performing.
 
 In most cases when traces and logs are used in tandem, the attributes of the 
-current scope do not need to be added to the log entry- doing so would duplicate 
+current span do not need to be added to the log entry, because it would duplicate 
 transmission of those values. As one span is likely associated with several (or 
-many) log entries, it is more efficient to transmit those attributes with the 
+many) log entries, it is more efficient to transmit span attributes with the 
 span once rather than many times with each log entry. As a result, for most 
 purposes the goal is to set the three values of traceid, spanid, and traceflags 
 into each log entry that should be associated with that span.
@@ -45,7 +45,7 @@ As important as what was occurring in a program’s execution is, where it was
 occurring is just as important. Resource correlation allows a log entry to be 
 associated with an infrastructure resource, and in turn system and program 
 metrics that describe the wider program state. The form that the resource takes 
-is also more diverse than the tracing scope- the resource may be a pod running 
+is also more diverse than the tracing scope: the resource may be a pod running 
 in a Kubernetes cluster, a virtual machine running in a cloud, a serverless 
 lambda, or an old-school server sitting in a data center. An application 
 environment may be an orchestration of multiple types of resource working 
