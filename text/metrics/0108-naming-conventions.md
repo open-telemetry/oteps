@@ -8,7 +8,7 @@ Names and labels for metric instruments are primarily how humans interact with m
 
 Metric names and labels exist within a single universe and a single hierarchy. Metric names and labels MUST be considered within the universe of all existing metric names. When defining new metric names and labels, consider the prior art of existing standard metrics and metrics from frameworks/libraries.
 
-Nest similar metrics together in a hierarchy based on their usage. Define a top-level hierarchy for common metric categories: for OS metrics, like CPU and network; for app runtimes, like GC internals. Libraries and frameworks should nest their metrics into a hierarchy as well. This aids in discovery and adhoc comparison. This allows a user to find similar metrics given a certain metric.
+Associated metrics SHOULD be nested together in a hierarchy based on their usage. Define a top-level hierarchy for common metric categories: for OS metrics, like CPU and network; for app runtimes, like GC internals. Libraries and frameworks should nest their metrics into a hierarchy as well. This aids in discovery and adhoc comparison. This allows a user to find similar metrics given a certain metric.
 
 The hierarchical structure of metrics defines the namespacing. Supporting OpenTelemetry artifacts define the metric structures and hierarchies for some categories of metrics, and these can assist decisions when creating future metrics.
 
