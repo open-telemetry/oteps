@@ -158,7 +158,7 @@ An alternative approach is to move the existing sampling decision to the end.
 
 ### Alternative: more hooks for the sampler to update it's decision
 
-https://github.com/open-telemetry/opentelemetry-specification/issues/307 brings up
+[spec #307](https://github.com/open-telemetry/opentelemetry-specification/issues/307) brings up
 a few more hooks to modify sampling decisions. This is similar to the pros and
 cons of the proposal, with an added pro of requiring more incremental effort
 on determining sampler decisions, and a con of requiring more complexity on
@@ -168,14 +168,14 @@ the sampler's part.
 
 ### The behavior of child spans of an unsampled span
 
-Question reference: https://github.com/open-telemetry/opentelemetry-specification/issues/307#issuecomment-544912240
+Question reference: [spec #307](https://github.com/open-telemetry/opentelemetry-specification/issues/307#issuecomment-544912240)
 
 If the span decision can change over time, child spans cannot rely on the existence of a parent span. This may require some enforced behavior around child spans of an unsampled span also not being sampled. This is difficult, if not impossible, to do as there is no reference to child spans from the parent span. Thus, when the parent changes it's
 span decision, it can not propagate that choice to child spans.
 
 ### Sampling decision is too late to gain much performance
 
-Reference: https://github.com/open-telemetry/opentelemetry-specification/issues/620
+Reference: [spec #620](https://github.com/open-telemetry/opentelemetry-specification/issues/620)
 
 Some samplers can make the choice to sample with effectively no data,
 such as a probabilistic sampler. There is currently no facility to enable
