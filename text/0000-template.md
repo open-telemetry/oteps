@@ -19,11 +19,6 @@ The user must then set up the config service. This can be done throught the coll
 Our protocol will support this call:
 
 ```
-// DynamicConfig is a service on the collector that enables updating metric
-// schedules, trace parameters, and other configurations on an agent/SDK without
-// having to restart the instrumented application. The collector may also act as
-// a bridge between third-party configuration services and the agent/sdk, piping
-// updated configs from a third-party source to an instrumented application.
 service DynamicConfig {
   rpc GetConfig (ConfigRequest) returns (ConfigResponse);
 }
@@ -170,7 +165,7 @@ have integrated remote configurations.
 
 There are performance concerns, given that the agent is periodically reading from a service and using this config to update itself. Everything will be implemented optionally, so this will have minimal impact on users who opt not the dynamically update their configs.
 
-The configuration service can be a potential attack vector for an application instrumented with Open Telemetry, depending on what we allow in the protocol. We can highlight in the protocol comments that we should be cautious about what kind of information the agent divulges in its request as well as the sort of behaviour changes that can come about from a config change. 
+As mentioned [here](https://github.com/open-telemetry/opentelemetry-proto/pull/155#issuecomment-640582048), the configuration service can be a potential attack vector for an application instrumented with Open Telemetry, depending on what we allow in the protocol. We can highlight in the protocol comments that we should be cautious about what kind of information the agent divulges in its request as well as the sort of behaviour changes that can come about from a config change. 
 
 ## Prior art and alternatives
 
@@ -178,7 +173,7 @@ The alternative is to stick with the status quo, where the agent has a [fixed co
 
 ## Open questions
 
-- What happens if a malicious/accidental config change overwhelms the application/monitoring system? Is it the responsibility of the user to be cautious while making config changes? Should we automatically decrease telemetry exporting if we can detect performance problems?
+- As mentioned here [https://github.com/open-telemetry/opentelemetry-proto/pull/155#issuecomment-640582048]. what happens if a malicious/accidental config change overwhelms the application/monitoring system? Is it the responsibility of the user to be cautious while making config changes? Should we automatically decrease telemetry exporting if we can detect performance problems?
 
 ## Future possibilities
 
