@@ -4,6 +4,8 @@
 
 Names and labels for metric instruments are primarily how humans interact with metric data -- users rely on these names to build dashboards and perform analysis. The names and hierarchical structure need to be understandable and discoverable during routine exploration -- and this becomes critical during incidents.
 
+To ensure these goals and consistency in future metric naming standards, this outlines a meta-standard for these names.
+
 ## Guidelines
 
 Metric names and labels exist within a single universe and a single hierarchy. Metric names and labels MUST be considered within the universe of all existing metric names. When defining new metric names and labels, consider the prior art of existing standard metrics and metrics from frameworks/libraries.
