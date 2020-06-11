@@ -18,12 +18,6 @@ Common labels SHOULD be consistently named. This aids in discoverability and dis
 
 ["As a rule of thumb, **aggregations** over all the dimensions of a given metric **SHOULD** be meaningful,"](https://prometheus.io/docs/practices/naming/#metric-names) as Prometheus recommends.
 
-Semantic ambiguity SHOULD be avoided. Use prefixed metric names in cases where similar metrics have significantly different implementations across the breadth of all existing metrics. For example, every garbage collected runtime has slightly different strategies and measures. Using a single set of metric names for GC, not divided by the runtime, could create dissimilar comparisons and confusion for end users. (For example, prefer `runtime.java.gc*` over `runtime.gc*`.) Measures of many operating system metrics are similar.
+Semantic ambiguity SHOULD be avoided. Use prefixed metric names in cases where similar metrics have significantly different implementations across the breadth of all existing metrics. For example, every garbage collected runtime has slightly different strategies and measures. Using a single set of metric names for GC, not divided by the runtime, could create dissimilar comparisons and confusion for end users. (For example, prefer `runtime.java.gc*` over `runtime.gc.*`.) Measures of many operating system metrics are similar.
 
 For conventional metrics or metrics that have their units included in OpenTelemetry metadata (eg `metric.WithUnit` in Go), SHOULD NOT include the units in the metric name. Units may be included when it provides additional meaning to the metric name. Metrics MUST, above all, be understandable and usable.
-
-## End of document
-
-The below text is for threaded discussion and will be deleted when ready to merge.
-
-Goal heading out of this document: when this merges, start writing specific semantic conventions for os, database, etc. Forthcoming docs will address specific metric: Network, OS, OS-agnostic
