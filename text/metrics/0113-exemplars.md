@@ -32,10 +32,10 @@ message RawValue {
   repeated opentelemetry.proto.common.v1.StringKeyValue labels = 3;
 
   // Span ID of the current trace
-  optional string span_id = 4;
+  optional bytes span_id = 4;
 
   // Trace ID of the current trace
-  optional string trace_id = 5;
+  optional bytes trace_id = 5;
 
   // When sample_count is non-zero, this exemplar has been chosen in a statistically
   // unbiased way such that the exemplar is representative of `sample_count` individual events
@@ -59,7 +59,7 @@ A Sketch aggregator SHOULD maintain a list of exemplars whose values are spaced 
 
 #### Last-Value
 
-Most (if not all) Last-Value aggregators operate asynchronously and do not ever interact with context. Since the value of a Last-Value is the last measurement (essentially the other parts of an exemplar), exemplars are not worth implementing for Gauge.
+Most (if not all) Last-Value aggregators operate asynchronously and do not ever interact with context. Since the value of a Last-Value is the last measurement (essentially the other parts of an exemplar), exemplars are not worth implementing for Last-Value.
 
 #### Exact
 
