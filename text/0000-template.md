@@ -139,7 +139,7 @@ The alternative is to stick with the status quo, where the agent has a [fixed co
 
 ## Open questions
 
-- As mentioned here [https://github.com/open-telemetry/opentelemetry-proto/pull/155#issuecomment-640582048]. what happens if a malicious/accidental config change overwhelms the application/monitoring system? Is it the responsibility of the user to be cautious while making config changes? Should we automatically decrease telemetry exporting if we can detect performance problems?
+- As mentioned [here](https://github.com/open-telemetry/opentelemetry-proto/pull/155#issuecomment-640582048). what happens if a malicious/accidental config change overwhelms the application/monitoring system? Is it the responsibility of the user to be cautious while making config changes? Should we automatically decrease telemetry exporting if we can detect performance problems?
 
 ## Future possibilities
 
