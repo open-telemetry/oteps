@@ -44,12 +44,7 @@ While the response will look like this:
 message ConfigResponse {
 
   // Optional. The fingerprint associated with this ConfigResponse. Each change
-  // in configs yields a different fingerprint. The resource SHOULD copy this
-  // value to ConfigRequest.last_known_fingerprint for the next configuration
-  // request. If there are no changes between fingerprint and
-  // ConfigRequest.last_known_fingerprint, then all other fields besides
-  // fingerprint in the response are optional, or the same as the last update if
-  // present.
+  // in configs yields a different fingerprint.
   bytes fingerprint = 2;
 
   // Dynamic configs specific to metrics
@@ -99,41 +94,10 @@ message ConfigResponse {
       CollectionPeriod period = 3;
 
       // Optional. Additional opaque metadata associated with the schedule.
-      // Interpreting metadata is implementation specific. A metric backend may
-      // implement features not directly supported in this configuration
-      // protocol, but still desire to communicate these settings to
-      // instrumented applications. An application may in turn piggyback
-      // metadata on a vendor's metric exporter to communicate information back
-      // to its metric backend. In this way, metadata offers a channel to
-      // communicate custom settings.
-      //
-      // Example use cases may include:
-      //  * Specifying quality-of-service priority
-      //  * Tweaking configurations beyond collection period
-      //  * Using alternate representations for collection schedules, matching
-      //    metrics, resources, etc.
-      //  * Enabling other optimizations
+      // Interpreting metadata is implementation specific.
       bytes metadata = 4;
     }
 
-    // A single metric may match multiple schedules. This behavior enables a use
-    // case in which metadata properties may distinguish different collection
-    // periods for the same metric.
-    //
-    // For example, suppose an implementation uses a "traffic class" metadata
-    // property to determine the priority given to sampling a certain metric.
-    // Then one schedule may be applied in which a metric is sampled with high
-    // priority at an infrequent period, but another schedule may be applied
-    // with low priority at a frequent period.
-    //
-    // In the event no distinguishing metadata is applied to a metric that
-    // matches multiple schedules, the schedule that specifies the smallest
-    // period is applied.
-    //
-    // Note, for optimization purposes, it is best practice to use as few
-    // schedules as possible to capture all required metric updates. Where you
-    // can be conservative, do take full advantage of the inclusion/exclusion
-    // patterns to capture as much of your targeted metrics.
     repeated Schedule schedules = 1;
 
   }
@@ -153,7 +117,9 @@ message ConfigResponse {
 
 On the agent/SDK side, everything will be implemented so that all of this functionality will be optional, and the user is not required to add any new configurations. As stated before, to read from a configuration service, the agents needs to be configured with the service endpoint, a Resource and a default config. The agent will periodically read a config from the service. If it fails to do so, it will just use the default config, or the most recent successfully read config. If it reads a new config, it will apply it.
 
-On the metrics side, the agent implementation will be changed so that it can export metrics that match one certain pattern at a certain interval, while exporting metrics that match another pattern at a different interval. On the sampling side, a sampler will be implemented that can change its sampling rate according to new configs.
+Export frequency from the SDK depends on Schedules. Each Schedule has inclusion_patterns, exclusion_patterns and a CollectionPeriod. Any metrics that match any of the inclusion_patterns and do not match any of the exclusion_patterns will be exported every CollectionPeriod (ie. every minute).
+
+On the metrics side, the agent implementation will be changed so that it can export metrics that match one certain pattern at a certain interval, while exporting metrics that match another pattern at a different interval. On the tracing side, a sampler will be implemented that can change its sampling rate according to new configs.
 
 The collector will support a new interface for a DynamicConfig service that can be used by an agent, allowing a custom implementation of the configuration service protocol described above, to act as an optional bridge between an agent and an arbitrary configuration service. This interface can be implemented as a shim to support accessing remote configurations from arbitrary backends. The collector is configured to expose an endpoint for requests to the DynamicConfig service, and returns results on that endpoint.
 
