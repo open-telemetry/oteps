@@ -1,6 +1,6 @@
 # A Dynamic Configuration Service for the SDK
 
-This proposal adds a configuration service to dynamically configure metric collection and tracing.
+This proposal adds a configuration service to dynamically configure metric collection. Tracing is also intended to be added, with details left for a later iteration.
 
 It is related to [this pull request](https://github.com/open-telemetry/opentelemetry-proto/pull/155)
 
@@ -10,7 +10,7 @@ During normal use, a user could use sparse networking, CPU, and memory resources
 
 ## Explanation
 
-All of this functionality will be optional, so the user does not need to do extra work if they do not need a dynamic config service. If they do, the user, when instrumenting their application, would need to configure the open telemetry agent with the endpoint of their remote configuration service, as well as a Resource and a default config in case we fail to read from the service.
+All of this functionality will be optional, so the user does not need to do extra work if they do not need a dynamic config service. If they do, the user, when instrumenting their application, would need to configure the open telemetry SDK with the endpoint of their remote configuration service, as well as a Resource and a default config in case we fail to read from the service.
 
 The user must then set up the config service. This can be done throught the collector, which can set up either a stand-alone service, or as something that is an interface to the remote configurations of the user's monitoring and tracing backend, "translating" them to comply with the Open Telemetry configuration protocol
 
@@ -115,13 +115,11 @@ message ConfigResponse {
 }
 ```
 
-On the agent/SDK side, everything will be implemented so that all of this functionality will be optional, and the user is not required to add any new configurations. As stated before, to read from a configuration service, the agents needs to be configured with the service endpoint, a Resource and a default config. The agent will periodically read a config from the service. If it fails to do so, it will just use the default config, or the most recent successfully read config. If it reads a new config, it will apply it.
+On the SDK side, everything will be implemented so that all of this functionality will be optional, and the user is not required to add any new configurations. As stated before, to read from a configuration service, the SDK needs to be configured with the service endpoint, a Resource and a default config. The SDK will periodically read a config from the service. If it fails to do so, it will just use the default config, or the most recent successfully read config. If it reads a new config, it will apply it.
 
-Export frequency from the SDK depends on Schedules. Each Schedule has inclusion_patterns, exclusion_patterns and a CollectionPeriod. Any metrics that match any of the inclusion_patterns and do not match any of the exclusion_patterns will be exported every CollectionPeriod (ie. every minute).
+Export frequency from the SDK depends on Schedules. Each Schedule has inclusion_patterns, exclusion_patterns and a CollectionPeriod. Any metrics that match any of the inclusion_patterns and do not match any of the exclusion_patterns will be exported every CollectionPeriod (ie. every minute). The SDK implementation will be changed so that it can export metrics that match one certain pattern at a certain interval, while exporting metrics that match another pattern at a different interval.
 
-On the metrics side, the agent implementation will be changed so that it can export metrics that match one certain pattern at a certain interval, while exporting metrics that match another pattern at a different interval. On the tracing side, a sampler will be implemented that can change its sampling rate according to new configs.
-
-The collector will support a new interface for a DynamicConfig service that can be used by an agent, allowing a custom implementation of the configuration service protocol described above, to act as an optional bridge between an agent and an arbitrary configuration service. This interface can be implemented as a shim to support accessing remote configurations from arbitrary backends. The collector is configured to expose an endpoint for requests to the DynamicConfig service, and returns results on that endpoint.
+The collector will support a new interface for a DynamicConfig service that can be used by an SDK, allowing a custom implementation of the configuration service protocol described above, to act as an optional bridge between an SDK and an arbitrary configuration service. This interface can be implemented as a shim to support accessing remote configurations from arbitrary backends. The collector is configured to expose an endpoint for requests to the DynamicConfig service, and returns results on that endpoint.
 
 The collector will support both implementing a standalone DynamicConfig service, and combining
 DynamicConfig service and Exporter implementations for monitoring and tracing backends that
@@ -129,13 +127,17 @@ have integrated remote configurations.
 
 ## Trade-offs and mitigations
 
-There are performance concerns, given that the agent is periodically reading from a service and using this config to update itself. Everything will be implemented optionally, so this will have minimal impact on users who opt not the dynamically update their configs.
+There are performance concerns, given that the SDK is periodically reading from a service and using this config to update itself. Everything will be implemented optionally, so this will have minimal impact on users who opt not the dynamically update their configs.
 
-As mentioned [here](https://github.com/open-telemetry/opentelemetry-proto/pull/155#issuecomment-640582048), the configuration service can be a potential attack vector for an application instrumented with Open Telemetry, depending on what we allow in the protocol. We can highlight in the protocol comments that we should be cautious about what kind of information the agent divulges in its request as well as the sort of behaviour changes that can come about from a config change. 
+As mentioned [here](https://github.com/open-telemetry/opentelemetry-proto/pull/155#issuecomment-640582048), the configuration service can be a potential attack vector for an application instrumented with Open Telemetry, depending on what we allow in the protocol. We can highlight in the protocol comments that we should be cautious about what kind of information the SDK divulges in its request as well as the sort of behaviour changes that can come about from a config change. 
 
 ## Prior art and alternatives
 
-The alternative is to stick with the status quo, where the agent has a [fixed collection period](https://github.com/open-telemetry/opentelemetry-go/blob/34bd99896311a81cf843475779cae2e1c05e6257/sdk/metric/controller/push/push.go#L72-L76) and a fixed sampling rate.
+One way to configure metric export schedules is to, instead of pushing the metrics, using a pull mechanism to have metrics pulled whenever wanted. This has been implemented for [Prometheus](https://github.com/open-telemetry/opentelemetry-go/pull/751).
+
+In the past, collection period could not be specified for exporters, with it defaulting to once a minute. Past work has been done so that when initially setting up export pipelines, you can specify (collection period)[https://github.com/open-telemetry/opentelemetry-go/pull/504].
+
+The alternative is to stick with the status quo, where the SDK has a [fixed collection period](https://github.com/open-telemetry/opentelemetry-go/blob/34bd99896311a81cf843475779cae2e1c05e6257/sdk/metric/controller/push/push.go#L72-L76) and a fixed sampling rate.
 
 ## Open questions
 
