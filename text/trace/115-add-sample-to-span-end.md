@@ -109,13 +109,18 @@ sampling decision made by either ShouldSample call:
 
 ## Internal details
 
-### Idempotence of samplers
+### Possible Idempotence of samplers
 
 The calling of shouldSample multiple times can result in inconsistent results
 if the sampler is truly random. As such, the samplers will need to be idempotent
 based on the input passed. For example, a probability sampler would need to
 use data present in the passed parameters, such as the span id, to return sampling
 decisions.
+
+This can also be resolved with the addition of a "retryable" flag from the
+sampling decision, which notifies the caller if the sampling decision needs
+to be reevaluated upon further modifications to the span. Samplers that are
+truly random could set retryable to false.
 
 ### Sampling
 
@@ -160,9 +165,12 @@ An alternative approach is to move the existing sampling decision to the end.
 
 [spec #307](https://github.com/open-telemetry/opentelemetry-specification/issues/307) brings up
 a few more hooks to modify sampling decisions. This is similar to the pros and
-cons of the proposal, with an added pro of requiring more incremental effort
-on determining sampler decisions, and a con of requiring more complexity on
-the sampler's part.
+cons of the proposal with the following additions:
+
+- Pro: more hooks enables earlier accurate sampling decisions, which in turn
+  reduces the number of child spans and propagated spans that have an incongruent
+  sampling decision.
+- Con: samplers will also need to handle more hooks, requiring additional complexity.
 
 ## Open questions
 
@@ -180,3 +188,19 @@ Reference: [spec #620](https://github.com/open-telemetry/opentelemetry-specifica
 Some samplers can make the choice to sample with effectively no data,
 such as a probabilistic sampler. There is currently no facility to enable
 these types of samplers.
+
+### An amended sample result will result in lost / additional spans when propagated
+
+Reference: [comment in spec#307](https://github.com/open-telemetry/opentelemetry-specification/issues/307#issuecomment-642954936)
+
+As the sampled result is propagated during external calls, a sampling result
+that is changed later will result in some subset of propagated spans to have the
+original decision, and future spans to have the later decision.
+
+For example, suppose that an RPC request is sent right after span start with
+sampled set to false. The consumers of those RPC requests will see a sample
+decision of false, which means that the spans will not be emitted.
+
+However if the span is set to be sampled later on, the original span in question
+will be emitted, but as the RPC spans mentioned above were not, the final trace
+will have the RPC spans missing.
