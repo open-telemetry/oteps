@@ -1,12 +1,12 @@
 # A Dynamic Configuration Service for the SDK
 
-This proposal adds a configuration service to dynamically configure metric collection. Per-metric configuration as well as tracing is also intended to be added, with details left for a later iteration.
+This proposal adds a configuration service to dynamically configure metric collection period. Per-metric configuration as well as tracing is also intended to be added, with details left for a later iteration.
 
 It is related to [this pull request](https://github.com/open-telemetry/opentelemetry-proto/pull/155)
 
 ## Motivation
 
-During normal use, a user could use sparse networking, CPU, and memory resources required to send and store telemetry data by specifying sampling of 0.1% of traces, collecting critical metrics such as SLI-related latency distributions and container CPU stats only every five minutes, and not collecting non-critical metrics. Later, while investigating a production issue, the same user could easily increase information available for debugging by reconfiguring some of their processes to sample 2% of traces, collect critical metrics every minute, and begin collecting metrics that were not deemed useful before. Because this change is centralized and does not require redeploying with new configurations, there is lower friction and risk in updating the configurations.
+During normal use, users may wish to collect metrics every 10 minutes. Later, while investigating a production issue, the same user could easily increase information available for debugging by reconfiguring some of their processes to collect metrics every 30 seconds. Because this change is centralized and does not require redeploying with new configurations, there is lower friction and risk in updating the configurations.
 
 ## Explanation
 
@@ -57,7 +57,8 @@ message ConfigResponse {
     // a metric. If a metric name matches a schedule's patterns, then the metric
     // adopts the configuration specified by the schedule.
 
-    // For now, there can only be one Schedule
+    // For now, there can only be one Schedule. Since we export all metrics at 
+    // the same time, this Schedule should apply to all metrics.
     message Schedule {
 
       // A light-weight pattern that can match 1 or more
