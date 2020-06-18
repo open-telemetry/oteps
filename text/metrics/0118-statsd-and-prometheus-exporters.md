@@ -23,17 +23,16 @@ for migration from Prometheus and Statsd instruments to OpenTelemetry
 instruments.  The instrument migration is included to complete this
 proposal.
 
-As a requirement, this proposal promises that the recommended mapping
-from Prometheus and Statsd instrument to OpenTelemetry instrument,
-paired with the default Aggregator and then mapped back into
-Prometheus or Statsd, shall produce the corresponding value type of
-the original Prometheus or Statsd instrument.  This is also a
-requirement when the data is forwarded over OTLP.  An exception to
-this rule is associated with Prometheus Summary values, which are
-discouraged from use.  Note that when the default mapping does not
-work as intended (e.g., for Prometheus Summary values), the Metric
-Views API or a configurable Metrics SDK will be needed to reconfigure
-those OpenTelemetry instruments.
+For Counter and Gauge instruments, this proposal promises that the
+default mapping from Prometheus and Statsd instrument to OpenTelemetry
+instrument, paired with the default Aggregator and then mapped back
+into Prometheus or Statsd, produces the corresponding Counter or Gauge
+value type of the original Prometheus or Statsd instrument.  The same
+is not true for Histogram and Summary instruments: the recommended
+OpenTelemetry instruments will export Counter or Gauge values by
+default.  It is expected that a configurable SDK or the Metric Views
+API will be used to reconfigure selected OpenTelemetry instruments to
+produce Histogram and Summary values in Prometheus and Statsd.
 
 ## Background
 
