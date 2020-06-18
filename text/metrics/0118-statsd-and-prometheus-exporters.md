@@ -79,9 +79,10 @@ OpenTelemetry metric instruments are classified in several ways:
 - _Precomputed-Sum_: Asynchronous adding instruments observe a sum directly, instead of a series of changes in the sum.
 
 These properties will help understand how to map OpenTelemetry
-Aggregators into Prometheus and Statsd metric data.
+Aggregators into Prometheus and Statsd metric data.  These are the
+OpenTelemetry instruments:
 
-| Name | Synchronous | Adding or Grouping | Monotonic | Precomputed-Sum | Default Aggregator |	
+| Name | Synchronous | Adding or Grouping | Monotonic | Precomputed-Sum | Default Aggregator |
 | ---- | ----------- | -------- | --------- | ---- | --- |
 | Counter           | Yes | Adding   | Yes | No  | Sum |
 | UpDownCounter     | Yes | Adding   | No  | No  | Sum |
@@ -98,7 +99,10 @@ Histogram).
 
 ### Prometheus
 
-#### Prometheus Instruments
+This is based off of the Prometheus [Metric
+Types](https://prometheus.io/docs/concepts/metric_types).
+
+#### Prometheus instruments
 
 Prometheus Counter instruments are semantically identical to
 OpenTelemetry Counter instruments, including the Mnotonic property.
@@ -109,32 +113,115 @@ whether they are used as an adding or as a grouping instrument.  They
 are exposed as a single data point equal to the the last value that
 was set.  Because Prometheus clients are stateful, Gauges support both
 `Set()` and `Add()` methods.  Generally, Prometheus Gauges used to
-`Add()` map into OpenTelemetry UpDownCounter instruments, while
-Prometheus Gauges used to `Set()` map into OpenTelemetry ValueRecorder
-instruments.
+`Add()` map into OpenTelemetry UpDownCounter instruments (maybe
+SumObserver, UpDownSumObserver), while Prometheus Gauges used to
+`Set()` map into OpenTelemetry ValueRecorder instruments (maybe
+ValueObserver).
 
 Prometheus Histogram instruments are exposed as Cumulative
-aggregations, defined by a number of buckets containing counts from
-the start of the
+aggregations, defined by a number of bucketed counts, accumulated from
+the start of the process.  Prometheus Histogram instruments map into
+ValueRecorder instruments (maybe ValueObserver).  To configure a
+Histogram exposition in the Prometheus exporter, configure a Histogram
+Aggregator with the desired buckets.
 
+Prometheus Summary instruments are discouraged, as mentioned above,
+because they are not mergeable.  Uses of Prometheus Summary
+instruments map into OpenTelemetry ValueRecorder instruments (maybe
+ValueObserver).  To configure a Summary exposition in the Prometheus
+exporter, configure a Sketch Aggregator with the desired quantiles.
 
-@@@
+#### OpenTelemetry Aggregator to Prometheus exposition
 
+The following table lists the mapping from Aggregator to Prometheus
+exposition format.  The "Typical Instruments" listed are the
+applicable OpenTelemetry instruments, for which the Prometheus mapping
+is sensible.
+
+| OpenTelemetry aggregator | Default Prometheus data type mapping | Export kind | Typical instruments | Notes |
+| -- | -- | -- | -- | -- |
+| Sum (Monotonic)       | Counter    | Cumulative | Counter(*), SumObserver(*) | |
+| Sum (Non-Monotonic)   | Gauge      | Cumulative | UpDownCounter(*), UpDownSumObserver(*) | |
+| LastValue             | Gauge      | Cumulative | ValueRecorder, ValueObserver, SumObserver, UpDownSumObserver | |
+| MinMaxLastSumCount    | Gauge      | Delta      | ValueRecorder(*), ValueObserver(*) | Expose the LastValue field as the Gauge |
+| Histogram             | Histogram  | Cumulative | ValueRecorder, ValueObserver | |
+| Sketch                | Summary    | Delta      | ValueRecorder, ValueObserver | |
+| Exact                 | Summary    | Delta      | ValueRecorder, ValueObserver | |
+
+Above, (*) denotes the default behavior of an OpenTelemetry
+instrument.
+
+### Statsd
+
+Statsd refers to a wire format for metrics. The mapping specified here
+refers to either the original Etsy protocol (a.k.a. plain Statsd) or
+the DataDog variation with labels added (a.k.a. DogStatsd).
+
+#### Statsd instruments
+
+Statsd instruments export individual data points using messages
+described by a 1- or 2- character string:
+
+- "c" for Counter
+- "g" for Gauge
+- "h" for Histogram (exposed as a Summary)
+- "ms" for Timing (exposed as a Summary)
+- "d" for Distribution (exposed as a Sketch)
+
+#### OpenTelemetry Aggregator to Statsd exposition
+
+The Statsd exposition format always uses Delta aggregation.
+
+Statsd Grouping instruments, which are all except the Statsd Counter
+instrument, are exposed as Gauge by default (e.g., as opposed to
+Histogram).
+
+The Histogram, Sketch and Exact Aggregators, when configured, is
+exposed in Summary form, using the instrument name with `_sum`,
+`_count`, and various quantile suffixes (e.g., `_p95`).  The
+MinMaxLastSumCount Aggregator also supports being exposed as a
+Summary (e.g., `_min`, `_max` suffixes).
+
+The following table lists the mapping from Aggregator to Statsd
+exposition format.  The "Typical Instruments" listed are the
+applicable OpenTelemetry instruments, for which the Statsd mapping is
+sensible.
+
+| OpenTelemetry aggregator | Default Statsd data type mapping | Typical instruments | Notes |
+| -- | -- | -- | -- |
+| Sum (Monotonic)       | Counter    | Counter(*), SumObserver(*) | |
+| Sum (Non-Monotonic)   | Gauge      | UpDownCounter(*), UpDownSumObserver(*) | |
+| LastValue             | Gauge      | ValueRecorder, ValueObserver, SumObserver, UpDownSumObserver | |
+| MinMaxLastSumCount    | Gauge      | ValueRecorder(*), ValueObserver(*) | Expose the LastValue field as the Gauge |
+| Histogram             | Summary    | ValueRecorder, ValueObserver | |
+| Sketch                | Summary    | ValueRecorder, ValueObserver | |
+| Exact                 | Summary    | ValueRecorder, ValueObserver | |
+
+Above, (*) denotes the default behavior of an OpenTelemetry
+instrument.
 
 ## Trade-offs and mitigations
 
-What are some (known!) drawbacks? What are some ways that they might be mitigated?
+When an OTLP Exporter is configured in the client, we can expect any
+configured Aggregator to produce an Aggregation that maps into the
+OTLP protocol, such that an OpenTelemetry collector is able to apply
+the same logic as local exporter would.  OpenTelemetry provides a
+number of Aggregators to facilitate this kind of configuration choice.
 
-Note that mitigations do not need to be complete *solutions*, and that they do not need to be accomplished directly through your proposal. A suggested mitigation may even warrant its own OTEP!
+When the default Aggregator is used with any of the OpenTelemetry
+instruments (i.e., lacking other configuration), the result in
+Prometheus or Statsd will be exposed as a Counter or as a Gauge.
+There is no instrument choice with a default mapping to Histogram in
+either system.  This is specified in order to reduce the default cost
+of OpenTelemetry instruments.
 
-## Prior art and alternatives
-
-What are some prior and/or alternative approaches? For instance, is there a corresponding feature in OpenTracing or OpenCensus? What are some ideas that you have rejected?
-
-## Open questions
-
-What are some questions that you know aren't resolved yet by the OTEP? These may be questions that could be answered through further discussion, implementation experiments, or anything else that the future may bring.
-
-## Future possibilities
-
-What are some future changes that this proposal would enable?
+Note, in particular, that the default Aggregator for ValueRecorder and
+ValueObserver is MinMaxLastSumCount, specified even though the default
+exposition format is Gauge for both Prometheus and Statsd systems.
+This is done so that metric exporters other than Prometheus and Statsd
+are able to summarize the distribution by default (i.e., expose min,
+max, sum, and count), after forwarding through OTLP.  See the
+[MinMaxLastSumCount
+OTEP](https://github.com/open-telemetry/oteps/pull/117).  A drawback
+of this approach is slightly more computation and data transfered
+through over OTLP.
