@@ -75,7 +75,7 @@ Similar to Counter, MinMaxSumCount should retain a bounded list of exemplars tha
 
 #### Custom Aggregators
 
-Custom aggregators MAY support exemplars by maintaining a list of exemplars that can be retrieved by exporters. Custom aggregators should select exemplars based on their usage by the connected exporter (for example, exemplars recorded for Stackdriver should only be retained if they were recorded within a sampled trace).
+Custom aggregators MAY support exemplars by maintaining a list of exemplars that can be retrieved by exporters. Custom aggregators should select exemplars based on their usage by the connected exporter (for example, exemplars recorded for Google Cloud Monitoring should only be retained if they were recorded within a sampled trace).
 
 Exemplars will always be retrieved from aggregations (by the exporter) as a list of RawValue objects. They will be communicated via a
 
