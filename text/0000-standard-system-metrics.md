@@ -6,11 +6,10 @@ This OTEP is largely based on the existing implementation in the OpenTelemetry C
 
 ## Explanation
 There are some semantic conventions followed in this OTEP in order to keep naming consistent. Not all possible metrics are covered by these conventions, but they provide consistent names for many cases in the proposal:
-- **usage** - a measure of the amount an entity is used out of a known total amount should be called `entity.usage`. For example, `system.filesystem.usage` for the amount of disk spaced used. *(I'm open to adjusting this to unit names or something else).*
+- **usage** - a measure of the amount an entity is used out of a known total amount should be called `entity.usage`. For example, `system.filesystem.usage` for the amount of disk spaced used. A measure of the amount of an unlimited resource consumed is differentiated from *usage*. This may be time, data, etc. *(I'm open to adjusting this to unit names or something else).*
 - **utilization** - a measure of the *percent* usage should be called `entity.utilization`. For example, `system.memory.utilization` for the percentage of memory in use. *(I'm open to a shorter name, but wanted to distinguish between usage as an amount and a percentage).*
-- A measure of the amount of an unlimited resource consumed is differentiated from *usage*. This may be time, data, etc.
-  * **time** - a measure of the time taken should be called `entity.time`. For example, `system.cpu.time` with varying values of label `state` for idle, user, etc.
-  * **io** - a measure of bidirectional data flow should be called `entity.io` and have labels for direction. For example, `system.net.io`.
+- **time** - a measure of the time taken should be called `entity.time`. For example, `system.cpu.time` with varying values of label `state` for idle, user, etc.
+- **io** - a measure of bidirectional data flow should be called `entity.io` and have labels for direction. For example, `system.net.io`.
 - Other metrics that do not fit the above descriptions may be named more freely. Units do not *need* to be specified in the names, but can be added if there is ambiguity. For example, `system.swap.page_faults` and `system.net.packets`. 
 
 ## Trade-offs and mitigations
