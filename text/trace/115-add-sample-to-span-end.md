@@ -1,7 +1,7 @@
-# Add Additional Sample Decision at Span End
+# Add Incremental Sampling Hooks
 
-This document proposes adding an additional sampling decision made at span end,
-along with keeping the current sampling decision made at span creation.
+This document proposes adding incremental sampling hooks, which will be called
+as attributes are modified on spans to update sampling decisions.
 
 ## Motivation
 
@@ -10,11 +10,12 @@ requires the choice to sample the span to occur when the span is created.
 This forces patterns such as deferred span creation or span decisions to be
 inconsistent with the criteria based on the final span result.
 
-Adding an additional sampling decision to the span end will eliminate
-the possible incongruence of a sampler missing spans that should or should not be
-sampled, based on attributes that change through the lifetime of the span.
+Adding additional sampling points to make sample decisions for the span will
+reduce the possible incongruence of a sampler missing spans that should or
+should not be sampled, based on attributes that change through the lifetime
+of the span.
 
-Although this document suggests adding an additional sampling point, the desire
+Although this document proposes adding additional sampling hooks, the desire
 is to solve a deeper issue around contention of making an early sampling decision,
 and enabling the addition or modification of span properties after initial creation.
 
@@ -86,6 +87,8 @@ issues with sampling would ensure a more robust and maintainable code base.
 
 ## Explanation
 
+## Additional Hooks
+
 A sampler would consume the same arguments it does today:
 
 - span name
@@ -94,61 +97,64 @@ A sampler would consume the same arguments it does today:
 - span attributes
 - span links
 
-The sampler would be called twice: once at creation, and once at span end.
+The sampler would incorporate additional hooks, one to match each modification
+of events on an existing span:
 
-The span's sampling decision would be determined by the intersection of the
-sampling decision made by either ShouldSample call:
+* onUpdateName, called by updateName
+* onSetAttribute, called by setAttribute
+* onAddEvent, called by addEvent
+* onSetStatus, called by setStatus
+* onEnd, called at the end of the span
 
-| First ShouldSample result | Second ShouldSample result | Final Result       |
-|---------------------------|----------------------------|--------------------|
-| NOT_RECORD                | N/A (Don't Call)           | NOT_RECORD         |
-| RECORD_AND_SAMPLED        | N/A (Don't Call)           | RECORD_AND_SAMPLED |
-| RECORD                    | NOT_RECORD                 | NOT_RECORD         |
-| RECORD                    | RECORD                     | RECORD             |
-| RECORD                    | RECORD_AND_SAMPLED         | RECORD_AND_SAMPLED |
+These methods will consume both the span, as well as the field or state that
+was changed. This enables optimizations in the case that samplers only depend
+on the data in the modification to make a decision, as well as more complex
+sample checks that may require all fields of the span.
+
+onEnd is also provided, as an optimization for samplers who may opt for
+running the sample decision after no further updates to the span are possible.
+
+## Samples return shouldRetry
+
+Samplers will return an additional "shouldRetry" boolean value, that indicates
+whether the sample should be called again. Once shouldRetry has returned false,
+further sample hooks will not be called.
+
+shouldRetry is only valid when paired with a RECORD or RECORD_AND_SAMPLED result.
+A NOT_RECORD result results in no further calls to the sampler, regardless of
+the shouldRetry value.
 
 ## Internal details
 
-### Possible Idempotence of samplers
-
-The calling of shouldSample multiple times can result in inconsistent results
-if the sampler is truly random. As such, the samplers will need to be idempotent
-based on the input passed. For example, a probability sampler would need to
-use data present in the passed parameters, such as the span id, to return sampling
-decisions.
-
-This can also be resolved with the addition of a "retryable" flag from the
-sampling decision, which notifies the caller if the sampling decision needs
-to be reevaluated upon further modifications to the span. Samplers that are
-truly random could set retryable to false.
-
-### Sampling
-
 ## Trade-offs and mitigations
 
-See alternatives.
+### Rationale for separating shouldRetry from sampled result
 
 ## Prior art and alternatives
 
-Related issues:
+This implementation should address the following issues:
 
 - [remove warning on trace.updateName](https://github.com/open-telemetry/opentelemetry-specification/issues/468)
 - [remove warning on trace.updateName PR](https://github.com/open-telemetry/opentelemetry-specification/pull/506)
 - [Allow samplers to be called during different moments in the Span lifetime](https://github.com/open-telemetry/opentelemetry-specification/issues/307)
 - [Sampling decision is too late to gain much performance](https://github.com/open-telemetry/opentelemetry-specification/issues/620)
 
-### Tradeoffs of multiple sampled approach
+### Tradeoffs of additional sample hooks
 
 - Pro: enables setting the recording decision early, which can skip additional
        processing for instrumentations that use the isRecording field.
 - Pro: enables setting the recording decision early, which can be used
        to set cheaper Span implementations (such as noop spans) and save on
        processing.
+- Pro: more hooks enables earlier accurate sampling decisions, which in turn
+       reduces the number of child spans and propagated spans that have an incongruent
+       sampling decision.
 
 - Con: increases the complexity of the sampling logic slightly.
 - Con: introduces a complex matrix of final recording / sample decisions based
        on both sample results.
-- Con: increases the processing required per span marginally (need to re-run sampling logic)
+- Con: increases the processing required per span marginally (need to re-run
+       sampling logic multiple times)
 
 #### Alternative: Always sample at the end
 
@@ -161,17 +167,6 @@ An alternative approach is to move the existing sampling decision to the end.
        result in a net increase of system resources relative to an approach that
        allows optimizations.
 
-### Alternative: more hooks for the sampler to update it's decision
-
-[spec #307](https://github.com/open-telemetry/opentelemetry-specification/issues/307) brings up
-a few more hooks to modify sampling decisions. This is similar to the pros and
-cons of the proposal with the following additions:
-
-- Pro: more hooks enables earlier accurate sampling decisions, which in turn
-  reduces the number of child spans and propagated spans that have an incongruent
-  sampling decision.
-- Con: samplers will also need to handle more hooks, requiring additional complexity.
-
 ## Open questions
 
 ### The behavior of child spans of an unsampled span
@@ -180,14 +175,6 @@ Question reference: [spec #307](https://github.com/open-telemetry/opentelemetry-
 
 If the span decision can change over time, child spans cannot rely on the existence of a parent span. This may require some enforced behavior around child spans of an unsampled span also not being sampled. This is difficult, if not impossible, to do as there is no reference to child spans from the parent span. Thus, when the parent changes it's
 span decision, it can not propagate that choice to child spans.
-
-### Sampling decision is too late to gain much performance
-
-Reference: [spec #620](https://github.com/open-telemetry/opentelemetry-specification/issues/620)
-
-Some samplers can make the choice to sample with effectively no data,
-such as a probabilistic sampler. There is currently no facility to enable
-these types of samplers.
 
 ### An amended sample result will result in lost / additional spans when propagated
 
@@ -204,3 +191,14 @@ decision of false, which means that the spans will not be emitted.
 However if the span is set to be sampled later on, the original span in question
 will be emitted, but as the RPC spans mentioned above were not, the final trace
 will have the RPC spans missing.
+
+## Changes to be applied to the spec
+
+- replace any recommendation for deferred span creation with explicit
+  discouragement of the pattern
+- modification of sampler API with new methods
+- modification of sampler return value to include shouldRetry
+
+Recommendations for setting span parameters as early as possible will remain,
+as it will still benefit sampler accuracy to have values as early as possible,
+and thus have a final decision as soon as possible.
