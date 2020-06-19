@@ -6,9 +6,10 @@ This OTEP is largely based on the existing implementation in the OpenTelemetry C
 
 ## Trade-offs and mitigations
 
-When choosing a metric name, there is a trade off between discoverability and ambiguity. For example, a metric called `system.cpu.load_average` is very discoverable, but the meaning of this metric is ambiguous. [Load average](https://en.wikipedia.org/wiki/Load_(computing)) is well defined on UNIX, but is not a standard metric on Windows. While discoverability is important, metric names must be unambiguous. 
+When choosing a metric name, there is a trade off between discoverability and ambiguity. For example, a metric called `system.cpu.load_average` is very discoverable, but the meaning of this metric is ambiguous. [Load average](https://en.wikipedia.org/wiki/Load_(computing)) is well defined on UNIX, but is not a standard metric on Windows. While discoverability is important, metric names must be unambiguous.
 
 ## Prior art
+
 There are already a few implementations of system and/or runtime metric collection in OpenTelemetry:
 
 - **[OTEP #108](https://github.com/open-telemetry/oteps/pull/108/files)**
@@ -23,7 +24,7 @@ There are already a few implementations of system and/or runtime metric collecti
   * [Overview of collected metrics](https://docs.google.com/spreadsheets/d/11qSmzD9e7PnzaJPYRFdkkKbjTLrAKmvyQpjBjpJsR2s).
 
 - **Go**
-  * Go [has instrumentation](https://github.com/open-telemetry/opentelemetry-go-contrib/tree/master/instrumentation/runtime) to collect runtime metrics for GC, heap use, and goroutines. 
+  * Go [has instrumentation](https://github.com/open-telemetry/opentelemetry-go-contrib/tree/master/instrumentation/runtime) to collect runtime metrics for GC, heap use, and goroutines.
   * This package does not export metrics with labels, instead exporting individual metrics.
   * [Overview of collected metrics](https://docs.google.com/spreadsheets/d/1r50cC9ass0A8SZIg2ZpLdvZf6HmQJsUSXFOu-rl4yaY/edit#gid=0).
 - **Python**
@@ -36,18 +37,21 @@ There are already a few implementations of system and/or runtime metric collecti
 - **TODO: Opencensus**
 
 ## Semantic Conventions
+
 The following semantic conventions aim to keep naming consistent across different metrics. Not all possible metrics are covered by these conventions, but they provide guidelines for most of the cases in this proposal:
+
 - **usage** - an instrument that measures an amount used out of a known total amount should be called `entity.usage`. For example, `system.filesystem.usage` for the amount of disk spaced used. A measure of the amount of an unlimited resource consumed is differentiated from **usage**. This may be time, data, etc. *(I'm open to adjusting this to unit names or something else).*
 - **utilization** - an instrument that measures percent usage should be called `entity.utilization`. For example, `system.memory.utilization` for the percentage of memory in use. *(I'm open to a shorter name, but wanted to distinguish between usage as an amount and a percentage).*
 - **time** - an instrument that measures passage of time should be called `entity.time`. For example, `system.cpu.time` with varying values of label `state` for idle, user, etc.
 - **io** - an instrument that measures bidirectional data flow should be called `entity.io` and have labels for direction. For example, `system.net.io`.
 - Other metrics that do not fit the above descriptions may be named more freely. For example, `system.swap.page_faults` and `system.net.packets`. Units do not need to be specified in the names since they are included during instrument creation, but can be added if there is ambiguity.
 
-
 ## Internal details
+
 The following standard metric names should be used in libraries instrumenting system/runtime metrics (here is a [spreadsheet](https://docs.google.com/spreadsheets/d/1r50cC9ass0A8SZIg2ZpLdvZf6HmQJsUSXFOu-rl4yaY/edit#gid=973941697) of the tables below).
 
 ### Standard System Metrics - `system.`
+
 ---
 
 #### `system.cpu.`
@@ -121,16 +125,18 @@ The following standard metric names should be used in libraries instrumenting sy
 |                           |     |                 |state    |[e.g. for tcp](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Protocol_operation)|
 
 #### OS Specific System Metrics - `system.{os}.`
+
 System level metrics specific to a certain operating system should be prefixed with `system.{os}.` and follow the hierarchies listed above for different entities like CPU, memory, and network. For example, metrics pertaining to Linux inodes would appear under `system.linux.filesystem.inodes.*`, reusing the `filesystem` name proposed above.
 
 ### Standard Runtime Metrics - `runtime.`
+
 ---
 
 Runtime environments vary widely in their terminology, implementation, and relative values for a given metric. For example, Go and Python are both garbage collected languages, but comparing heap usage between the two runtimes directly is not meaningful. For this reason, this OTEP does not propose any standard top-level runtime metrics. See [OTEP #108](https://github.com/open-telemetry/oteps/pull/108/files) for additional discussion.
 
 #### Runtime Specific Metrics - `runtime.{environment}.`
-Runtime level metrics specific to a certain runtime environment should be prefixed with `runtime.{environment}.` and follow the semantic conventions outlined in [Semantic Conventions](#semantic-conventions).
 
+Runtime level metrics specific to a certain runtime environment should be prefixed with `runtime.{environment}.` and follow the semantic conventions outlined in [Semantic Conventions](#semantic-conventions).
 
 ## Open questions
 
