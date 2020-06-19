@@ -1,28 +1,24 @@
 # A Dynamic Configuration Service for the SDK
 
-This proposal is for an experiment to add a configuration service to dynamically configure metric collection. Tracing is also intended to be added, with details left for a later iteration.
+This proposal is for an experiment to add a configuration service to dynamically configure metric  periods. Per-metric and tracing configuration is also intended to be added, with details left for a later iteration.
 
 It is related to [this pull request](https://github.com/open-telemetry/opentelemetry-proto/pull/155)
 
 ## Motivation
 
-During normal use, a user could use sparse networking, CPU, and memory resources required to send and store telemetry data by specifying sampling of 0.1% of traces, collecting critical metrics such as SLI-related latency distributions and container CPU stats only every five minutes, and not collecting non-critical metrics. Later, while investigating a production issue, the same user could easily increase information available for debugging by reconfiguring some of their processes to sample 2% of traces, collect critical metrics every minute, and begin collecting metrics that were not deemed useful before. Because this change is centralized and does not require redeploying with new configurations, there is lower friction and risk in updating the configurations.
+During normal use, users may wish to collect metrics every 10 minutes. Later, while investigating a production issue, the same user could easily increase information available for debugging by reconfiguring some of their processes to collect metrics every 30 seconds. Because this change is centralized and does not require redeploying with new configurations, there is lower friction and risk in updating the configurations.
 
 ## Explanation
 
-This OTEP is a request for an experimental feature [open-telemetry/opentelemetry-specification#62](https://github.com/open-telemetry/opentelemetry-specification/pull/632). It is intended to seek approval to develop a proof of concept. This means no development will be done inside either the Open Telemetry SDK or the collector.
-
-Development is intended to be split into two phases:
-1. Add remote configuration for metric collection periods. In this phase, a configuration service will be implemented as an extension to the collector. The user should be able to, for example, dynamically change the metric collection period from 1 minute to 5 minutes.
-2. Add per-metric configuration. In the status quo, all metrics are exported at the same time. This phase will allow the user to, for example, configure the SDK so that it exports certain metrics every 30 seconds, and others every one minute.
-
-Since this will be implemented mostly in the contrib repos, all of this functionality will be optional.
+This OTEP is a request for an experimental feature [open-telemetry/opentelemetry-specification#62](https://github.com/open-telemetry/opentelemetry-specification/pull/632). It is intended to seek approval to develop a proof of concept. This means no development will be done inside either the Open Telemetry SDK or the collector. Since this will be implemented mostly in the contrib repos, all of this functionality will be optional.
 
 The user, when instrumenting their application, can configure the SDK with the endpoint of their remote configuration service, the associated Resource and a default config we revert to if we fail to read from the configuration service.
 
 The user must then set up the config service. This MUST be done through the collector, which can be set up to expose an arbitrary configuration service implementation. Depending on implementation, this allows the collector to either act as a stand-alone configuration service, or as a bridge to remote configurations of the user's monitoring and tracing backend by 'translating' the monitoring backend's protocol to comply with the Open Telemetry configuration protocol.
 
 ## Internal details
+
+In the future, it is intended to add per-metric configuration. For example, this would allow the user to collect 5XX error counts ever minute, and CPU usage statistics ever 10 minutes. The remote configuration protocol was designed with this in mind, meaning that it includes more details than simply the metric collection period.
 
 Our remote configuration protocol will support this call:
 
@@ -79,6 +75,10 @@ message ConfigResponse {
       // targeted by this schedule. Metrics that match at least one rule from the
       // exclusion_patterns are not targeted for this schedule, even if they match an
       // inclusion pattern.
+
+      // For this iteration, since we only want one Schedule that applies to all metrics,
+      // the inclusion_pattern must apply to all metrics (ie. Pattern.starts_with("")).
+      // The exclusion_patterns must have a length of 0.
       repeated Pattern inclusion_patterns = 1;
       repeated Pattern exclusion_patterns = 2;
 
@@ -108,6 +108,8 @@ message ConfigResponse {
       bytes metadata = 4;
     }
 
+    // For this iteration, since we only want one Schedule that applies to all metrics,
+    // we will have a restriction that schedules must have a length of 0.
     repeated Schedule schedules = 1;
 
   }
@@ -127,7 +129,9 @@ message ConfigResponse {
 
 The SDK will periodically read a config from the service using GetConfig. If it fails to do so, it will just use either the default config or the most recent successfully read config. If it reads a new config, it will apply it.
 
-The export frequency of a metric depends on which Schedules apply to it. If the metric matches any of a Schedule's inclusion_pattern and does not match any of it's exclusion_patterns, it will be exported at that Schedule's CollectionPeriod. Metrics can match multiple Schedules.
+Export frequency from the SDK depends on Schedules. There can only be one Schedule for now, which defines the schedule for all metrics. The schedule has a CollectionPeriod, which defines how often metrics are exported.
+
+In the future, we will add per-metric configuration. Each Schedule also has inclusion_patterns and exclusion_patterns. Any metrics that match any of the inclusion_patterns and do not match any of the exclusion_patterns will be exported every CollectionPeriod (ie. every minute). A component will be added that can export metrics that match a pattern from one Schedule at that Schedule's collection period, while exporting other metrics that match the patterns of another Schedule at that other Schedule's collection period.
 
 The collector will support a new interface for a DynamicConfig service that can be used by an SDK, allowing a custom implementation of the configuration service protocol described above, to act as an optional bridge between an SDK and an arbitrary configuration service. This interface can be implemented as a shim to support accessing remote configurations from arbitrary backends. The collector is configured to expose an endpoint for requests to the DynamicConfig service, and returns results on that endpoint.
 
@@ -135,9 +139,8 @@ The collector will support a new interface for a DynamicConfig service that can 
 
 This feature will be implemented purely as an experiment, to demonstrate its viability and usefulness. More investigation can be done after a rough prototype is demonstrated.
 
-There are performance concerns, given that the SDK is periodically reading from a service and using this config to update itself. Everything will be implemented optionally, so this will have minimal impact on users who opt not the dynamically update their configs.
-
-As mentioned [here](https://github.com/open-telemetry/opentelemetry-proto/pull/155#issuecomment-640582048), the configuration service can be a potential attack vector for an application instrumented with Open Telemetry, depending on what we allow in the protocol. We can highlight in the protocol comments that we should be cautious about what kind of information the SDK divulges in its request as well as the sort of behaviour changes that can come about from a config change. 
+As mentioned [here](https://github.com/open-telemetry/opentelemetry-proto/pull/155#issuecomment-640582048), the configuration service can be a potential attack vector for an application instrumented with Open Telemetry, depending on what we allow in the protocol. This can be mitigated since this proposal only allows the SDK to read from a configuration service managed by the collector. Additionally, 
+We can highlight in the remote configuration protocol that for future changes, caution is needed in terms of the sorts of configurations we allow. 
 
 ## Prior art and alternatives
 
@@ -153,4 +156,4 @@ The alternative is to stick with the status quo, where the SDK has a [fixed coll
 
 If this OTEP is implemented, there is the option to remotely and dynamically configure other things. As mentioned by commenters in the associated pull request, possibilities include labels and aggregations.
 
-In the future, we can implement per-metric configuration using our specification. It is also possible to make it so to remotely configure not from the collector, but from a different configuration service.
+It is intended to add per-metric configuration and well as tracing configuration in the future.
