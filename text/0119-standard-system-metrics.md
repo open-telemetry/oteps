@@ -1,4 +1,3 @@
-
 # Standard names for system/runtime metrics
 
 This OTEP proposes a set of standard names, labels, and semantic conventions for common system/runtime metrics collected by OpenTelemetry. The metric names proposed here are common across the supported operating systems and runtime environments. Also included are general semantic conventions for system/runtime metrics including those not specific to a particular OS or runtime.
