@@ -1,4 +1,5 @@
-# Spec in spans
+# Metric and Trace log conversion
+*Insert spec n span pun here*
 
 Specifying the structure of trace and metric data in logs.
 
@@ -49,7 +50,7 @@ Sometimes, a system needs to log tracing or metric data into an easy to parse lo
 | trace.start.timestamp   |  log.Timestamp   |
 | trace.TraceId   |  log.TraceId   |
 | trace.SpanId  |  log.SpanId  |
-| trace flags  |  log.TraceFlags  |
+| trace.sampled  |  log.TraceFlags  |
 | TRACE3  |  log.SeverityText  |
 | 3 |  log.SeverityNumber  |
 | trace.name |  log.Name  |
@@ -84,6 +85,9 @@ One drawback is the limited scope of this OTEP in not handling the actual conver
 ## Prior art and alternatives
 
 * It's possible to have the metric definition, value, and label all be inserted into the log attribute or body, however, leaving the body empty except for the metric value will provide better aggregation capabilities.
+
+* The [LogCorrelation](https://github.com/census-instrumentation/opencensus-specs/blob/master/trace/LogCorrelation.md#string-format-for-tracing-data) document in Trace has some advice for converting traces to logs. However, since the Log data model supports the TraceFlags as a bit, it's advice to turn sampling data to "true" or "false" strings, is ignored here. 
+
 > What are some prior and/or alternative approaches? For instance, is there a corresponding feature in OpenTracing or OpenCensus? What are some ideas that you have rejected?
 
 ## Open questions
