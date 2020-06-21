@@ -21,11 +21,7 @@ events, which can be recorded as a faithful way to capture metrics, so we would 
 structured as log records. 
 Here's the event structure:
 https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/metrics/api.md#metric-event-format
-@jmacd do you mean a standardized way to encapsulate span data and metric data inside a log record or something else?
-
-
-
-Why should we make this change? What new value would it bring? What use cases does it enable?
+@jmacd do you mean a standardized way to encapsulate span data and metric data inside a log record or something else? yes
 
 ## Explanation
 
@@ -64,7 +60,7 @@ Sometimes, a system needs to log tracing or metric data into an easy to parse lo
 | trace.Events  |  log.Attributes.Events  |
 | trace.Tracestate  |  log.Attributes.Tracestate  |
 
-**Semantic conventions for Traces can be mapped directly to log.Resource.convention  For example `db.type` would be converted to `{Resource: {db.type: value} }`
+** Semantic conventions for Traces can be mapped directly to log.Resource.convention  For example `db.type` would be converted to `{Resource: {db.type: value} }`
 
 Examples:
 ### Open Metric
@@ -72,8 +68,8 @@ Examples:
 ### Zipkin Trace
 ### Jaeger Trace
 ### Prometheus Metric
-### Suggested example from Issue 398
-17:05:43 INFO  {sampled=true, spanId=ce751d1ad8be9d11, traceId=ce751d1ad8be9d11} [or.ac.qu.GreetingResource] (executor-thread-1) hello
+#### Suggested example from Issue 398
+`17:05:43 INFO  {sampled=true, spanId=ce751d1ad8be9d11, traceId=ce751d1ad8be9d11} [or.ac.qu.GreetingResource] (executor-thread-1) hello`
 
 
 ## Internal details
@@ -88,12 +84,12 @@ One drawback is the limited scope of this OTEP in not handling the actual conver
 ## Prior art and alternatives
 
 * It's possible to have the metric definition, value, and label all be inserted into the log attribute or body, however, leaving the body empty except for the metric value will provide better aggregation capabilities.
-What are some prior and/or alternative approaches? For instance, is there a corresponding feature in OpenTracing or OpenCensus? What are some ideas that you have rejected?
+> What are some prior and/or alternative approaches? For instance, is there a corresponding feature in OpenTracing or OpenCensus? What are some ideas that you have rejected?
 
 ## Open questions
 
-What are some questions that you know aren't resolved yet by the OTEP? These may be questions that could be answered through further discussion, implementation experiments, or anything else that the future may bring.
+> What are some questions that you know aren't resolved yet by the OTEP? These may be questions that could be answered through further discussion, implementation experiments, or anything else that the future may bring.
 
 ## Future possibilities
 
-What are some future changes that this proposal would enable?
+> What are some future changes that this proposal would enable?
