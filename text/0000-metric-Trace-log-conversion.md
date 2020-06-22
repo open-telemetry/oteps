@@ -66,9 +66,6 @@ Sometimes, a system needs to log tracing or metric data into an easy to parse lo
 Examples:
 ### Open Metric
 ### Open Trace
-### Zipkin Trace
-### Jaeger Trace
-### Prometheus Metric
 #### Suggested example from Issue 398
 `17:05:43 INFO  {sampled=true, spanId=ce751d1ad8be9d11, traceId=ce751d1ad8be9d11} [or.ac.qu.GreetingResource] (executor-thread-1) hello`
 
