@@ -175,15 +175,13 @@ Every SDK or API would implement this conversion themselves. This is merely a st
 
 One drawback is the limited scope of this OTEP in not handling the actual conversion of these fields. This could be mitigated by creating a Metric or Trace conversion library once the Log API/SDK is defined.
 
-
 ## Prior art and alternatives
 
 * It's possible to have the metric definition, value, and label all be inserted into the log attribute or body, however, leaving the body empty except for the metric value will provide better aggregation capabilities.
 
-* The [LogCorrelation](https://github.com/census-instrumentation/opencensus-specs/blob/master/trace/LogCorrelation.md#string-format-for-tracing-data) document in Trace has some advice for converting traces to logs. However, since the Log data model supports the TraceFlags as a bit, it's advice to turn sampling data to "true" or "false" strings, is ignored here. 
+* The [LogCorrelation](https://github.com/census-instrumentation/opencensus-specs/blob/master/trace/LogCorrelation.md#string-format-for-tracing-data) document in Trace has some advice for converting traces to logs. However, since the Log data model supports the TraceFlags as a bit, it's advice to turn sampling data to "true" or "false" strings, is ignored here.
 
 * Another suggestion from Issue 398 is to have the logs look like a sys log with some added key value pairs. This sort of output is outside the scope of this OTEP though the log data structure can easily be parsed and printed into this format. For example: `17:05:43 INFO  {sampled=true, spanId=ce751d1ad8be9d11, traceId=ce751d1ad8be9d11} [or.ac.qu.GreetingResource] (executor-thread-1) hello`
-
 
 ## Open questions
 
