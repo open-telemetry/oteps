@@ -5,6 +5,7 @@ Specifying the structure of trace and metric data in logs.
 ## Motivation
 
 There are multiple requests and issues related to converting metric/tracing data into logs:
+
 * [Issue 398](https://github.com/open-telemetry/opentelemetry-specification/issues/398)
 * [Issue 617](https://github.com/open-telemetry/opentelemetry-specification/issues/617)
 
@@ -30,7 +31,6 @@ Sometimes, a system needs to log tracing or metric data into an easy to parse lo
 | metric.AggregationType  |  log.Attributes.AggregationType  |
 | metric.Instrumentation  |  log.Attributes.Instrumentation  |
 
-
 |Open Telemetry Trace field| Open Telemetry Log field|
 |--- |--- |
 | trace.start.timestamp   |  log.Timestamp   |
@@ -53,10 +53,14 @@ Sometimes, a system needs to log tracing or metric data into an easy to parse lo
 ** Semantic conventions for Traces can be mapped directly to log.Resource.convention  For example `db.type` would be converted to `{Resource: {db.type: value} }`
 
 Examples:
+
 ### Open Metric
-Based on a sample metric from [Alan Storm](https://alanstorm.com/what-are-open-telemetry-metrics-and-exporters/) 
+
+Based on a sample metric from [Alan Storm](https://alanstorm.com/what-are-open-telemetry-metrics-and-exporters/)
 The following Metric
+
 ```
+
 {
   descriptor: {
     name: 'my-open-telemetry-counter',
@@ -73,9 +77,13 @@ The following Metric
     _lastUpdateTime: [ 1589046826, 890210944 ]
   }
 }
+
 ```
+
 Would be logged as:
+
 ```
+
 {
  "timestamp": 1589046070557,
  "traceid": <sometraceid>,
@@ -99,10 +107,15 @@ Would be logged as:
   },
   "resource": {}
 }
+
 ```
+
 ### Open Trace
-The following [sample trace](https://opentelemetry-python.readthedocs.io/en/stable/getting-started.html) :
+
+The following [sample trace](https://opentelemetry-python.readthedocs.io/en/stable/getting-started.html):
+
 ```
+
 {
     "name": "baz",
     "context": {
@@ -121,9 +134,13 @@ The following [sample trace](https://opentelemetry-python.readthedocs.io/en/stab
     "events": [],
     "links": []
 }
+
 ```
+
 Would be logged as:
+
 ```
+
 {
  "timestamp": 1588862393906, // 2020-05-07T14:39:52.906272Z as a timestamp
  "traceid": "0xb51058883c02f880111c959f3aa786a2",
@@ -147,6 +164,7 @@ Would be logged as:
   },
   "resource": {}
 }
+
 ```
 
 ## Internal details
