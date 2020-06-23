@@ -8,7 +8,7 @@ There are multiple requests and issues related to converting metric/tracing data
 * [Issue 398](https://github.com/open-telemetry/opentelemetry-specification/issues/398)
 * [Issue 617](https://github.com/open-telemetry/opentelemetry-specification/issues/617)
 
-The [aim here](https://gitter.im/open-telemetry/logs?at=5ee284f2ef5c1c28f0194a89) is to create a standard method to convert a trace or metric into a log for Otel exporters to reduce confusion and increase compatability.
+The [aim here](https://gitter.im/open-telemetry/logs?at=5ee284f2ef5c1c28f0194a89) is to create a standard method to convert a trace or metric into a log for Otel exporters to reduce confusion and increase compatibility.
 
 ## Explanation
 
@@ -173,5 +173,5 @@ Is this mapping enough? Are others needed?
 
 ## Future possibilities
 
-Once this Otep is accepted, Otel exporters can produce standarized logs for all metrics and traces increasing compatability between Otel and reducing confusion.
+Once this Otep is accepted, Otel exporters can produce standarized logs for all metrics and traces increasing compatibility between Otel and reducing confusion.
 We can also create further mappings for well known tracing or metric formats from other systems.
