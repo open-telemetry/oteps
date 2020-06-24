@@ -1,6 +1,6 @@
 # A Dynamic Configuration Service for the SDK
 
-This proposal is for an experiment to add a configuration service to dynamically configure metric  periods. Per-metric and tracing configuration is also intended to be added, with details left for a later iteration.
+This proposal is for an experiment to configure metric collection periods. Per-metric and tracing configuration is also intended to be added, with details left for a later iteration.
 
 It is related to [this pull request](https://github.com/open-telemetry/opentelemetry-proto/pull/155)
 
@@ -10,7 +10,7 @@ During normal use, users may wish to collect metrics every 10 minutes. Later, wh
 
 ## Explanation
 
-This OTEP is a request for an experimental feature [open-telemetry/opentelemetry-specification#62](https://github.com/open-telemetry/opentelemetry-specification/pull/632). It is intended to seek approval to develop a proof of concept. This means no development will be done inside either the Open Telemetry SDK or the collector. Since this will be implemented mostly in the contrib repos, all of this functionality will be optional.
+This OTEP is a request for an experimental feature [open-telemetry/opentelemetry-specification#62](https://github.com/open-telemetry/opentelemetry-specification/pull/632). It is intended to seek approval to develop a proof of concept. This means no development will be done inside either the Open Telemetry SDK or the collector. Since this will be implemented in [opentelemetry-go-contrib](https://github.com/open-telemetry/opentelemetry-go-contrib) and [opentelemetry-collector-contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib), all of this functionality will be optional.
 
 The user, when instrumenting their application, can configure the SDK with the endpoint of their remote configuration service, the associated Resource and a default config we revert to if we fail to read from the configuration service.
 
@@ -18,7 +18,7 @@ The user must then set up the config service. This MUST be done through the coll
 
 ## Internal details
 
-In the future, it is intended to add per-metric configuration. For example, this would allow the user to collect 5XX error counts ever minute, and CPU usage statistics ever 10 minutes. The remote configuration protocol was designed with this in mind, meaning that it includes more details than simply the metric collection period.
+In the future, it is intended to add per-metric configuration. For example, this would allow the user to collect 5xx server error counts ever minute, and CPU usage statistics every 10 minutes. The remote configuration protocol was designed with this in mind, meaning that it includes more details than simply the metric collection period.
 
 Our remote configuration protocol will support this call:
 
@@ -34,11 +34,11 @@ A request to the config service will look like this:
 message ConfigRequest{
 
   // Required. The resource for which configuration should be returned.
-  opentelemetry.proto.resource.v1.Resource resource = 2;
+  opentelemetry.proto.resource.v1.Resource resource = 1;
 
   // Optional. The value of ConfigResponse.fingerprint for the last configuration
   // a resource received that was successfully applied.
-  bytes last_known_fingerprint = 3;
+  bytes last_known_fingerprint = 2;
 }
 ```
 
@@ -49,7 +49,7 @@ message ConfigResponse {
 
   // Optional. The fingerprint associated with this ConfigResponse. Each change
   // in configs yields a different fingerprint.
-  bytes fingerprint = 2;
+  bytes fingerprint = 1;
 
   // Dynamic configs specific to metrics
   message MetricConfig {
@@ -77,8 +77,7 @@ message ConfigResponse {
       // inclusion pattern.
 
       // For this iteration, since we only want one Schedule that applies to all metrics,
-      // the inclusion_pattern must apply to all metrics (ie. Pattern.starts_with("")).
-      // The exclusion_patterns must have a length of 0.
+      // we will not check the inclusion_patterns and exclusion_patterns.
       repeated Pattern inclusion_patterns = 1;
       repeated Pattern exclusion_patterns = 2;
 
@@ -109,21 +108,25 @@ message ConfigResponse {
     }
 
     // For this iteration, since we only want one Schedule that applies to all metrics,
-    // we will have a restriction that schedules must have a length of 0.
+    // we will have a restriction that schedules must have a length of 1, and we will
+    // not check the patterns when we apply the collection period.
     repeated Schedule schedules = 1;
 
   }
-  MetricConfig metric_config = 3;
+  MetricConfig metric_config = 2;
 
   // Dynamic configs specific to trace, like the sampling rate of a resource.
   message TraceConfig {
     // TODO: unimplemented
+    // This proposal focuses on the metrics portion, but tracing is a natural
+    // candidate for something that might be useful to configure in the future,
+    // so this field will be left here for that eventuality.
   }
-  TraceConfig trace_config = 4;
+  TraceConfig trace_config = 3;
 
   // Optional. The client is suggested to wait this long (in seconds) before
   // pinging the configuration service again.
-  int32 suggested_wait_time_sec = 5;
+  int32 suggested_wait_time_sec = 4;
 }
 ```
 
