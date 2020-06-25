@@ -142,8 +142,7 @@ The collector will support a new interface for a DynamicConfig service that can 
 
 This feature will be implemented purely as an experiment, to demonstrate its viability and usefulness. More investigation can be done after a rough prototype is demonstrated.
 
-As mentioned [here](https://github.com/open-telemetry/opentelemetry-proto/pull/155#issuecomment-640582048), the configuration service can be a potential attack vector for an application instrumented with Open Telemetry, depending on what we allow in the protocol. This can be mitigated since this proposal only allows the SDK to read from a configuration service managed by the collector. Additionally, 
-We can highlight in the remote configuration protocol that for future changes, caution is needed in terms of the sorts of configurations we allow. 
+As mentioned [here](https://github.com/open-telemetry/opentelemetry-proto/pull/155#issuecomment-640582048), the configuration service can be a potential attack vector for an application instrumented with Open Telemetry, depending on what we allow in the protocol. This can be mitigated since this proposal only allows the SDK to read from a configuration service managed by the collector. Additionally, we can highlight in the remote configuration protocol that for future changes, caution is needed in terms of the sorts of configurations we allow.
 
 ## Prior art and alternatives
 
