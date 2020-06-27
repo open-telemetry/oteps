@@ -6,7 +6,8 @@ This is a proposal to add HTTP Transport extension supporting json serialization
 ## Table of Contents
 
 * [Motivation](#motivation)
-* [OTLP/HTTP+JSON Protocol Details](#otlphttp-protocol-details)
+* [OTLP/HTTP+JSON Protocol Details](#otlphttpjson-protocol-details)
+  * [JSON Mapping](#json-mapping)
   * [Request](#request)
   * [Response](#response)
     * [Success](#success)
@@ -24,18 +25,9 @@ libraries of many programming languages.
 
 ## OTLP/HTTP+JSON Protocol Details
 
-This proposal keeps the existing specification of OTLP over gRPC transport
-(OTLP/gRPC for short), OTLP over HTTP transport(OTLP/HTTP for short) and defines an additional way to use OTLP protocol over
-HTTP transport suppot json serialization (OTLP/HTTP+JSON for short). OTLP/HTTP+JSON uses json payload
-that is used by OTLP/gRPC and defines how this payload is communicated over HTTP
-transport.
+OTLP/HTTP+JSON will be consistent with the [OTLP/HTTP](0099-otlp-http.md) specification except that the payload will use JSON instead of protobuf.
 
-OTLP/HTTP+JSON uses HTTP POST requests to send telemetry data from clients to
-servers. Implementations MAY use HTTP/1.1 or HTTP/2 transports. Implementations
-that use HTTP/2 transport SHOULD fallback to HTTP/1.1 transport if HTTP/2
-connection cannot be established.
-
-### OTLP JSON Mapping
+### JSON Mapping
 
 Use proto3 standard defined [JSON Mapping](https://developers.google.com/protocol-buffers/docs/proto3#json) for mapping between protobuf and json. `trace_id`  and `span_id` is base64 encoded in OTLP/HTTP+JSON, not hex.
 
