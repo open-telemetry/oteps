@@ -10,23 +10,24 @@ Note there are some existing implementations of this already in the SDKs (see [b
 
 ## Explanation
 
-In order to apply auto-detected resource information to all kinds of telemetry, a user will need to configure which resource detector(s) they would like to run (e.g. AWS EC2 detector). These will be configured for each tracer and meter provider.
+In order to apply auto-detected resource information to all kinds of telemetry, a user will need to configure which resource detector(s) they would like to run (e.g. AWS EC2 detector).
 
-If multiple detectors are configured, and more than one of these successfully detects a resource, the resources will be merged according to the Merge interface already defined in the specification, i.e. the earliest matched resource's attributes will take precedence. Each detector may be run in parallel, but to ensure deterministic results, the resources must be merged in the order the detectors were added. In the case of the user manually supplying resource attributes in addition to resource(s) being detected, the detected resource will be merged with the supplied resource, with the supplied resource taking precedence.
+If multiple detectors are configured, and more than one of these successfully detects a resource, the resources will be merged according to the Merge interface already defined in the specification, i.e. the earliest matched resource's attributes will take precedence. Each detector may be run in parallel, but to ensure deterministic results, the resources must be merged in the order the detectors were added.
 
-A default implementation of a detector that reads resource data from the `OTEL_RESOURCE` environment variable will be included in the SDK. The environment variable will contain of a list of key value pairs, and these are expected to be represented in a format similar to the [W3C Correlation-Context](https://github.com/w3c/correlation-context/blob/master/correlation_context/HTTP_HEADER_FORMAT.md#header-value), i.e.: `key1=value1,key2=value2`. This detector must always be configured as the first detector and will always be run by default.
+A default implementation of a detector that reads resource data from the `OTEL_RESOURCE` environment variable will be included in the SDK. The environment variable will contain of a list of key value pairs, and these are expected to be represented in a format similar to the [W3C Correlation-Context](https://github.com/w3c/correlation-context/blob/master/correlation_context/HTTP_HEADER_FORMAT.md#header-value), except that additional semi-colon delimited metadata is not supported, i.e.: `key1=value1,key2=value2`. If the user does not specify any resource, this detector will be run by default.
 
-Custom resource detectors related to specific environments (e.g. specific cloud vendors) must be implemented outside of the SDK, and users will need to import these separately.
+Custom resource detectors related to specific environments (e.g. specific cloud vendors) must be implemented as packages separate to the core SDK, and users will need to import these separately.
 
 ## Internal details
 
 As described above, the following will be added to the Resource SDK specification:
 
-- An interface for "detectors", to retrieve resource information, that can be supplied to tracer and meter providers
-- Specification for how to merge resources returned by the configured detectors, and with a manually supplied resource as described above
-- Details of the default "From Environment Variable" detector implementation as described above
+- An interface for "detectors", to retrieve resource information
+- Specification for a global function to merge resources returned by a set of detectors
+- Details of the "from environment variable" detector implementation as described above
+- Specification that default detection (from environment variable) runs once on startup, and is used by all tracer & meter providers by default if no custom resource is supplied
 
-This is a relatively small proposal so is easiest to explain the details with a code example:
+This is a relatively small proposal so it is easiest to explain the details with a code example:
 
 ### Usage
 
@@ -35,9 +36,9 @@ The following example in Go creates a tracer and meter provider that uses resour
 Assumes a dependency has been added on the `otel/api`, `otel/sdk`, `otel/awsdetector`, and `otel/gcpdetector` packages.
 
 ```go
-resources := resource.Detector[]{awsdetector.EC2, gcpdetector.GCE, gcpdetector.GKE}
-tp := sdktrace.NewProvider(sdktrace.MustDetectResource(resources)) // or DetectResource (see below)
-mp := push.New(..., push.MustDetectResource(resources))
+resource, _ := sdkresource.Detect(ctx, 5 * time.Second, awsdetector.ec2, gcpdetector.gce)
+tp := sdktrace.NewProvider(sdktrace.WithResource(resource))
+mp := push.New(..., push.WithResource(resource))
 ```
 
 ### Components
@@ -52,13 +53,15 @@ type Detector interface {
 }
 ```
 
-If a detector is not able to detect a resource, it must return an uninitialized resource such that the result of each call to `Detect` can be merged.
+The detect function should contain a mechanism to timeout and cancel the request. If a detector is not able to detect a resource, it must return an uninitialized resource such that the result of each call to `Detect` can be merged.
 
-#### Provider
+#### Global Function
 
-In addition to supplying a way to associate a Resource with a tracer or meter provider, i.e. `WithResource`, the SDK will supply a way to associate a set of Detectors with a tracer or meter provider, i.e. `DetectResource`.
+The SDK will provide a `Detect` function. This will take a set of detectors that should be run and merged in order as described in the intro, and return a resource.
 
-Because the same detectors will be used across different providers, if detection is not relatively trivial, the results should be cached inside the detector.
+```go
+func Detect(ctx context.Context, timeout time.Duration, ...resource.Detector) (*Resource, error)
+```
 
 ### Error Handling
 
@@ -67,10 +70,15 @@ In the case of one or more detectors raising an error, there are two reasonable 
 1. Ignore that detector, and continue with a warning (likely meaning we will continue without expected resource information)
 2. Crash the application (raise a panic)
 
-These options will be provided as separate interfaces to let the user decide how to recover from failure, e.g. `DetectResource` & `MustDetectResource`
+The user can decide how to recover from failure.
 
 ## Trade-offs and mitigations
 
+- This OTEP proposes storing Vendor resource detection packages outside of the SDK. This ensures the SDK is free of vendor specific code. Given the relatively straightforward & minimal amount of code generally needed to perform resource detection, and the relatively small number of cloud providers, we may instead decide its okay for all the resource detection code to live in the SDK directly.
+  - If we do allow Vendor resource detection packages in the SDK, we presumably need to restrict these to not being able to use non-trivial libraries
+- This OTEP proposes only performing environment variable resource detection by default. Given the relatively small number of cloud providers, we may instead decide its okay to run all detectors by default. This raises the question of if any restrictions would need to be put on this, and how we would handle this in the future if the number of Cloud Providers rises. It would be difficult to back out of running these by default as that would lead to a breaking change.
+- This OTEP proposes a global function the user calls with the detectors they want to run, and then expects the user to pass these into the providers. An alternative option (that was previously proposed in this OTEP) would be to supply a set of detectors directly to the metric or trace provider instead of, or as an additional option to, a static resource. That would result in marginally simpler setup code where the user doesn't need to call `AutoDetect` themselves. Another advantage of this approach is that its easier to specify default detectors and override these separately to any static resource the user may want to provide. On the downside, this approach adds the complexity of having to deal with the merging the detected resource with a static resource if provided. It also potentially adds a lot of complexity around how to avoid having detectors run multiple times since they will be configured for each provider. Avoiding having to specify detectors for tracer & meter providers is the primary reason for not going with that option in the end.
+- The attribute proto now supports arrays & maps. We could support parsing this out of the `OTEL_RESOURCE` environment variable similar to how Correlation Context supports semi colon lists of keys & key-value pairs, but the added complexity is probably not worthwhile implementing unless someone has a good use case for this.
 - In the case of an error at resource detection time, another alternative would be to start a background thread to retry following some strategy, but it's not clear that there would be much value in doing this, and it would add considerable unnecessary complexity.
 
 ## Prior art and alternatives
@@ -86,6 +94,7 @@ This proposal is largely inspired by the existing OpenCensus specification, the 
 
 - Does this interfere with any other upcoming specification changes related to resources?
 - If custom detectors need to live outside the core repo, what is the expectation regarding where they should be hosted?
+- Also see the [Trade-offs and mitigations](#trade-offs-and-mitigations) section
 
 ## Future possibilities
 
