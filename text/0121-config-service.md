@@ -144,15 +144,15 @@ This feature will be implemented purely as an experiment, to demonstrate its via
 
 As mentioned [here](https://github.com/open-telemetry/opentelemetry-proto/pull/155#issuecomment-640582048), the configuration service can be a potential attack vector for an application instrumented with OpenTelemetry, depending on what we allow in the protocol. We can highlight in the remote configuration protocol that for future changes, caution is needed in terms of the sorts of configurations we allow.
 
-Having a small polling interval (how often we read configs) would mean that config changes could be applied very quickly. However, this would also increase load on the configuration service. The typical use case probably does not need config changes to be applied immediately and config changes will likely be quite infrequent, so a typical polling interval probably needs to be no more frequent than every several minutes. 
+Having a small polling interval (how often we read configs) would mean that config changes could be applied very quickly. However, this would also increase load on the configuration service. The typical use case probably does not need config changes to be applied immediately and config changes will likely be quite infrequent, so a typical polling interval probably needs to be no more frequent than every several minutes.
 
 ## Prior art and alternatives
 
 Jaegar has the option of a Remote sampler, which allows reading from a central configuration, even dynamically with an Adaptive sampler.
 
-The main comparative for remote configuration is a push vs. polling mechanism. The benefits of having a mechanism where the configuration service pushes new configs is that it's less work for the user, with it being not necessary for them to set up a configuration service. There is also no load associated with polling the configuration service in the instrumented application, which would keep the OpenTelemetry SDK more lightweight. 
+The main comparative for remote configuration is a push vs. polling mechanism. The benefits of having a mechanism where the configuration service pushes new configs is that it's less work for the user, with it being not necessary for them to set up a configuration service. There is also no load associated with polling the configuration service in the instrumented application, which would keep the OpenTelemetry SDK more lightweight.
 
-Using a polling mechanism may be more performant in the context of large distributed applications with many instrumented processes. This is a result of having the instrumented processes polling the configuration service, rather than the config service having to push to processes. A polling mechanism is also compatible with more network protocols, not just gRPC. 
+Using a polling mechanism may be more performant in the context of large distributed applications with many instrumented processes. This is a result of having the instrumented processes polling the configuration service, rather than the config service having to push to processes. A polling mechanism is also compatible with more network protocols, not just gRPC.
 
 ## Open questions
 
