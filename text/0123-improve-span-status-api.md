@@ -121,7 +121,7 @@ whether the span should be surfaced in a UI as being abnormal or failed.
 Although UI creators are free experiment with how the data is presented I
 expect most presentations would either be the StatusData alone, or the
 StatusData qualified with the StatusType and some separator character. For
-example StringData alone might create names like "FileNotFoundException",
+example StatusData alone might create names like "FileNotFoundException",
 "503", "E_FAIL (0x80004005)", "SyntaxError on line 405: Did you forget a
 semicolon?", and "BadQuery".
 
@@ -149,7 +149,10 @@ void SetStatus(string statusType, bool? successHint);
 
 I expect a basic and reasonable implementation would be to define fields on the
 Span object, set them in the setter and then implement some getter for the
-exporters to use.
+exporters to use. A second possibility is to store the data into attributes or
+events. The choice of storage may have some modest effects on memory usage
+but primarily I expect the choice would be driven by the SDK API we want to
+read stored data back.
 
 It is also possible for the SDK to destructure the Exception data into simpler
 serializable types though I'd expect serialization is typically the domain of
@@ -157,6 +160,15 @@ the exporter and there is a fair amount of policy involved in terms of what
 data is captured and how it is formatted for transport. There are definite
 risks that the end-to-end scenario will be less functional or less performant
 if SDKs intercede here.
+
+In some languages storing an exception with traceback could be very
+memory intensive. Python prevents locals in the callstack from being
+GC'ed. One suggestion is to use a synchronous callback to the exporter
+allowing it process the data immediately in some way that would lower
+the memory usage. For example the exporter could indicate the
+exception could be disposed after optionally extracting a fraction of the
+information to serialize.
+
 
 ## Trade-offs and mitigations
 
@@ -180,6 +192,12 @@ attributes using some convention, for example "Error.UserName"="Bob" might be
 used together with an error message string "Failed to find user {UserName}".
 Another mitigation might be adding language specific overloads that handle
 additional error types.
+
+The current proposal only gives one string which can be used either for a 
+freeform message or a textual status code. Adding a 2nd string to the
+StatusData would allow both to be collected SxS. This is another example of
+increasing expressivity at the cost of some complexity. I'd be happy to see
+this added if the community agreed.
 
 If all the data collected by the API is transmitted to the back-end this also
 increases the size of transmitted telemetry, but the exporter authors always
@@ -239,7 +257,7 @@ everyone. For a fixed list to work I believe we either have to curate a very
 large list of options or accept that significant portions of the developer
 audience will not find the status representation useful.
 
-**API using attribute semantic conventions ** - It is also possible to do this
+**API using attribute semantic conventions** - It is also possible to do this
 via semantic conventions on attributes and although I think the strongly typed
 API is preferable I don't have that strong of an opinion. Semantic conventions
 are likely to have higher performance overhead, higher risk of error in key
@@ -252,12 +270,22 @@ key value pairs would be overly onerous and error-prone for a common usage
 scenario. If desired the SDK or exporter could destructure it, but that can be
 determined independently from API design and I'd like to keep it out of scope.
 
-**API using Span events** - Most of the rationale for attribute semantic
+**API using Span event semantic conventions** - Most of the rationale for attribute semantic
 conventions also applies here, events are effectively another key-value store
 mechanism. The timestamp that is attached to an event appears to hold little
 value as status is probably produced at the same approximate time the span end
 timestamp is recorded. Similar to attribute conventions it sounds like there is
 precedent for storing some errors as events.
+
+**Move the API to a non-core package** - It is possible to have the Tracing
+API expose status using Attribute or Event APIs, and then have a 2nd library
+that exposes a strongly-typed API that converts the status information into
+attrbute/event updates. This adds some complexity over a strongly typed API
+declared directly on Span but if we identify this as an area that needs to be
+more decoupled/versionable than other Span tracing APIs perhaps it would be
+valuable.
+
+**Represent an error message in addition to a string error name** - 
 
 ## Open questions
 
