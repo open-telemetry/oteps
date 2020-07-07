@@ -57,72 +57,70 @@ The following standard metric names should be used in libraries instrumenting sy
 #### `system.cpu.`
 
 **Description:** System level processor metrics.
-|Name                  |Units  |Instrument       |Label Key|Label Values                       |
-|----------------------|-------|-----------------|---------|-----------------------------------|
-|system.cpu.time       |seconds|SumObserver      |state    |idle, user, system, interrupt, etc.|
-|                      |       |                 |cpu      |1 - #cores                         |
-|system.cpu.utilization|%      |UpDownSumObserver|state    |idle, user, system, interrupt, etc.|
-|                      |       |                 |cpu      |1 - #cores                         |
+|Name                  |Units  |Instrument Type  |Value Type|Label Key|Label Values                       |
+|----------------------|-------|-----------------|----------|---------|-----------------------------------|
+|system.cpu.time       |seconds|SumObserver      |Double    |state    |idle, user, system, interrupt, etc.|
+|                      |       |                 |          |cpu      |1 - #cores                         |
+|system.cpu.utilization|1      |UpDownSumObserver|Double    |state    |idle, user, system, interrupt, etc.|
+|                      |       |                 |          |cpu      |1 - #cores                         |
 
 #### `system.memory.`
 
 **Description:** System level memory metrics.
-|Name                     |Units|Instrument       |Label Key|Label Values            |
-|-------------------------|-----|-----------------|---------|------------------------|
-|system.memory.usage      |bytes|UpDownSumObserver|state    |used, free, cached, etc.|
-|system.memory.utilization|%    |UpDownSumObserver|state    |used, free, cached, etc.|
+|Name                     |Units|Instrument Type  |Value Type|Label Key|Label Values            |
+|-------------------------|-----|-----------------|----------|---------|------------------------|
+|system.memory.usage      |bytes|UpDownSumObserver|Int64     |state    |used, free, cached, etc.|
+|system.memory.utilization|1    |UpDownSumObserver|Double    |state    |used, free, cached, etc.|
 
 #### `system.swap.`
 
 **Description:** System level swap/paging metrics.
-|Name                    |Units|Instrument       |Label Key|Label Values|
-|------------------------|-----|-----------------|---------|------------|
-|system.swap.usage       |pages|UpDownSumObserver|state    |used, free  |
-|system.swap.utilization |%    |UpDownSumObserver|state    |used, free  |
-|system.swap.page\_faults|1    |SumObserver      |type     |major, minor|
-|system.swap.paging\_ops |1    |SumObserver      |type     |major, minor|
-|                        |     |                 |direction|in, out     |
+|Name                    |Units |Instrument Type  |Value Type|Label Key|Label Values|
+|------------------------|------|-----------------|----------|---------|------------|
+|system.swap.usage       |pages |UpDownSumObserver|Int64     |state    |used, free  |
+|system.swap.utilization |1     |UpDownSumObserver|Double    |state    |used, free  |
+|system.swap.page\_faults|faults|SumObserver      |Int64     |type     |major, minor|
+|system.swap.paging\_ops |ops   |SumObserver      |Int64     |type     |major, minor|
+|                        |      |                 |          |direction|in, out     |
 
 #### `system.disk.`
 
 **Description:** System level disk performance metrics.
-|Name                        |Units|Instrument |Label Key|Label Values|
-|----------------------------|-----|-----------|---------|------------|
-|system.disk.io<!--notlink-->|bytes|SumObserver|device   |(identifier)|
-|                            |     |           |direction|read, write |
-|system.disk.ops             |1    |SumObserver|device   |(identifier)|
-|                            |     |           |direction|read, write |
-|system.disk.time            |s    |SumObserver|device   |(identifier)|
-|                            |     |           |direction|read, write |
-|system.disk.merged          |1    |SumObserver|device   |(identifier)|
-|                            |     |           |direction|read, write |
+|Name                        |Units  |Instrument Type|Value Type|Label Key|Label Values|
+|----------------------------|-------|---------------|----------|---------|------------|
+|system.disk.io<!--notlink-->|bytes  |SumObserver    |Int64     |device   |(identifier)|
+|                            |       |               |          |direction|read, write |
+|system.disk.ops             |ops    |SumObserver    |Int64     |device   |(identifier)|
+|                            |       |               |          |direction|read, write |
+|system.disk.time            |seconds|SumObserver    |Double    |device   |(identifier)|
+|                            |       |               |          |direction|read, write |
 
 #### `system.filesystem.`
 
 **Description:** System level filesystem metrics. *I think usage/utilization should be consolidated into `system.disk`. Any filesystem specifics are probably scoped to the OS.*
-|Name                         |Units|Instrument       |Label Key|Label Values        |
-|-----------------------------|-----|-----------------|---------|--------------------|
-|system.filesystem.usage      |bytes|UpDownSumObserver|device   |(identifier)        |
-|                             |%    |                 |state    |used, free, reserved|
-|system.filesystem.utilization|     |UpDownSumObserver|device   |(identifier)        |
-|                             |     |                 |state    |used, free, reserved|
+|Name                         |Units|Instrument Type  |Value Type|Label Key|Label Values        |
+|-----------------------------|-----|-----------------|----------|---------|--------------------|
+|system.filesystem.usage      |bytes|UpDownSumObserver|Int64     |device   |(identifier)        |
+|                             |     |                 |          |state    |used, free, reserved|
+|system.filesystem.utilization|1    |UpDownSumObserver|Double    |device   |(identifier)        |
+|                             |     |                 |          |state    |used, free, reserved|
 
 #### `system.net.`
 
 **Description:** System level network metrics.
-|Name                       |Units|Instrument       |Label Key|Label Values                                                                                  |
-|---------------------------|-----|-----------------|---------|----------------------------------------------------------------------------------------------|
-|system.net.dropped\_packets|1    |SumObserver      |device   |(identifier)                                                                                  |
-|                           |     |                 |direction|transmit, receive                                                                             |
-|system.net.packets         |1    |SumObserver      |device   |(identifier)                                                                                  |
-|                           |     |                 |direction|transmit, receive                                                                             |
-|system.net.errors          |1    |SumObserver      |device   |(identifier)                                                                                  |
-|                           |     |                 |direction|transmit, receive                                                                             |
-|system<!--notlink-->.net.io|bytes|SumObserver      |device   |(identifier)                                                                                  |
-|                           |     |                 |direction|transmit, receive                                                                             |
-|system.net.connections     |1    |UpDownSumObserver|device   |(identifier)                                                                                  |
-|                           |     |                 |protocol |tcp, udp, [others](https://en.wikipedia.org/wiki/Transport_layer#Protocols)                   |
-|                           |     |                 |state    |[e.g. for tcp](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Protocol_operation)|
+|Name                       |Units      |Instrument Type  |Value Type|Label Key|Label Values                                                                                  |
+|---------------------------|-----------|-----------------|----------|---------|----------------------------------------------------------------------------------------------|
+|system.net.dropped\_packets|packets    |SumObserver      |Int64     |device   |(identifier)                                                                                  |
+|                           |           |                 |          |direction|transmit, receive                                                                             |
+|system.net.packets         |packets    |SumObserver      |Int64     |device   |(identifier)                                                                                  |
+|                           |           |                 |          |direction|transmit, receive                                                                             |
+|system.net.errors          |errors     |SumObserver      |Int64     |device   |(identifier)                                                                                  |
+|                           |           |                 |          |direction|transmit, receive                                                                             |
+|system<!--notlink-->.net.io|bytes      |SumObserver      |Int64     |device   |(identifier)                                                                                  |
+|                           |           |                 |          |direction|transmit, receive                                                                             |
+|system.net.connections     |connections|UpDownSumObserver|Int64     |device   |(identifier)                                                                                  |
+|                           |           |                 |          |protocol |tcp, udp, [others](https://en.wikipedia.org/wiki/Transport_layer#Protocols)                   |
+|                           |           |                 |          |state    |[e.g. for tcp](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Protocol_operation)|
 
 #### OS Specific System Metrics - `system.{os}.`
 
@@ -136,11 +134,10 @@ Runtime environments vary widely in their terminology, implementation, and relat
 
 #### Runtime Specific Metrics - `runtime.{environment}.`
 
-Runtime level metrics specific to a certain runtime environment should be prefixed with `runtime.{environment}.` and follow the semantic conventions outlined in [Semantic Conventions](#semantic-conventions).
+Runtime level metrics specific to a certain runtime environment should be prefixed with `runtime.{environment}.` and follow the semantic conventions outlined in [Semantic Conventions](#semantic-conventions). For example, Go runtime metrics use `runtime.go.` as a prefix.
+
+Some programming languages have multiple runtime environments that vary significantly in their implementation, for example [Python has many implementations](https://wiki.python.org/moin/PythonImplementations). For these languages, consider using specific `environment` prefixes to avoid ambiguity, like `runtime.cpython.` and `runtime.pypy.`.
 
 ## Open questions
 
-- Are there any common runtime metrics worth enumerating in [Standard Runtime Metrics](#standard-runtime-metrics---runtime)?
 - Should the individual runtimes have their specific naming conventions in the spec?
-- Process level metrics would be valuable, but how can one choose the processes to instrument? There is also the issue of labels for a process; if PID is included, the cardinality will grow unbounded since PIDs can always be different.
-- Establishing units for instruments of the same unit family e.g. seconds vs. milliseconds. [Prometheus recommends using base units for compatibility](https://prometheus.io/docs/practices/naming/#base-units).
