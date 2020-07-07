@@ -84,7 +84,7 @@ message ConfigResponse {
       // CollectionPeriod describes the sampling period for each metric. All
       // larger units are divisible by all smaller ones.
       enum CollectionPeriod {
-        NONE = 0;  // For non-periodic data (client sends points whenever)
+        NONE = 0;
         SEC_1 = 1;
         SEC_5 = 5;
         SEC_10 = 10;
@@ -103,7 +103,20 @@ message ConfigResponse {
       CollectionPeriod period = 3;
 
       // Optional. Additional opaque metadata associated with the schedule.
-      // Interpreting metadata is implementation specific.
+      // Interpreting metadata is implementation specific. A metric backend may
+      // implement features not directly supported in this configuration
+      // protocol, but still desire to communicate these settings to
+      // instrumented applications. An application may in turn piggyback
+      // metadata on a vendor's metric exporter to communicate information back
+      // to its metric backend. In this way, metadata offers a channel to
+      // communicate custom settings.
+      //
+      // Example use cases may include:
+      //  * Specifying quality-of-service priority
+      //  * Tweaking configurations beyond collection period
+      //  * Using alternate representations for collection schedules, matching
+      //    metrics, resources, etc.
+      //  * Enabling other optimizations
       bytes metadata = 4;
     }
 
