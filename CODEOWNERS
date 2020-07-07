@@ -16,13 +16,10 @@
 *   @open-telemetry/specs-approvers
 
 # Trace owners (global + trace)
-experimental/trace/     @open-telemetry/specs-approvers @open-telemetry/specs-trace-approvers
-specification/trace/    @open-telemetry/specs-approvers @open-telemetry/specs-trace-approvers
+text/trace/    @open-telemetry/specs-approvers @open-telemetry/specs-trace-approvers
 
 # Metrics owners (global + metrics)
-experimental/metrics/   @open-telemetry/specs-approvers @open-telemetry/specs-metrics-approvers
-specification/metrics/  @open-telemetry/specs-approvers @open-telemetry/specs-metrics-approvers
+text/metrics/  @open-telemetry/specs-approvers @open-telemetry/specs-metrics-approvers
 
 # Logs owners (global + logs)
-experimental/logs/      @open-telemetry/specs-approvers @open-telemetry/specs-logs-approvers
-specification/logs/     @open-telemetry/specs-approvers @open-telemetry/specs-logs-approvers
+text/logs/     @open-telemetry/specs-approvers @open-telemetry/specs-logs-approvers
