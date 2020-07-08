@@ -145,3 +145,6 @@ Some programming languages have multiple runtime environments that vary signific
   1. Top level: `system.filesystem.inodes.*`
   2. UNIX family level: `system.unix.filesystem.inodes.*`
   3. One for each UNIX OS: `system.linux.filesystem.inodes.*`, `system.freebsd.filesystem.inodes.*`, `system.netbsd.filesystem.inodes.*`, etc.
+- Should instrument names be versioned e.g. `v1.system.cpu.usage`?
+  * Some telemetry backends use a strict schema for metrics and their labels (e.g. Google Cloud Monitoring with [MetricDescriptors](https://cloud.google.com/monitoring/api/v3/metrics-details#intro-metdesc)), so changes to the instruments proposed in this document could break ingestion of new telemetry data.
+  * Should the exporters for such backends be responsible for handling this? How could this be implemented in the exporter without additional information?
