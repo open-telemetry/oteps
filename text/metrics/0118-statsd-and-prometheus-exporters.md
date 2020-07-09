@@ -38,7 +38,7 @@ produce Histogram and Summary values in Prometheus and Statsd.
 
 An Aggregator is an implementation of some logic to compute an
 Aggregation, which is an exact or approximate summarization of a
-series of metric events.  Exporters translate Aggregation values to
+series of metric events.  Exporters translate Aggregation values
 into an exposition format, so the choice of Aggregator decides which
 exposition formats are possible by the time data reaches an Exporter.
 
