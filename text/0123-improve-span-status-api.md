@@ -195,7 +195,7 @@ additional error types.
 
 The current proposal only gives one string which can be used either for a 
 freeform message or a textual status code. Adding a 2nd string to the
-StatusData would allow both to be collected SxS. This is another example of
+StatusData would allow both to be collected side by side. This is another example of
 increasing expressivity at the cost of some complexity. I'd be happy to see
 this added if the community agreed.
 
@@ -285,7 +285,7 @@ declared directly on Span but if we identify this as an area that needs to be
 more decoupled/versionable than other Span tracing APIs perhaps it would be
 valuable.
 
-**Represent an error message in addition to a string error name** - 
+**Represent an error message in addition to a string error name**
 
 ## Open questions
 
