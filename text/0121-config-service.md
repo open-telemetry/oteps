@@ -18,7 +18,7 @@ The user must then set up the config service. This can be done through the colle
 
 ## Internal details
 
-In the future, it is intended to add per-metric configuration. For example, this would allow the user to collect 5xx server error counts ever minute, and CPU usage statistics every 10 minutes. The remote configuration protocol was designed with this in mind, meaning that it includes more details than simply the metric collection period.
+In the future, we intend to add per-metric configuration. For example, this would allow the user to collect 5xx server error counts ever minute, and CPU usage statistics every 10 minutes. The remote configuration protocol was designed with this in mind, meaning that it includes more details than simply the metric collection period.
 
 Our remote configuration protocol will support this call:
 
