@@ -1,4 +1,4 @@
-# Metric instrument naming conventions
+# Metric instrument naming guidelines
 
 ## Purpose
 
