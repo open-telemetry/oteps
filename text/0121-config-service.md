@@ -12,7 +12,7 @@ During normal use, users may wish to collect metrics every 10 minutes. Later, wh
 
 This OTEP is a proposal for an experimental feature [open-telemetry/opentelemetry-specification#62](https://github.com/open-telemetry/opentelemetry-specification/pull/632), to be developed as a proof of concept. This means no development will be done inside either the OpenTelemetry SDK or the collector. Since this will be implemented in [opentelemetry-go-contrib](https://github.com/open-telemetry/opentelemetry-go-contrib) and [opentelemetry-collector-contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib), all of this functionality will be optional.
 
-The user, when instrumenting their application, can configure the SDK with the endpoint of their remote configuration service, the associated Resource and a default config we revert to if we fail to read from the configuration service.
+The user, when instrumenting their application, can configure the SDK with the endpoint of their remote configuration service, the associated Resource, and a default config to be used if fail to read from the configuration service.
 
 The user must then set up the config service. This can be done through the collector, which can be set up to expose an arbitrary configuration service implementation. Depending on implementation, this allows the collector to either act as a stand-alone configuration service, or as a bridge to remote configurations of the user's monitoring and tracing backend by 'translating' the monitoring backend's protocol to comply with the OpenTelemetry configuration protocol.
 
