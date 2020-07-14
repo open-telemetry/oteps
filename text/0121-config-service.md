@@ -12,7 +12,7 @@ During normal use, users may wish to collect metrics every 10 minutes. Later, wh
 
 This OTEP is a proposal for an experimental feature [open-telemetry/opentelemetry-specification#62](https://github.com/open-telemetry/opentelemetry-specification/pull/632), to be developed as a proof of concept. This means no development will be done inside either the OpenTelemetry SDK or the collector. Since this will be implemented in [opentelemetry-go-contrib](https://github.com/open-telemetry/opentelemetry-go-contrib) and [opentelemetry-collector-contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib), all of this functionality will be optional.
 
-The user, when instrumenting their application, can configure the SDK with the endpoint of their remote configuration service, the associated Resource, and a default config to be used if fail to read from the configuration service.
+The user, when instrumenting their application, can configure the SDK with the endpoint of their remote configuration service, the associated Resource, and a default config to be used if it fails to read from the configuration service.
 
 The user must then set up the config service. This can be done through the collector, which can be set up to expose an arbitrary configuration service implementation. Depending on implementation, this allows the collector to either act as a stand-alone configuration service, or as a bridge to remote configurations of the user's monitoring and tracing backend by 'translating' the monitoring backend's protocol to comply with the OpenTelemetry configuration protocol.
 
@@ -78,29 +78,11 @@ message ConfigResponse {
 
       // For this iteration, since we only want one Schedule that applies to all metrics,
       // we will not check the inclusion_patterns and exclusion_patterns.
-      repeated Pattern inclusion_patterns = 1;
-      repeated Pattern exclusion_patterns = 2;
+      repeated Pattern exclusion_patterns = 1;
+      repeated Pattern inclusion_patterns = 2;
 
-      // CollectionPeriod describes the sampling period for each metric. All
-      // larger units are divisible by all smaller ones.
-      enum CollectionPeriod {
-        NONE = 0;
-        SEC_1 = 1;
-        SEC_5 = 5;
-        SEC_10 = 10;
-        SEC_30 = 30;
-        MIN_1 = 60;
-        MIN_5 = 300;
-        MIN_10 = 600;
-        MIN_30 = 1800;
-        HR_1 = 3600;
-        HR_2 = 7200;
-        HR_4 = 14400;
-        HR_12 = 43200;
-        DAY_1 = 86400;
-        DAY_7 = 604800;
-      }
-      CollectionPeriod period = 3;
+      // period describes the sampling period for each metric in seconds.
+      int32 period = 3;
 
       // Optional. Additional opaque metadata associated with the schedule.
       // Interpreting metadata is implementation specific. A metric backend may
