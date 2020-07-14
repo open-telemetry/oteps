@@ -37,7 +37,7 @@ message ConfigRequest{
   opentelemetry.proto.resource.v1.Resource resource = 1;
 
   // Optional. The value of ConfigResponse.fingerprint for the last configuration
-  // a resource received that was successfully applied.
+  // that the caller received and successfully applied.
   bytes last_known_fingerprint = 2;
 }
 ```
