@@ -14,7 +14,7 @@ This OTEP is a proposal for an experimental feature [open-telemetry/opentelemetr
 
 The user, when instrumenting their application, can configure the SDK with the endpoint of their remote configuration service, the associated Resource, and a default config to be used if it fails to read from the configuration service.
 
-The user must then set up the config service. This can be done through the collector, which can be set up to expose an arbitrary configuration service implementation. Depending on implementation, this allows the collector to either act as a stand-alone configuration service, or as a bridge to remote configurations of the user's monitoring and tracing backend by 'translating' the monitoring backend's protocol to comply with the OpenTelemetry configuration protocol.
+The user must then set up the config service. This can be done through the collector, which can be set up to expose an arbitrary configuration service implementation. Depending on implementation, this allows the collector to either act as a stand-alone configuration service, or as a bridge to remote configurations of the user's monitoring backend by 'translating' the monitoring backend's protocol to comply with the OpenTelemetry configuration protocol.
 
 ## Internal details
 
@@ -23,15 +23,15 @@ In the future, we intend to add per-metric configuration. For example, this woul
 Our remote configuration protocol will support this call:
 
 ```
-service DynamicConfig {
-  rpc GetConfig (ConfigRequest) returns (ConfigResponse);
+service DynamicMetricConfig {
+  rpc GetMetricConfig (MetricConfigRequest) returns (MetricConfigResponse);
 }
 ```
 
 A request to the config service will look like this:
 
 ```
-message ConfigRequest{
+message MetricConfigRequest{
 
   // Required. The resource for which configuration should be returned.
   opentelemetry.proto.resource.v1.Resource resource = 1;
@@ -45,7 +45,7 @@ message ConfigRequest{
 While the response will look like this:
 
 ```
-message ConfigResponse {
+message MetricConfigResponse {
 
   // Optional. The fingerprint associated with this ConfigResponse. Each change
   // in configs yields a different fingerprint.
@@ -110,18 +110,9 @@ message ConfigResponse {
   }
   MetricConfig metric_config = 2;
 
-  // Dynamic configs specific to trace, like the sampling rate of a resource.
-  message TraceConfig {
-    // TODO: unimplemented
-    // This proposal focuses on the metrics portion, but tracing is a natural
-    // candidate for something that might be useful to configure in the future,
-    // so this field will be left here for that eventuality.
-  }
-  TraceConfig trace_config = 3;
-
   // Optional. The client is suggested to wait this long (in seconds) before
   // pinging the configuration service again.
-  int32 suggested_wait_time_sec = 4;
+  int32 suggested_wait_time_sec = 3;
 }
 ```
 
