@@ -77,7 +77,7 @@ message MetricConfigResponse {
     repeated Pattern exclusion_patterns = 1;
     repeated Pattern inclusion_patterns = 2;
 
-    // period describes the sampling period for each metric in seconds.
+    // Describes the collection period for each schedule in seconds.
     int32 period = 3;
 
     // Optional. Additional opaque metadata associated with the schedule.
