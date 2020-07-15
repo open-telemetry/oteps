@@ -33,9 +33,9 @@ The basic API has two parts.
   - Example: select all ValueRecorders whose name ends with ".duration".
 * Configuration - configures how the batching and aggregation should be done.
   - 3 things can be specified: The aggregation (Sum, MinMaxSumCount, Histogram, etc), the "temporality" of the batching,
-  and a set of pre-defined labels to consider as the subset to be used for aggregations.
-  	- Note: "temporality" can be one of "DELTA" and "CUMULATIVE" and specifies whether the values of the aggregation
-  	  are reset after a collection is done or not, respectively.
+    and a set of pre-defined labels to consider as the subset to be used for aggregations.
+    - Note: "temporality" can be one of "DELTA" and "CUMULATIVE" and specifies whether the values of the aggregation
+      are reset after a collection is done or not, respectively.
   - If not all are specified, then the others should be considered to be requesting the default.
   - Examples:
     - Use a MinMaxSumCount aggregation, and provide delta-style batching.
@@ -45,6 +45,7 @@ The basic API has two parts.
 In this proposal, there is only one configuration associated with each selector.
 
 As a concrete example, in Java, this might look something like this:
+
 ```java
 // get a handle to the MeterSdkProvider
  MeterSdkProvider meterProvider = OpenTelemetrySdk.getMeterProvider();
