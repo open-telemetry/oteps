@@ -23,7 +23,7 @@ In the future, we intend to add per-metric configuration. For example, this woul
 Our remote configuration protocol will support this call:
 
 ```
-service DynamicMetricConfig {
+service MetricConfig {
   rpc GetMetricConfig (MetricConfigRequest) returns (MetricConfigResponse);
 }
 ```
@@ -47,68 +47,61 @@ While the response will look like this:
 ```
 message MetricConfigResponse {
 
-  // Optional. The fingerprint associated with this ConfigResponse. Each change
-  // in configs yields a different fingerprint.
+  // Optional. The fingerprint associated with this MetricConfigResponse. Each
+  // change in configs yields a different fingerprint.
   bytes fingerprint = 1;
 
-  // Dynamic configs specific to metrics
-  message MetricConfig {
+  // A Schedule is used to apply a particular scheduling configuration to
+  // a metric. If a metric name matches a schedule's patterns, then the metric
+  // adopts the configuration specified by the schedule.
 
+  message Schedule {
 
-    // A Schedule is used to apply a particular scheduling configuration to
-    // a metric. If a metric name matches a schedule's patterns, then the metric
-    // adopts the configuration specified by the schedule.
-
-    message Schedule {
-
-      // A light-weight pattern that can match 1 or more
-      // metrics, for which this schedule will apply. The string is used to
-      // match against metric names. It should not exceed 100k characters.
-      message Pattern {
-        oneof match {
-          string equals = 1;       // matches the metric name exactly
-          string starts_with = 2;  // prefix-matches the metric name
-        }
+    // A light-weight pattern that can match 1 or more
+    // metrics, for which this schedule will apply. The string is used to
+    // match against metric names. It should not exceed 100k characters.
+    message Pattern {
+      oneof match {
+        string equals = 1;       // matches the metric name exactly
+        string starts_with = 2;  // prefix-matches the metric name
       }
-
-      // Metrics with names that match at least one rule in the inclusion_patterns are
-      // targeted by this schedule. Metrics that match at least one rule from the
-      // exclusion_patterns are not targeted for this schedule, even if they match an
-      // inclusion pattern.
-
-      // For this iteration, since we only want one Schedule that applies to all metrics,
-      // we will not check the inclusion_patterns and exclusion_patterns.
-      repeated Pattern exclusion_patterns = 1;
-      repeated Pattern inclusion_patterns = 2;
-
-      // period describes the sampling period for each metric in seconds.
-      int32 period = 3;
-
-      // Optional. Additional opaque metadata associated with the schedule.
-      // Interpreting metadata is implementation specific. A metric backend may
-      // implement features not directly supported in this configuration
-      // protocol, but still desire to communicate these settings to
-      // instrumented applications. An application may in turn piggyback
-      // metadata on a vendor's metric exporter to communicate information back
-      // to its metric backend. In this way, metadata offers a channel to
-      // communicate custom settings.
-      //
-      // Example use cases may include:
-      //  * Specifying quality-of-service priority
-      //  * Tweaking configurations beyond collection period
-      //  * Using alternate representations for collection schedules, matching
-      //    metrics, resources, etc.
-      //  * Enabling other optimizations
-      bytes metadata = 4;
     }
 
-    // For this iteration, since we only want one Schedule that applies to all metrics,
-    // we will have a restriction that schedules must have a length of 1, and we will
-    // not check the patterns when we apply the collection period.
-    repeated Schedule schedules = 1;
+    // Metrics with names that match at least one rule in the inclusion_patterns are
+    // targeted by this schedule. Metrics that match at least one rule from the
+    // exclusion_patterns are not targeted for this schedule, even if they match an
+    // inclusion pattern.
 
+    // For this iteration, since we only want one Schedule that applies to all metrics,
+    // we will not check the inclusion_patterns and exclusion_patterns.
+    repeated Pattern exclusion_patterns = 1;
+    repeated Pattern inclusion_patterns = 2;
+
+    // period describes the sampling period for each metric in seconds.
+    int32 period = 3;
+
+    // Optional. Additional opaque metadata associated with the schedule.
+    // Interpreting metadata is implementation specific. A metric backend may
+    // implement features not directly supported in this configuration
+    // protocol, but still desire to communicate these settings to
+    // instrumented applications. An application may in turn piggyback
+    // metadata on a vendor's metric exporter to communicate information back
+    // to its metric backend. In this way, metadata offers a channel to
+    // communicate custom settings.
+    //
+    // Example use cases may include:
+    //  * Specifying quality-of-service priority
+    //  * Tweaking configurations beyond collection period
+    //  * Using alternate representations for collection schedules, matching
+    //    metrics, resources, etc.
+    //  * Enabling other optimizations
+    bytes metadata = 4;
   }
-  MetricConfig metric_config = 2;
+
+  // For this iteration, since we only want one Schedule that applies to all metrics,
+  // we will have a restriction that schedules must have a length of 1, and we will
+  // not check the patterns when we apply the collection period.
+  repeated Schedule schedules = 2;
 
   // Optional. The client is suggested to wait this long (in seconds) before
   // pinging the configuration service again.
