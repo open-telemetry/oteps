@@ -90,7 +90,7 @@ spans of a distributed trace. Like span attributes, the correlation context may
 already be carried with span information, so duplicating this information may be
 redundant. In certain cases it may be important to associate this context with
 log entries. When the context is embedded in a log entry, the key-value
-pairs should be placed in a ‘correlation’ namespace. Where key-value pairs are
+pairs should be placed in a 'ctx' namespace. Where key-value pairs are
 supported, embed the correlation key as “correlation.key_name”. In JSON or
 other formats that allow nested structures, the key-value pairs should be
 placed in an object named ‘correlation’ at the top of the object.
@@ -103,7 +103,7 @@ placed in an object named ‘correlation’ at the top of the object.
 
 ```text
 2020-05-20 20:13:31 INFO Message logged. resource.hostname=myhost
-correlation.user=djones traceid=0354af75138b12921 spanid=14c902d73a traceflags=01
+ctx.user=djones traceid=0354af75138b12921 spanid=14c902d73a traceflags=01
 ```
 
 #### JSON
@@ -113,7 +113,7 @@ correlation.user=djones traceid=0354af75138b12921 spanid=14c902d73a traceflags=0
   "time": "2020-05-20 20:13:31",
   "msg": "Message logged.",
   "level": "INFO",
-  "correlation": {
+  "ctx": {
     "user": "djones"
   },
   "resource": {
