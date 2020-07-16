@@ -78,24 +78,7 @@ message MetricConfigResponse {
     repeated Pattern inclusion_patterns = 2;
 
     // Describes the collection period for each schedule in seconds.
-    int32 period = 3;
-
-    // Optional. Additional opaque metadata associated with the schedule.
-    // Interpreting metadata is implementation specific. A metric backend may
-    // implement features not directly supported in this configuration
-    // protocol, but still desire to communicate these settings to
-    // instrumented applications. An application may in turn piggyback
-    // metadata on a vendor's metric exporter to communicate information back
-    // to its metric backend. In this way, metadata offers a channel to
-    // communicate custom settings.
-    //
-    // Example use cases may include:
-    //  * Specifying quality-of-service priority
-    //  * Tweaking configurations beyond collection period
-    //  * Using alternate representations for collection schedules, matching
-    //    metrics, resources, etc.
-    //  * Enabling other optimizations
-    bytes metadata = 4;
+    int32 period_sec = 3;
   }
 
   // For this iteration, since we only want one Schedule that applies to all metrics,
