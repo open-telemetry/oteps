@@ -1,6 +1,6 @@
 # A Proposal For SDK Support for Configurable Batching and Aggregations
 
-Add SDK support for the ability to configure Metric Aggregations.
+Add support to the default SDK for the ability to configure Metric Aggregations.
 
 ## Motivation
 
@@ -22,7 +22,7 @@ to the metric vendor/backend of choice.
 
 ## Explanation
 
-I propose a new SDK feature, available on the interface of the SDK's MeterProvider implementation, to configure
+I propose a new feature for the default SDK, available on the interface of the SDK's MeterProvider implementation, to configure
 the batching strategies and aggregations that will be used by the SDK when metric recordings are made.
 
 The basic API has two parts.
@@ -47,7 +47,7 @@ In this proposal, there is only one configuration associated with each selector.
 As a concrete example, in Java, this might look something like this:
 
 ```java
-// get a handle to the MeterSdkProvider
+ // get a handle to the MeterSdkProvider (note, this is concrete name of the default SDK class in java, not a general SDK)
  MeterSdkProvider meterProvider = OpenTelemetrySdk.getMeterProvider();
 
  // create a selector to select which instruments to customize:
@@ -84,8 +84,10 @@ consider a non-programmatic configuration option.
 
 ## Open questions
 
-There has been some question about whether a custom aggregation should be allowable for a Counter type
-instrument.
+1. Should custom aggregations should be allowable for all instruments? How should an SDK respond to a request for a non-supported aggregation?
+2. Should the requesting of DELTA vs. CUMULATIVE be only available via an exporter-only API, rather than generally available to all operators?
+3. Is regex-based name matching too broad and dangerous? Would the alternative (having to know the exact name of all instruments to configure) be too onerous?
+4. Is there anything in this proposal that would make implementing a full Views API (i.e. having multiple, named aggregations per instrument) difficult?
 
 ## Future possibilities
 
