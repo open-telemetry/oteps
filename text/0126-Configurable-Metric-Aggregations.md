@@ -88,6 +88,7 @@ consider a non-programmatic configuration option.
 2. Should the requesting of DELTA vs. CUMULATIVE be only available via an exporter-only API, rather than generally available to all operators?
 3. Is regex-based name matching too broad and dangerous? Would the alternative (having to know the exact name of all instruments to configure) be too onerous?
 4. Is there anything in this proposal that would make implementing a full Views API (i.e. having multiple, named aggregations per instrument) difficult?
+5. How should an exporter interact with the SDK for which it is configured, in order to change aggregation settings?
 
 ## Future possibilities
 
