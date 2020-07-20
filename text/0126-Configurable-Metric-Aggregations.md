@@ -55,12 +55,12 @@ As a concrete example, in Java, this might look something like this:
   .instrumentType(InstrumentType.COUNTER)
   .build();
 
- // create a specification of how you want the metrics aggregated:
- Specification specification =
-      specification.create(Aggregations.minMaxSumCount(), Temporality.DELTA);
+ // create a configuration of how you want the metrics aggregated:
+ Configuration configuration =
+      Configuration.create(Aggregations.minMaxSumCount(), Temporality.DELTA);
 
  //register the configuration with the MeterSdkProvider
- meterProvider.registerAggregation(instrumentSelector, specification);
+ meterProvider.registerAggregation(instrumentSelector, configuration);
 ```
 
 ## Internal details
