@@ -41,8 +41,8 @@ The following semantic conventions aim to keep naming consistent. Not all possib
 - **usage** - an instrument that measures an amount used out of a known total amount should be called `entity.usage`. For example, `system.filesystem.usage` for the amount of disk spaced used. A measure of the amount of an unlimited resource consumed is differentiated from **usage**. This may be time, data, etc.
 - **utilization** - an instrument that measures a *value ratio* of usage (like percent, but in the range `[0, 1]`) should be called `entity.utilization`. For example, `system.memory.utilization` for the ratio of memory in use.
 - **time** - an instrument that measures passage of time should be called `entity.time`. For example, `system.cpu.time` with varying values of label `state` for idle, user, etc.
-- **io** - an instrument that measures bidirectional data flow should be called `entity.io` and have labels for direction. For example, `system.net.io`.
-- Other instruments that do not fit the above descriptions may be named more freely. For example, `system.swap.page_faults` and `system.net.packets`. Units do not need to be specified in the names since they are included during instrument creation, but can be added if there is ambiguity.
+- **io** - an instrument that measures bidirectional data flow should be called `entity.io` and have labels for direction. For example, `system.network.io`.
+- Other instruments that do not fit the above descriptions may be named more freely. For example, `system.swap.page_faults` and `system.network.packets`. Units do not need to be specified in the names since they are included during instrument creation, but can be added if there is ambiguity.
 
 ## Internal details
 
@@ -75,25 +75,27 @@ In the tables below, units of `1` refer to a ratio value that is always in the r
 #### `system.swap.`
 
 **Description:** System level swap/paging metrics.
-|Name                    |Units |Instrument Type  |Value Type|Label Key|Label Values|
-|------------------------|------|-----------------|----------|---------|------------|
-|system.swap.usage       |pages |UpDownSumObserver|Int64     |state    |used, free  |
-|system.swap.utilization |1     |UpDownSumObserver|Double    |state    |used, free  |
-|system.swap.page\_faults|faults|SumObserver      |Int64     |type     |major, minor|
-|system.swap.paging\_ops |ops   |SumObserver      |Int64     |type     |major, minor|
-|                        |      |                 |          |direction|in, out     |
+|Name                        |Units     |Instrument Type  |Value Type|Label Key|Label Values|
+|----------------------------|----------|-----------------|----------|---------|------------|
+|system.swap.usage           |pages     |UpDownSumObserver|Int64     |state    |used, free  |
+|system.swap.utilization     |1         |UpDownSumObserver|Double    |state    |used, free  |
+|system.swap.page\_faults    |faults    |SumObserver      |Int64     |type     |major, minor|
+|system.swap.page\_operations|operations|SumObserver      |Int64     |type     |major, minor|
+|                            |          |                 |          |direction|in, out     |
 
 #### `system.disk.`
 
 **Description:** System level disk performance metrics.
-|Name                        |Units  |Instrument Type|Value Type|Label Key|Label Values|
-|----------------------------|-------|---------------|----------|---------|------------|
-|system.disk.io<!--notlink-->|bytes  |SumObserver    |Int64     |device   |(identifier)|
-|                            |       |               |          |direction|read, write |
-|system.disk.ops             |ops    |SumObserver    |Int64     |device   |(identifier)|
-|                            |       |               |          |direction|read, write |
-|system.disk.time            |seconds|SumObserver    |Double    |device   |(identifier)|
-|                            |       |               |          |direction|read, write |
+|Name                        |Units     |Instrument Type|Value Type|Label Key|Label Values|
+|----------------------------|----------|---------------|----------|---------|------------|
+|system.disk.io<!--notlink-->|bytes     |SumObserver    |Int64     |device   |(identifier)|
+|                            |          |               |          |direction|read, write |
+|system.disk.operations      |operations|SumObserver    |Int64     |device   |(identifier)|
+|                            |          |               |          |direction|read, write |
+|system.disk.time            |seconds   |SumObserver    |Double    |device   |(identifier)|
+|                            |          |               |          |direction|read, write |
+|system.disk.merged          |1         |SumObserver    |Int64     |device   |(identifier)|
+|                            |          |               |          |direction|read, write |
 
 #### `system.filesystem.`
 
@@ -105,26 +107,26 @@ In the tables below, units of `1` refer to a ratio value that is always in the r
 |system.filesystem.utilization|1    |UpDownSumObserver|Double    |device   |(identifier)        |
 |                             |     |                 |          |state    |used, free, reserved|
 
-#### `system.net.`
+#### `system.network.`
 
 **Description:** System level network metrics.
-|Name                       |Units      |Instrument Type  |Value Type|Label Key|Label Values                                                                                  |
-|---------------------------|-----------|-----------------|----------|---------|----------------------------------------------------------------------------------------------|
-|system.net.dropped\_packets|packets    |SumObserver      |Int64     |device   |(identifier)                                                                                  |
-|                           |           |                 |          |direction|transmit, receive                                                                             |
-|system.net.packets         |packets    |SumObserver      |Int64     |device   |(identifier)                                                                                  |
-|                           |           |                 |          |direction|transmit, receive                                                                             |
-|system.net.errors          |errors     |SumObserver      |Int64     |device   |(identifier)                                                                                  |
-|                           |           |                 |          |direction|transmit, receive                                                                             |
-|system<!--notlink-->.net.io|bytes      |SumObserver      |Int64     |device   |(identifier)                                                                                  |
-|                           |           |                 |          |direction|transmit, receive                                                                             |
-|system.net.connections     |connections|UpDownSumObserver|Int64     |device   |(identifier)                                                                                  |
-|                           |           |                 |          |protocol |tcp, udp, [others](https://en.wikipedia.org/wiki/Transport_layer#Protocols)                   |
-|                           |           |                 |          |state    |[e.g. for tcp](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Protocol_operation)|
+|Name                           |Units      |Instrument Type  |Value Type|Label Key|Label Values                                                                                  |
+|-------------------------------|-----------|-----------------|----------|---------|----------------------------------------------------------------------------------------------|
+|system.network.dropped\_packets|packets    |SumObserver      |Int64     |device   |(identifier)                                                                                  |
+|                               |           |                 |          |direction|transmit, receive                                                                             |
+|system.network.packets         |packets    |SumObserver      |Int64     |device   |(identifier)                                                                                  |
+|                               |           |                 |          |direction|transmit, receive                                                                             |
+|system.network.errors          |errors     |SumObserver      |Int64     |device   |(identifier)                                                                                  |
+|                               |           |                 |          |direction|transmit, receive                                                                             |
+|system<!--notlink-->.network.io|bytes      |SumObserver      |Int64     |device   |(identifier)                                                                                  |
+|                               |           |                 |          |direction|transmit, receive                                                                             |
+|system.network.connections     |connections|UpDownSumObserver|Int64     |device   |(identifier)                                                                                  |
+|                               |           |                 |          |protocol |tcp, udp, [others](https://en.wikipedia.org/wiki/Transport_layer#Protocols)                   |
+|                               |           |                 |          |state    |[e.g. for tcp](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Protocol_operation)|
 
 #### OS Specific System Metrics - `system.{os}.`
 
-Instrument names for system level metrics specific to a certain operating system should be prefixed with `system.{os}.` and follow the hierarchies listed above for different entities like CPU, memory, and network. For example, an instrument for counting the number of Linux merged disk operations (see [here](https://unix.stackexchange.com/questions/462704/iostat-what-is-exactly-the-concept-of-merge) and [here](https://man7.org/linux/man-pages/man1/iostat.1.html)) could be named `system.linux.disk.merged_ops`, reusing the `disk` name proposed above.
+Instrument names for system level metrics specific to a certain operating system should be prefixed with `system.{os}.` and follow the hierarchies listed above for different entities like CPU, memory, and network. For example, an instrument for counting the number of Linux merged disk operations (see [here](https://unix.stackexchange.com/questions/462704/iostat-what-is-exactly-the-concept-of-merge) and [here](https://man7.org/linux/man-pages/man1/iostat.1.html)) could be named `system.linux.disk.merged_operations`, reusing the `disk` name proposed above.
 
 ### Standard Runtime Metrics - `runtime.`
 
