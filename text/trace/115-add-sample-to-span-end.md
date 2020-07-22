@@ -114,7 +114,7 @@ sample checks that may require all fields of the span.
 onEnd is also provided, as an optimization for samplers who may opt for
 running the sample decision after no further updates to the span are possible.
 
-## Samples return shouldRetry
+## Samplers return shouldRetry
 
 Samplers will return an additional "shouldRetry" boolean value, that indicates
 whether the sample should be called again. Once shouldRetry has returned false,
