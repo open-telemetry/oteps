@@ -80,7 +80,7 @@ consider a non-programmatic configuration option.
 ## Prior art and alternatives
 
 * Prior Art is probably mostly in the [OpenCensus Views](https://opencensus.io/stats/view/) system.
-* Another [OTEP](https://github.com/open-telemetry/oteps/pull/8) attempted to address building a Views API.
+* Another [OTEP](https://github.com/open-telemetry/oteps/pull/89) attempted to address building a Views API.
 
 ## Open questions
 
