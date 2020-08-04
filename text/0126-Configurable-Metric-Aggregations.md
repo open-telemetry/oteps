@@ -43,7 +43,7 @@ The basic API has two parts.
     - Use a Histogram aggregation, and only use two labels "route" and "error" for aggregations.
     - Use a quantile aggregation, and drop all labels when aggregating.
 
-In this proposal, there is only one configuration associated with each selector.
+In this proposal, there is only one View associated with each selector.
 
 As a concrete example, in Java, this might look something like this:
 
