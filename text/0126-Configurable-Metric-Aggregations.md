@@ -1,4 +1,4 @@
-# A Proposal For SDK Support for Configurable Batching and Aggregations
+# A Proposal For SDK Support for Configurable Batching and Aggregations (Basic Views)
 
 Add support to the default SDK for the ability to configure Metric Aggregations.
 
@@ -23,7 +23,8 @@ to the metric vendor/backend of choice.
 ## Explanation
 
 I propose a new feature for the default SDK, available on the interface of the SDK's MeterProvider implementation, to configure
-the batching strategies and aggregations that will be used by the SDK when metric recordings are made.
+the batching strategies and aggregations that will be used by the SDK when metric recordings are made. This is the beginnings
+of a "Views" API, but does not intend to implement the full View functionality from OpenCensus.
 
 The basic API has two parts.
 
@@ -31,7 +32,7 @@ The basic API has two parts.
   - Selection options include: the instrument type (Counter, ValueRecorder, etc), and a regex for instrument name.
   - If more than one option is provided, they are considered additive.
   - Example: select all ValueRecorders whose name ends with ".duration".
-* Configuration - configures how the batching and aggregation should be done.
+* View - configures how the batching and aggregation should be done.
   - 3 things can be specified: The aggregation (Sum, MinMaxSumCount, Histogram, etc), the "temporality" of the batching,
     and a set of pre-defined labels to consider as the subset to be used for aggregations.
     - Note: "temporality" can be one of "DELTA" and "CUMULATIVE" and specifies whether the values of the aggregation
@@ -56,11 +57,11 @@ As a concrete example, in Java, this might look something like this:
   .build();
 
  // create a configuration of how you want the metrics aggregated:
- Configuration configuration =
-      Configuration.create(Aggregations.minMaxSumCount(), Temporality.DELTA);
+ View view =
+      View.create(Aggregations.minMaxSumCount(), Temporality.DELTA);
 
  //register the configuration with the MeterSdkProvider
- meterProvider.registerAggregation(instrumentSelector, configuration);
+ meterProvider.registerView(instrumentSelector, view);
 ```
 
 ## Internal details
@@ -71,7 +72,7 @@ A prototype with a partial implementation of this proposal in Java is available 
 
 ## Trade-offs and mitigations
 
-This does not intend to deliver a full "Views" API, although it may eventually form the basis for one. The goal here is
+This does not intend to deliver a full "Views" API, although it is the basis for one. The goal here is
 simply to allow configuration of the batching and aggregation by operators and exporter authors.
 
 This does not intend to specify the exact interface for providing these configurations, nor does it
