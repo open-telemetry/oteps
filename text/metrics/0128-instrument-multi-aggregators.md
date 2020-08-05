@@ -80,3 +80,9 @@ When `ViewName` is the same as `InstrumentName` it acts the same as
 `set_default_aggregation` but with a new description and a set of label keys to
 filter down to. 
 
+## Open Questions
+
+- How is aggregation output configured to be deltas or cumulative? Is this an
+  exporter configuration that each view inherits in order to know how to
+  aggregate for the particular exporter?
+
