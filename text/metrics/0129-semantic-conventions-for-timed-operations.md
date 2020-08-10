@@ -15,7 +15,7 @@ the duration of each instance of the timed operation is recorded.
 ### Naming
 
 The semantic conventions should specify the naming of this metric instrument, following
-the [Metric Instrument Naming Guidelines](./108-naming-guidelines.md#guidelines).
+the [Metric Instrument Naming Guidelines](./0108-naming-guidelines.md#guidelines).
 
 The goal of the semantic conventions regarding the naming of this metric instrument will
 be that similar operations are rolled up together.
