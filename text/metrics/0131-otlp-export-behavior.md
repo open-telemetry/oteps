@@ -1,6 +1,6 @@
 # OTLP Exporters Configurable Export Behavior
 
- Add support for configurable behavior in OTLP exporters.
+ Add support for configurable export behavior in OTLP exporters.
 
  The expected behavior required are 1) exporting cumulative values since start time by default, and 2) exporting delta values per collection interval when configured. 
 
