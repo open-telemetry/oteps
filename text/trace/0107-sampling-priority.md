@@ -10,7 +10,7 @@ It's calculated when trace starts and flows in the `tracestate`, it's
 used by samplers to make consistent sampling decisions.
 
 Service that starts the trace calculates sampling priority and adds it to the
-tracestate so downstream services can use it to make their sampling decisions
+`tracestate` so downstream services can use it to make their sampling decisions
 without re-calculating priority as a function of trace-id (or trace-flags).
 
 ## Motivation
@@ -27,7 +27,7 @@ by following means:
    Coordination of sampling algorithms across multiple apps not always possible:
    for example existing components in a system use vendor-specific
    tracing tool (pre-OpenTelemetry and update is hard to justify) while there
-   is a desire to use OpenTelemtery for new components.
+   is a desire to use OpenTelemetry for new components.
 
 2. Sampling flag propagated from the head component/app is used by downstream
    apps to sample in a given trace.
@@ -123,7 +123,7 @@ Vendors may gradually update their existing solutions to support external
 priority in order to interoperate with OpenTelemetry and should recommend
 customers to configure such sampler.
 
-It may be the case that after migration to OpenTelemtery is finalized, the need
+It may be the case that after migration to OpenTelemetry is finalized, the need
 of `sampling.priority` will decrease and customers can remove
 `ExternalPrioritySampler` from configuration.
 
@@ -136,7 +136,7 @@ Related discussions on [Probability sampler](https://github.com/open-telemetry/o
 
 ## Open questions
 
-### Priority calculation
+### Priority calculation: can we use ProbabilitySampler?
 
 This spec suggests to generate priority randomly to achieve uniform
 distribution.
@@ -144,29 +144,33 @@ distribution.
 Assuming trace-ids are uniformly distributed, `ProbabilitySampler` can generate
 priority, so the flow could look like this:
 
-`ExternalprioritySampler.ShouldSample`:
+`ExternalPrioritySampler.ShouldSample`:
 
 - checks if `sampling.priority` is available in the tracestate
 - if it's not there, invokes `ProbabilitySampler`, which calculates priority
   and populates it on the attributes
 - updates tracestate
 
-**Pros**
-Fallback to `ProbabilitySampler` improves the case when `tracestate` is trimmed
-so that is a chace for consistent sampling.
+#### Pros
 
-**Cons**
-There is no requirement for trace-ids to be uniformly distributed
-No clear boundary betwwen `ProbabilitySampler` and `ExternalprioritySampler`
-needs to expose this priority, even if there is no wrapper.
+Fallback to `ProbabilitySampler` improves the case when `tracestate` is trimmed
+so there is a chance sampling could be consistent if same probability
+calculation algorithm was used.
+
+#### Cons
+
+- There is no requirement for trace-ids to be uniformly distributed
+- No clear boundary between `ProbabilitySampler` and `ExternalPrioritySampler`.
+`ProbabilitySampler` needs to set priority in attribute even if there is no
+`ExternalPrioritySampler`.
 
 ## Future possibilities
 
 ### Attribute vs field on the span to-be-created
 
-Collection of attributes that is passed to sampler is empty by default to
+Collection of attributes which is passed to sampler is empty by default to
 minimize perf impact. Propagating priority back from sampler to span requires
 to initialize the collection.
 
-Creating a new float field on `SamplingDecision` could be an  alternative. 
-It'd require also adding similar property on Span/SpanData.
+Creating a new float field on `SamplingDecision` could be an alternative.
+It'd also require adding similar property on Span/SpanData.
