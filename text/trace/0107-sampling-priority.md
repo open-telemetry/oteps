@@ -112,14 +112,20 @@ callback sampler
 ### Trade-offs and mitigations
 
 This change would be the first (AFAIK) common use case of the `tracestate`.
-It comes with bandwidth as well as performance overhead: tracestate could have
+It comes with bandwidth and performance overhead: `tracestate` could have
 been just propagated [blindly](https://github.com/open-telemetry/opentelemetry-specification/issues/478).
-and this overhead is made even before sampling decision and cannot be mitigated.
+and the overhead is made before sampling decision and cannot be mitigated.
 
-Customers should configure it explicitly to avoid the overhead. Vendors may
-gradually update their existing solutions to support external priority and
-interoperate with OpenTelemetry should recommend customers to configure such
-sampler.
+Customers should configure it explicitly to avoid the overhead in the default
+case when interoperability is not necessary.
+
+Vendors may gradually update their existing solutions to support external
+priority in order to interoperate with OpenTelemetry and should recommend
+customers to configure such sampler.
+
+It may be the case that after migration to OpenTelemtery is finalized, the need
+of `sampling.priority` will decrease and customers can remove
+`ExternalPrioritySampler` from configuration.
 
 ## Prior art and alternatives
 
