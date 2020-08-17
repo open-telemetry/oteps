@@ -102,6 +102,9 @@ callback sampler
   - if span will be recorded: sampler adds `sampling.priority` attribute to
     attributes collection of to-be-created span
 
+Here is a [proof of concept](https://github.com/lmolkova/opentelemetry-dotnet/pull/1)
+in .NET.
+
 ### Specification Delta
 
 1. Add `SamplingResult.Tracestate` field: sampler should be able to assign a
