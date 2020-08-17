@@ -87,7 +87,7 @@ Vendors can pick the most complete traces sorting them by priority.
 - Service that starts a trace makes sampling decision.  It's configured to use
 `ExternalPrioritySampler`(name TBD) is configured by user. Within `ShouldSample`
 callback sampler
-  - generates random float priority (~7 decimal digits) in [0, 1] interval
+  - generates random float priority (6-9 digits) in [0, 1] interval
   - makes sampling decision by comparing generated priority to configured rate
   - if decision is `RECORD` (or `RECORD_AND_SAMPLED`), sampler adds
     `sampling.priority` attribute to attributes collection of to-be-created span
