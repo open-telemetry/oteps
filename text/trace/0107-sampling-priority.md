@@ -109,7 +109,8 @@ in .NET.
 
 1. Add `SamplingResult.Tracestate` field: sampler should be able to assign a
    new tracestate for to-be-created span
-2. Add convention for `sampling.priority` attribute on span
+2. Add convention for `sampling.priority` attribute on span (TBC). Check out
+   [open questions](open-questions) regarding attribute vs special field.
 3. Add `ExternalPrioritySampler` implementation of `Sampler`
 
 ### Trade-offs and mitigations
@@ -167,8 +168,6 @@ calculation algorithm was used.
 `ProbabilitySampler` needs to set priority in attribute even if there is no
 `ExternalPrioritySampler`.
 
-## Future possibilities
-
 ### Attribute vs field on the span to-be-created
 
 Collection of attributes which is passed to sampler is empty by default to
@@ -177,3 +176,25 @@ to initialize the collection.
 
 Creating a new float field on `SamplingDecision` could be an alternative.
 It'd also require adding similar property on Span/SpanData.
+
+There are other scenarios when sampling information is useful for
+exporter: e.g. sampling rate (or inverse value: count of spans
+this span represent). Exporters can use it to estimate metrics.
+
+Populating all sampling information on all spans may be inefficient in terms of
+event payload size and storage while being useful for a subset of vendors.
+
+Extensible solution may look like a `SamplingInfo` struct that carries all
+fields exporters may need.
+
+```
+struct SamplingInfo
+   Priority,
+   Rate/Count,
+   ...
+```
+
+`SamplingResult` would allow sampler for fill it for the span-to-be-created.
+`Span` and its exportable representations will also need to be updated.
+
+## Future possibilities
