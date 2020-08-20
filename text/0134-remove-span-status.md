@@ -22,7 +22,7 @@ Therefore the proposal is to remove the `Span.Status` field from Trace API and O
 
 ## Internal details
 
-Several areas are affected by this change and will require the coordinate effort to make this happen.
+Several areas are affected by this change and will require a coordinated effort to make this happen.
 
 ### Trace API Specification
 
@@ -62,12 +62,13 @@ This will allow for older pipelines, still relying on `Span.Status` to continue 
 The exact duration of this transition period will be left for Collector's maintainers to decide.
 
 * If incoming OTLP data has `Span.Status` present, that will NOT be removed and will be passed on as-is.
-* If incoming OTLP data has `Span.Status` present, Collector will translate that to temporary semantic attributes as follows:
+* If incoming OTLP data has `Span.Status` present and it is not equal to `OK`,
+Collector will translate that to temporary semantic attributes as follows:
 
 |Status|Tag Key| Tag Value|
 |--|--|--|
-|StatusCanonicalCode | `otel.deprecated_status_code` | Name of the code, if that differs from ‘OK’ |
-|Message *(optional)* | `otel.deprecated_status_description` | `{message}` |
+|StatusCanonicalCode | `otel.deprecated_status_code` | Name of the code|
+|Message *(optional)* | `otel.deprecated_status_message` | `{message}`|
 
 * When receiving data in Zipkin format, no special handling will take place.
 All Zipkin tags present will be translated verbatim to OTLP attributes.
