@@ -208,4 +208,10 @@ struct SamplingInfo
 `SamplingResult` would allow sampler for fill it for the span-to-be-created.
 `Span` and its exportable representations will also need to be updated.
 
+### Tracestate type on the SamplingResult
+
+By default it makes sense to propagate tracestate [blindly](https://github.com/open-telemetry/opentelemetry-specification/issues/478)
+as a string for perf reasons. Specification does not define `Tracestate` type
+and leaves it up to the implementation.
+
 ## Future possibilities
