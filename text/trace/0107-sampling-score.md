@@ -6,7 +6,7 @@ sampling rates and probability calculation algorithms.
 ## TL;DR
 
 **Score** is a floating point number associated with
-the trace. It's calculated when trace starts and flows in the `tracestate`, 
+the trace. It's calculated when trace starts and flows in the `tracestate`,
 it's used by samplers to make consistent sampling decisions.
 
 Service that starts the trace calculates the score and adds it to the
