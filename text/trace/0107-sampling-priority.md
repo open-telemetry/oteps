@@ -9,13 +9,13 @@ sampling rates and probability calculation algorithms.
 the trace. It's calculated when trace starts and flows in the `tracestate`, 
 it's used by samplers to make consistent sampling decisions.
 
-*Score* is not related to sampling *rate* (aka *probability* which represents
-sampler's configuration not specific to trace).
-
 Service that starts the trace calculates the score and adds it to the
 `tracestate` so downstream services can re-use it to make their sampling
 decisions *instead of* re-calculating score as a function of trace-id
 (or trace-flags).
+
+*Score* is not related to sampling *rate* (aka *probability* which represents
+sampler's configuration not specific to trace).
 
 ## Motivation
 
