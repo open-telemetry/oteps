@@ -76,9 +76,10 @@ All Zipkin tags present will be translated verbatim to OTLP attributes.
 All OTLP attributes will be translated verbatim to Zipkin tags.
 `Span.Status` if present, will NOT be translated.
 * When receiving data in Jaeger format, no special handling will take place.
-Jaeger `error` tag will be translated in the usual way to OTLP `error` attribute.
-See `Open questions` below.
-* When exporting data into Jaeger format, if a new temporary attribute `otel.deprecated_status_code` is present,
+Jaeger `error` tag will be translated in the usual way to an OTLP error attribute
+(see [Open questions](#open-questions)).
+* When exporting data into Jaeger format, if a new temporary attribute `otel.deprecated_status_code` is present
+and does indicate a non-OK status,
 then Jaeger `error` tag will be set to `true`.
 See `Open questions` below.
 
