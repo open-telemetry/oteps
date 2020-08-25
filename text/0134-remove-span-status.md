@@ -80,8 +80,7 @@ Jaeger `error` tag will be translated in the usual way to an OTLP error attribut
 (see [Open questions](#open-questions)).
 * When exporting data into Jaeger format, if a new temporary attribute `otel.deprecated_status_code` is present
 and does indicate a non-OK status,
-then Jaeger `error` tag will be set to `true`.
-See `Open questions` below.
+then Jaeger `error` tag will be set to `true` (see [Open questions](#open-questions)).
 
 ## Open questions
 
