@@ -120,6 +120,19 @@ callback sampler
 - If downstream service does not find a score in the tracestate, it falls back
   to the configured score generation algorithm and updates tracestate and
   attributes
+- Any service can be configured to use other samplers (e.g. `TraceIdRatioBased`)
+  In this case, score in tracestate is not affecting sampling decisions and is
+  re-calculated by sampler.
+
+`ExternalScoreSampler` is responsible for:
+
+- reading and writing score to the `tracestate`
+- if score is set on the tracestate it makes sampling decision
+- if score is not present, it generates one using `SamplingScoreGenerator`.
+
+`SamplingScoreGenerator` responsible for:
+
+- calculating score in random or deterministic way based on sampling parameters.
 
 Here is a [proof of concept](https://github.com/lmolkova/opentelemetry-dotnet/pull/1)
 in .NET.
@@ -130,8 +143,10 @@ in .NET.
    new tracestate for to-be-created span](https://github.com/open-telemetry/opentelemetry-specification/issues/856)
 2. Add convention for `sampling.score` attribute on span (TBD). Check out
    [open questions](open-questions) regarding attribute vs special field.
-3. Add notion of `SamplingScoreGenerator` that has `TraceIdRatioGenerator`,
-   `RandomGenerator`, etc implementations.
+3. Add notion of `SamplingScoreGenerator` that is capable of calculating float
+   score from sampling parameters.
+   It  has `TraceIdRatioGenerator`, `RandomGenerator` and possible other
+   implementations.
    - Change `TraceIdRatioBased` sampler to use corresponding generator and serve
    as generic probability sampler with configurable score generation approach.
 4. Add `ExternalScoreSampler` implementation of `Sampler`. It's created with
@@ -156,6 +171,8 @@ of `sampling.score` will decrease and customers can remove
 `ExternalScoreSampler` from configuration.
 
 ## Prior art and alternatives
+
+[TraceIdRatioBased](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/sdk.md#traceidratiobased)  sampler.
 
 Related discussions on [Probability sampler](https://github.com/open-telemetry/opentelemetry-specification/pull/570)
 
