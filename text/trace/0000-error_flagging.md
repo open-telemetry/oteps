@@ -33,9 +33,6 @@ As part of the specification, OpenTelemetry provides a canonical mapping of sema
 ### Error Processor
 The collector will provide a processor and a configuration language to make adjustments to this error mapping schema. This provides the flexibility and customization needed for real world scenarios.
  
-### Semantic conventions
-`error.message` - A description of the error to be displayed in the analysis tool. This attribute may be set on both spans and events. This is optional, but useful when the error does not map to an exception, or an existing semantic convention. It is not necessary to set this for exceptions or our standard error mapping.
- 
 ### Convenience methods
 As a convenience, OpenTelemetry provides helper functions for adding semantic conventions and exceptions to a span. These helper functions will also set the correct status code. This simplifies the life of the instrumentation author, and helps ensure compliance and data quality.
  
