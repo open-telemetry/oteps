@@ -35,6 +35,8 @@ The collector will provide a processor and a configuration language to make adju
  
 ### Convenience methods
 As a convenience, OpenTelemetry provides helper functions for adding semantic conventions and exceptions to a span. These helper functions will also set the correct status code. This simplifies the life of the instrumentation author, and helps ensure compliance and data quality.
+
+Note that these convenience methods simply wire together multiple API calls. They should live in a helper package, and should not be directly added to existing API interfaces. Given how many semantic conventions we have, there will be a pile of them.
  
  
 ## Internal details
