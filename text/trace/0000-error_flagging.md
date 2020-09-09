@@ -24,7 +24,7 @@ The following status codes are added to our current schema.
  
 `OK_OVERRIDE` and `ERROR_OVERRIDE` are special status codes. These are explicit overrides provided by the end user, and should never be set by shared instrumentation. They should only be set by the application developer (via application code), or by the operator (via the collector).
  
-Analysis tools are free to disregard status codes, in favor of their own approach to error analysis. However it is strongly suggested that analysis tools handle `OK_OVERRIDE` and `ERROR_OVERRIDE`, as these are explicitly set by the end user and contain valuable information.
+Analysis tools MAY disregard status codes, in favor of their own approach to error analysis. However, it is strongly suggested that analysis tools SHOULD handle `OK_OVERRIDE` and `ERROR_OVERRIDE`, as these are explicitly set by the end-user and contain valuable information.
  
  
 ### Error Mapping Schema
