@@ -61,9 +61,7 @@ Obviously, all systems are different, and users will want to adjust error report
  
 Note that analysis tools are free to disregard Span Status, and do their own error analysis. For these systems, the only Status codes of import are `OK_OVERRIDE` and `ERROR_OVERRIDE`.
  
-Removing the need to explicitly set span status, and instead have it
- 
-If we really hate the current canonical status codes, most may be removed and added back in later. I do suggest we keep the status codes that map to network failures, and I agree that the rest are a bit suspect.
+If we really hate the current canonical status codes, most may be removed and added back in later. I do suggest we keep the status codes that map to network failures, and I agree that the rest are a bit suspect for our current needs.
  
 The minimal number of status codes would be `DEFAULT`, `ERROR`, `OK_OVERRIDE` and `ERROR_OVERRIDE`. `ERROR` will be used to differentiate between standard errors applied by instrumentation and overrides provided by the end user.
  
