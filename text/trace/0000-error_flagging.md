@@ -7,6 +7,7 @@ Error reporting is a fundamental use case for distributed tracing. While we pref
 However, there is confusion over the mapping of semantic conventions to status codes, and concern over the subjective nature of errors. Which network failures count as an error? Are 404s an error? The answer is dependent on the situation.
  
 There is one major exception. Both application developers and operators have a deep understanding of what constitutes an error in their system. OpenTelemetry must provide a way for these users to control error flagging, and explicitly indicate both when a span should and should not be counted as an error.
+
 A second exception is supporting analysis tools which require explicit error flagging in the data which they receive. In this case, an operator must be able to apply an error flagging schema at some point during the OTLP data processing pipeline.
  
 ## Explanation
