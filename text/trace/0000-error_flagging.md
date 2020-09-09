@@ -83,4 +83,4 @@ An alternative is the `error.hint` proposal, paired with the removal of status c
  
 The inclusion of status codes and error mappings help the opentelemetry community speak the same language in terms of error reporting. It lifts the burden on future analysis tools, and (when respected) it allows users to employ multiple analysis tools without having to synchronize an important form of configuration across multiple tools.
  
-In the future, OpenTelemtry may add a control plane which allows dynamic configuration of the error mapping schema.
+In the future, OpenTelemetry may add a control plane which allows dynamic configuration of the error mapping schema.
