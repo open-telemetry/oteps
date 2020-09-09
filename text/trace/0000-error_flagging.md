@@ -20,7 +20,7 @@ The following status codes are added to our current schema.
 * `OK_OVERRIDE` The user has provided an override. The span should NOT be flagged as an error, regardless of other analysis.
 * `ERROR_OVERRIDE` The user has provided an override. The span SHOULD be flagged as an error, regardless of other analysis.
  
-(Note that our current status codes include a long list of error types. We may choose to keep  them, change them, or drop them in favor of a single `ERROR` code. How many error types we have is not relevant to this proposal.)
+(Note that our current status codes include a long list of error types. We may choose to keep them, change them, or drop them in favor of a single `ERROR` code. How many error types we have is not relevant to this proposal.)
  
 `OK_OVERRIDE` and `ERROR_OVERRIDE` are special status codes. These are explicit overrides provided by the end user, and should never be set by shared instrumentation. They should only be set by the application developer (via application code), or by the operator (via the collector).
  
