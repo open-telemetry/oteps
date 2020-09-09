@@ -70,7 +70,7 @@ Status codes provide a low overhead mechanism for checking if a span counts agai
 Again, the status codes may be customized by the operator during the telemetry pipeline, in order to add and suppress errors.
  
 ## Open questions
-If we add error processing to the collector, it is unclear what the overhead would be.
+If we add error processing to the Collector, it is unclear what the overhead would be.
  
 It is also unclear what the cost is for backends to scan for errors on every span, without a hint from instrumentation that an error might be present.
  
