@@ -13,7 +13,7 @@ A second exception is supporting analysis tools which require explicit error fla
 The following changes add several missing features required for proper error reporting, and are completely backwards compatible with OpenTelemetry today.
  
 ### Status Codes
-The following status codes are added to our current  schema.
+The following status codes are added to our current schema.
  
 * `DEFAULT` No status has been set. Any errors must be detected by the analysis tool. (This replaces `OK`.)
 * `ERROR` Instrumentation has marked a span as an error. (This replaces `UNKNOWN`.)
