@@ -2,7 +2,7 @@
 This proposal adds two status codes explicitly for use as overrides by the end user, and proposes a canonical mapping of semantic conventions to status codes. This clarifies how error reporting should work in OpenTelemetry.
  
 ## Motivation
-Error reporting is a fundamental use case for distributed tracing. While we prefer that error flagging occurs within analysis tools, and not within instrumentation plugins, a number of currently supported analysis tools and protocols rely on the existence of an explicit error flag reported from instrumentation. In OpenTelmetry, the error flag is called "status codes."
+Error reporting is a fundamental use case for distributed tracing. While we prefer that error flagging occurs within analysis tools, and not within instrumentation plugins, a number of currently supported analysis tools and protocols rely on the existence of an explicit error flag reported from instrumentation. In OpenTelemetry, the error flag is called "status codes."
  
 However, there is confusion over the mapping of semantic conventions to status codes, and concern over the subjective nature of errors. Which network failures count as an error? Are 404s an error? The answer is dependent on the situation.
  
