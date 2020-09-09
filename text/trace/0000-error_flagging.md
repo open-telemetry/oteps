@@ -27,11 +27,11 @@ The following status codes are added to our current schema.
 Analysis tools MAY disregard status codes, in favor of their own approach to error analysis. However, it is strongly suggested that analysis tools SHOULD handle `OK_OVERRIDE` and `ERROR_OVERRIDE`, as these are explicitly set by the end-user and contain valuable information.
  
  
-### Error Mapping Schema
+### Status Mapping Schema
 As part of the specification, OpenTelemetry provides a canonical mapping of semantic conventions to status codes. This removes any ambiguity as to what OpenTelemetry ships with out of the box.
  
-### Error Processor
-The collector will provide a processor and a configuration language to make adjustments to this error mapping schema. This provides the flexibility and customization needed for real world scenarios.
+### Status Processor
+The collector will provide a processor and a configuration language to make adjustments to this status mapping schema. This provides the flexibility and customization needed for real world scenarios.
  
 ### Convenience methods
 As a convenience, OpenTelemetry provides helper functions for adding semantic conventions and exceptions to a span. These helper functions will also set the correct status code. This simplifies the life of the instrumentation author, and helps ensure compliance and data quality.
@@ -43,7 +43,7 @@ Note that these convenience methods simply wire together multiple API calls. The
 Except for the renaming of two status codes, this proposal is backwards compatible with existing code, protocols, and the OpenTracing bridge.
  
 **OK is renamed to DEFAULT**
- Using the term “OK” as the default implies more meaning than we intend. The span is not necessarily OK - it simply has not triggered our standard error mapping. The default status code should be renamed to `DEFAULT` to avoid confusion.
+ Using the term “OK” as the default implies more meaning than we intend. The span is not necessarily OK - it simply has not triggered our standard status mapping. The default status code should be renamed to `DEFAULT` to avoid confusion.
  
  Note: I intentionally avoided terms like "unset" as it may imply to users that they are required to set the status code, which is not the intention.
  
@@ -75,12 +75,12 @@ If we add error processing to the Collector, it is unclear what the overhead wou
 It is also unclear what the cost is for backends to scan for errors on every span, without a hint from instrumentation that an error might be present.
  
 ## Prior art and alternatives
-In OpenTracing, the lack of a Collector and error mapping schema proved to be unwieldy. It placed a burden on instrumentation plugin authors to set the flag correctly, and led to an explosion of non-standardized configuration options in every plugin just to adjust the default error flagging. This in turn placed a configuration burden on application developers.
+In OpenTracing, the lack of a Collector and status mapping schema proved to be unwieldy. It placed a burden on instrumentation plugin authors to set the error flag correctly, and led to an explosion of non-standardized configuration options in every plugin just to adjust the default error flagging. This in turn placed a configuration burden on application developers.
  
 An alternative is the `error.hint` proposal, paired with the removal of status code. This would work, but essentially provides the same mechanism provided in this proposal, only with a large number of breaking changes. It also does not address the need for user overrides.
  
 ## Future Work
  
-The inclusion of status codes and error mappings help the OpenTelemetry community speak the same language in terms of error reporting. It lifts the burden on future analysis tools, and (when respected) it allows users to employ multiple analysis tools without having to synchronize an important form of configuration across multiple tools.
+The inclusion of status codes and status mappings help the OpenTelemetry community speak the same language in terms of error reporting. It lifts the burden on future analysis tools, and (when respected) it allows users to employ multiple analysis tools without having to synchronize an important form of configuration across multiple tools.
  
-In the future, OpenTelemetry may add a control plane which allows dynamic configuration of the error mapping schema.
+In the future, OpenTelemetry may add a control plane which allows dynamic configuration of the status mapping schema.
