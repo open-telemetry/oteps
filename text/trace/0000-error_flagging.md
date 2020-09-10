@@ -19,7 +19,7 @@ set, and an explicit OK status set by an end user.
 
 * `UNSET` is the default status code.
 * `ERROR` represents all error types.
-* `OK` represents a span which has been explicitly marked as being free of errors, and should not be counted against an error budget. Note that only end users should set this status. Instead, instrumentation should leave the status as `UNSET` for nominal operations.
+* `OK` represents a span which has been explicitly marked as being free of errors, and should not be counted against an error budget. Note that only end users should set this status. Instead, instrumentation should leave the status as `UNSET` for normal operations.
 
 ### `Status Source`
 A new Status Source field identifies the origin of the status code on the span. This is important, as statuses set by application developers and operators have been confirmed by the end user to be correct to the particular situation. Statuses set by instrumentation, on the other hand, are only following a generic schema.
