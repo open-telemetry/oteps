@@ -22,7 +22,7 @@ set, and an explicit OK status set by an end user.
 * `OK` represents a span which has been explicitly marked as being free of errors, and should not be counted against an error budget. Note that only end users should set this status. Instead, instrumentation should leave the status as `UNSET` for nominal operations.
 
 ### `Status Source`
-A new Status Source field identifies the origin of the status code on the span. This is important, as statuses set by application developers and operators have been confirmed by the end user to be correct to the particular situation. Statuses set by instrumentation, on the other hand, are only following a generic schema. These statuses When using OTLP, this will set the `user_override` field. When setting status codes via the collector or application code, `user_override` can be set to ensure that the span status is not re-interpreted by further analysis.
+A new Status Source field identifies the origin of the status code on the span. This is important, as statuses set by application developers and operators have been confirmed by the end user to be correct to the particular situation. Statuses set by instrumentation, on the other hand, are only following a generic schema.
 
 * `INSTRUMENTATION` is the default source. This is used for instrumentation contained within shared code, such as OSS libraries and frameworks. All instrumentation plugins shipped with OpenTelemetry use this status code.
 * `APPLICATION` identifies statuses set by the application developer, within their application code. 
