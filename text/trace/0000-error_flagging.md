@@ -8,21 +8,32 @@ However, there is confusion over the mapping of semantic conventions to status c
  
 There is one other missing piece, required for proper error flagging. Both application developers and operators have a deep understanding of what constitutes an error in their system. OpenTelemetry must provide a way for these users to control error flagging, and explicitly indicate that it is the end user setting the status code, and not instrumentation plugins. In these specific cases, the error flagging is known to be correct: the end user has decided the status of the span, and they do not want another interpretation. 
 
-While generic instrumentation can only provide a generic schema, end users are capable of making subjective decisions about their systems. And, as the end user, they should get to have the final call in what consitutes an error. In order to accomplish this, there must be a way to differntiate between errors flagged by instrumentation, and errors flagged by the end user.
+While generic instrumentation can only provide a generic schema, end users are capable of making subjective decisions about their systems. And, as the end user, they should get to have the final call in what constitutes an error. In order to accomplish this, there must be a way to differentiate between errors flagged by instrumentation, and errors flagged by the end user.
  
 ## Explanation
 The following changes add several missing features required for proper error reporting, and are completely backwards compatible with OpenTelemetry today.
- 
-### `span.user_override(boolean)`
-The `user_override` method indicates that the end user has confirmed that the status code is correct. When using OTLP, this will set the `user_override` field. When setting status codes via the collector or application code, `user_override` can be set to ensure that the span status is not re-interpreted by further analysis.
-
-Analysis tools MAY disregard status codes, in favor of their own approach to error analysis. However, it is strongly suggested that analysis tools SHOULD pay attention to the status code when `user_override` is set, as it is a communication from the end-user and contains valuable information.
 
 ### Status Codes
-Note that our current status codes include a long list of error types. We may choose to keep them, change them, or drop them in favor of a single `ERROR` code. How many error types we have is not relevant to this proposal.
+Currently, OpenTelemetry does not have a use case for differentiating between different types of errors. However, this use case may appear in the future. For now, we would like to reduce the number of status codes, and then add them back in as the need becomes clear. We would also like to differentiate between status codes which have not been
+set, and an explicit OK status set by an end user.
+
+* `UNSET` is the default status code.
+* `ERROR` represents all error types.
+* `OK` represents a span which has been explicitly marked as being free of errors, and should not be counted against an error budget. Note that only end users should set this status. Instead, instrumentation should leave the status as `UNSET` for nominal operations.
+
+### `Status Source`
+The Status Source field identifies the origin of the status code on the span. This is important, as statuses set by application developers and operators have been confirmed by the end user to be correct to the particular situation. Statuses set by instrumentation, on the other hand, are only following a generic schema. These statuses When using OTLP, this will set the `user_override` field. When setting status codes via the collector or application code, `user_override` can be set to ensure that the span status is not re-interpreted by further analysis.
+
+* `INSTRUMENTATION` is the default source. This is used for instrumentation contained within shared code, such as OSS libraries and frameworks. All instrumentation plugins shipped with OpenTelemetry use this status code.
+* `APPLICATION` identifies statuses set by the application developer, within their application code. 
+* `OPERATOR` identifies statuses which have been altered during data egress. 
+
+Analysis tools MAY disregard status codes, in favor of their own approach to error analysis. However, it is strongly suggested that analysis tools SHOULD pay attention to the status codes when set by `APPLICATION` or `OPERATOR`, as it is a communication from the end-user and contains valuable information.
  
 ### Status Mapping Schema
-As part of the specification, OpenTelemetry provides a canonical mapping of semantic conventions to status codes. This removes any ambiguity as to what OpenTelemetry ships with out of the box.
+As part of the specification, OpenTelemetry provides a canonical mapping of semantic conventions to status codes. This removes any ambiguity as to what OpenTelemetry ships with out of the box. 
+
+Please note that semantic conventions, and thus status mapping from conventions, are still a work in progress and will continue to change after GA.
  
 ### Status Processor
 The collector will provide a processor and a configuration language to make adjustments to this status mapping schema. This provides the flexibility and customization needed for real world scenarios.
@@ -34,7 +45,7 @@ Note that these convenience methods simply wire together multiple API calls. The
  
  
 ## Internal details
-This proposal is backwards compatible with existing code, protocols, and the OpenTracing bridge.
+This proposal is mostly backwards compatible with existing code, protocols, and the OpenTracing bridge. The only potential exception is the removal of status codes enums from the current OTLP protocol, and the rewriting of the small number of instrumentation plugins that were making use of them.
  
  
 ## BUT ERRORS ARE SUBJECTIVE!! HOW CAN WE KNOW WHAT IS AN ERROR? WHO ARE WE TO DEFINE THIS?
@@ -44,14 +55,12 @@ While flagging errors can be a subjective decision, it is true that many semanti
  
 Obviously, all systems are different, and users will want to adjust error reporting on a case by case basis. Unwanted errors may be suppressed, and additional errors may be added. The collector will provide a processor and a configuration language to make this a straightforward process. Working from a baseline of standard errors will provide a better experience than having to define a schema from scratch.
  
-Note that analysis tools MAY disregard Span Status, and do their own error analysis. There is no requirement that the status code is respected, even when `user_override` is set. However, it is strongly suggested that analysis tools SHOULD pay attention to the status code when `user_override` is set, as it represents a subjective decision made by either the operator or application developer.
- 
-If we really hate the current canonical status codes, most may be removed and added back in later. I do suggest we keep the status codes that map to network failures, and I agree that the rest are a bit suspect for our current needs. The minimal number of status codes would be `OK` and `ERROR`.
+Note that analysis tools MAY disregard Span Status, and do their own error analysis. There is no requirement that the status code is respected, even when Status Source is set. However, it is strongly suggested that analysis tools SHOULD pay attention to the status code when Status Source is set, as it represents a subjective decision made by either the operator or application developer.
  
 ## Remind me why we need status codes again?
-Status codes provide a low overhead mechanism for checking if a span counts against an error budget, without having to scan every attribute and event. This reduces overhead and is a benefit for many systems.
+Status codes provide a low overhead mechanism for checking if a span counts against an error budget, without having to scan every attribute and event. It is an inexpensive and low cardinality approach to track multiple types of error budgets. This reduces overhead and could be a benefit for many systems. 
  
-Again, the status codes may be customized by the operator during the telemetry pipeline, in order to add and suppress errors.
+However, adding in an existing set of error types without first clearly defining their use and how they might be set has caused confusion. If the status codes are not set consistently and correctly, then the resulting error budgeting will not be useful. So we are consolidating all error types into a single ERROR type, to avoid this situation. We may add more error types back in if we can agree on their use cases and a method for applying them consistently.
  
 ## Open questions
 If we add error processing to the Collector, it is unclear what the overhead would be.
