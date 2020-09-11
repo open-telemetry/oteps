@@ -8,7 +8,7 @@ Error reporting is a fundamental use case for distributed tracing. While we pref
 
 However, there is confusion over the mapping of semantic conventions to status codes, and concern over the subjective nature of errors. Which network failures count as an error? Are 404s an error? The answer is often dependent on the situation, but without even a baseline of suggested status codes for each convention, the instrumentation author is placed under the heavy burden of making the decision. Worse, the decisions will not be in sync across different instrumentation packages.
 
-There is one other missing piece, required for proper error flagging. Both application developers and operators have a deep understanding of what constitutes an error in their system. OpenTelemetry must provide a way for these users to control error flagging, and explicitly indicate that it is the end user setting the status code, and not instrumentation plugins. In these specific cases, the error flagging is known to be correct: the end user has decided the status of the span, and they do not want another interpretation. 
+There is one other missing piece, required for proper error flagging. Both application developers and operators have a deep understanding of what constitutes an error in their system. OpenTelemetry must provide a way for these users to control error flagging, and explicitly indicate that it is the end user setting the status code, and not instrumentation plugins. In these specific cases, the error flagging is known to be correct: the end user has decided the status of the span, and they do not want another interpretation.
 
 While generic instrumentation can only provide a generic schema, end users are capable of making subjective decisions about their systems. And, as the end user, they should get to have the final call in what constitutes an error. In order to accomplish this, there must be a way to differentiate between errors flagged by instrumentation, and errors flagged by the end user.
 
@@ -36,7 +36,7 @@ Analysis tools MAY disregard status codes, in favor of their own approach to err
 
 ### Status Mapping Schema
 
-As part of the specification, OpenTelemetry provides a canonical mapping of semantic conventions to status codes. This removes any ambiguity as to what OpenTelemetry ships with out of the box. 
+As part of the specification, OpenTelemetry provides a canonical mapping of semantic conventions to status codes. This removes any ambiguity as to what OpenTelemetry ships with out of the box.
 
 Please note that semantic conventions, and thus status mapping from conventions, are still a work in progress and will continue to change after GA.
 
@@ -66,7 +66,7 @@ Note that analysis tools MAY disregard Span Status, and do their own error analy
 
 ## Remind me why we need status codes again?
 
-Status codes provide a low overhead mechanism for checking if a span counts against an error budget, without having to scan every attribute and event. It is an inexpensive and low cardinality approach to track multiple types of error budgets. This reduces overhead and could be a benefit for many systems. 
+Status codes provide a low overhead mechanism for checking if a span counts against an error budget, without having to scan every attribute and event. It is an inexpensive and low cardinality approach to track multiple types of error budgets. This reduces overhead and could be a benefit for many systems.
 
 However, adding in an existing set of error types without first clearly defining their use and how they might be set has caused confusion. If the status codes are not set consistently and correctly, then the resulting error budgeting will not be useful. So we are consolidating all error types into a single ERROR type, to avoid this situation. We may add more error types back in if we can agree on their use cases and a method for applying them consistently.
 
