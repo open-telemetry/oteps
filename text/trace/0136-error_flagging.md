@@ -38,7 +38,9 @@ Analysis tools MAY disregard status codes, in favor of their own approach to err
 
 ### Status Mapping Schema
 
-As part of the specification, OpenTelemetry provides a canonical mapping of semantic conventions to status codes. This removes any ambiguity as to what OpenTelemetry ships with out of the box.
+As part of the specification, OpenTelemetry provides a mapping of semantic conventions to status codes. This removes any ambiguity as to what OpenTelemetry ships with out of the box.
+
+This will help ensure our instrumentation is consistent across languages, when errors relate to a cross-langauge concept, such as a database protocol.
 
 Please note that semantic conventions, and thus status mapping from conventions, are still a work in progress and will continue to change after GA.
 
