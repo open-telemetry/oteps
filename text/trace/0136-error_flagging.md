@@ -30,7 +30,7 @@ set, and an explicit OK status set by an end user.
 A new Status Source field identifies the origin of the status code on the span. This is important, as statuses set by application developers and operators have been confirmed by the end user to be correct to the particular situation. Statuses set by instrumentation, on the other hand, are only following a generic schema.
 
 * `INSTRUMENTATION` is the default source. This is used for instrumentation contained within shared code, such as OSS libraries and frameworks. All instrumentation plugins shipped with OpenTelemetry use this status code.
-* `USER` identifies statuses set by the end user, either in application code or the collector.
+* `USER` identifies statuses set by application developers or operators, either in application code or the collector.
 
 Analysis tools MAY disregard status codes, in favor of their own approach to error analysis. However, it is strongly suggested that analysis tools SHOULD pay attention to the status codes when set by `USER`, as it is a communication from the end-user and contains valuable information.
 
