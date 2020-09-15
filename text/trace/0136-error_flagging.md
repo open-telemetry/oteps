@@ -1,6 +1,6 @@
 # Error Flagging with Status Codes
 
-This proposal reduces the number of status codes to three, a new field to identify status codes set by application developers and operators, and proposes a canonical mapping of semantic conventions to status codes. This clarifies how error reporting should work in OpenTelemetry.
+This proposal reduces the number of status codes to three, adds a new field to identify status codes set by application developers and operators, and adds a mapping of semantic conventions to status codes. This clarifies how error reporting should work in OpenTelemetry.
 
 Note: the term **end user** is defined as the application developers and operators of the system running opentelemetry. The term **instrumentation** refers to [instrumentation libraries](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/glossary.md#instrumentation-library) for common code shared between different systems, such as web frameworks and database clients.
 
