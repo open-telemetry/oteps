@@ -1,14 +1,16 @@
 # Error Flagging with Status Codes
 
-This proposal adds two status codes explicitly for use as overrides by the end user, and proposes a canonical mapping of semantic conventions to status codes. This clarifies how error reporting should work in OpenTelemetry.
+This proposal reduces the number of status codes to three, a new field to identify status codes set by application developers and operators, and proposes a canonical mapping of semantic conventions to status codes. This clarifies how error reporting should work in OpenTelemetry.
+
+Note: the term **end user** is defined as the application developers and operators of the system running opentelemetry. The term **instrumentation** refers to [instrumentation libraries](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/glossary.md#instrumentation-library) for common code shared between different systems, such as web frameworks and database clients.
 
 ## Motivation
 
-Error reporting is a fundamental use case for distributed tracing. While we prefer that error flagging occurs within analysis tools, and not within instrumentation plugins, a number of currently supported analysis tools and protocols rely on the existence of an explicit error flag reported from instrumentation. In OpenTelemetry, the error flag is called "status codes".
+Error reporting is a fundamental use case for distributed tracing. While we prefer that error flagging occurs within analysis tools, and not within instrumentation, a number of currently supported analysis tools and protocols rely on the existence of an explicit error flag reported from instrumentation. In OpenTelemetry, the error flag is called "status codes".
 
-However, there is confusion over the mapping of semantic conventions to status codes, and concern over the subjective nature of errors. Which network failures count as an error? Are 404s an error? The answer is often dependent on the situation, but without even a baseline of suggested status codes for each convention, the instrumentation author is placed under the heavy burden of making the decision. Worse, the decisions will not be in sync across different instrumentation packages.
+However, there is confusion over the mapping of semantic conventions to status codes, and concern over the subjective nature of errors. Which network failures count as an error? Are 404s an error? The answer is often dependent on the situation, but without even a baseline of suggested status codes for each convention, the instrumentation author is placed under the heavy burden of making the decision. Worse, the decisions will not be in sync across different instrumentation.
 
-There is one other missing piece, required for proper error flagging. Both application developers and operators have a deep understanding of what constitutes an error in their system. OpenTelemetry must provide a way for these users to control error flagging, and explicitly indicate that it is the end user setting the status code, and not instrumentation plugins. In these specific cases, the error flagging is known to be correct: the end user has decided the status of the span, and they do not want another interpretation.
+There is one other missing piece, required for proper error flagging. Both application developers and operators have a deep understanding of what constitutes an error in their system. OpenTelemetry must provide a way for these users to control error flagging, and explicitly indicate that it is the end user setting the status code, and not instrumentation. In these specific cases, the error flagging is known to be correct: the end user has decided the status of the span, and they do not want another interpretation.
 
 While generic instrumentation can only provide a generic schema, end users are capable of making subjective decisions about their systems. And, as the end user, they should get to have the final call in what constitutes an error. In order to accomplish this, there must be a way to differentiate between errors flagged by instrumentation, and errors flagged by the end user.
 
@@ -52,7 +54,7 @@ Note that these convenience methods simply wire together multiple API calls. The
 
 ## Internal details
 
-This proposal is mostly backwards compatible with existing code, protocols, and the OpenTracing bridge. The only potential exception is the removal of status codes enums from the current OTLP protocol, and the rewriting of the small number of instrumentation plugins that were making use of them.
+This proposal is mostly backwards compatible with existing code, protocols, and the OpenTracing bridge. The only potential exception is the removal of status codes enums from the current OTLP protocol, and the rewriting of the small number of instrumentation that were making use of them.
 
 ## BUT ERRORS ARE SUBJECTIVE!! HOW CAN WE KNOW WHAT IS AN ERROR? WHO ARE WE TO DEFINE THIS?
 
