@@ -32,7 +32,7 @@ A new Status Source field identifies the origin of the status code on the span. 
 * `INSTRUMENTATION` is the default source. This is used for instrumentation contained within shared code, such as OSS libraries and frameworks. All instrumentation plugins shipped with OpenTelemetry use this status code.
 * `USER` identifies statuses set by application developers or operators, either in application code or the collector.
 
-Analysis tools MAY disregard status codes, in favor of their own approach to error analysis. However, it is strongly suggested that analysis tools SHOULD pay attention to the status codes when set by `USER`, as it is a communication from the end-user and contains valuable information.
+Analysis tools MAY disregard status codes, in favor of their own approach to error analysis. However, it is strongly suggested that analysis tools SHOULD pay attention to the status codes when set by `USER`, as it is a communication from the application developer or operator and contains valuable information.
 
 ### Status Mapping Schema
 
