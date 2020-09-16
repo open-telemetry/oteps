@@ -40,7 +40,7 @@ Analysis tools MAY disregard status codes, in favor of their own approach to err
 
 As part of the specification, OpenTelemetry provides a mapping of semantic conventions to status codes. This removes any ambiguity as to what OpenTelemetry ships with out of the box.
 
-This will help ensure our instrumentation is consistent across languages, when errors relate to a cross-langauge concept, such as a database protocol.
+Including the correct status codes as part of our semantic conventions will help ensure our instrumentation is consistent when errors relate to a cross-language concept, such as a database protocol.
 
 Please note that semantic conventions, and thus status mapping from conventions, are still a work in progress and will continue to change after GA.
 
@@ -56,7 +56,7 @@ Note that these convenience methods simply wire together multiple API calls. The
 
 ## Internal details
 
-This proposal is mostly backwards compatible with existing code, protocols, and the OpenTracing bridge. The only potential exception is the removal of status codes enums from the current OTLP protocol, and the rewriting of the small number of instrumentation that were making use of them.
+This proposal is mostly backwards compatible with existing code, protocols, and the OpenTracing bridge. The only potential exception is the removal of status code enums from the current OTLP protocol, and the rewriting of the small number of instrumentation that were making use of them.
 
 ## BUT ERRORS ARE SUBJECTIVE!! HOW CAN WE KNOW WHAT IS AN ERROR? WHO ARE WE TO DEFINE THIS?
 
