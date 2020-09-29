@@ -140,17 +140,15 @@ in .NET.
 
 ### Specification Delta
 
-1. Add `SamplingResult.Tracestate` field: sampler should be able to [assign a
-   new tracestate for to-be-created span](https://github.com/open-telemetry/opentelemetry-specification/issues/856)
-2. Add convention for `sampling.score` attribute on span (TBD). Check out
+1. Add convention for `sampling.score` attribute on span (TBD). Check out
    [open questions](open-questions) regarding attribute vs special field.
-3. Add notion of `SamplingScoreGenerator` that is capable of calculating float
+2. Add notion of `SamplingScoreGenerator` that is capable of calculating float
    score from sampling parameters.
    It  has `TraceIdRatioGenerator`, `RandomGenerator` and possible other
    implementations.
    - Change `TraceIdRatioBased` sampler to use corresponding generator and serve
    as generic probability sampler with configurable score generation approach.
-4. Add `ExternalScoreSampler` implementation of `Sampler`. It's created with
+3. Add `ExternalScoreSampler` implementation of `Sampler`. It's created with
    probability value and implementation of `SamplingScoreGenerator`.
 
 ### Trade-offs and mitigations
@@ -223,11 +221,3 @@ struct SamplingInfo
 
 `SamplingResult` would allow sampler for fill it for the span-to-be-created.
 `Span` and its exportable representations will also need to be updated.
-
-### Tracestate type on the SamplingResult
-
-By default it makes sense to propagate tracestate [blindly](https://github.com/open-telemetry/opentelemetry-specification/issues/478)
-as a string for perf reasons. Specification does not define `Tracestate` type
-and leaves it up to the implementation.
-
-## Future possibilities
