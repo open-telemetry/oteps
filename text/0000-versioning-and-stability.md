@@ -83,6 +83,7 @@ Packages are end-of-life’d by being removed, along with a major version bump.
 We currently have no plans for deprecating signals or creating a major version past v1.0.
 
 ## Version Numbers
+
 OpenTelemetry follows [semver 2.0](https://semver.org/) conventions, with the following distinction.
 
 For the purposes of versioning, all code within a release is treated as if it were part of a single package. All packages within a release receive the same version number. By keeping version numbers in lockstep, end users can understand which packages belong to which release.
