@@ -36,7 +36,7 @@ Each signal consists of four types of packages:
 
 OpenTelemetry is structured around signals. Each signal represents a coherent, stand-alone set of functionality. Each signal follows a lifecycle.
 
-![drawing](img/0000_api_lifecycle.png)
+![drawing](img/0143_api_lifecycle.png)
 
 ### Lifecycle stages
 
