@@ -26,7 +26,7 @@ Each signal consists of four types of packages:
 
 **API -** Public interfaces depended upon by 3rd-party libraries and application code instrumented with  OpenTelemetry. Every signal has its own, independent API package. These individual APIs are then bundled up into a Global API for convenience.
 
-**SDK -** As the implemention the API. The SDK is only referenced during setup and teardown of an application. SDKs include additional interfaces, such as plugin and lifecycle interfaces, which are not considered part of the API package as they are not imported by shared libraries and application code.
+**SDK -** The implemention the API. The SDK is only referenced during setup and teardown of an application. SDKs include additional interfaces, such as plugin and lifecycle interfaces, which are not considered part of the API package as they are not imported by shared libraries and application code.
 
 **Semantic Conventions -** a schema defining the attributes which describe common concepts and operations which the signal observes. Note that unlike the API or SDK, Stable conventions for all signals may be placed in the same package, as they are often useful across different signals.
 
