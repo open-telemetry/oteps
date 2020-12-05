@@ -74,7 +74,7 @@ Telemetry produced by contrib instrumentation must also remain stable and backwa
 
 In theory, signals could be replaced. When this happens, they are marked as deprecated.
 
-Code is only marked as deprecated when the replacement becomes stable. Deprecated code still abides by the same support guarantees as stable code. API’s remain stable and backwards compatible.
+Code is only marked as deprecated when the replacement becomes stable. Deprecated code still abides by the same support guarantees as stable code. Deprecated APIs remain stable and backwards compatible.
 
 ### Removal
 
