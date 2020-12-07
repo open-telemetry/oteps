@@ -61,7 +61,7 @@ No backward-incompatible changes to the API are allowed unless the major version
 Public portions of the SDK (constructors, configuration, und-user interfaces) must remain backwards compatible. Internal interfaces are allowed to break; ABI compatibility is not required.
 
 **Semantic Conventions Stability -**
-Semantic Conventions may not be removed once they are stable. New conventions may be added to replace usage of older conventions, but the older conventions are never removed.
+Semantic Conventions may not be removed once they are stable. New conventions may be added to replace usage of older conventions, but the older conventions are never removed, they will only be marked as deprecated in favor of the newer ones.
 
 **Contrib Stability -**
 Plugins and instrumentation are kept up to date, and are released simultaneously (or shortly after) the latest release of the API. The goal is to ensure users can update to the latest version of opentelemetry, and not be held back by the plugins that they depend on.
