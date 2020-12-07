@@ -109,7 +109,7 @@ Most changes to OpenTelemetry result in a minor version bump.
 * Experimental packages become stable.
 
 **Patch version bump**  
-Patch versions make no changes which would require recompilation or potentially break a user. The following are examples of patch fixed. 
+Patch versions make no changes which would require recompilation or potentially break application code. The following are examples of patch fixes. 
 
 * Bugs
 * Security fixes
