@@ -10,7 +10,7 @@ Language implementations are expected to follow this proposal exactly, unless a 
 We do not want users to run untested combinations of core packages. Users must be able to say “I am using OpenTelemetry v1.2.0 for Python” and have a shared understanding as to what that means.
 
 **Ensure that end users stay up to date with the latest release.**  
-We want all users to  stay up to date with the latest version of OpenTelemetry. We do not want to create hard breaks in support, of any kind, which leave users stranded on older versions. It must always be possible to upgrade to the latest minor version of OpenTelemetry, without creating a compilation error.
+We want all users to  stay up to date with the latest version of OpenTelemetry. We do not want to create hard breaks in support, of any kind, which leave users stranded on older versions. It must always be possible to upgrade to the latest minor version of OpenTelemetry, without creating compilation or runtime errors.
 
 **Never create a dependency conflict between packages which rely on different versions of OpenTelemetry. Avoid breaking all stable public APIs.**  
 Backwards compatibility is a strict requirement. Instrumentation APIs cannot create a version conflict, ever. Otherwise, OpenTelemetry cannot be embedded in widely shared libraries, such as web frameworks. Theoretically, APIs can be deprecated and eventually removed, but this is a process measured in years.
