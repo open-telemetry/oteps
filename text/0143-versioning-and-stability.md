@@ -16,14 +16,21 @@ Backwards compatibility is a strict requirement. Instrumentation APIs cannot cre
 Provide maintainers a clear process for developing new, experimental APIs alongside stable APIs. DIfferent packages within the same release will have different levels of stability.
 
 ## Relevant architecure
+![drawing](img/0143_cross_cutting.png)
 
-OpenTelemetry is split into signals. Each signal provides a specialized form of observability.
+At the highest architectural level, OpenTelemetry is organized into signals. Each signal provides a specialized form of observability. For example, tracing, metrics, and baggage are three seperate signals. Signals share a common subsystem – context propagation – but they function independently from each other.
 
-Each signal consists of four types of packages:
+Each signal provides a mechanism for software to describe itself. A codebase, such as an API handler or a database client, takes a dependency on various signals in order to describe itself. OpenTelemetry instrumentation code is then mixed into the other code within that codebase. This makes OpenTelemetry a **cross-cutting concern** - a piece of software which must be mixed into many other pieces of software in order to provide value. Cross-cutting concerns, by their very nature, violate a core design principlie – seperation of concerns. As a result, OpenTelemetry requires extra care and attention to avoid creating issues for the codebases which depend upon it for instrumentaion.
 
-**API -** Public interfaces depended upon by 3rd-party libraries and application code instrumented with  OpenTelemetry. Every signal has its own, independent API package. These individual APIs are then bundled up into a Global API for convenience.
+OpenTelemetry is designed to seprate the portion of each signal which must be imported as cross-cutting concerns from the portions of OpenTelemetry which can be managed independently. OpenTelemetry is also designed to be a pluggable framework. To accomplish this these goals, each signal consists of four types of packages:
 
+<<<<<<< Updated upstream
 **SDK -** The implemention the API. The SDK is only referenced during setup and teardown of an application. SDKs include additional interfaces, such as plugin and lifecycle interfaces, which are not considered part of the API package as they are not imported by shared libraries and application code.
+=======
+**API -** API packages consist of the public interfaces used for instrumentation. Any portion of OpenTelemetry which 3rd-party libraries and application code depend upon. To manage different levels of stability, every signal has its own, independent API package. These individual APIs may also be bundled up into a shared global API, for convenience.
+
+**SDK -** The implemention of the API. The SDK is managed by the application owner. Note that the SDKs includes additional public interfaces which are not considered part of the API package, as they are not cross-cutting concerns. These public interfaces include constructors, configuration interfaces, and plugin interfaces.
+>>>>>>> Stashed changes
 
 **Semantic Conventions -** A schema defining the attributes which describe common concepts and operations which the signal observes. Note that unlike the API or SDK, stable conventions for all signals may be placed in the same package, as they are often useful across different signals.
 
