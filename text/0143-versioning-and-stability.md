@@ -90,7 +90,7 @@ For the purposes of versioning, all code within a release is treated as if it we
 
 Note that contrib packages are released separately from core packages. Contrib releases are not required to match version numbers with the core releases.
 
-In some languages, package managers react poorly to experimental packages having a verion higher than 0.X. In these cases, a language-specific workaround is required.
+In some languages, package managers react poorly to experimental packages having a version higher than 0.X. In these cases, a language-specific workaround is required.
 
 Note: different languages implementations do not need to have matching version numbers, nor do implementations have to match the version of the specification they implement. For example, it is fine to have Python at 1.2.8, Java at 1.3.2, and the spec at 1.1.1. Within python, all packages in the 1.2.8 release have the version number 1.2.8, even if they are experimental.
 
