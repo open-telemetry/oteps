@@ -58,7 +58,7 @@ Once a signal component is marked as stable, the following rules apply until the
 No backward-incompatible changes to the API are allowed unless the major version number is incremented. All existing API calls must continue to compile and function against all future minor versions of the same major version. ABI compatibility is offered in languages which require it.
 
 **SDK Stability -**
-Public portions of the SDK (constructors, configuration, und-user interfaces) must remain backwards compatible. Internal interfaces are allowed to break; ABI compatibility is not required.
+Public portions of the SDK (constructors, configuration, end-user interfaces) must remain backwards compatible. Internal interfaces are allowed to break; ABI compatibility is not required.
 
 **Semantic Conventions Stability -**
 Semantic Conventions may not be removed once they are stable. New conventions may be added to replace usage of older conventions, but the older conventions are never removed, they will only be marked as deprecated in favor of the newer ones.
