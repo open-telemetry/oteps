@@ -28,7 +28,7 @@ OpenTelemetry is designed to separate the portion of each signal which must be i
 
 **API -** API packages consist of the cross-cutting public interfaces used for instrumentation. Any portion of OpenTelemetry which 3rd-party libraries and application code depend upon. To manage different levels of stability, every signal has its own, independent API package. These individual APIs may also be bundled up into a shared global API, for convenience.
 
-**SDK -** The implemention of the API. The SDK is managed by the application owner. Note that the SDKs includes additional public interfaces which are not considered part of the API package, as they are not cross-cutting concerns. These public interfaces include constructors, configuration interfaces, and plugin interfaces.
+**SDK -** The implemention of the API. The SDK is managed by the application owner. Note that the SDKs includes additional public interfaces which are not considered part of the API package, as they are not cross-cutting concerns. These public interfaces include constructors, configuration interfaces, and plugin interfaces. Application owners may interact with the SDK; library developers and instrumentation plugins should never directly reverence SDK packages.
 
 **Semantic Conventions -** A schema defining the attributes which describe common concepts and operations which the signal observes. Note that unlike the API or SDK, stable conventions for all signals may be placed in the same package, as they are often useful across different signals.
 
