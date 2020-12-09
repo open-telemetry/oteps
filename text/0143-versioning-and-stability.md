@@ -78,7 +78,7 @@ Code is only marked as deprecated when the replacement becomes stable. Deprecate
 
 ### Removal
 
-Packages are end-of-life’d by being removed, along with a major version bump.
+Packages are end-of-life’d by being removed from the release. The release then makes a major version bump.
 
 We currently have no plans for deprecating signals or creating a major version past v1.0.
 
