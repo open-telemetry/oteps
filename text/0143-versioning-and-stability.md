@@ -17,7 +17,7 @@ Backwards compatibility is a strict requirement. Instrumentation APIs cannot cre
 **Allow for multiple levels of package stability within the same release.**  
 Provide maintainers a clear process for developing new, experimental APIs alongside stable APIs. DIfferent packages within the same release will have different levels of stability. This means that an implementation wishing to release stable tracing today must ensure that metrics are factored out in such a way that breaking changes to metrics API do not destabilize the trace API packages.
 
-## Relevant architecure
+## Relevant architecture
 ![drawing](img/0143_cross_cutting.png)
 
 At the highest architectural level, OpenTelemetry is organized into signals. Each signal provides a specialized form of observability. For example, tracing, metrics, and baggage are three seperate signals. Signals share a common subsystem – context propagation – but they function independently from each other.
