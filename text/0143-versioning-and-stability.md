@@ -46,7 +46,7 @@ OpenTelemetry is structured around signals. Each signal represents a coherent, s
 
 **Stable –** Stability guarantees apply, based on component tpye (API, SDK, Conventions, and Contrib). Long term dependencies may now be taken against these packages.
 
-**Deprecated –** this signal has been replaced but is still supported under LTS.
+**Deprecated –** this signal has been replaced but is still supported by the same stability gurantees.
 
 **Removed -** a deprecated signal is no longer supported, and is removed.
 
