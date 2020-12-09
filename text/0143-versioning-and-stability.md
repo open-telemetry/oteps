@@ -111,11 +111,11 @@ Most changes to OpenTelemetry result in a minor version bump.
 * Experimental packages become stable.
 
 **Patch version bump**
-Patch versions make no changes which would require recompilation or potentially break application code. The following are examples of patch fixes. 
+Patch versions make no changes which would require recompilation or potentially break application code. The following are examples of patch fixes.
 
-* Bugs
-* Security fixes
-* Documentation
+* Bug fixes which don't require minor version bump per rules above.
+* Security fixes.
+* Documentation.
 
 Currently, OpenTelemetry does have plans to backport bug and security fixes to prior minor versions. Security and bug fixes are only applied to the latest minor version. We are committed to making it feasible for end users to stay up to date with the latest version of OpenTelemetry.
 
