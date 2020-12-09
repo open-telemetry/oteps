@@ -99,7 +99,7 @@ Note: different language implementations do not need to have matching version nu
 **Major version bump**  
 Major version bumps only occur when there is a breaking change to a stable interface, or the removal of deprecated signals.
 
-OpenTelemetry values long term support. The expectation is that we will version to v1.0 once the first set of packages are declared stable. OpenTelemetry will then remain at v1.0 for years. THere are no plans for a v2.0 of OpenTelemetry at this time. Additional stable packages, such as metrics and logs, will be added as minor version bumps.
+OpenTelemetry values long term support. The expectation is that we will version to v1.0 once the first set of packages are declared stable. OpenTelemetry will then remain at v1.0 for years. There are no plans for a v2.0 of OpenTelemetry at this time. Additional stable packages, such as metrics and logs, will be added as minor version bumps.
 
 **Minor version bump**  
 Most changes to OpenTelemetry result in a minor version bump.
