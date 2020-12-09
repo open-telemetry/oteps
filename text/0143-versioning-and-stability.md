@@ -15,7 +15,7 @@ Backwards compatibility is a strict requirement. Instrumentation APIs cannot cre
 (Theoretically, APIs can be deprecated and eventually removed, but this is a process measured in years and we have no plans to do so.)
 
 **Allow for multiple levels of package stability within the same release.**  
-Provide maintainers a clear process for developing new, experimental APIs alongside stable APIs. DIfferent packages within the same release will have different levels of stability.
+Provide maintainers a clear process for developing new, experimental APIs alongside stable APIs. DIfferent packages within the same release will have different levels of stability. This means that an implementation wishing to release stable tracing today must ensure that metrics are factored out in such a way that breaking changes to metrics API do not destabilize the trace API packages.
 
 ## Relevant architecure
 ![drawing](img/0143_cross_cutting.png)
