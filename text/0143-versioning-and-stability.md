@@ -10,7 +10,9 @@ Language implementations are expected to follow this proposal exactly, unless a 
 We want all users to  stay up to date with the latest version of OpenTelemetry. We do not want to create hard breaks in support, of any kind, which leave users stranded on older versions. It must always be possible to upgrade to the latest minor version of OpenTelemetry, without creating compilation or runtime errors.
 
 **Never create a dependency conflict between packages which rely on different versions of OpenTelemetry. Avoid breaking all stable public APIs.**  
-Backwards compatibility is a strict requirement. Instrumentation APIs cannot create a version conflict, ever. Otherwise, OpenTelemetry cannot be embedded in widely shared libraries, such as web frameworks. Theoretically, APIs can be deprecated and eventually removed, but this is a process measured in years.
+Backwards compatibility is a strict requirement. Instrumentation APIs cannot create a version conflict, ever. Otherwise, OpenTelemetry cannot be embedded in widely shared libraries, such as web frameworks. Code written against older versions of the API must work with all newer versions of the API. Transitive dependencies of the API cannot create a version conflict. The OpenTelemetry API cannot depend on "foo" if there is any chance that any library or application may require a different, incompatible version of "foo." A library using OpenTelemetry should never become incompaible with other libraries due to a version conflict in one of OpenTelemetry's dependencies.
+
+(Theoretically, APIs can be deprecated and eventually removed, but this is a process measured in years and we have no plans to do so.)
 
 **Allow for multiple levels of package stability within the same release.**  
 Provide maintainers a clear process for developing new, experimental APIs alongside stable APIs. DIfferent packages within the same release will have different levels of stability.
