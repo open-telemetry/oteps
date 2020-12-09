@@ -42,7 +42,7 @@ OpenTelemetry is structured around signals. Each signal represents a coherent, s
 
 ### Lifecycle stages
 
-**Experimental –** Bugs, breaking changes and performance issues may occur.
+**Experimental –** Breaking changes and performance issues may occur. Components may not be feature-complete. The experiment may be discarded.
 
 **Stable –**  Stability guarantees apply, based on component tpye (API, SDK, Conventions, and Contrib). Long term dependencies may now be taken against these packages.
 
