@@ -6,15 +6,15 @@ Language implementations are expected to follow this proposal exactly, unless a 
 
 ## Design goals
 
-**Ensure that end users stay up to date with the latest release.**  
-We want all users to  stay up to date with the latest version of OpenTelemetry. We do not want to create hard breaks in support, of any kind, which leave users stranded on older versions. It must always be possible to upgrade to the latest minor version of OpenTelemetry, without creating compilation or runtime errors.
+**Ensure that end users stay up to date with the latest release.**
+We want all users to stay up to date with the latest version of OpenTelemetry. We do not want to create hard breaks in support, of any kind, which leave users stranded on older versions. It must always be possible to upgrade to the latest minor version of OpenTelemetry, without creating compilation or runtime errors.
 
-**Never create a dependency conflict between packages which rely on different versions of OpenTelemetry. Avoid breaking all stable public APIs.**  
+**Never create a dependency conflict between packages which rely on different versions of OpenTelemetry. Avoid breaking all stable public APIs.**
 Backwards compatibility is a strict requirement. Instrumentation APIs cannot create a version conflict, ever. Otherwise, OpenTelemetry cannot be embedded in widely shared libraries, such as web frameworks. Code written against older versions of the API must work with all newer versions of the API. Transitive dependencies of the API cannot create a version conflict. The OpenTelemetry API cannot depend on "foo" if there is any chance that any library or application may require a different, incompatible version of "foo." A library using OpenTelemetry should never become incompaible with other libraries due to a version conflict in one of OpenTelemetry's dependencies.
 
 (Theoretically, APIs can be deprecated and eventually removed, but this is a process measured in years and we have no plans to do so.)
 
-**Allow for multiple levels of package stability within the same release.**  
+**Allow for multiple levels of package stability within the same release.**
 Provide maintainers a clear process for developing new, experimental APIs alongside stable APIs. DIfferent packages within the same release will have different levels of stability. This means that an implementation wishing to release stable tracing today must ensure that metrics are factored out in such a way that breaking changes to metrics API do not destabilize the trace API packages.
 
 ## Relevant architecture
@@ -44,7 +44,7 @@ OpenTelemetry is structured around signals. Each signal represents a coherent, s
 
 **Experimental –** Breaking changes and performance issues may occur. Components may not be feature-complete. The experiment may be discarded.
 
-**Stable –**  Stability guarantees apply, based on component tpye (API, SDK, Conventions, and Contrib). Long term dependencies may now be taken against these packages.
+**Stable –** Stability guarantees apply, based on component tpye (API, SDK, Conventions, and Contrib). Long term dependencies may now be taken against these packages.
 
 **Deprecated –** this signal has been replaced but is still supported under LTS.
 
@@ -96,12 +96,12 @@ In some languages, package managers react poorly to experimental packages having
 
 Note: different language implementations do not need to have matching version numbers, nor do implementations have to match the version of the specification they implement. For example, it is fine to have opentelemetry-python at 1.2.8, opentelemetry-java at 1.3.2, and the spec at 1.1.1. Within opentelemetry-python, all packages in the 1.2.8 release have the version number 1.2.8, even if they are experimental.
 
-**Major version bump**  
+**Major version bump**
 Major version bumps only occur when there is a breaking change to a stable interface, or the removal of deprecated signals.
 
 OpenTelemetry values long term support. The expectation is that we will version to v1.0 once the first set of packages are declared stable. OpenTelemetry will then remain at v1.0 for years. There are no plans for a v2.0 of OpenTelemetry at this time. Additional stable packages, such as metrics and logs, will be added as minor version bumps.
 
-**Minor version bump**  
+**Minor version bump**
 Most changes to OpenTelemetry result in a minor version bump.
 
 * New backward-compatible functionality added to any component.
@@ -110,7 +110,7 @@ Most changes to OpenTelemetry result in a minor version bump.
 * New experimental packages are added.
 * Experimental packages become stable.
 
-**Patch version bump**  
+**Patch version bump**
 Patch versions make no changes which would require recompilation or potentially break application code. The following are examples of patch fixes. 
 
 * Bugs
@@ -127,4 +127,4 @@ In theory, we have assumed that tracing and metrics would be released together a
 
 However, in practice, it appears that tracing will be ready to GA before metrics. Tracing is ready today in .NET, and metrics are still months away from being finished.
 
-While we can continue to use the term OpenTelemetry GA to mean the release of both tracing and metrics, we should decouple this from our versioning and support terminology.  That allows us to announce stable tracing this month.
+While we can continue to use the term OpenTelemetry GA to mean the release of both tracing and metrics, we should decouple this from our versioning and support terminology. That allows us to announce stable tracing this month.
