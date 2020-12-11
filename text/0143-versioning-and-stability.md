@@ -61,7 +61,9 @@ Once a signal component is marked as stable, the following rules apply until the
 No backward-incompatible changes to the API are allowed unless the major version number is incremented. All existing API calls must continue to compile and function against all future minor versions of the same major version. ABI compatibility is offered in languages which require it.
 
 **SDK Stability -**
-Public portions of the SDK (constructors, configuration, end-user interfaces) must remain backwards compatible. Internal interfaces are allowed to break; ABI compatibility is not required.
+Public portions of the SDK must remain backwards compatible. There are two categories: **plugin interfaces** and **constructors**. Examples of plugin include the SpanProcessor, Exporter, and Sampler interfaces. Examples of constructors include configuration objects, environment variables, and SDK builders.
+
+ABI compatibility required for plugin interfaces, but not for constructors.
 
 **Semantic Conventions Stability -**
 Semantic Conventions may not be removed once they are stable. New conventions may be added to replace usage of older conventions, but the older conventions are never removed, they will only be marked as deprecated in favor of the newer ones.
@@ -133,11 +135,17 @@ Currently, OpenTelemetry does NOT have plans to backport bug and security fixes 
 
 ## Long Term Support
 ![long term support](img/0143_long_term.png)
+
+### API support
 Major versions of the API will be supported for three years after the release of the next major version.
 
 A version of the SDK which supports the last major version of the API will continue to be maintained during this period. Bug and security fixes will be backported. Additional feature development is not guaranteed.
 
 Contrib packages available when the API is versioned will continue to be maintained for the duration of this period. Bug and security fixes will be backported. Additional feature development is not guaranteed.
+
+### Plugin Support
+
+### Constructor Support
 
 ## OpenTelemetry GA
 
