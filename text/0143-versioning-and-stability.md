@@ -130,6 +130,14 @@ Patch versions make no changes which would require recompilation or potentially 
 
 Currently, OpenTelemetry does have plans to backport bug and security fixes to prior minor versions. Security and bug fixes are only applied to the latest minor version. We are committed to making it feasible for end users to stay up to date with the latest version of OpenTelemetry.
 
+## Long Term Support
+
+Major versions of the API will be supported for three years after the release of the next major version.
+
+A version of the SDK which supports the last major version of the API will continue to be maintained during this period. Bug and security fixes will be backported. Additional feature development is not guaranteed.
+
+Contrib packages available when the API is versioned will continue to be maintained for the duration of this period. Bug and security fixes will be backported. Additional feature development is not guaranteed.
+
 ## Open questions
 
 ### “OpenTelemetry GA”
