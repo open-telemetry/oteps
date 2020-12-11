@@ -2,7 +2,7 @@
 
 OpenTelemetry is a large project with strict compatibility requirements. This proposal defines the stability guarantees offered by OpenTelemetry, along with a versioning and lifecycle proposal which defines how we meet those requirements.
 
-Language implementations are expected to follow this proposal exactly, unless a langague or package manager convention interferes significantly. Implementations must take this cross-language proposal, and produce a language-specific proposal which details how these requirements will be met.
+Language implementations are expected to follow this proposal exactly, unless a language or package manager convention interferes significantly. Implementations must take this cross-language proposal, and produce a language-specific proposal which details how these requirements will be met.
 
 ## Design goals
 
@@ -10,7 +10,7 @@ Language implementations are expected to follow this proposal exactly, unless a 
 We want all users to stay up to date with the latest version of OpenTelemetry. We do not want to create hard breaks in support, of any kind, which leave users stranded on older versions. It must always be possible to upgrade to the latest minor version of OpenTelemetry, without creating compilation or runtime errors.
 
 **Never create a dependency conflict between packages which rely on different versions of OpenTelemetry. Avoid breaking all stable public APIs.**
-Backwards compatibility is a strict requirement. Instrumentation APIs cannot create a version conflict, ever. Otherwise, OpenTelemetry cannot be embedded in widely shared libraries, such as web frameworks. Code written against older versions of the API must work with all newer versions of the API. Transitive dependencies of the API cannot create a version conflict. The OpenTelemetry API cannot depend on "foo" if there is any chance that any library or application may require a different, incompatible version of "foo." A library using OpenTelemetry should never become incompaible with other libraries due to a version conflict in one of OpenTelemetry's dependencies.
+Backwards compatibility is a strict requirement. Instrumentation APIs cannot create a version conflict, ever. Otherwise, OpenTelemetry cannot be embedded in widely shared libraries, such as web frameworks. Code written against older versions of the API must work with all newer versions of the API. Transitive dependencies of the API cannot create a version conflict. The OpenTelemetry API cannot depend on "foo" if there is any chance that any library or application may require a different, incompatible version of "foo." A library using OpenTelemetry should never become incompatible with other libraries due to a version conflict in one of OpenTelemetry's dependencies.
 
 (Theoretically, APIs can be deprecated and eventually removed, but this is a process measured in years and we have no plans to do so.)
 
@@ -22,13 +22,13 @@ Provide maintainers a clear process for developing new, experimental APIs alongs
 
 At the highest architectural level, OpenTelemetry is organized into signals. Each signal provides a specialized form of observability. For example, tracing, metrics, and baggage are three separate signals. Signals share a common subsystem – context propagation – but they function independently from each other.
 
-Each signal provides a mechanism for software to describe itself. A codebase, such as an API handler or a database client, takes a dependency on various signals in order to describe itself. OpenTelemetry instrumentation code is then mixed into the other code within that codebase. This makes OpenTelemetry a **cross-cutting concern** - a piece of software which must be mixed into many other pieces of software in order to provide value. Cross-cutting concerns, by their very nature, violate a core design principlie – seperation of concerns. As a result, OpenTelemetry requires extra care and attention to avoid creating issues for the codebases which depend upon these cross-cutting APIs.
+Each signal provides a mechanism for software to describe itself. A codebase, such as an API handler or a database client, takes a dependency on various signals in order to describe itself. OpenTelemetry instrumentation code is then mixed into the other code within that codebase. This makes OpenTelemetry a **cross-cutting concern** - a piece of software which must be mixed into many other pieces of software in order to provide value. Cross-cutting concerns, by their very nature, violate a core design principle – separation of concerns. As a result, OpenTelemetry requires extra care and attention to avoid creating issues for the codebase which depend upon these cross-cutting APIs.
 
-OpenTelemetry is designed to separate the portion of each signal which must be imported as cross-cutting concerns from the portions of OpenTelemetry which can be managed independently. OpenTelemetry is also designed to be a pluggable framework. To accomplish this these goals, each signal consists of four types of packages:
+OpenTelemetry is designed to separate the portion of each signal which must be imported as cross-cutting concerns from the portions of OpenTelemetry which can be managed independently. OpenTelemetry is also designed to be an extensible framework. To accomplish this these goals, each signal consists of four types of packages:
 
 **API -** API packages consist of the cross-cutting public interfaces used for instrumentation. Any portion of OpenTelemetry which 3rd-party libraries and application code depend upon. To manage different levels of stability, every signal has its own, independent API package. These individual APIs may also be bundled up into a shared global API, for convenience.
 
-**SDK -** The implemention of the API. The SDK is managed by the application owner. Note that the SDKs includes additional public interfaces which are not considered part of the API package, as they are not cross-cutting concerns. These public interfaces include constructors, configuration interfaces, and plugin interfaces. Application owners may interact with the SDK; library developers and instrumentation plugins should never directly reverence SDK packages.
+**SDK -** The implementation of the API. The SDK is managed by the application owner. Note that the SDKs includes additional public interfaces which are not considered part of the API package, as they are not cross-cutting concerns. These public interfaces include constructors, configuration interfaces, and plugin interfaces. Application owners may interact with the SDK; library developers and instrumentation plugins should never directly reverence SDK packages.
 
 **Semantic Conventions -** A schema defining the attributes which describe common concepts and operations which the signal observes. Note that unlike the API or SDK, stable conventions for all signals may be placed in the same package, as they are often useful across different signals.
 
@@ -44,9 +44,9 @@ OpenTelemetry is structured around signals. Each signal represents a coherent, s
 
 **Experimental –** Breaking changes and performance issues may occur. Components may not be feature-complete. The experiment may be discarded.
 
-**Stable –** Stability guarantees apply, based on component tpye (API, SDK, Conventions, and Contrib). Long term dependencies may now be taken against these packages.
+**Stable –** Stability guarantees apply, based on component type (API, SDK, Conventions, and Contrib). Long term dependencies may now be taken against these packages.
 
-**Deprecated –** this signal has been replaced but is still retains the same stability gurantees.
+**Deprecated –** this signal has been replaced but is still retains the same stability guarantees.
 
 **Removed -** a deprecated signal is no longer supported, and is removed.
 
