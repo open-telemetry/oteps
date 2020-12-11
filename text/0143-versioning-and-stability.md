@@ -55,7 +55,7 @@ All signal components may become stable together, or one by one in the following
 
 When transitioning from experimental to stable to deprecated, packages **should not move or otherwise break how they are imported by users**. Do NOT use and "experimental" directory or package suffix.
 
-Optionally, package **version numbers** MAY include a suffix, such as -alpha, -beta, -rc, or -experimental, to differentiate stable and experimental packages. 
+Optionally, package **version numbers** MAY include a suffix, such as -alpha, -beta, -rc, or -experimental, to differentiate stable and experimental packages.
 
 ### Stability
 
