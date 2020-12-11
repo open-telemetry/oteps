@@ -12,9 +12,7 @@ Note: In this document, the term OpenTelemetry specifically refers to the OpenTe
 We want all users to stay up to date with the latest version of OpenTelemetry. We do not want to create hard breaks in support, of any kind, which leave users stranded on older versions. It must always be possible to upgrade to the latest minor version of OpenTelemetry, without creating compilation or runtime errors.
 
 **Never create a dependency conflict between packages which rely on different versions of OpenTelemetry. Avoid breaking all stable public APIs.**
-Backwards compatibility is a strict requirement. Instrumentation APIs cannot create a version conflict, ever. Otherwise, OpenTelemetry cannot be embedded in widely shared libraries, such as web frameworks. Code written against older versions of the API must work with all newer versions of the API. Transitive dependencies of the API cannot create a version conflict. The OpenTelemetry API cannot depend on "foo" if there is any chance that any library or application may require a different, incompatible version of "foo." A library using OpenTelemetry should never become incompatible with other libraries due to a version conflict in one of OpenTelemetry's dependencies.
-
-(Theoretically, APIs can be deprecated and eventually removed, but this is a process measured in years and we have no plans to do so.)
+Backwards compatibility is a strict requirement. Instrumentation APIs cannot create a version conflict, ever. Otherwise, OpenTelemetry cannot be embedded in widely shared libraries, such as web frameworks. Code written against older versions of the API must work with all newer versions of the API. Transitive dependencies of the API cannot create a version conflict. The OpenTelemetry API cannot depend on "foo" if there is any chance that any library or application may require a different, incompatible version of "foo." A library using OpenTelemetry should never become incompatible with other libraries due to a version conflict in one of OpenTelemetry's dependencies. Theoretically, APIs can be deprecated and eventually removed, but this is a process measured in years and we have no plans to do so.
 
 **Allow for multiple levels of package stability within the same release.**
 Provide maintainers a clear process for developing new, experimental APIs alongside stable APIs. DIfferent packages within the same release may have different levels of stability. This means that an implementation wishing to release stable tracing today must ensure that experimental metrics are factored out in such a way that breaking changes to metrics API do not destabilize the trace API packages.
@@ -68,11 +66,11 @@ Public portions of the SDK (constructors, configuration, end-user interfaces) mu
 Semantic Conventions may not be removed once they are stable. New conventions may be added to replace usage of older conventions, but the older conventions are never removed, they will only be marked as deprecated in favor of the newer ones.
 
 **Contrib Stability -**
-Plugins and instrumentation are kept up to date, and are released simultaneously (or shortly after) the latest release of the API. The goal is to ensure users can update to the latest version of opentelemetry, and not be held back by the plugins that they depend on.
+Plugins and instrumentation are kept up to date, and are released simultaneously (or shortly after) the latest release of the API. The goal is to ensure users can update to the latest version of OpenTelemetry, and not be held back by the plugins that they depend on.
 
 Public portions of contrib packages (constructors, configuration, interfaces) must remain backwards compatible. ABI compatibility not required.
 
-Telemetry produced by contrib instrumentation must also remain stable and backwards compatible, to avoid breaking alerts and dashboard.
+Telemetry produced by contrib instrumentation must also remain stable and backwards compatible, to avoid breaking alerts and dashboard. This means that existing data may not be mutated or removed without a major version bump. Additional data may be added. This applies to spans, metrics, resources, attributes, events, and any other data types that OpenTelemetry emits.
 
 ### Deprecation
 
@@ -86,17 +84,28 @@ Packages are end-of-life’d by being removed from the release. The release then
 
 We currently have no plans for deprecating signals or creating a major version past v1.0.
 
+For clarity, it is still possible to create "v2.0" of existing signals without actually moving to v2.0 and breaking support.
+
+For example, imagine we develop a new, better tracing API - let's call it AwesomeTrace. We will never mutate the current tracing API into AwesomeTrace. Instead, AwesomeTrace would be added as an entirely new signal which coexists and interoperates with the current tracing signal. This would make adding AwesomeTrace a minor version bump, *not* v2.0. v2.0 would mark the end of support for current tracing, not the addition of AwesomeTrace. And we don't want to ever end that support, if we can help it.
+
+This is not actually a theoretical example. OpenTelemetry already supports two tracing APIs: OpenTelemetry and OpenTracing. We invented a new tracing API, but continue to support the old one.
+
 ## Version Numbers
 
 OpenTelemetry follows [semver 2.0](https://semver.org/) conventions, with the following distinction.
 
-For the purposes of versioning, all code within a release is treated as if it were part of a single package. All packages within a release receive the same version number. By keeping version numbers in lockstep, end users can understand which packages belong to which release.
+OpenTelemetry clients have four components: API, SDK, Semantic Conventions, and Contrib.
 
-Note that contrib packages are released separately from core packages. Contrib releases are not required to match version numbers with the core releases.
+For the purposes of versioning, all code within a component is treated as if it were part of a single package, and versioned with the same version number, except for contrib.
 
-In some languages, package managers react poorly to experimental packages having a version higher than 0.X. In these cases, a language-specific workaround is required.
+* All API packages version together, across all signals. Signals do not have separate version numbers.
+* All SDK packages version together.
+* Semantic Conventions are a single package with a single version number.
+* Each contrib package has it's own version.
 
-Note: different language implementations do not need to have matching version numbers, nor do implementations have to match the version of the specification they implement. For example, it is fine to have opentelemetry-python at 1.2.8, opentelemetry-java at 1.3.2, and the spec at 1.1.1. Within opentelemetry-python, all packages in the 1.2.8 release have the version number 1.2.8, even if they are experimental.
+Exception: in some languages, package managers may react poorly to experimental packages having a version higher than 0.X. In these cases, a language-specific workaround is required. So far, Go is the only language which has identified this as an issue.
+
+Note: different language implementations do not need to have matching version numbers, nor do implementations have to match the version of the specification they implement. For example, it is fine to have opentelemetry-python-api at 1.2.8, opentelemetry-java-api at 1.3.2, and the spec at 1.1.1.
 
 **Major version bump**
 Major version bumps only occur when there is a breaking change to a stable interface, or the removal of deprecated signals.
@@ -123,7 +132,7 @@ Currently, OpenTelemetry does have plans to backport bug and security fixes to p
 
 ## Open questions
 
-### “OpenTelemetry GA” aka v1.0
+### “OpenTelemetry GA”
 
 In theory, we have assumed that tracing and metrics would be released together as a v1.0, which we refer to as “OpenTelemetry GA.”
 
