@@ -19,7 +19,7 @@ Provide maintainers a clear process for developing new, experimental APIs alongs
 
 ## Relevant architecture
 
-![drawing](img/0143_cross_cutting.png)
+![Cross cutting concerns](img/0143_cross_cutting.png)
 
 At the highest architectural level, OpenTelemetry is organized into signals. Each signal provides a specialized form of observability. For example, tracing, metrics, and baggage are three separate signals. Signals share a common subsystem – context propagation – but they function independently from each other.
 
@@ -39,7 +39,7 @@ OpenTelemetry is designed to separate the portion of each signal which must be i
 
 OpenTelemetry is structured around signals. Each signal represents a coherent, stand-alone set of functionality. Each signal follows a lifecycle.
 
-![drawing](img/0143_api_lifecycle.png)
+![API Lifecycle](img/0143_api_lifecycle.png)
 
 ### Lifecycle stages
 
@@ -132,7 +132,7 @@ Patch versions make no changes which would require recompilation or potentially 
 Currently, OpenTelemetry does NOT have plans to backport bug and security fixes to prior minor versions. Security and bug fixes are only applied to the latest minor version. We are committed to making it feasible for end users to stay up to date with the latest version of OpenTelemetry.
 
 ## Long Term Support
-
+![long term support](img/0143_long_term.png)
 Major versions of the API will be supported for three years after the release of the next major version.
 
 A version of the SDK which supports the last major version of the API will continue to be maintained during this period. Bug and security fixes will be backported. Additional feature development is not guaranteed.
