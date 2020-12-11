@@ -139,12 +139,6 @@ A version of the SDK which supports the last major version of the API will conti
 
 Contrib packages available when the API is versioned will continue to be maintained for the duration of this period. Bug and security fixes will be backported. Additional feature development is not guaranteed.
 
-## Open questions
+## OpenTelemetry GA
 
-### “OpenTelemetry GA”
-
-In theory, we have assumed that tracing and metrics would be released together as a v1.0, which we refer to as “OpenTelemetry GA.”
-
-However, in practice, it appears that tracing will be ready to GA before metrics. Tracing is ready today in .NET, and metrics are still months away from being finished.
-
-While we can continue to use the term OpenTelemetry GA to mean the release of both tracing and metrics, we should decouple this from our versioning and support terminology. That allows us to announce stable tracing this month.
+The term “OpenTelemetry GA” refers to the point at which a stable version of both tracing and metrics has been released in at least three languages.
