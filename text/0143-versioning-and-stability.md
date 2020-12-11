@@ -62,12 +62,12 @@ Optionally, package **version numbers** MAY include a suffix, such as -alpha, -b
 Once a signal component is marked as stable, the following rules apply until the end of that signal’s existence.
 
 **API Stability -**
-No backward-incompatible changes to the API are allowed unless the major version number is incremented. All existing API calls must continue to compile and function against all future minor versions of the same major version. ABI compatibility is offered in languages which require it.
+No backward-incompatible changes to the API are allowed unless the major version number is incremented. All existing API calls must continue to compile and function against all future minor versions of the same major version. ABI compatibility for the API may be offered on a language by language basis.
 
 **SDK Stability -**
 Public portions of the SDK must remain backwards compatible. There are two categories: **plugin interfaces** and **constructors**. Examples of plugin include the SpanProcessor, Exporter, and Sampler interfaces. Examples of constructors include configuration objects, environment variables, and SDK builders.
 
-ABI compatibility required for plugin interfaces, but not for constructors.
+ABI compatibility for SDK plugin interfaces and constructors may be offered on a language by language basis.
 
 **Semantic Conventions Stability -**
 Semantic Conventions may not be removed once they are stable. New conventions may be added to replace usage of older conventions, but the older conventions are never removed, they will only be marked as deprecated in favor of the newer ones.
@@ -75,7 +75,7 @@ Semantic Conventions may not be removed once they are stable. New conventions ma
 **Contrib Stability -**
 Plugins and instrumentation are kept up to date, and are released simultaneously (or shortly after) the latest release of the API. The goal is to ensure users can update to the latest version of OpenTelemetry, and not be held back by the plugins that they depend on.
 
-Public portions of contrib packages (constructors, configuration, interfaces) must remain backwards compatible. ABI compatibility not required.
+Public portions of contrib packages (constructors, configuration, interfaces) must remain backwards compatible. ABI compatibility for contrib packages may be offered on a language by language basis.
 
 Telemetry produced by contrib instrumentation must also remain stable and backwards compatible, to avoid breaking alerts and dashboard. This means that existing data may not be mutated or removed without a major version bump. Additional data may be added. This applies to spans, metrics, resources, attributes, events, and any other data types that OpenTelemetry emits.
 
