@@ -129,7 +129,7 @@ Patch versions make no changes which would require recompilation or potentially 
 * Security fixes.
 * Documentation.
 
-Currently, OpenTelemetry does have plans to backport bug and security fixes to prior minor versions. Security and bug fixes are only applied to the latest minor version. We are committed to making it feasible for end users to stay up to date with the latest version of OpenTelemetry.
+Currently, OpenTelemetry does NOT have plans to backport bug and security fixes to prior minor versions. Security and bug fixes are only applied to the latest minor version. We are committed to making it feasible for end users to stay up to date with the latest version of OpenTelemetry.
 
 ## Long Term Support
 
