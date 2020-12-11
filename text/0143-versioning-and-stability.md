@@ -106,7 +106,7 @@ OpenTelemetry clients have four components: API, SDK, Semantic Conventions, and 
 For the purposes of versioning, all code within a component is treated as if it were part of a single package, and versioned with the same version number, except for contrib.
 
 * API packages for all signals version together, across all signals. Signals do not have separate version numbers. There is one version number that applies to all signals that are included in the API release that is labeled with that particular version number.
-* All SDK packages version together.
+* SDK packages for all signals version together, across all signals. There is one version number that applies to all signals that are included in the SDK release that is labeled with that particular version number.
 * Semantic Conventions are a single package with a single version number.
 * Each contrib package has it's own version.
 
