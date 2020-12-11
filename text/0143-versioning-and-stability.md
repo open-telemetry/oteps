@@ -1,8 +1,10 @@
-# OpenTelemetry versioning and stability
+# Versioning and stability for OpenTelemetry clients
 
-OpenTelemetry is a large project with strict compatibility requirements. This proposal defines the stability guarantees offered by OpenTelemetry, along with a versioning and lifecycle proposal which defines how we meet those requirements.
+OpenTelemetry is a large project with strict compatibility requirements. This proposal defines the stability guarantees offered by the OpenTelemetry clients, along with a versioning and lifecycle proposal which defines how we meet those requirements.
 
 Language implementations are expected to follow this proposal exactly, unless a language or package manager convention interferes significantly. Implementations must take this cross-language proposal, and produce a language-specific proposal which details how these requirements will be met.
+
+Note: In this document, the term OpenTelemetry specifically refers to the OpenTelemetry clients. It does not refer to the specification or the Collector.
 
 ## Design goals
 
