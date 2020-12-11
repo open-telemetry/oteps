@@ -29,7 +29,7 @@ OpenTelemetry is designed to separate the portion of each signal which must be i
 
 **API -** API packages consist of the cross-cutting public interfaces used for instrumentation. Any portion of OpenTelemetry which 3rd-party libraries and application code depend upon. To manage different levels of stability, every signal has its own, independent API package. These individual APIs may also be bundled up into a shared global API, for convenience.
 
-**SDK -** The implementation of the API. The SDK is managed by the application owner. Note that the SDKs includes additional public interfaces which are not considered part of the API package, as they are not cross-cutting concerns. These public interfaces are defined as **constructors** and **plugin interfaces**. Application owners may interact with SDK constructors; plugin authors may interact with SDK plugin interfaces. Instrumentation authors must never directly reverence any SDK package of any kind, only the API.
+**SDK -** The implementation of the API. The SDK is managed by the application owner. Note that the SDKs includes additional public interfaces which are not considered part of the API package, as they are not cross-cutting concerns. These public interfaces are defined as **constructors** and **plugin interfaces**. Application owners may interact with SDK constructors; plugin authors may interact with SDK plugin interfaces. Instrumentation authors must never directly reference any SDK package of any kind, only the API.
 
 **Semantic Conventions -** A schema defining the attributes which describe common concepts and operations which the signal observes. Note that unlike the API or SDK, stable conventions for all signals may be placed in the same package, as they are often useful across different signals.
 
@@ -91,9 +91,9 @@ Packages are end-of-life’d by being removed from the release. The release then
 
 We currently have no plans for deprecating signals or creating a major version past v1.0.
 
-For clarity, it is still possible to create "v2.0" of existing signals without actually moving to v2.0 and breaking support.
+For clarity, it is still possible to create a new, backwards incompatible version of an existing type of  signal without actually moving to v2.0 and breaking support. Allow me to explain.
 
-For example, imagine we develop a new, better tracing API - let's call it AwesomeTrace. We will never mutate the current tracing API into AwesomeTrace. Instead, AwesomeTrace would be added as an entirely new signal which coexists and interoperates with the current tracing signal. This would make adding AwesomeTrace a minor version bump, *not* v2.0. v2.0 would mark the end of support for current tracing, not the addition of AwesomeTrace. And we don't want to ever end that support, if we can help it.
+Imagine we develop a new, better tracing API - let's call it AwesomeTrace. We will never mutate the current tracing API into AwesomeTrace. Instead, AwesomeTrace would be added as an entirely new signal which coexists and interoperates with the current tracing signal. This would make adding AwesomeTrace a minor version bump, *not* v2.0. v2.0 would mark the end of support for current tracing, not the addition of AwesomeTrace. And we don't want to ever end that support, if we can help it.
 
 This is not actually a theoretical example. OpenTelemetry already supports two tracing APIs: OpenTelemetry and OpenTracing. We invented a new tracing API, but continue to support the old one.
 
