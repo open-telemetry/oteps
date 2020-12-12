@@ -110,7 +110,7 @@ For the purposes of versioning, all code within a component is treated as if it 
 * Semantic Conventions are a single package with a single version number.
 * Each contrib package has it's own version.
 
-Exception: in some languages, package managers may react poorly to experimental packages having a version higher than 0.X. In these cases, a language-specific workaround is required. So far, Go is the only language which has identified this as an issue.
+Exception: in some languages, package managers may react poorly to experimental packages having a version higher than 0.X. In these cases, a language-specific workaround is required. Go, Ruby, and Javascript are examples.
 
 Note: different language implementations do not need to have matching version numbers, nor do implementations have to match the version of the specification they implement. For example, it is fine to have opentelemetry-python-api at 1.2.8, opentelemetry-java-api at 1.3.2, and the spec at 1.1.1.
 
