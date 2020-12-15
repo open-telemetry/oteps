@@ -65,7 +65,7 @@ Once a signal component is marked as stable, the following rules apply until the
 No backward-incompatible changes to the API are allowed unless the major version number is incremented. All existing API calls must continue to compile and function against all future minor versions of the same major version. ABI compatibility for the API may be offered on a language by language basis.
 
 **SDK Stability -**
-Public portions of the SDK must remain backwards compatible. There are two categories: **plugin interfaces** and **constructors**. Examples of plugin include the SpanProcessor, Exporter, and Sampler interfaces. Examples of constructors include configuration objects, environment variables, and SDK builders.
+Public portions of the SDK must remain backwards compatible. There are two categories: **plugin interfaces** and **constructors**. Examples of plugins include the SpanProcessor, Exporter, and Sampler interfaces. Examples of constructors include configuration objects, environment variables, and SDK builders.
 
 ABI compatibility for SDK plugin interfaces and constructors may be offered on a language by language basis.
 
@@ -77,7 +77,7 @@ Plugins and instrumentation are kept up to date, and are released simultaneously
 
 Public portions of contrib packages (constructors, configuration, interfaces) must remain backwards compatible. ABI compatibility for contrib packages may be offered on a language by language basis.
 
-Telemetry produced by contrib instrumentation must also remain stable and backwards compatible, to avoid breaking alerts and dashboard. This means that existing data may not be mutated or removed without a major version bump. Additional data may be added. This applies to spans, metrics, resources, attributes, events, and any other data types that OpenTelemetry emits.
+Telemetry produced by contrib instrumentation must also remain stable and backwards compatible, to avoid breaking alerts and dashboards. This means that existing data may not be mutated or removed without a major version bump. Additional data may be added. This applies to spans, metrics, resources, attributes, events, and any other data types that OpenTelemetry emits.
 
 ### Deprecation
 
@@ -103,7 +103,7 @@ OpenTelemetry follows [semver 2.0](https://semver.org/) conventions, with the fo
 
 OpenTelemetry clients have four components: API, SDK, Semantic Conventions, and Contrib.
 
-For the purposes of versioning, all code within a component is treated as if it were part of a single package, and versioned with the same version number, except for contrib.
+For the purposes of versioning, all code within a component is treated as if it were part of a single package, and versioned with the same version number, except for Contrib, which may be a collection of packages versioned separately.
 
 * All packages within the API share the same version number. API packages for all signals version together, across all signals. Signals do not have separate version numbers. There is one version number that applies to all signals that are included in the API release that is labeled with that particular version number.
 * All packages within the SDK share the same version number. SDK packages for all signals version together, across all signals. There is one version number that applies to all signals that are included in the SDK release that is labeled with that particular version number.
