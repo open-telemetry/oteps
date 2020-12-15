@@ -91,7 +91,7 @@ Packages are end-of-life’d by being removed from the release. The release then
 
 We currently have no plans for deprecating signals or creating a major version past v1.0.
 
-For clarity, it is still possible to create a new, backwards incompatible version of an existing type of  signal without actually moving to v2.0 and breaking support. Allow me to explain.
+For clarity, it is still possible to create a new, backwards incompatible version of an existing type of signal without actually moving to v2.0 and breaking support. Allow me to explain.
 
 Imagine we develop a new, better tracing API - let's call it AwesomeTrace. We will never mutate the current tracing API into AwesomeTrace. Instead, AwesomeTrace would be added as an entirely new signal which coexists and interoperates with the current tracing signal. This would make adding AwesomeTrace a minor version bump, *not* v2.0. v2.0 would mark the end of support for current tracing, not the addition of AwesomeTrace. And we don't want to ever end that support, if we can help it.
 
