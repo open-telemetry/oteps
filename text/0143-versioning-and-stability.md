@@ -33,7 +33,7 @@ OpenTelemetry is designed to separate the portion of each signal which must be i
 
 **Semantic Conventions -** A schema defining the attributes which describe common concepts and operations which the signal observes. Note that unlike the API or SDK, stable conventions for all signals may be placed in the same package, as they are often useful across different signals.
 
-**Contrib –** plugins and instrumentation that make use of the API or SDK interfaces, but are not part of the core packages necessary for running OTel. The term "contrib" specifically refers to the plugins and instrumentation maintained by the OpenTelemetry organization; it does not refer to third party plugins hosted elsewhere.
+**Contrib –** plugins and instrumentation that make use of the API or SDK interfaces, but are not part of the core packages necessary for running OTel. The term "contrib" specifically refers to the plugins and instrumentation maintained by the OpenTelemetry organization; it does not refer to third party plugins hosted elsewhere. **API Contrib** refers to packages which depend solely upon the API; **SDK Contrib** refers to packages which also depend upon the SDK.
 
 ## Signal lifecycle
 
@@ -51,7 +51,7 @@ OpenTelemetry is structured around signals. Each signal represents a coherent, s
 
 **Removed -** a deprecated signal is no longer supported, and is removed.
 
-All signal components may become stable together, or one by one in the following order: API, SDK, Semantic Conventions, Contrib.
+All signal components may become stable together, or one by one in the following order: API, Semantic Conventions, API Contrib, SDK, SDK Contrib.
 
 When transitioning from experimental to stable to deprecated, packages **should not move or otherwise break how they are imported by users**. Do NOT use and "experimental" directory or package suffix.
 
@@ -101,7 +101,7 @@ This is not actually a theoretical example. OpenTelemetry already supports two t
 
 OpenTelemetry follows [semver 2.0](https://semver.org/) conventions, with the following distinction.
 
-OpenTelemetry clients have four components: API, SDK, Semantic Conventions, and Contrib.
+OpenTelemetry clients have four components: API, Semantic Conventions, SDK, and Contrib.
 
 For the purposes of versioning, all code within a component is treated as if it were part of a single package, and versioned with the same version number, except for Contrib, which may be a collection of packages versioned separately.
 
