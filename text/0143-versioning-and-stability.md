@@ -105,14 +105,15 @@ OpenTelemetry clients have four components: API, SDK, Semantic Conventions, and 
 
 For the purposes of versioning, all code within a component is treated as if it were part of a single package, and versioned with the same version number, except for contrib.
 
-* API packages for all signals version together, across all signals. Signals do not have separate version numbers. There is one version number that applies to all signals that are included in the API release that is labeled with that particular version number.
-* SDK packages for all signals version together, across all signals. There is one version number that applies to all signals that are included in the SDK release that is labeled with that particular version number.
-* Semantic Conventions are a single package with a single version number.
+* All packages within the API share the same version number. API packages for all signals version together, across all signals. Signals do not have separate version numbers. There is one version number that applies to all signals that are included in the API release that is labeled with that particular version number.
+* All packages within the SDK share the same version number. SDK packages for all signals version together, across all signals. There is one version number that applies to all signals that are included in the SDK release that is labeled with that particular version number.
+* All Semantic Conventions are contained within a single package with a single version number.
 * Each contrib package has it's own version.
+* The API, SDK, Semantic Conventions, and contrib components are not required to share a version number. For example, the latest version of `opentelemetry-python-api` may be at v1.2.3, while the latest version of `opentelemetry-python-sdk` may be at v2.3.1.
+* Different language implementations do not need to have matching version numbers. For example, it is fine to have `opentelemetry-python-api` at v1.2.8 when `opentelemetry-java-api` is at v1.3.2.
+* Language implementations do not need to match the version of the specification they implement. For example, it is fine for v1.8.2 of `opentelemetry-python-api` to implement v1.1.1 of the specification.
 
-Exception: in some languages, package managers may react poorly to experimental packages having a version higher than 0.X. In these cases, a language-specific workaround is required. Go, Ruby, and Javascript are examples.
-
-Note: different language implementations do not need to have matching version numbers, nor do implementations have to match the version of the specification they implement. For example, it is fine to have opentelemetry-python-api at 1.2.8, opentelemetry-java-api at 1.3.2, and the spec at 1.1.1.
+**Exception:** in some languages, package managers may react poorly to experimental packages having a version higher than 0.X. In these cases, a language-specific workaround is required. Go, Ruby, and Javascript are examples.
 
 **Major version bump**
 Major version bumps only occur when there is a breaking change to a stable interface, or the removal of deprecated signals.
