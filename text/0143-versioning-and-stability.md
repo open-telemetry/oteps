@@ -33,7 +33,7 @@ OpenTelemetry is designed to separate the portion of each signal which must be i
 
 **Semantic Conventions -** A schema defining the attributes which describe common concepts and operations which the signal observes. Note that unlike the API or SDK, stable conventions for all signals may be placed in the same package, as they are often useful across different signals.
 
-**Contrib –** plugins and instrumentation that make use of the API or SDK interfaces, but are not part of the core packages necessary for running OTel. The term "contrib" specifically refers to the plugins and instrumentation maintained by the OpenTelemetry organization; it does not refer to third party plugins hosted elsewhere. **API Contrib** refers to packages which depend solely upon the API; **SDK Contrib** refers to packages which also depend upon the SDK.
+**Contrib –** plugins and instrumentation that make use of the API or SDK interfaces, but are not part of the core packages necessary for running OTel. The term "contrib" specifically refers to the plugins and instrumentation maintained by the OpenTelemetry organization outside of the SDK; it does not refer to third party plugins hosted elsewhere, or core plugins which are required to be part of the SDK release, such as OTLP Exporters and TraceContext Propagators. **API Contrib** refers to packages which depend solely upon the API; **SDK Contrib** refers to packages which also depend upon the SDK.
 
 ## Signal lifecycle
 
