@@ -41,7 +41,7 @@ stages:
    precisely during this stage, here are some examples:
 
     * Why do we want to introduce brand new metrics APIs versus taking a well
-      established API (e.g. Promethues and Micrometer), what makes OpenTelemetry
+      established API (e.g. Prometheus and Micrometer), what makes OpenTelemetry
       metrics API different (e.g. Baggage)?
     * Do we need to consider OpenCensus Stats API shim, or this is out of scope?
 
