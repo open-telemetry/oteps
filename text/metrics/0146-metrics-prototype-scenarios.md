@@ -19,7 +19,8 @@ before end of 2021:
 
 * By end of 2021, we want to have a stable release of metrics API/SDK
   specification, with multiple language SIGs providing RC (release candidate) or
-  GA (general available) clients.
+  [stable](https://github.com/open-telemetry/opentelemetry-specification/blob/9047c91412d3d4b7f28b0f7346d8c5034b509849/specification/versioning-and-stability.md#stable)
+  clients.
 
 In this document, we will focus on two scenarios that we use for prototyping
 metrics API/SDK. The goal is to have two scenarios which clearly capture the
