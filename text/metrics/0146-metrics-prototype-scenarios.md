@@ -73,8 +73,8 @@ the store is running).
 
 The store has plenty supply of potato and tomato, with the following price:
 
-* Potato: $1.0 / ea
-* Tomato: $3.0 / ea
+* Potato: $1.00 / ea
+* Tomato: $3.00 / ea
 
 Each customer has a unique name (e.g. customerA, customerB), a customer could
 come to the store multiple times. Here goes the Python snippet:
@@ -93,9 +93,9 @@ When the store is closed, we will report the following metrics:
 
 | Store    | Customer  | Number of Orders | Amount (USD) |
 | -------- | --------- | ---------------- | ------------ |
-| Portland | customerA | 2                | 14.0         |
-| Portland | customerB | 1                | 30.0         |
-| Portland | customerC | 1                | 2.0          |
+| Portland | customerA | 2                | 14.00        |
+| Portland | customerB | 1                | 30.00        |
+| Portland | customerC | 1                | 2.00         |
 
 ### Items sold
 
