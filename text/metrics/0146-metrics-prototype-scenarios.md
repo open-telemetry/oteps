@@ -200,7 +200,7 @@ The application owner (developer Y) would only want the following metrics:
   * HTTP Host
   * HTTP Status Code
   * Client Type
-  * 90%, 95%, 99% and 99.9% latency
+  * 90%, 95%, 99% and 99.9% server duration
 * HTTP request counters, reported every 5 seconds:
   * Total number of received HTTP requests
   * Total number of finished HTTP requests
