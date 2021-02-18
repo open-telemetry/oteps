@@ -212,4 +212,9 @@ The application owner (developer Y) would only want the following metrics:
   | MachineA  | 1234       | otel.org  | 630               | 601               | 29                  |
   | MachineA  | 5678       | otel.org  | 1005              | 1001              | 4                   |
 * Exception samples (exemplar) - in case HTTP 5xx happened, developer Y would
-  want to see a sample request with all the dimensions (IP, Port, etc.)
+  want to see a sample request with trace id, span id and all the dimensions
+  (IP, Port, etc.)
+
+  | Trace ID                         | Span ID          | Host Name | Process ID | Client Type | HTTP Method | HTTP Host | HTTP Status Code | HTTP Flavor | Peer IP   | Peer Port | Host IP   | Host Port | Exception            |
+  | -------------------------------- | ---------------- | --------- | ---------- | ----------- | ----------- | --------- | ---------------- | ----------- | --------- | --------- | --------- | --------- | -------------------- |
+  | 8389584945550f40820b96ce1ceb9299 | 745239d26e408342 | MachineA  | 1234       | iOS         | PUT         | otel.org  | 500              | 1.1         | 127.0.0.1 | 51329     | 127.0.0.1 | 80        | SocketException(...) |
