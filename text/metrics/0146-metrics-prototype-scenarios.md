@@ -21,7 +21,7 @@ before end of 2021:
   specification, with multiple language SIGs providing RC (release candidate) or
   GA (general available) clients.
 
-In this document, we will focus on two scenarios that we use for prototypeing
+In this document, we will focus on two scenarios that we use for prototyping
 metrics API/SDK. The goal is to have two scenarios which clearly capture the
 major requirements, so we can work with language client SIGs to prototype,
 gather the learnings, determine the scopes and stages. Later the scenarios can
