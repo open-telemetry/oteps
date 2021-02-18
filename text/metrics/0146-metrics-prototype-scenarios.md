@@ -115,7 +115,7 @@ library (HTTP lib owned by X) and the server app (owned by Y):
 
 * How developer X could instrument the library code in a vendor agnostic way
   * Performance is critical for X
-  * X doesn't know which metrics and which dimension will Y pick
+  * X doesn't know which metrics and which dimensions will Y pick
   * X doesn't know the aggregation time window, nor the final destination of the
     metrics
 * How developer Y could configure the SDK and exporter
