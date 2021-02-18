@@ -4,16 +4,16 @@ With the stable release of the tracing specification, the OpenTelemetry
 community is willing to spend more energy on metrics API/SDK. The goal is to get
 the metrics API/SDK specification to
 [`Experimental`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#experimental)
-state by end of 6/2021, and make it
+state by end of 5/2021, and make it
 [`Stable`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#stable)
 before end of 2021:
 
-* By end of 6/2021, we should have a good confidence that we can recommend
+* By end of 5/2021, we should have a good confidence that we can recommend
   language client owners to work on metrics preview release. This means starting
   from 7/1/2021 the specification should not have major surprise or big changes
   which would thrust the language client maintainers.
 
-* By end of 10/2021, we should mark the metrics API/SDK specification as
+* By end of 9/2021, we should mark the metrics API/SDK specification as
   [`Feature-freeze`](https://github.com/open-telemetry/opentelemetry-specification/blob/1afab39e5658f807315abf2f3256809293bfd421/specification/document-status.md#feature-freeze),
   and focusing on bug fixing or editorial changes.
 
