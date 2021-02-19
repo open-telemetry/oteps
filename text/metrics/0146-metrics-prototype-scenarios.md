@@ -8,16 +8,18 @@ state by end of 5/2021, and make it
 [`Stable`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#stable)
 before end of 2021:
 
-* By end of 5/2021, we should have a good confidence that we can recommend
+* By end of 5/31/2021, we should have a good confidence that we can recommend
   language client owners to work on metrics preview release. This means starting
-  from 7/1/2021 the specification should not have major surprise or big changes
-  which would thrust the language client maintainers.
+  from 6/1/2021 the specification should not have major surprises or big changes
+  which would thrust the language client maintainers, and we start to recommend
+  client maintainers to implement it. We might introduce additional features but
+  there should be a high bar.
 
-* By end of 9/2021, we should mark the metrics API/SDK specification as
+* By end of 9/30/2021, we should mark the metrics API/SDK specification as
   [`Feature-freeze`](https://github.com/open-telemetry/opentelemetry-specification/blob/1afab39e5658f807315abf2f3256809293bfd421/specification/document-status.md#feature-freeze),
   and focusing on bug fixing or editorial changes.
 
-* By end of 2021, we want to have a stable release of metrics API/SDK
+* By end of 11/30/2021, we want to have a stable release of metrics API/SDK
   specification, with multiple language SIGs providing RC (release candidate) or
   [stable](https://github.com/open-telemetry/opentelemetry-specification/blob/9047c91412d3d4b7f28b0f7346d8c5034b509849/specification/versioning-and-stability.md#stable)
   clients.
@@ -89,7 +91,7 @@ store.process_order("customerA", {"tomato": 1})
 
 When the store is closed, we will report the following metrics:
 
-### Order info
+**Order info:**
 
 | Store    | Customer  | Number of Orders | Amount (USD) |
 | -------- | --------- | ---------------- | ------------ |
@@ -97,7 +99,7 @@ When the store is closed, we will report the following metrics:
 | Portland | customerB | 1                | 30.00        |
 | Portland | customerC | 1                | 2.00         |
 
-### Items sold
+**Items sold:**
 
 | Store    | Customer  | Item   | Count |
 | -------- | --------- | ------ | ----- |
@@ -126,47 +128,45 @@ library (HTTP lib owned by X) and the server app (owned by Y):
 
 ### Library Requirements
 
-The library developer (developer X) will expose the following metrics out of
-box:
+The library developer (developer X) will provide two libraries:
 
-### Pull Metrics
+* Server climate control library - a library which monitors and controls the
+  temperature and humidity of the server.
+* HTTP server library - a library which provides HTTP service.
 
-These are pull metrics - the value is always available, and is only reported and
-collected based on the ask from consumer(s). If there is no ask from the
-consumer, the value will not be reported at all (e.g. there is no API call to
-fetch the room temperature unless someone is asking for the room temperature).
+Both libraries will provide out-of-box metrics, the metrics have two categories:
 
-#### Process CPU Usage
+* Push metrics - the value is reported (via the API) when it is available, and
+  collected (via the SDK) based on the ask from consumer(s). If there is no ask
+  from the consumer, the API will be no-op and the data will be dropped on the
+  floor.
+* Pull metrics - the value is always available, and is only reported and
+  collected based on the ask from consumer(s). If there is no ask from the
+  consumer, the value will not be reported at all (e.g. there is no API call to
+  fetch the temperature unless someone is asking for the temperature).
+
+#### Server Climate Control Library
 
 Note: the **Host Name** should leverage [`OpenTelemetry
 Resource`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/sdk.md),
 so it should be covered by the metrics SDK rather than API, and strictly
 speaking it is not considered as a "dimension" from the SDK perspective.
 
-| Host Name | Process ID | CPU% [0.0, 100.0] |
-| --------- | ---------- | ----------------- |
-| MachineA  | 1234       | 15.3              |
-
-#### System CPU Usage
-
-| Host Name | CPU% [0, 100] |
-| --------- | ------------- |
-| MachineA  | 30            |
-
-#### Server Room Temperature
+**Server temperature:**
 
 | Host Name | Temperature (F) |
 | --------- | --------------- |
 | MachineA  | 65.3            |
 
-### Push Metrics
+**Server humidity:**
 
-These are the push metrics - the value is reported (via the API) when it is
-available, and collected (via the SDK) based on the ask from consumer(s). If
-there is no ask from the consumer, the API will be no-op and the data will be
-dropped on the floor.
+| Host Name | Humidity (%) |
+| --------- | ------------ |
+| MachineA  | 21           |
 
-#### Received HTTP Requests
+#### HTTP Server Library
+
+**Received HTTP requests:**
 
 Note: the **Client Type** is passed in via the [`OpenTelemetry
 Baggage`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/baggage/api.md),
@@ -179,7 +179,7 @@ strictly speaking it is not part of the metrics API, but it is considered as a
 | MachineA  | 1234       | Android     | POST        | otel.org  | 1.1         | 127.0.0.1 | 51328     | 127.0.0.1 | 80        |
 | MachineA  | 1234       | iOS         | PUT         | otel.org  | 1.1         | 127.0.0.1 | 51329     | 127.0.0.1 | 80        |
 
-#### HTTP Server Duration
+**HTTP server request duration:**
 
 Note: the server duration is only available for **finished HTTP requests**.
 
@@ -192,9 +192,9 @@ Note: the server duration is only available for **finished HTTP requests**.
 
 The application owner (developer Y) would only want the following metrics:
 
-* [System CPU Usage](#system-cpu-usage) reported every 5 seconds
+* Server temperature - reported every 5 seconds
 * [Server Room Temperature](#server-room-temperature) reported every minute
-* [HTTP Server Duration](#http-server-duration), reported every 5 seconds, with
+* [HTTP Server Request Duration](#http-server-duration), reported every 5 seconds, with
   a subset of the dimensions:
   * Host Name
   * HTTP Method
