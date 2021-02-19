@@ -36,7 +36,7 @@ Here are the languages we've agreed to use during the prototyping:
 * Java
 * Python
 
-Instead of boiling the ocean, we will need to divide the work into multiple
+In order to not undertake such an enormous task at once, we will need to have an incremental approach and divide the work into multiple
 stages:
 
 1. Do the end-to-end prototype to get the overall understanding of the problem
