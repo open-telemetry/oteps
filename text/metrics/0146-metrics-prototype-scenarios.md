@@ -59,7 +59,7 @@ stages:
 
 4. Replicate stage 2 to cover the complete set of APIs.
 
-5. Replicate stage 4 to cover the complete set of SDKs.
+5. Replicate stage 3 to cover the complete set of SDKs.
 
 ## Scenario 1: Grocery
 
