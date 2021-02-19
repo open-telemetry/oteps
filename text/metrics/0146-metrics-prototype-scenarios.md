@@ -193,9 +193,9 @@ Note: the server duration is only available for **finished HTTP requests**.
 The application owner (developer Y) would only want the following metrics:
 
 * Server temperature - reported every 5 seconds
-* [Server Room Temperature](#server-room-temperature) reported every minute
-* [HTTP Server Request Duration](#http-server-duration), reported every 5 seconds, with
-  a subset of the dimensions:
+* Server humidity - reported every minute
+* HTTP server request duration, reported every 5 seconds, with a subset of the
+  dimensions:
   * Host Name
   * HTTP Method
   * HTTP Host
