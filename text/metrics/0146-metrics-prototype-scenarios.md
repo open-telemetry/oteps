@@ -16,7 +16,7 @@ before end of 2021:
 
 * By end of 9/30/2021, we should mark the metrics API/SDK specification as
   [`Feature-freeze`](https://github.com/open-telemetry/opentelemetry-specification/blob/1afab39e5658f807315abf2f3256809293bfd421/specification/document-status.md#feature-freeze),
-  and focusing on bug fixing or editorial changes.
+  and focus on bug fixing or editorial changes.
 
 * By end of 11/30/2021, we want to have a stable release of metrics API/SDK
   specification, with multiple language SIGs providing RC (release candidate) or
