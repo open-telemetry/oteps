@@ -10,10 +10,9 @@ before end of 2021:
 
 * By end of 5/31/2021, we should have a good confidence that we can recommend
   language client owners to work on metrics preview release. This means starting
-  from 6/1/2021 the specification should not have major surprises or big changes
-  which would thrust the language client maintainers, and we start to recommend
-  client maintainers to implement it. We might introduce additional features but
-  there should be a high bar.
+  from 6/1/2021 the specification should not have major surprises or big
+  changes. We will then start recommending client maintainers to implement it.
+  We might introduce additional features but there should be a high bar.
 
 * By end of 9/30/2021, we should mark the metrics API/SDK specification as
   [`Feature-freeze`](https://github.com/open-telemetry/opentelemetry-specification/blob/1afab39e5658f807315abf2f3256809293bfd421/specification/document-status.md#feature-freeze),
