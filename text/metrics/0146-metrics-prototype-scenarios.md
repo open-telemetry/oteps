@@ -113,7 +113,7 @@ The _HTTP Server_ scenario covers how a library developer X could use metrics
 API to instrument a library, and how the application developer Y can configure
 the library to use OpenTelemetry SDK in a final application. X and Y are working
 for different companies and they don't communicate. The demo has two parts - the
-library (HTTP lib owned by X) and the server app (owned by Y):
+library (HTTP lib and ClimateControl lib owned by X) and the server app (owned by Y):
 
 * How developer X could instrument the library code in a vendor agnostic way
   * Performance is critical for X
