@@ -88,7 +88,7 @@ store.process_order("customerC", {"potato": 2})
 store.process_order("customerA", {"tomato": 1})
 ```
 
-When the store is closed, we will report the following metrics:
+We will need the following metrics every minute:
 
 **Order info:**
 
