@@ -120,6 +120,9 @@ library (HTTP lib owned by X) and the server app (owned by Y):
   * X doesn't know which metrics and which dimensions will Y pick
   * X doesn't know the aggregation time window, nor the final destination of the
     metrics
+  * X would like to provide some default recommendation (e.g. default
+    dimensions, aggregation time window, histogram buckets) so consumers of his
+    library can have a better onboarding experience.
 * How developer Y could configure the SDK and exporter
   * How should Y hook up the metrics SDK with the library
   * How should Y configure the time window(s) and destination(s)
