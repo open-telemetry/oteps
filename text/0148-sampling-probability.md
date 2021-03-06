@@ -57,7 +57,7 @@ several reasons:
 - Larger `sample_count` indicates greater representivity
 - Smaller `sample_count` indicates smaller representivity
 - The sum of `sample_count` in a sample equals the expected 
-  value of the population size.
+  population size.
   
 The zero `sample_count` value supports collecting values that were
 rejected from a sample to use as exemplars, which supports encoding of
