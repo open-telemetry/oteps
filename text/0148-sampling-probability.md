@@ -203,3 +203,8 @@ field's purpose.
 
 "Subset sum estimation" is the name given to this topic within the
 study of computer science and engineering.
+
+## Recommended reading
+
+Readers interested in more background on sampling consider 
+[Sampling, 3rd Edition, by Steven K. Thompson](https://www.wiley.com/en-us/Sampling%2C+3rd+Edition-p-9780470402313).
