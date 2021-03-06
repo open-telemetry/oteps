@@ -168,13 +168,12 @@ perfect representivity, indicating that no sampling was performed.
 
 ### Applicability for tracing
 
-When using sampling to limit span collection, there are usually
-approaches under consideration.  The sampling approach covered here
-dictates how to select root spans in a probabilistic way.  When
-recording root spans, the `sample_count` field should be set as
-described above.  The adjusted `sample_count` of the root span applies
-the trace, meaning the trace should be considered as representative of
-`sample_count` traces in the population.
+The sampling approach covered here dictates how to select root spans
+in a probabilistic way.  When recording root spans, the `sample_count`
+field should be set as described above.  The adjusted `sample_count`
+of the root span applies the trace, meaning the trace should be
+considered as representative of `sample_count` traces in the
+population.
 
 When non-root spans are recorded because they are part of an ongoing
 trace, they are considered non-probabilistic exemplars.  Non-root
