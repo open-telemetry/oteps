@@ -179,3 +179,6 @@ it is often called "sample rate".
 Another name for the proposed `sample_count` field is
 `inverse_probability`, which is considered less suggestive of the
 field's purpose.
+
+"Subset sum estimation" is the name given to this topic within the
+study of computer science and engineering.
