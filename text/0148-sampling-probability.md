@@ -143,11 +143,11 @@ correct.
 ### Bias, variance, and sampling errors
 
 There is a fundamental tradeoff between bias and variance in
- statistics.  The use of unbiased sampling leads unavoidably to
+statistics.  The use of unbiased sampling leads unavoidably to
 increased variance.
 
 Estimating sampling errors and variance is out of scope for this
-proposal.  We are satisfied the unbiased property, which guarantees
+proposal.  We are satisfied with the unbiased property, which guarantees
 that the expected value of totals derived from the sample equals the
 true population totals.  This means that statistics derived from
 sample data in this way are always accurate, and that more data will
