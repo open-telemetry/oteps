@@ -158,7 +158,7 @@ always improve precision.
 Rate-limiting stages in a telemetry collection pipeline interfere with
 sampling schemes when they operate in non-probabilistic ways.  When
 implementing a non-probabilistic form of rate-limiting, processors
-MUST set the `sample_count` to 0.
+MUST set the `sample_count` to zero.
 
 ### No Sampler configured
 
