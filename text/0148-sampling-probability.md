@@ -83,9 +83,7 @@ telemetry data from a population:
 
 Applied correctly, this approach provides accurate estimates for
 population counts and distributions with support for ad-hoc queries
-over the data.  This technique has been applied to control the cost of
-collecting high-cardinality telemetry data in both Tracing and
-Metrics.
+over the data.
 
 ### Changes proposed
 
@@ -167,6 +165,29 @@ MUST set the `sample_count` to a NaN value.
 When no Sampler is in place and all telemetry events pass to the
 output, the `sample_count` field SHOULD be set to 1 to indicate
 perfect representivity, indicating that no sampling was performed.
+
+### Applicability for tracing
+
+When using sampling to limit span collection, there are usually
+approaches under consideration.  The sampling approach covered here
+dictates how to select root spans in a probabilistic way.  When
+recording root spans, the `sample_count` field should be set as
+described above.  The adjusted `sample_count` of the root span applies
+the trace, meaning the trace should be considered as representative of
+`sample_count` traces in the population.
+
+When non-root spans are recorded because they are part of an ongoing
+trace, they are considered non-probabilistic exemplars.  Non-root
+spans should have `sample_count` set to zero.
+
+### Applicability for metrics
+
+The use of sampling in metrics makes it possible to record
+high-cardinality metric events efficiently, as demonstrated by Statsd.
+
+By pushing sampled metric events from client to server, instead of
+timeseries, it is possible to defer decisions about cardinality
+reduction to the server, without unreasonable cost to the client.
 
 ## Prior art and alternatives
 
