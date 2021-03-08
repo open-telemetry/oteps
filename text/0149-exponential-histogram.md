@@ -124,6 +124,7 @@ scale   #subBuckets base         relative error
 ```
 
 Let's further consider the following use cases of histograms to compare base2 and base10:
+
 1. Displaying histogram charts. With a typical base around 1.04 (around 2% relative error), there will be hundreds of buckets for a typical range over 100x. This many points can produce a reasonably smooth curve, regardless of the raw data being base2 or base10.
 2. Calculating percentiles or quantiles. This is often used in SLO monitoring. Example SLO: "99% percentile of response time need to be no more than 100ms". To minimize relative error, percentile calculation usually returns log scale mid point of a bucket. So returned percentile values won't be on 10, 100, 1000, etc., even if the histogram is base10.
 3. Answering question like "what percentage of values fall below 100". When the threshold is on 10, 100, 1000, etc, base10 histograms do give exact answer. But even in the decimal world, power of 10 numbers is a small population. For thresholds like 200, 500, etc. base10 histograms have no advantage over base2. If an exact answer is required in these cases, a user should create explicit buckets at these bounds, instead of using exponential buckets.
