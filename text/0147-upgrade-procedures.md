@@ -6,7 +6,7 @@ Managing widely distributed software at scale requires careful design related to
 
 To facilitate smooth upgrading and long term support, OpenTelemetry clients are factored into several components. We use the following terms in the rest of this document.
 
-Packages is a generic term for units of code which reference each other via some form of dependency management. Note that every programming language has a different approach to dependency management, and may use a different term, such as module or library, to represent this concept. 
+Packages is a generic term for units of code which reference each other via some form of dependency management. Note that every programming language has a different approach to dependency management, and may use a different term, such as module or library, to represent this concept.
 
 The API refers to the set of software packages that contain all of the interfaces and constants needed to write OpenTelemetry instrumentation. An implementation of the API may be registered during application startup. If no other implementation is registered, the API registers a no-op implementation by default.
 
@@ -45,7 +45,7 @@ This approach to upgrading solves two critical design requirements, while minimi
 
 Indefinite support for existing Instrumentation is a critical feature of OpenTelemetry. Millions of lines of code are expected to be written against the API. This includes shared libraries which ship with integrated OpenTelemetry instrumentation. These libraries must be able to compose together into applications without OpenTelemetry creating a dependency conflict. While some Instrumentation will be updated to the latest version of the API, such as that provided by the OpenTelemetry project, other Instrumentation will never be updated.
 
-Consuming new Instrumentation may require users to upgrade to the latest version of the SDK. If it was not easy to perform this upgrade, the OpenTelemetry project would be forced to support older versions of the SDK, as well as older versions of the entire Instrumentation ecosystem. 
+Consuming new Instrumentation may require users to upgrade to the latest version of the SDK. If it was not easy to perform this upgrade, the OpenTelemetry project would be forced to support older versions of the SDK, as well as older versions of the entire Instrumentation ecosystem.
 
 This would be an enormous maintenance effort at best. But, as the OpenTelemetry project only controls a portion of that ecosystem, it is also unfeasible. OpenTelemetry cannot require that libraries with native instrumentation support multiple versions of the API. Ensuring that application owners and operators can upgrade to the latest version of the SDK resolves this issue.
 
