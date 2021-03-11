@@ -3,6 +3,9 @@
 Initial draft specification to create prototypes of OpenTelemetry Logging
 Library SDKs.
 
+Status: for prototyping. Don't merge to main OpenTelemetry specification until
+prototyping is done.
+
 ## Motivation
 
 This is a draft proposal for OpenTelemetry Logging Library SDK specification.
@@ -134,7 +137,7 @@ and populate TraceId, SpanId, TraceFlags fields of the LogRecord before emitting
 it. The log library may also have an alternate way to inject the context into
 log records (e.g. MDC in Log4j).
 
-![Appender](images/otep0000/appender.png)
+![Appender](images/otep0150/appender.png)
 
 This same approach can be also used for example for:
 
@@ -156,7 +159,7 @@ supports is via intermediary files. When configuring the LogEmitterProvider,
 OTLP File exporter should be used to write logs to a file or stdout in either
 OTLP JSON or OTLP Protobuf binary format.
 
-![Logging to File](images/otep0000/otlp-file.png)
+![Logging to File](images/otep0150/otlp-file.png)
 
 ### Logging Directly to OTLP Network Destination
 
@@ -205,7 +208,7 @@ LogExporter implementations can be plugged into OpenTelemetry Logging Library to
 
 OTLP/gRPC, OTLP/HTTP, OTLP/File log exporters are provided with OpenTelemetry Logging Library out of the box.
 
-![Custom Exporter](images/otep0000/custom-exporter.png)
+![Custom Exporter](images/otep0150/custom-exporter.png)
 
 ### Custom LogProcessor
 
@@ -215,7 +218,7 @@ Library to have custom processing of logs before they are exported.
 Simple and Batch processors should be provided by the OpenTelemetry Logging
 Library out of the box.
 
-![Custom Processor](images/otep0000/custom-processor.png)
+![Custom Processor](images/otep0150/custom-processor.png)
 
 ## Prior art and alternatives
 
