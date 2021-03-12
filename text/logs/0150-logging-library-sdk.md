@@ -119,10 +119,11 @@ Methods:
 
 ## Usage
 
-How to Create Log4J Style Appender An Appender implementation can be used to
-allow emitting log records via OpenTelemetry Logging Library exporters. This
-approach is typically used for applications which are fine with changing the log
-transport and is
+### How to Create Log4J Style Appender
+
+An Appender implementation can be used to allow emitting log records via
+OpenTelemetry Logging Library exporters. This approach is typically used for
+applications which are fine with changing the log transport and is
 [one of the supported](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/overview.md#direct-to-collector)
 log collection approaches.
 
