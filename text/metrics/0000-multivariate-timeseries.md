@@ -5,9 +5,9 @@ Generalization of the metrics data model (currently univariate) to support multi
 ## Motivation
 
 A Multivariate time series has more than one time-dependent variable. Each variable depends not only on its past values but also has 
-some dependency on other variables. A 3 axis accelerometer reporting 3 metrics simultaneously, a meteorological weather station reporting 
-temperature, cloud cover, dew point, humidity and wind speed, an http transaction chararterized by many related metrics sharing the same 
-labels, ... are all common examples of multivariate time-series. 
+some dependency on other variables. A 3 axis accelerometer reporting 3 metrics simultaneously; a meteorological weather station reporting 
+temperature, cloud cover, dew point, humidity and wind speed; an http transaction chararterized by many related metrics sharing the same 
+labels are all common examples of multivariate time-series. 
 
 With the current version of the OpenTelemetry protocol we force users to transform these multivariate time-series into a collection of 
 univariate time-series instead of keeping end-to-end an efficient multivariate representation.
@@ -17,7 +17,7 @@ A transport layer should not constrain such a radical change of representation a
 complex to do at scale. To rebuild a multivariate from a set of univariate time-series you need to join potentially dozens of time-series 
 together. On a distributed backend environment, it's involve a lot of data movement, complex logic to deal with missing data points, some 
 form of join computation, ... 
-* This transformation enforced by the protocol has also strong implications on the queries. Each query on a multivariate time-series will
+* This transformation enforced by the protocol has also strong implications on the data usage. Each query on a multivariate time-series will
 involve a set of joins. The discoverability of data becomes more complex as every univariate time-series are independent. A data catalog
 will not magically discover these relationships.
 * This transformation involves a lot of redundant informations. All the labels must be redeclared for each univariate time-series. It's
@@ -29,6 +29,11 @@ http transaction where dns-latency + tcp-con-latency + ssl-handshake-latency + c
 than 2s. Defining this expression on a multivariate time-series and implementing it with a processor multivariate compatible will be 
 straightforward and stateless. With a collection of univariate time-series it's a different story at every level and it's not going in
 the direction of a stateless architecture.
+
+By generalizing the existing metric data model we can get rid of all these limitations without adding complexity to the protocol.
+For backends that do not support multivariate time-series, a simple transformation to univariate time-series will be simple
+to implement in their server-side OpenTelemetry endpoints.
+
 
 ## Explanation
 
