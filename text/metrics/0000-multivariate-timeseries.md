@@ -30,10 +30,11 @@ than 2s. Defining this expression on a multivariate time-series and implementing
 straightforward and stateless. With a collection of univariate time-series it's a different story at every level and it's not going in
 the direction of a stateless architecture.
 
-By generalizing the existing metric data model we can get rid of all these limitations without adding complexity to the protocol.
-For backends that do not support multivariate time-series, a simple transformation to univariate time-series will be simple
-to implement in their server-side OpenTelemetry endpoints.
-
+By generalizing the existing metric data model we can get rid of all these limitations without adding much complexity to the protocol.
+We simplify the implementation of multivariate forecasting and anomaly detection mechanisms. We minimize the risk of seing again a new
+telemetry protocol with the only purpose to add a better support for multivariate time-series. Finally, for backends that do not support 
+multivariate time-series, a simple transformation to univariate time-series will be simple to implement in their server-side 
+OpenTelemetry endpoints.
 
 ## Explanation
 
