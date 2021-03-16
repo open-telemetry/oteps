@@ -13,7 +13,7 @@ The purpose of his proposal is to lay out the initial understanding of
 what Logging Library SDKs will look like.
 
 We would like to create prototypes based on this proposal in a few languages.
-The learnings from prototypes will then allow us to refine this proposal and
+The learnings from the prototypes will then allow us to refine this proposal and
 eventually make the proposed approach part of the OpenTelemetry specification.
 
 The approach proposed in this OTEP is not intended to be merged into the
@@ -23,7 +23,7 @@ guidelines on how to create the prototypes.
 
 The specification defines how the OpenTelemetry Logging Library SDK exposes its
 functionality to authors of extensions to language-specific 3rd party logging
-libraries and to end users that want to produce logs in
+libraries and to end users that want to produce logs in the
 [OpenTelemetry manner](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/overview.md).
 
 The specification defines SDK elements that to some extent mirror the
