@@ -236,7 +236,12 @@ user-facing logging API more complicated.
 
 ## Open questions
 
-- Decide if want to pass the Baggage to LogEmmiter's Emit method.
+- Decide if want to pass the Baggage to LogEmmiter's Emit method. For example
+  Spring Cloud Sleuth currently enables appending Sleuth Baggage to log records
+  via the slf4j MDC. See
+  [Spring documentation](https://docs.spring.io/spring-cloud-sleuth/docs/current/reference/htmlsingle/#features-baggage)
+  of this feature.  
+
 - Make final decision on
   [adding LoggerName](https://github.com/open-telemetry/opentelemetry-specification/pull/1236).
   
