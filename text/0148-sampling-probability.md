@@ -15,11 +15,11 @@ sampling designs.
 
 Consider a hypothetical telemetry signal in which an API event
 produces a unit of data that has one or more associated numbers.
-Using the OpenTelemetry Metrics data model terminolgy, we have two
+Using the OpenTelemetry Metrics data model terminology, we have two
 scenarios in which sampling is common.
 
-1. Counter events: Each event represents a count, signifying the change in a sum
-2. Histogram events: Each event represents an individual variable, signifying new membership in a distribution
+1. _Counter events:_ Each event represents a count, signifying the change in a sum.
+2. _Histogram events:_ Each event represents an individual variable, signifying new membership in a distribution.
 
 A Tracing Span event qualifies as both of these cases simultaneously.  It is
 a Counter event (of 1 span) and a Histogram event (of 1 latency measurement).
@@ -28,7 +28,7 @@ In Metrics, [Statsd Counter and Histogram events meet this definition](https://g
 
 In both cases, the goal in sampling is to estimate something about the
 population of all events, using only the events that were chosen in
-the sample.  Sampling theory defines various kinds of "estimator",
+the sample.  Sampling theory defines various kinds of "estimators"—
 algorithms for calculating statistics about the population using just
 the sample data.  For the broad class of telemetry sampling
 application considered here, we need an estimator for the population
@@ -52,10 +52,10 @@ sampled event to the inverse of the event's inclusion probability.
 Conveying the inverse of the inclusion probability is convenient for
 several reasons:
 
-- A `sample_count` of 1 indicates no sampling was performed
-- A `sample_count` of 0 indicates an unrepresentative event
-- Larger `sample_count` indicates greater representivity
-- Smaller `sample_count` indicates smaller representivity
+- A `sample_count` of 1 indicates no sampling was performed.
+- A `sample_count` of 0 indicates an unrepresentative event.
+- A larger `sample_count` indicates greater representativity.
+- A smaller `sample_count` indicates smaller representativity.
 - The sum of `sample_count` in a sample equals the expected 
   population size.
   
@@ -70,7 +70,7 @@ of the frame.
 
 Sampling is a powerful approach when used with event data that has
 been annotated with key-value attributes.  It is possible to select
-arbitrary subsets of the sampled data and use it to estimate the count
+arbitrary subsets of the sampled data and use each to estimate the count
 of arbitrary subsets of the population.
 
 To summarize, there is a widely applicable procedure for sampling
@@ -90,13 +90,13 @@ over the data.
 This proposal leads to three change requests that will be carried out in
 separate places in the OpenTelemetry specification.  These are:
 
-1. For tracing, the SpanData message type should be extended with 
+1. _For tracing:_ The SpanData message type should be extended with 
    the `sample_count` field defined above.
-2. For metrics aggregate data: Count information aggregated from
+2. _For metrics aggregate data:_ Count information aggregated from
    sample metric events will have floating point values in general.
    Histogram and Counter data must be able to support floating point
    values.
-3. For metrics raw events: Exemplars should be extended with the 
+3. _For metrics raw events:_ Exemplars should be extended with the 
    `sample_count` field defined above.
 
 ### Example: Dapper tracing
@@ -107,7 +107,9 @@ collection at scale.
 
 ### Example: Statsd metrics
 
-A Statsd counter event appears as a line of text, for example a metric
+A Statsd counter event appears as a line of text.
+
+For example, a metric
 named `name` is incremented by `increment` using a counter event (`c`)
 with the given `sample_rate`.
 
@@ -131,7 +133,7 @@ interpret this event as probabilistically equal to a count of `100/0.1
 
 The statistical foundation of this technique is known as the
 Horvitz-Thompson estimator ("A Generalization of Sampling Without
-Replacement From a Finite Universe", JSTOR 1952).  The
+Replacement From a Finite Universe," JSTOR 1952).  The
 Horvitz-Thompson technique works with _unequal probability sampling_
 designs, enabling a variety of techniques for controlling properties
 of the sample.  
@@ -164,14 +166,14 @@ MUST set the `sample_count` to zero.
 
 When no Sampler is in place and all telemetry events pass to the
 output, the `sample_count` field SHOULD be set to 1 to indicate
-perfect representivity, indicating that no sampling was performed.
+perfect representativity, indicating that no sampling was performed and that all events were preserved.
 
 ### Applicability for tracing
 
-The sampling approach covered here dictates how to select root spans
+The approach covered here dictates how to annotate root spans sampled
 in a probabilistic way.  When recording root spans, the `sample_count`
 field should be set as described above.  The adjusted `sample_count`
-of the root span applies the trace, meaning the trace should be
+of the root span applies to the entire trace, meaning the trace should be
 considered as representative of `sample_count` traces in the
 population.
 
@@ -194,7 +196,7 @@ The name `sample_count` is proposed because the resulting value is
 effectively a count and may be used in place of the exact count.
 
 Statsd conveys inclusion probability instead of `sample_count`, where
-it is often called "sample rate".
+it is often called "sample rate."
 
 Another name for the proposed `sample_count` field is
 `inverse_probability`, which is considered less suggestive of the
