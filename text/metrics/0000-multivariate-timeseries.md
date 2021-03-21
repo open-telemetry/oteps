@@ -36,18 +36,27 @@ telemetry protocol with the only purpose to add a better support for multivariat
 multivariate time-series, a simple transformation to univariate time-series will be simple to implement in their server-side 
 OpenTelemetry endpoints.
 
-## Explanation
+## Explanation [WIP]
 
-[TBD]
+Current model:
+* For a specific resource, an instrumentation library provide a way to report multiple independent metrics.
+* For each metric, a name, a description, a unit and a list of data points with their corresponding labels is provided. 
+
+Proposed model:
+* For a specific resource, an instrumentation library provide a way to report a collection of multivariate time-series.
+* For each multivariate time-series:
+  * Collection of metadata describing each metric.
+  * Columnar representation of timestamps, labels, metric values and examplars (all aligned together).
+
+The benefits of this representation are:
+* Labels and timestamps shared between multiple metrics are no longer duplicated.
+* Processing operations on multivariate time-series are greatly simplified by keeping labels, metric values and examplars aligned with their corresponding timestamps. It becomes straighforward:
+  * to store multivariate timeseries without complex pre-processing in the backend.
+  * to apply filters and transformations on multiple related metrics in the OpenTelemetry processor layer.   
+
 Explain the proposed change as though it was already implemented and you were explaining it to a user. Depending on which layer the proposal addresses, the "user" may vary, or there may even be multiple.
 
 We encourage you to use examples, diagrams, or whatever else makes the most sense!
-
-Inefficiency, redundant definition of labels
-Stateless architecture
-Multivariate to univariate is easy but univariate to multivariate is hard
-Units
-Description
 
 ## Internal details
 
