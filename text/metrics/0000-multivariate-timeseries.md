@@ -54,6 +54,8 @@ The benefits of this representation are:
   * to store multivariate timeseries without complex pre-processing in the backend.
   * to apply filters and transformations on multiple related metrics in the OpenTelemetry processor layer.   
 
+![Multivariate time-series model](multivariate-time-series-model.png)
+
 Explain the proposed change as though it was already implemented and you were explaining it to a user. Depending on which layer the proposal addresses, the "user" may vary, or there may even be multiple.
 
 We encourage you to use examples, diagrams, or whatever else makes the most sense!
