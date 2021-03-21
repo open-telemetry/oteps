@@ -92,3 +92,48 @@ What are some questions that you know aren't resolved yet by the OTEP? These may
 
 [TBD]
 What are some future changes that this proposal would enable?
+
+## Examples of multivariate time-series
+Some classical examples of multivariate time-series in the context of infrastructure monitoring.
+
+* VM
+  * Labels
+    * hostname
+    * instance-type 
+    * ...
+  * Metrics 
+    * cpu-usage
+    * memory-usage
+    * disk-usage
+    * disk-operation-per-sec
+    * network-in
+    * network-out
+    * ... 
+* Processus / POD
+  * Labels
+    * pod-id
+    * pod-labels
+    * ...
+  * Metrics 
+    * cpu-usage
+    * memory-usage
+    * disk-usage
+    * disk-operation-per-sec
+    * network-in
+    * network-out
+    * ... 
+* Http transaction
+  * Labels
+    * url
+    * method
+    * status
+    * ...
+  * Metrics
+    * dns-latency
+    * tls-handshake-latency
+    * tcp-connection-latency
+    * server-processing-latency
+    * content-transfer-latency
+    * request-size
+    * response-size
+    * ... 
