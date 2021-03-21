@@ -74,24 +74,28 @@ While you do not need to prescribe a particular implementation - indeed, OTEPs s
 ## Trade-offs and mitigations
 
 [TBD]
-What are some (known!) drawbacks? What are some ways that they might be mitigated?
+*What are some (known!) drawbacks? What are some ways that they might be mitigated?*
 
-Note that mitigations do not need to be complete *solutions*, and that they do not need to be accomplished directly through your proposal. A suggested mitigation may even warrant its own OTEP!
+*Note that mitigations do not need to be complete *solutions*, and that they do not need to be accomplished directly through your proposal. A suggested mitigation may even warrant its own OTEP!*
 
 ## Prior art and alternatives
 
-[TBD]
-What are some prior and/or alternative approaches? For instance, is there a corresponding feature in OpenTracing or OpenCensus? What are some ideas that you have rejected?
+Existing protocols supporting multivariate time-series
+* AWS CloudWatch EMF
+* InfluxDB line protocol 
+* The Apache Arrow Flight 
+* TimescaleDB (PostgreSQL extension)
+* Splunk Event Collector 
 
 ## Open questions
 
-[TBD]
-What are some questions that you know aren't resolved yet by the OTEP? These may be questions that could be answered through further discussion, implementation experiments, or anything else that the future may bring.
+* Explore the impact of this proposal on the OpenTelementry processor layer.
+
+*What are some questions that you know aren't resolved yet by the OTEP? These may be questions that could be answered through further discussion, implementation experiments, or anything else that the future may bring.*
 
 ## Future possibilities
 
-[TBD]
-What are some future changes that this proposal would enable?
+* Column encoding to improve compression ratio (delta encoding, dictionary, ...)
 
 ## Examples of multivariate time-series
 Some classical examples of multivariate time-series in the context of infrastructure monitoring.
