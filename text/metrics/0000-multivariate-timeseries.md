@@ -6,7 +6,7 @@ Generalization of the metrics data model (currently univariate) to support multi
 
 A Multivariate time series has more than one time-dependent variable. Each variable depends not only on its past values but also has 
 some dependency on other variables. A 3 axis accelerometer reporting 3 metrics simultaneously; a meteorological weather station reporting 
-temperature, cloud cover, dew point, humidity and wind speed; an http transaction chararterized by many related metrics sharing the same 
+temperature, cloud cover, dew point, humidity and wind speed; an http transaction chararterized by many interrelated metrics sharing the same 
 labels are all common examples of multivariate time-series. 
 
 With the current version of the OpenTelemetry protocol we force users to transform these multivariate time-series into a collection of 
@@ -52,7 +52,7 @@ The benefits of this representation are:
 * Labels and timestamps shared between multiple metrics are no longer duplicated.
 * Processing operations on multivariate time-series are greatly simplified by keeping labels, metric values and examplars aligned with their corresponding timestamps. It becomes straighforward:
   * to store multivariate timeseries without complex pre-processing in the backend.
-  * to apply filters and transformations on multiple related metrics in the OpenTelemetry processor layer.   
+  * to apply filters and transformations on multiple interrelated metrics in the OpenTelemetry processor layer.   
 
 ![Multivariate time-series model](multivariate-time-series-model.png)
 
