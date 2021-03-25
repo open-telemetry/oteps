@@ -124,9 +124,9 @@ We will need the following metrics every minute:
 **Customers in store:**
 
 | Store    | Account type | Count |
-| -------- | ---------  | ----- |
-| Portland | restaurant | 1     |
-| Portland | home cook  | 1     |
+| -------- | -----------  | ----- |
+| Portland | restaurant   | 1     |
+| Portland | home cook    | 1     |
 
 ## Scenario 2: HTTP Server
 
@@ -190,15 +190,15 @@ speaking it is not considered as a "dimension" from the SDK perspective.
 **Server CPU usage:**
 
 | Host Name | CPU usage (seconds) |
-| --------- | ------------ |
-| MachineA  | 100.1        |
+| --------- | ------------------- |
+| MachineA  | 100.1               |
 
 **Server Memory usage:**
 
 | Host Name | Memory usage (bytes) |
-| --------- | ------------ |
-| MachineA  | 1000000000   |
-| MachineA  | 2000000000   |
+| --------- | -------------------- |
+| MachineA  | 1000000000           |
+| MachineA  | 2000000000           |
 
 #### HTTP Server Library
 
@@ -226,10 +226,10 @@ Note: the server duration is only available for **finished HTTP requests**.
 
 **HTTP active sessions:**
 
-| HTTP Host | HTTP flavor | Active sessions |
-| --------- | ------------- | ----- |
-| otel.org  | 1.1 | 17         |
-| otel.org  | 2.0 | 20         |
+| HTTP Host | HTTP flavor   | Active sessions |
+| --------- | ------------- | --------------- |
+| otel.org  | 1.1           | 17              |
+| otel.org  | 2.0           | 20              |
 
 ### Application Requirements
 
