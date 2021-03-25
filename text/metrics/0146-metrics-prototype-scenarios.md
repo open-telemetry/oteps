@@ -231,7 +231,6 @@ Note: the server duration is only available for **finished HTTP requests**.
 | otel.org  | 1.1 | 17         |
 | otel.org  | 2.0 | 20         |
 
-
 ### Application Requirements
 
 The application owner (developer Y) would only want the following metrics:
