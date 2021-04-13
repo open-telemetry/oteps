@@ -78,7 +78,7 @@ We recognize the following needs:
   and we want to make our telemetry match the newly introduced conventions.
 
 - In an observability system there may simultaneously exist telemetry sources
-  that produce data that confirms to different telemetry schemas because
+  that produce data that conforms to different telemetry schemas because
   different sources evolve at a different pace and are implemented and
   controlled by different entities.
 
@@ -259,8 +259,8 @@ specification.
 
 ## Schema File
 
-Schema File is a YAML file that describes the schema of a particular version. It
-defines the transformations that can be used to convert the telemetry data
+A Schema File is a YAML file that describes the schema of a particular version.
+It defines the transformations that can be used to convert the telemetry data
 represented in any other older compatible version of the same schema family to
 this schema version.
 
@@ -739,32 +739,66 @@ message takes the precedence.
 
 ## API and SDK Changes
 
-OpenTelemetry API and SDK require the following changes:
+### Instrumentation Library Schema URL
 
-- Add method SetSchema(schema_url) to Tracer. After this call all telemetry
-  emitted using this Tracer will reference the specified schema_url in the
-  InstrumentationLibrarySpans message.
+OpenTelemetry API need to be changed to allow getting a Tracer/Meter/LogEmitter
+that is associated with a Schema URL (in addition to the association with
+instrumentation library name and version that is already supported).
 
-- Add method SetSchema(schema_url) to Meter. After this call all telemetry
-  emitted using this Meter will reference the specified schema_url in the
-  InstrumentationLibraryMetrics message.
+This change needs to be done such that we do not break APIs that are already
+declared stable (particularly the Get Tracer API).
 
-- Add method SetSchema(schema_url) to LogEmitter. After this call all telemetry
-  emitted using this LogEmitter will reference the specified schema_url in the
-  InstrumentationLibraryLogs message.
+Depending on the language the following approaches are possible:
 
-By default the SDK must set the default schema_url to point to the current
-OpenTelemetry Schema URL, where "current" means the version of OpenTelemetry
-Schema against which the SDK is coded.
+- Add a third, optional parameter `schema_url` to Get Tracer/Get Meter/Get
+  LogEmitter methods of corresponding providers. This may not be the right
+  approach for languages where ABI stability is part of our guarantees since it
+  likely breaks the ABI.
 
-The SDK interface MUST provide a way for the user to set a different schema_url.
-The default or user-defined schema_url will be set in all ResourceSpans,
-ResourceMetrics and ResourceLogs messages.
+- Add a method overload that allows passing 3 parameters (instrumentation
+  library name, version and schema url) to obtain a Tracer/Meter/LogEmitter.
+  This is likely the preferred approach for languages where method overloads are
+  possible.
+
+- If neither of the above 2 approaches are possible to do in non-breaking manner
+  then the API may introduce a `SetSchema(schema_url)` method to
+  Tracer/Meter/LogEmitter instance. The method MUST be called only once and
+  MUST be called before any telemetry is emitted using the instance.
+
+There may be other ways to modify the API to allow the association with a Schema
+URL. Language maintainers SHOULD choose the idiomatic way for their language.
+
+The effect of associating a Schema URL with a Tracer/Meter/LogEmitter SHOULD be
+that the schema_url in the InstrumentationLibrarySpans,
+InstrumentationLibraryMetrics, InstrumentationLibraryLogs message for all the
+telemetry emitted with the associated Tracer/Meter/LogEmitter is populated with
+the provided Schema URL value.
+
+If the Tracer/Meter/LogEmitter is not associated with a Schema URL then the
+exporter MUST leave the schema_url field in OTLP messages unset, in which case
+the application-wide Schema URL [will apply](#application-wide-schema-url).
 
 Open Question: how to make it easy for instrumentation libraries to refer to a
-particular OpenTelemetry schema version in the SetSchema call and also make sure
-any semantic convention helpers the library uses (e.g. constants that define the
-semantic conventions) match exactly that same schema version?
+particular OpenTelemetry schema version and also make sure any semantic
+convention helpers the library uses (e.g. constants that define the semantic
+conventions) match exactly that same schema version? One possible solution is to
+introduce helper packages per schema version that the libraries can use, e.g.
+constants that define the semantic conventions and the corresponding schema
+version url. This should be likely the topic for a follow-up OTEP.
+
+### Application-wide Schema URL
+
+The SDK interface MUST provide a way for the user to optionally set an
+application-wide Schema URL. This Schema URL will be populated in all
+ResourceSpans, ResourceMetrics and ResourceLogs messages emitted by OTLP
+Exporter.
+
+If the user does not set an application-wide Schema URL then the current Schema
+URL MUST be populated by OTLP Exporter in the messages, where "current" means
+the version of OpenTelemetry Schema against which the SDK is coded.
+
+Note that if there is a schema url associated with instrumentation library it
+overrides the application-wide schema url as described [here](#otlp-changes).
 
 ## OpenTelemetry Schema 1.0.0
 
@@ -856,12 +890,12 @@ consumers do).
   semantic conventions change.
 
 - How to make it easy for instrumentation libraries to refer to a particular
-  OpenTelemetry schema version in the SetSchema call and also make sure any
-  semantic conventions the libraries use are for that particular schema version?
-  One possible solution is to introduce helper packages per schema version that
-  the libraries can use, e.g. constants that define the semantic conventions and
-  the corresponding schema version url. This should be likely the topic for a
-  follow-up OTEP.
+  OpenTelemetry schema version and also make sure any semantic convention
+  helpers the library uses (e.g. constants that define the semantic conventions)
+  match exactly that same schema version? One possible solution is to introduce
+  helper packages per schema version that the libraries can use, e.g. constants
+  that define the semantic conventions and the corresponding schema version url.
+  This should be likely the topic for a follow-up OTEP.
 
 - Should we make it possible to include the entire Schema File in OTLP requests
   in addition to the Schema URL so that recipients of the OTLP request do not
