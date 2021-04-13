@@ -34,8 +34,8 @@ message ExponentialBuckets {
 
 // "repeated double bucket_counts" represents an array of N numbers from bucket_counts[0] to bucket_counts[N-1].
 // With index i starting at 0, ending at N-1, ExponentialBucketCounts defines N buckets, where
-// bucket[i].start_bound = base ^ (i + exponent_offset)   // inclusive bound
-// bucket[i].end_bound = base ^ (i + 1 + exponent_offset) // exclusive bound
+// bucket[i].start_bound = base ^ (i + exponent_offset)
+// bucket[i].end_bound = base ^ (i + 1 + exponent_offset)
 // bucket[i].count = bucket_counts[i]
 message ExponentialBucketCounts {
     sint32 exponent_offset = 1; // offset may be negative.
