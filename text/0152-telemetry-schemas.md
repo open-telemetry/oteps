@@ -741,9 +741,10 @@ message takes the precedence.
 
 ### Instrumentation Library Schema URL
 
-OpenTelemetry API need to be changed to allow getting a Tracer/Meter/LogEmitter
-that is associated with a Schema URL (in addition to the association with
-instrumentation library name and version that is already supported).
+The OpenTelemetry API needs to be changed to allow getting a
+Tracer/Meter/LogEmitter that is associated with a Schema URL (in addition to the
+association with instrumentation library name and version that is already
+supported).
 
 This change needs to be done such that we do not break APIs that are already
 declared stable (particularly the Get Tracer API).
