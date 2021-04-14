@@ -107,7 +107,8 @@ the proposal:
   such conversions are possible. When conversions are not possible it
   constitutes a breaking change between versions.
 
-- Telemetry schemas are identified by Schema URLs.
+- Telemetry schemas are identified by Schema URLs, that are unique for each
+  schema version.
 
 - Telemetry sources (e.g. instrumentation libraries) should include a schema URL
   in the emitted telemetry.
