@@ -232,31 +232,15 @@ time with OpenTelemetry Collector's schema translation processor).
 
 ## Schema Version Number
 
-Version number follows the MAJOR.MINOR.PATCH format, similar to semver 2.0. Note
-that we currently only use a subset of semver functionality, see below.
+Version number follows the MAJOR.MINOR.PATCH format, similar to semver 2.0.
 
-As the schema evolves over time the version number SHOULD change according to
-the following rules:
+Version numbers use the [ordering rules](https://semver.org/#spec-item-11)
+defined by semver 2.0 specification. See how ordering is used in the
+[Order of Transformations](#order-of-transformations). Other than the ordering
+rules the schema version numbers do not carry any other semantic meaning.
 
-- MAJOR number must increase when the new version is incompatible with the
-  previous version.
-
-- MINOR number must increase when the new version is compatible with the
-  previous version.
-
-- PATCH number is reserved and SHOULD be equal to 0.
-
-"Compatible" in this context means that the schema file defines transformations
-that can be applied to convert telemetry data from the previous version to the
-new version and vice versa (note: the conversions may not always be possible in
-both directions, see later in the text).
-
-"Incompatible" means that transformations between the new version and the
-previous version are not possible.
-
-Note: version numbers use the
-[ordering rules](https://semver.org/#spec-item-11) defined by semver 2.0
-specification.
+OpenTelemetry schema version numbers match OpenTelemetry specification version
+numbers, see more details [here](#opentelemetry-schema).
 
 ## Schema File
 
@@ -802,38 +786,35 @@ the version of OpenTelemetry Schema against which the SDK is coded.
 Note that if there is a schema url associated with instrumentation library it
 overrides the application-wide schema url as described [here](#otlp-changes).
 
-## OpenTelemetry Schema 1.0.0
+## OpenTelemetry Schema
 
-The following is the full content of Schema File for OpenTelemetry Schema 1.0.0:
+OpenTelemetry publishes it own schema at
+`https://opentelemetry.io/schemas/<version>`. The version number of the schema
+is the same as the specification version number which publishes the schema.
+Every time a new specification version is released a corresponding new schema
+MUST be released simultaneously. If the specification release did not introduce
+any change the "changes" section of the corresponding version in the schema file
+will be empty.
+
+As of the time of this proposal the specification is at version 1.2.0 and the
+corresponding schema file if it was published with the specification would look
+like this:
 
 ```yaml
 file_format: 1.0.0
-schema_url: https://opentelemetry.io/schemas/1.0.0
+schema_url: https://opentelemetry.io/schemas/1.2.0
 versions:
-  1.0.0:
+  1.2.0:
 ```
 
-Since this is the first version of OpenTelemetry schema there are no changes
-since the previous version (because there is no previous version) so the section
-1.0.0 is empty.
+Since 1.2.0 is the first published version of OpenTelemetry schema there are no
+"changes" section and we omitted all previous versions from the file since there
+is nothing to record for earlier versions.
 
 This file SHOULD be available for retrieval at
-[https://opentelemetry.io/schemas/1.0.0](https://opentelemetry.io/schemas/1.0.0)
+[https://opentelemetry.io/schemas/1.2.0](https://opentelemetry.io/schemas/1.2.0)
 
 All OpenTelemetry instrumentation solutions will follow this schema.
-
-Changes to OpenTelemetry semantic conventions SHOULD be handled as described in
-the [Schema Version Number](#schema-version-number) section. For example,
-addition of a completely new optional attribute to the semantic conventions
-SHOULD NOT require a new telemetry schema version. Similarly, a removal of an
-optional attribute SHOULD NOT require a new schema version, removal or addition
-of a required attribute to an existing entity SHOULD require a new schema
-version. Generally, any changes to the semantic conventions schema that do not
-affect existing sources and consumers of telemetry do not require introduction
-of a new telemetry schema version. However changing a name of an existing
-semantic convention SHOULD require a new telemetry schema version and
-corresponding new schema file MUST be published with a schema URL that starts
-with [https://opentelemetry.io/schemas/](https://opentelemetry.io/schemas/).
 
 ## Performance Impact
 
@@ -971,6 +952,27 @@ ones that cannot be applied on a local portion of telemetry data and requires a
 full state (e.g. transformations, such as aggregations, etc), since such
 transformations can place significant implementation burden on telemetry sources
 that wish to support the notion of telemetry schemas.
+
+### Version Convertability
+
+Depending on the changes that happened it may or may not be possible to convert
+telemetry from one version to another in a lossless and unambiguous way. When
+such conversion is possible we say that the schema is "convertible" from one
+particular version to another.
+
+Generally, given an set of possible transformations and a pair of versions X and
+Y, it may be the converting telemetry from X to Y is possible, while the
+opposite direction - converting from Y to X is not possible.
+
+The transformations defined in this proposal make all conversions from older
+schema versions to new versions possible. The opposite direction in some case
+may not be possible (see for example the explanation about reversible
+transformation [all Section](#all-section)).
+
+In the future we may also want to add ability to explicitly declare schema
+versions as non convertible. This may be necessary to express the fact that the
+schema has changed in a way that makes it incompatible, but schema file
+transformations alone are not expressive enough to describe that fact.
 
 ## Alternates Considered
 
