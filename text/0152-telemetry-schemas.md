@@ -974,6 +974,20 @@ that wish to support the notion of telemetry schemas.
 
 ## Alternates Considered
 
+### Freeze Schema
+
+Instead of introducing formal schemas, schema files and version we can require
+that the instrumentation once it is created never changes. Attributes are never
+renamed, the emitted telemetry always remains the same, with the exception of
+changes that cannot affect existing telemetry consumers.
+
+This was considered but does not seem to be an acceptable proposal. Mistakes
+happen, semantic conventions may need to be changed because they were
+incorrectly defined, there may be bugs in instrumentation that need to be fixed,
+etc. We believe that attempting to freeze the schema and only allow fully
+backward compatible changes in emitted telemetry is too restrictive and very
+difficult to follow long term.
+
 ### Name Aliases
 
 This approach solves a smaller subset of schema evolution problems: change of
