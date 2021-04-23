@@ -4,7 +4,9 @@ Enable OpenTelemetry to fetch sampling configuration from the Jaeger configurati
 
 ## Motivation
 
-Be able to provide an out-of-the-box solution for sampling defined in the Jaeger Collector. Auto instrumentation will benefit from this solution since you can share the same configuration (e.g: ignore `/health` and `/metrics` paths from sampling) among several services.
+Be able to provide an out-of-the-box solution for sampling defined in the Jaeger Collector. 
+
+Auto instrumentation will benefit from this solution since you can share the same configuration (e.g: ignore `/health` and `/metrics` paths from sampling) among several services.
 
 ## Explanation
 
