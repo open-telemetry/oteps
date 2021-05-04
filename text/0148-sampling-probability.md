@@ -269,15 +269,14 @@ statistical manner.
 
 ## Prior art and alternatives
 
-The name `sample_count` is proposed because the resulting value is
+The term "adjusted count" is proposed because the resulting value is
 effectively a count and may be used in place of the exact count.
 
-Statsd conveys inclusion probability instead of `sample_count`, where
-it is often called "sample rate."
+The term "adjusted weight" is NOT proposed to describe the adjustment
+made by sampling, because the adjustment being made is that of a count.
 
-Another name for the proposed `sample_count` field is
-`inverse_probability`, which is considered less suggestive of the
-field's purpose.
+Another term for the proposed "adjusted count" concept is
+`inverse_probability`.
 
 "Subset sum estimation" is the name given to this topic within the
 study of computer science and engineering.
