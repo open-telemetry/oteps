@@ -56,7 +56,7 @@ Descriptive words that are often used to describe sampling designs:
 - *Fixed*: the sampling design is the same from one frame to the next
 - *Adaptive*: the sampling design changes from one frame to the next
 - *Equal-Probability*: the sampling design uses a single inclusion probability per frame
-- *Unequal-Probability*: the sampling design uses mulitple inclusion probabilities per frame
+- *Unequal-Probability*: the sampling design uses multiple inclusion probabilities per frame
 - *Reservoir*: the sampling design uses fixed space, has fixed-size output.
 
 Our goal is to support flexibility in choosing sampling designs for
@@ -87,7 +87,7 @@ the expected value of the true population total.
 
 ### Adjusted sample count
 
-Following the modle above, every event defines the notion of an
+Following the model above, every event defines the notion of an
 _adjusted count_.
 
 - _Adjusted count_ is zero if the event was not selected for the sample
@@ -164,7 +164,8 @@ Readers are referred to [recommended reading](#recommended-reading)
 for more resources on sampling with attributes.
 
 ### Summary: a general technique
-=======
+
+Sampling is a powerful approach when used with event data that has
 been annotated with key-value attributes.  It is possible to select
 arbitrary subsets of the sampled data and use each to estimate the count
 of arbitrary subsets of the population.
