@@ -17,11 +17,11 @@ data may follow to enable a wide range of sampling designs.
 
 Consider a hypothetical telemetry signal in which an API event
 produces a unit of data that has one or more associated numbers.
-Using the OpenTelemetry Metrics data model terminolgy, we have two
+Using the OpenTelemetry Metrics data model terminology, we have two
 scenarios in which sampling is common.
 
-1. Counter events: Each event represents a count, signifying the change in a sum
-2. Histogram events: Each event represents an individual variable, signifying new membership in a distribution
+1. _Counter events:_ Each event represents a count, signifying the change in a sum.
+2. _Histogram events:_ Each event represents an individual variable, signifying new membership in a distribution.
 
 A Tracing Span event qualifies as both of these cases simultaneously.
 It is a Counter event (of 1 span) and at lesat one Histogram event
@@ -164,6 +164,10 @@ Readers are referred to [recommended reading](#recommended-reading)
 for more resources on sampling with attributes.
 
 ### Summary: a general technique
+=======
+been annotated with key-value attributes.  It is possible to select
+arbitrary subsets of the sampled data and use each to estimate the count
+of arbitrary subsets of the population.
 
 To summarize, there is a widely applicable procedure for sampling
 telemetry data from a population:
@@ -204,7 +208,9 @@ is not described by the Dapper paper.
 
 ### Example: Statsd metrics
 
-A Statsd counter event appears as a line of text, for example a metric
+A Statsd counter event appears as a line of text.
+
+For example, a metric
 named `name` is incremented by `increment` using a counter event (`c`)
 with the given `sample_rate`.
 
@@ -228,7 +234,7 @@ interpret this event as probabilistically equal to a count of `100/0.1
 
 The statistical foundation of this technique is known as the
 Horvitz-Thompson estimator ("A Generalization of Sampling Without
-Replacement From a Finite Universe", JSTOR 1952).  The
+Replacement From a Finite Universe," JSTOR 1952).  The
 Horvitz-Thompson technique works with _unequal probability sampling_
 designs, enabling a variety of techniques for controlling properties
 of the sample.
@@ -267,7 +273,7 @@ The name `sample_count` is proposed because the resulting value is
 effectively a count and may be used in place of the exact count.
 
 Statsd conveys inclusion probability instead of `sample_count`, where
-it is often called "sample rate".
+it is often called "sample rate."
 
 Another name for the proposed `sample_count` field is
 `inverse_probability`, which is considered less suggestive of the
