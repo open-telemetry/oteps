@@ -55,19 +55,23 @@ All components in contrib repository are expected to be included into Otel Regis
 
 It should be very easy for external contributors to include their components into contrib repo as opposed to hosting them separately.
 This way they can reuse existing infrastructure for testing, publishing, security scanning etc.
-Also this will greatly simplify responsibility transfer between different maintainers if their priorities change. 
+Also this will greatly simplify responsibility transfer between different maintainers if their priorities change. It also promotes the development
+and maintenance of a single instrumentation package for each instrumentation source, so that work isn't spread amongst multiple parallel solutions.
 
 Language SIGs are encouraged to provide a testing harness to verify that component adheres to OpenTelemetry semantic conventions
 and [recommendations for Otel instrumentations design](https://docs.google.com/document/d/1YNRCg9fdjJgZRs56vvf7rfFPk06mhp781sWHYypOaAk/edit#)
 when OpenTelemetry starts publishing them.
 
-It may be beneficial to provide even finer-grade separation for contrib instrumentations into “experimental” and “supported” ones.
-The latter means that given instrumentation has active (external) maintainers who are committed to supporting this instrumentation on an ongoing basis.
+A high volume of contrib contributions presents a burden for language maintainers. There are two suggestions for tackling this:
+- Create an "experimental" folder within contrib. The contents of this folder are not reviewed or maintained by language repository maintainers, but
+many of the other benefits of being within a contrib repository remain.
+- Add more approvers and maintainers, perhaps some who exclusively focus on submissions to contrib.
 
 ### External components
 
-If component authors for whatever reason want to host their contribution outside the Otel contrib repository they are free to do so.
-Their submission for inclusion into OpenTelemetry Registry is still welcomed, subject to the same process described above. 
+If component authors for whatever reason want to host their contribution outside the Otel contrib repository they are free to do so (though we
+encourage all contributions to go into contrib or core language repositories). Their submission for inclusion into OpenTelemetry Registry is still
+welcomed, subject to the same process described above. 
 
 ### Distribution
 
