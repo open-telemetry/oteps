@@ -1,6 +1,6 @@
 # Instrumentation Ecosystem Management
 
-Short (one sentence) summary, e.g., something that would be appropriate for a [CHANGELOG](https://keepachangelog.com/) or release notes.
+Proposal how to leverage wider community contributing instrumentations and other packages.
 
 ## Motivation
 
