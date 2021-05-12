@@ -46,7 +46,7 @@ All core instrumentations must be included into Otel Registry following the usua
 
 Any language SIG may have one or more “contrib” repos containing components contributed by external developers.
 This repository may have a separate set of approvers/maintainers than the core API/SDK repo.
-SIG maintainers are encouraged to have a simplified process to promote contributors to approver/maintainer role in this repository. 
+SIG maintainers are encouraged to have a simplified process to promote contributors to approver/maintainer role in this repository.
 Contrib repository may leverage the CODEOWNERS functionality of GitHub to assign maintainers to individual packages
 even if this means granting write permissions to the whole repo.
 The goal should be to distribute the load of reviewing PRs and accepting changes as much as possible.
@@ -63,6 +63,7 @@ and [recommendations for Otel instrumentations design](https://docs.google.com/d
 when OpenTelemetry starts publishing them.
 
 A high volume of contrib contributions presents a burden for language maintainers. There are two suggestions for tackling this:
+
 - Create an "experimental" folder within contrib. The contents of this folder are not reviewed or maintained by language repository maintainers, but
 many of the other benefits of being within a contrib repository remain.
 - Add more approvers and maintainers, perhaps some who exclusively focus on submissions to contrib.
@@ -71,13 +72,13 @@ many of the other benefits of being within a contrib repository remain.
 
 If component authors for whatever reason want to host their contribution outside the Otel contrib repository they are free to do so (though we
 encourage all contributions to go into contrib or core language repositories). Their submission for inclusion into OpenTelemetry Registry is still
-welcomed, subject to the same process described above. 
+welcomed, subject to the same process described above.
 
 ### Distribution
 
 Whenever OpenTelemetry components are published to any repository other than OpenTelemetry Registry (such as npm registry or Maven Central)
 only core and contrib components can be published under "opentelemetry" namespace.
-Native and external components are to be published under their own namespace. 
+Native and external components are to be published under their own namespace.
 
 In case Otel SIG provides any kind of "all-in-one" instrumentation distribution (e.g. Java and .NET do) they should include
 only core and contrib packages into it.
@@ -95,9 +96,11 @@ Can every language SIG decide this for themselves or should we decide together?
 ## Open questions
 
 ### Registry self-assessment form
+
 The exact list should be developed separately but at least component's author should declare that
+
 * It uses permissive OSS license
 * It does not have any known security vulnerabilities
 * It produces telemetry which adheres to OpenTelemetry semantic conventions
-* If Otel/SIG provides a testing harness to verify produced telemetry, that test was used and passed 
+* If Otel/SIG provides a testing harness to verify produced telemetry, that test was used and passed
 * Authors commit a reasonable effort into future maintenance of this component
