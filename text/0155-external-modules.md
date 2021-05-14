@@ -81,9 +81,10 @@ Whenever OpenTelemetry components are published to any repository other than the
 only core and contrib components can be published under "opentelemetry" namespace.
 Native and external components are to be published under their own namespace.
 
-In case the Otel SIG provides any kind of "all-in-one" instrumentation distribution (e.g. as Java and .NET do) they should include
-only core and contrib packages into it.
+In case the Otel SIG provides any kind of "all-in-one" instrumentation distribution (e.g. as Java and .NET do) 
+their should be an option to get a distribution with only core and contrib packages included.
 The OpenTelemetry Registry should provide a way to easily obtain a list of these components.
+The SIG may provide other distributions as well.
 If possible, SIGs should provide a mechanism to include any external component during target application's build- or runtime.
 This may mean a separate language-specific component API that all components are encouraged to implement.
 
