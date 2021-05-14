@@ -106,3 +106,14 @@ The exact list should be developed separately, but at least the component's auth
 * It produces telemetry which adheres to OpenTelemetry semantic conventions
 * If the Otel/SIG provides a testing harness to verify produced telemetry, that tests were used and passed
 * Authors commit a reasonable effort into future maintenance of this component
+
+### Component information in the Registry
+
+The exact UI of component's page in the Registry is outside of this OTEP's scope, but some suggestions are:
+
+* Link to the original repository of this component
+* Clear indication of component's authors/maintainers
+* Presence or absence of security vulnerabilities
+* Some way of component's quality as perceived by its users, e.g. rating or stars or thumbs up/down
+* Otel API/SDK version that this component was tested against
+* If OpenTelemetry verification harness is used by this component
