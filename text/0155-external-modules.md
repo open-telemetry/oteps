@@ -7,8 +7,9 @@ Proposal how to leverage wider community contributing instrumentations and other
 For OpenTelemetry to become a de-facto standard in observability there must exist a vast ecosystem of OpenTelemetry components.
 Including integrations with various libraries and frameworks in all languages supported by OpenTelemetry.
 We cannot possibly expect that all these integrations will be provided by the core maintainers of OpenTelemetry.
-We have to have a way to leverage a wider community while still providing our end-users with some way to discover
-all available Otel components together with some visibility into their quality.
+We hope that wider community will integrate their projects with OpenTelemetry.
+We have to encourage that by providing great documentation, examples and tooling to integration authors,
+while still providing our end-users with some way to discover all available Otel components together with some visibility into their quality.
 
 ## Explanation
 
@@ -17,7 +18,7 @@ both provided by core maintainers of the project and any third party.
 
 In order for a component to be included into Registry its authors have to fill a [self-assessment form](#registry-self-assessment-form).
 
-Registry should allow a clear visibility if component came from a repository in OpenTelemetry organisation.
+Registry should allow a clear visibility of component's ownership, quality and compatibility with other Otel components.
 
 A component can be removed from the Registry if any declaration from the self-assessment form is violated and not remedied
 in a timely manner, provisionally one or two weeks.
@@ -45,7 +46,7 @@ All core instrumentations must be included into Otel Registry following the usua
 ### Contrib components
 
 Any language SIG may have one or more “contrib” repos containing components contributed by external developers.
-This repository may have a separate set of approvers/maintainers than the core API/SDK repo.
+These repositories may have a separate set of approvers/maintainers than the core API/SDK repo.
 SIG maintainers are encouraged to have a simplified process to promote contributors to approver/maintainer role in this repository.
 Contrib repository may leverage the CODEOWNERS functionality of GitHub to assign maintainers to individual packages
 even if this means granting write permissions to the whole repo.
@@ -99,7 +100,7 @@ Can every language SIG decide this for themselves or should we decide together?
 
 The exact list should be developed separately but at least component's author should declare that
 
-* It uses permissive OSS license
+* It uses permissive OSS license approved by CNCF
 * It does not have any known security vulnerabilities
 * It produces telemetry which adheres to OpenTelemetry semantic conventions
 * If Otel/SIG provides a testing harness to verify produced telemetry, that test was used and passed
