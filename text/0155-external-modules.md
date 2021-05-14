@@ -112,8 +112,13 @@ The exact list should be developed separately, but at least the component's auth
 The exact UI of component's page in the Registry is outside of this OTEP's scope, but some suggestions are:
 
 * Link to the original repository of this component
-* Clear indication of component's authors/maintainers
+* Clear indication of component's authors/maintainers and its Otel status (native/core/contrib/external)
+* Licence used
+* Language and targeted library
 * Presence or absence of security vulnerabilities
 * Some way of component's quality as perceived by its users, e.g. rating or stars or thumbs up/down
-* Otel API/SDK version that this component was tested against
+* Otel API/SDK and library versions that this component was tested against
 * If OpenTelemetry verification harness is used by this component
+* A filled self-assessment form
+* Any quality indicators we may want to standardize on (e.g. test coverage)
+* Dev stats (date of creation, date of last release, date of last commit)
