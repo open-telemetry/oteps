@@ -1,16 +1,29 @@
-# Counter, UpDownCounter, and Gauge instruments compared
+# Counter, UpDownCounter, and Gauge instruments explained
+
+Counter and Gauge instruments are different in the ways they convey
+meaning, and they are interpreted in different ways.  Attributes
+applied to metric events enable further interpretation.  Because of
+their semantics, the interpretive outcome of adding an attribute for
+Counter and Gauge instruments is different.
+
+With Counter instruments, a new attribute can be introduced along with
+additional measurements to subdivide the thing being counted.
+
+With Gauge instruments, a new attribute can be introduced along with
+additional measurements to convey multiple observations of the same
+variable.
+
+The OpenTelemetry Metrics API has introduced a new kind of instrument,
+the UpDownCounter, that behaves like a Counter, meaning that
+attributes subdivide the thing being counted, but are interpreted like
+a Gauge, meaning that users are most interested in the total sum, not
+the rate of change.
 
 ## Background
 
-The OpenTelemetry Metrics data model and API have introduced a new
-kind of data point, the non-monotonic Sum, and a corresponding
-instrument named UpDownCounter.
-
 OpenTelemetry has a founding principal that the interface (API) should
 be decoupled from the implementation (SDK), thus the Metrics project
-set out to given semantic meaning to the API events.  The events on
-Counter and Gauge instruments mean different things and submit to
-different kinds of interpretation.
+set out to give meaning to Metric API events.
 
 OpenTelemetry uses the term temporality to describe how aggregations
 are accumulated across time, whether they are reset to zero with each
