@@ -23,13 +23,13 @@ OpenTelemetry has a founding principal that the interface (API) should
 be decoupled from the implementation (SDK), thus the Metrics project
 set out to define the meaning of metrics API events.
 
-OpenTelemetry uses the term _temporality_ to describe how aggregations
-are accumulated across time, whether they are reset to zero with each
-interval (_delta_) or accumulated over a sequence of intervals
-(_cumulative_).  Both forms of temporality are considered important,
-as they offer a useful tradeoff between cost and reliability.  The
-data model specifies that a change of temporality does not change
-meaning.
+OpenTelemetry uses the term _temporality_ to describe how Sum
+aggregations are accumulated across time, whether they are reset to
+zero with each interval (_delta_) or accumulated over a sequence of
+intervals (_cumulative_).  Both forms of temporality are considered
+important, as they offer a useful tradeoff between cost and
+reliability.  The data model specifies that a change of temporality
+does not change meaning.
 
 OpenTelemetry recognizes both synchronous and asynchronous APIs are
 useful for reporting metrics, and each has unique advantages.  When
@@ -42,19 +42,32 @@ are the totals of a Sum aggregation (i.e., cumulatives).
 
 ## Glossary
 
-_Meaning_ what the events are saying
+_Meaning_: Metrics API events have a semantic definition that dictates
+the meaning of the event, in particular how to interpret the integer
+or floating point number value passed to the API.
 
-_Interpretation_ how we produce information from meaning
+_Interpretation_: How we extract information from metrics data using
+the semantics of the API and the semantics of the OTLP data points.
 
-_Metric instrument_ has a name
+_Metric instrument_ is a named instrument, belonging to an
+instrumentation library, declared with one of the OpenTelemtetry
+Metrics API instruments.  For the purpose of this text, it is a
+Counter, an UpDownCounter, or a Gauge.
 
-_Metric attribute_ is a qualifier, can have many, they are independent
+_Metric attributes_ can be applied to Metric API events, which allows
+interpreting the meaning of events using different subsets of
+attribute dimensions.
 
-_Metric data stream_ is a variable
+_Metric data stream_ is a collection of data points, written by a
+writer, having an identity that consists of the instrument's name, the
+instrumentation library, resource attributes, and metric attributes.
 
-_Metric data points_ are items in a stream
+_Metric data points_ are the items in a stream, each has a point
+kind. For the purpose of this text, the point kind is Sum or Gauge.
+Sum points have two options: Temporality and Monotonicity.
 
-_Metric timeseries_ are the outputs
+_Metric timeseries_ is the output of aggregating a stream of data
+points for a specific set of resource and attribute dimensions.
 
 ## Meaning and interpretation of Counter and UpDownCounter events
 
@@ -310,3 +323,34 @@ In some of these cases, it may be logical but practically impossible
 to use one or more Counter instruments in place of Gauges.  CPU
 utilization can be derived from a usage Counter.  Fan speed can be
 derived from a revolution Counter.
+
+## Summary
+
+The OpenTelemetry Metrics data model supports addition and removal of
+attributes in a way that preserves meaning.  This design gives
+developers the ability to introduce new attributes in a safe way.
+
+OpenTelemetry metrics developers are asked to consider whether they
+want an UpDownCounter or Gauge when making asynchronous measurements,
+and they should make this decision based on whether the default
+aggregation rule for UpDownCounter or Gauge preserves meaning.  This
+decision comes down to whether attributes are meant to subdivide a Sum
+point or qualify a Gauge point.
+
+The default aggregation rules for OpenTelemetry metrics data points
+ensure that meaning is preserved when removing attributes from a
+stream of metrics data.  The rules for reaggregation specify that
+attributes should be safely removed before aggregating with other
+metrics that are missing the same attributes, a process referred to as
+dimensional alignment.
+
+This design allows optional attributes to be included by the SDK in
+metric data when it is available, such as those extracted from
+TraceContext Baggage, in ways that consumers of the metrics data can
+interpret correctly.
+
+Having the ability to automatically remove attributes without changing
+the meaning of Counter, UpDownCounter, and Gauge metrics API events
+makes it possible for OpenTelemetry collectors to be configured with
+re-aggregation rules, which can be managed by users in order to limit
+collection costs.
