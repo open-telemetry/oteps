@@ -6,31 +6,30 @@ applied to metric events enable further interpretation.  Because of
 their semantics, the interpretive outcome of adding an attribute for
 Counter and Gauge instruments is different.
 
-With Counter instruments, a new attribute can be introduced along with
-additional measurements to subdivide the thing being counted.
+With Counter instruments, a new attribute can be introduced with
+additional measurements to subdivide a variable count.
 
-With Gauge instruments, a new attribute can be introduced along with
-additional measurements to convey multiple observations of the same
-variable.
+With Gauge instruments, a new attribute can be introduced with
+additional measurements to make multiple observations of a variable.
 
-The OpenTelemetry Metrics API has introduced a new kind of instrument,
-the UpDownCounter, that behaves like a Counter, meaning that
-attributes subdivide the thing being counted, but are interpreted like
-a Gauge, meaning that users are most interested in the total sum, not
-the rate of change.
+The OpenTelemetry Metrics API introduces a new kind of instrument, the
+UpDownCounter, that behaves like a Counter, meaning that attributes
+subdivide the variable being counted, but their primary interpretation
+is like that of a Gauge.
 
 ## Background
 
 OpenTelemetry has a founding principal that the interface (API) should
 be decoupled from the implementation (SDK), thus the Metrics project
-set out to give meaning to Metric API events.
+set out to define the meaning of metrics API events.
 
-OpenTelemetry uses the term temporality to describe how aggregations
+OpenTelemetry uses the term _temporality_ to describe how aggregations
 are accumulated across time, whether they are reset to zero with each
-interval ("delta") or accumulated over a sequence of intervals
-("cumulative").  Both temporality forms are considered important, as
-they offer a useful tradeoff between cost and reliability.  The data
-model specifies that a change of temporality does not change meaning.
+interval (_delta_) or accumulated over a sequence of intervals
+(_cumulative_).  Both forms of temporality are considered important,
+as they offer a useful tradeoff between cost and reliability.  The
+data model specifies that a change of temporality does not change
+meaning.
 
 OpenTelemetry recognizes both synchronous and asynchronous APIs are
 useful for reporting metrics, and each has unique advantages.  When
@@ -41,38 +40,45 @@ synchronous or asynchronous API.  Inputs to synchronous
 (i.e., deltas).  Inputs to asynchronous (UpDown)Counter instruments
 are the totals of a Sum aggregation (i.e., cumulatives).
 
-## Meaning vs. Interpretation
+## Glossary
 
-The terms "Meaning" and "Interpretation" are used below to describe
-how semantics are conveyed from the producer of metric events,
-typically a developer working in the OpenTelemetry API, and the
-consumer of metric timeseries, typically the user of an observability
-product.
+_Meaning_ what the events are saying
 
-- Meaning is the indicated significance of a metric event, _what_ information the producer is stating through the use of an OpenTelemetry API
-- Interpretation is a recipe for deriving information from a metric event, or _how_ the consumer can benefit from the stated information.
+_Interpretation_ how we produce information from meaning
 
-## Meaning and interpretation of Sum points
+_Metric instrument_ has a name
 
-Sum points are taken to have meaning in a stream, independent of
-aggregation temporality, as follows:
+_Metric attribute_ is a qualifier, can have many, they are independent
+
+_Metric data stream_ is a variable
+
+_Metric data points_ are items in a stream
+
+_Metric timeseries_ are the outputs
+
+## Meaning and interpretation of Counter and UpDownCounter events
+
+Counter and UpDownCounter instruments produce Sum metric data
+points that are taken to have meaning in a metric stream, independent
+of the aggregation temporality, as follows:
 
 - Sum points are quantities that define a rate of change with respect to time
-- Rate-of-change over time may be used to derive a current total.
+- Rate-of-change over time combined with a reset time may be used to derive a current total.
 
 The rate interpretation is preferred for monotonic Sum points, and the
 the current total interpretation is preferred for non-monotonic Sum
-points.  Both interpretations are meaningful and useful for both
-monotonic and non-monotonic Sum points.
+points.  Both interpretations are meaningful and useful for both kinds
+of Sum point.
 
 Sum points imply a linear scale of measurement.  A Sum value that is
-twice the amount of another actually means twice as much of something
-was counted.  Linear interpolation is considered to preserve meaning.
+twice the amount of another actually means twice as much of the
+variable was counted.  Linear interpolation is considered to preserve
+meaning.
 
-## Meaning and interpretation of Gauge points
+## Meaning and interpretation of Gauge events
 
-Gauge points, which do not have temporality, are taken to have meaning
-in a stream as follows:
+Gauge instruments produce Gauge metric data points are taken to
+have meaning in a metric stream as follows:
 
 - Gauge point values are individual measurements captured at an instant in time
 - Gauge points record the last known value in a series of individual measurements.
@@ -86,35 +92,27 @@ the interpretation is "current value".
 The distinction between last known value (synchronous) and current
 value (asynchronous) is considered not significant in the data model.
 Contrasting with Sum points, less can be assumed about the
-measurements:
+measurements.  No implied linear scale of measurement, therefore:
 
-- No implied linear scale of measurement, therefore
 - Rate-of-change may not be well defined
 - Ratios are not necessarily meaningful
 - Linear interpolation is not necessarily supported.
 
-## Comparing Gauge and non-monotonic cumulative Sum
-
-The non-monotonic Sum point, the one that naturally results from an
-asynchronous UpDownCounter instrument, appears similar in nature to a
-Gauge.  Both can be used to express the current value in a series.
-
-As stated, there is a difference between Sum and Gauge points in the
-data model that can be seen when adding and removing attributes from
-metric events.
-
 ## Attributes are used for interpretation
 
-The meaning of an attribute is derived from the interpretation of the
-metric.  Attributes are used to logically restrict attention to a
-subset of metric events, therefore the use of attributes leads to
-additional interpretation.
+Metric attributes enable new ways to interpret a stream of metric
+data.  Metric attributes add information without changing the value of
+a metric event.  Addition and removal of metric attributes can be
+accomplished safely by applying transformations that preserve meaning.
 
-Because attributes function logically as event selectors, we are able
-to assert that the addition of an attribute does not by definition
-change the meaning of a metric event.  The addition of an attribute
-may create new timeseries, by producting a of greater number of
-distinct attribute sets, though the meaning is unchanged.
+Addition of attributes on a metric event can create new timeseries, by
+producting a of greater number of distinct attribute sets.  However,
+the meaning in the original events is preserved in the complete set of
+timeseries.
+
+Removing attributes from metric streams without changing meaning
+requires re-aggregation, in general, which means applying the natural
+aggregation function to merge metric streams.
 
 For example, any metric event with no attributes:
 
@@ -123,7 +121,7 @@ gauge.Set(value)
 ```
 
 can be extended by a new attribute, without changing its meaning or
-interpretation:
+altering any existing interpretation:
 
 ```
 gauge.Set(value, { 'property': this.property })
@@ -151,19 +149,20 @@ counter.Add(y, { 'property': 'Y' })
 ```
 
 This property for Sum points makes it possible to configure an
-instrumentation library with or without subdivided Sums, with no
-change in the meaning conveyed.
+instrumentation library with or without subdivided Sums and to
+meaningfully aggregate data with a mixture of attributes.
 
 ## New measurements: Gauge instruments
 
 Gauge instruments, unlike Counter instruments, cannot be subdivided.
-Likewise, multiple Gauge measurements cannot be meaningfully combined
-using addition.  As meaning is derived from individual values, new
-measurements can be introduced using attributes to create distinct
-streams.
+Multiple Gauge measurements cannot be meaningfully combined using
+addition.  In the time dimension, Gauge instrument events are
+aggregated by taking the last value.
 
-By interpreting Gauge points as a distribution of current values, new
-measurements can be defined to be preserve meaning.
+The same aggregation can be applied when removing an attributes from
+metric streams forces reaggregation.  The most current value should be
+selected.  In case of identical timestamps, a random value should be
+selected to preserve the meaning of the Gauge.
 
 For example, a Gauge for expressing a vehicle's speed relative to the
 ground can be expressed either as the speed of its midpoint or by an
@@ -182,16 +181,15 @@ for i := 0; i < 4; i++ {
 }
 ```
 
-This form of Gauge rewrite is generally useful when additional
-measurements offer more information and are drawn from the same
-distribution.
+This form of Gauge rewrite is generally useful to capture additional
+measurements by creating distinct metric streams.
 
 ## Meaning-preserving attribute erasure
 
 Several rules for rewriting metric events that preserve meaning have
 been shown above, focused on introducing new attributes and new
-measurements in ways do not change existing meaning and
-interpretation.
+measurements in ways do not change existing meaning or alter existing
+interpretations.
 
 Removing attributes from metric events does not, by definition, change
 their meaning, since attributes are interpreted as event selectors.
@@ -202,10 +200,10 @@ Safe attribute erasure for OpenTelemetry Metrics streams is specified
 in a way that preserves meaning while removing only the forms of
 interpretation that made use of the erased attribute.
 
-Re-aggregation describes the process of combining OpenTelemetry
-metrics streams.  For re-aggregation to preserve meaning, Sum points
+_Reaggregation_ describes the process of combining OpenTelemetry
+metric streams.  For reaggregation to preserve meaning, Sum points
 must be combined by adding the inputs and Gauge points must be
-combined by forming a distribution of the inputs.
+combined by selecting the last or random value.
 
 Note that erasure of attributes is defined so that it reverses the
 effect of introducing new measurements, and meaning is preserved in
@@ -213,7 +211,7 @@ both directions.  This explains the definition for default
 aggregations that should be applied when re-aggreation OpenTelemetry
 metrics streams.  Sum streams are re-aggregated to preserve the
 implied rate, while Gauge points are reggregated to preserve the
-implied distribution.
+implied distribution of individual values.
 
 ## Conveying meaning to the user
 
