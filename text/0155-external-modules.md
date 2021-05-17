@@ -50,7 +50,7 @@ These repositories may have a separate set of approvers/maintainers than the cor
 Contrib repositories are as important for the project success as core repository, but may not require the same level of expertise. In fact, these repositories often calls for other set of skills and customer's understanding. On contrib repository creation, new set of approvers and maintainers can be added as we do for any new repository, without time/contribution requirements. Repository maintainers are also encouraged to promote contributors to approver/maintainer role in this repository based on targeted contributions and expertise of the contrib repository rather than overall SIG scope. It is important to keep the process fair and inclusive by following the formal guidance published [here](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).
 A contrib repository may leverage the CODEOWNERS functionality of GitHub to assign maintainers to individual packages
 even if this means granting write permissions to the whole repo.
-The goal should be to distribute the load of reviewing PRs and accepting changes as much as possible.
+The goal should be to distribute the load of reviewing PRs and accepting changes as much as possible, while keeping reliability and overall quality of components and fair governance.
 
 All components in a contrib repository are expected to be included into the Otel Registry following the usual process described above.
 
