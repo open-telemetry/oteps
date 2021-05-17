@@ -47,17 +47,24 @@ All instances of core instrumentation must be included into the Otel Registry fo
 
 Any language SIG may have one or more “contrib” repos containing components contributed by developers with an interest in specific parts of the instrumentation ecosystem.
 These repositories may have a separate set of approvers/maintainers than the core API/SDK repo.
-Contrib repositories are as important for the project success as core repository, but may not require the same level of expertise. In fact, these repositories often calls for other set of skills and customer's understanding. On contrib repository creation, new set of approvers and maintainers can be added as we do for any new repository, without time/contribution requirements. Repository maintainers are also encouraged to promote contributors to approver/maintainer role in this repository based on targeted contributions and expertise of the contrib repository rather than overall SIG scope. It is important to keep the process fair and inclusive by following the formal guidance published [here](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).
+Contrib repositories are as important for the project success as core repository, but may not require the same level of expertise.
+In fact, these repositories often calls for other set of skills and customer's understanding.
+On contrib repository creation, new set of approvers and maintainers can be added as we do for any new repository, without time/contribution requirements.
+Repository maintainers are also encouraged to promote contributors to approver/maintainer role in this repository
+based on targeted contributions and expertise of the contrib repository rather than overall SIG scope.
+It is important to keep the process fair and inclusive by following the formal guidance published [here](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).
 A contrib repository may leverage the CODEOWNERS functionality of GitHub to assign maintainers to individual packages
 even if this means granting write permissions to the whole repo.
 The goal should be to distribute the load of reviewing PRs and accepting changes as much as possible, while keeping reliability and overall quality of components and fair governance.
 
 All components in a contrib repository are expected to be included into the Otel Registry following the usual process described above.
 
-It should be very easy for external contributors to include their components into a contrib repo as opposed to hosting them separately.
+We should welcome all contributions and make the inclusion process (including following all our requirements) as easy as possible.
+The goal is to encourage all contributors to include their components into a contrib repo as opposed to hosting them separately.
 This way they can reuse existing infrastructure for testing, publishing, security scanning etc.
-This will also greatly simplify responsibility transfer between different maintainers if their priorities change. It also promotes the development
-and maintenance of a single instrumentation package for each instrumentation source, so that work isn't spread amongst multiple parallel solutions.
+This will also greatly simplify responsibility transfer between different maintainers if their priorities change.
+It also promotes the development and maintenance of a single instrumentation package for each instrumentation source,
+so that work isn't spread amongst multiple parallel solutions.
 
 Language SIGs are encouraged to provide a testing harness to verify that component adheres to OpenTelemetry semantic conventions
 and [recommendations for Otel instrumentations design](https://docs.google.com/document/d/1YNRCg9fdjJgZRs56vvf7rfFPk06mhp781sWHYypOaAk/edit#)
