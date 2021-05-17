@@ -113,7 +113,7 @@ The exact UI of component's page in the Registry is outside of this OTEP's scope
 
 * Link to the original repository of this component
 * Clear indication of component's authors/maintainers and its Otel status (native/core/contrib/external)
-* Licence used
+* License used
 * Language and targeted library
 * Presence or absence of security vulnerabilities
 * Some way of component's quality as perceived by its users, e.g. rating or stars or thumbs up/down
