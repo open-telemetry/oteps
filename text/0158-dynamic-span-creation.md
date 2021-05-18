@@ -9,6 +9,7 @@ The current approach to reducing the performance impact of tracing seems to cent
 Operators either choose a static sampling rate, or may use adaptive sampling that changes depending on the amount of traffic their system receives.
 
 Sampling, however, has a number of disadvantages as we see it:
+
 - When sampling decisions do not take contextual information into account, we may inadvertently drop traces about interesting error or corner cases
 - The longer the sampling decision is postponed, the less benefit it provides in terms of a reduced performance impact
 
@@ -19,6 +20,7 @@ This will ensure a minimal performance impact in day-to-day operations, while an
 This is not unlike how logs are specified at various levels of detail, such as DEBUG, INFO, WARN, and ERROR.
 
 We base this motivation on a number of piror observations:
+
 - [In his Master's Thesis, Carosi](https://www.semanticscholar.org/paper/Protractor%3A-Leveraging-distributed-tracing-in-for-Carosi/708e776d9440abd56006a312168773fdc1ed9667) evaluates the performance impact on tracing applications with service meshes, and finds that the performance impact (in terms of response times) is negligible.
 - In our own work, we have measured response time overheads of up to 70% when blindly instrumenting all services in a microservice application with OpenTelemetry agents (mind you, these are simple services). The impact is negligible when strongly sampling requests.
 - The approach to dynamically adapting the expressiveness of traces has been touched upon in research papers, including [Mace](https://dl.acm.org/doi/10.1145/2815400.2815415), [Castanheira](https://dl.acm.org/doi/10.1145/3426746.3434058), and [Sambasivan](https://dl.acm.org/doi/10.1145/2987550.2987568).
