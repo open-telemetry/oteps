@@ -78,7 +78,7 @@ is mandatory and the default.
 
 As the flow control is the hardest part of the implementations, adding a feature
 for reading raw log events avoids having an additional parallel
-implementation todo just that.
+implementation to do just that.
 
 The encoding field should be used to indicate that the data received is not the
 default `otlp_proto` data, but raw log data. The receiver should construct a valid
