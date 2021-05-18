@@ -9,8 +9,8 @@ some dependency on other variables. A 3 axis accelerometer reporting 3 metrics s
 temperature, cloud cover, dew point, humidity and wind speed; an http transaction chararterized by many interrelated metrics sharing the same 
 labels are all common examples of multivariate time-series. 
 
-With the current version of the OpenTelemetry protocol we force users to transform these multivariate time-series into a collection of 
-univariate time-series instead of keeping end-to-end an efficient multivariate representation.
+**With the current version of the OpenTelemetry protocol we force users to transform these multivariate time-series into a collection of 
+univariate time-series instead of keeping end-to-end an efficient multivariate representation.**
 
 A transport layer should not constrain such a radical change of representation as the implications are so important, to name a few:
 * It's straighforward to translate a multivariate time-series into a collection of univariate time-series but the opposite is much more 
