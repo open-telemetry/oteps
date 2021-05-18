@@ -46,7 +46,7 @@ implemented in the OpenTelemetry Collector, but SDK developers could
 also implement a language specific exporter.
 
 For log data, implementors of a receiver are encouraged to also support
-receiving raw data from a topic. This enables scenarios were
+receiving raw data from a topic. This enables scenarios where
 non-OpenTelemetry log producers can produce a stream of logs, either
 structured or unstructured, on that topic and the receiver wraps the log
 data in a configurable resource.
