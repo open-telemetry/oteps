@@ -57,6 +57,9 @@ experience:
   * a collection of metadata describing each metric.
   * a set of columnar representation for the timestamps, attributes, metric values and examplars (all aligned together).
 
+As multivariate time-series are a superset of univariate time-series, this representation is a generalization of the 
+existing model. 
+
 For backends that natively support mutlivariate time-series, the data will be stored without complex processing. For
 backends that only support univariate time-series, the data stream will be transformed into a collection of univariate time-series. 
 
@@ -73,6 +76,29 @@ The benefits of this columnar representation are:
 ![Multivariate time-series model](multivariate-time-series-model.png)
 
 ## Internal details
+
+The three following approaches have been identified to implement this proposal:
+1. Add the concept of multivariate time-series in addition to the existing metric object defined in the InstrumentationLibraryMetrics
+  message. 
+2. Replace the existing Metric message by a generalized version supporting multivariate time-series represented in a columnar encoding.
+3. Use the structured logs and introduce the concept of schema to support the definition of metrics directly in the logs.
+
+The first option is fully backward compatible with the existing protocol. 
+
+The second option unify the representation of univariate and multivariate time-series at the protocol level. This approach 
+is not backward compatible with the existing protocol.
+
+The third option will require more work, will not leverage the existing metric-oriented processing layer already in place
+to filter and aggregate metrics, and will not simplify the understandability of the Open Telemetry model as metrics will be
+defined in multiple locations. An alternative to this option will be to unify every data (metric, log, trace) to a unique
+internal representation based on the concept of structured event. Although interesting, this option can't easily be 
+introduced at this stage of development of the Open Telemetry protocol without a complex modification of the eco-system.
+
+The selection between option 1 and 2 is a decision to be made on the basis of the changes the community is willing to 
+accept at this level of protocol maturity. The option 2 offers a more unified experience than option 1 and should be 
+preferred if the introduction of incompatible changes are accepted by the community.
+
+
 
 [TBD]
 From a technical perspective, how do you propose accomplishing the proposal? In particular, please explain:
