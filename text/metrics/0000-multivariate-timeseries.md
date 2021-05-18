@@ -20,17 +20,17 @@ form of join computation, ...
 * This transformation enforced by the protocol has also strong implications on the data usage. Each query on a multivariate time-series will
 involve a set of joins. The discoverability of data becomes more complex as every univariate time-series are independent. A data catalog
 will not magically discover these relationships.
-* This transformation involves a lot of redundant informations. All the labels must be redeclared for each univariate time-series. It's
+* **This transformation involves a lot of redundant informations.** All the labels must be redeclared for each univariate time-series. It's
 not only more work for the developer but it's also less efficient. Even with a good compression algorithm, a such transformation will be 
-much more computationally intensive and slightly less efficient in term of compression ratio.
+much more computationally intensive and less efficient in term of compression ratio.
 * This transformation makes simple filtering and aggregation on multivariate time-series much more complex in the OpenTelemetry processor 
 layer. This has the potential to transform stateless processors into statefull/complex processors. For example, a user wants to report
-http transaction where dns-latency + tcp-con-latency + ssl-handshake-latency + content-transfer-latency + server-processing-latency greater
+http transaction where the sum dns-latency + tcp-con-latency + ssl-handshake-latency + content-transfer-latency + server-processing-latency is greater
 than 2s. Defining this expression on a multivariate time-series and implementing it with a processor multivariate compatible will be 
 straightforward and stateless. With a collection of univariate time-series it's a different story at every level and it's not going in
 the direction of a stateless architecture.
 
-By generalizing the existing metric data model we can get rid of all these limitations without adding much complexity to the protocol.
+**By generalizing the existing metric data model we can get rid of all these limitations without adding much complexity to the protocol.**
 We simplify the implementation of multivariate forecasting and anomaly detection mechanisms. We minimize the risk of seing again a new
 telemetry protocol with the only purpose to add a better support for multivariate time-series. Finally, for backends that do not support 
 multivariate time-series, a simple transformation to univariate time-series will be simple to implement in their server-side 
