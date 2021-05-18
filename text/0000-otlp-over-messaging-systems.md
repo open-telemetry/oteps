@@ -95,7 +95,7 @@ using for example the `resourceprocessor`.
 ## Prior art and alternatives
 
 The `kafkareceiver` and `kafkaexporter` already implement this OTLP as
-described in the OpenTelemetry Collector. The description in th OTEP
+described in the OpenTelemetry Collector. The description in the OTEP
 makes both of them compliant without modification. Although it
 doesn't implement the raw logging support but this could be added
 without conflicting with the implementation.
