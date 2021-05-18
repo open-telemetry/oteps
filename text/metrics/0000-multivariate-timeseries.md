@@ -36,7 +36,13 @@ telemetry protocol with the only purpose to add a better support for multivariat
 multivariate time-series, a simple transformation to univariate time-series will be simple to implement in their server-side 
 OpenTelemetry endpoints.
 
-## Explanation [WIP]
+## Explanation
+
+The following diagram provides a 10,000-feet comparison between the existing metric data model and the multivariate metric
+data model proposed in this document. 
+
+![Multivariate time-series metric data model](multivariate_metric_data_model_overview.png)
+
 As stated before the current metric data model supports univariate time-series, so as a user we have:
 * for a specific resource, an instrumentation library that provides a way to report multiple independent metrics,
 * and for each metric, a set of metadata such as name, description, unit and a list of data points with their corresponding attributes. 
