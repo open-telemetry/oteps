@@ -37,22 +37,24 @@ multivariate time-series, a simple transformation to univariate time-series will
 OpenTelemetry endpoints.
 
 ## Explanation [WIP]
-
-Current model:
+As stated before the current metric data model supports univariate time-series:
 * For a specific resource, an instrumentation library provide a way to report multiple independent metrics.
 * For each metric, a name, a description, a unit and a list of data points with their corresponding labels is provided. 
 
-Proposed model:
+In this proposal, we recommend to change the existing protocol as follow:
 * For a specific resource, an instrumentation library provide a way to report a collection of multivariate time-series.
 * For each multivariate time-series:
   * Collection of metadata describing each metric.
   * Columnar representation of timestamps, labels, metric values and examplars (all aligned together).
 
 The benefits of this representation are:
-* Labels and timestamps shared between multiple metrics are no longer duplicated.
-* Processing operations on multivariate time-series are greatly simplified by keeping labels, metric values and examplars aligned with their corresponding timestamps. It becomes straighforward:
-  * to store multivariate timeseries without complex pre-processing in the backend.
-  * to apply filters and transformations on multiple interrelated metrics in the OpenTelemetry processor layer.   
+* Labels (i.e. attributes) and timestamps are shared between multiple metrics and are no longer duplicated.
+* Creation, serialization, compression and deserialization are much more efficient with a columnar representation at the
+  protocol level.
+* Processing operations on multivariate time-series are greatly simplified by keeping labels, metric values and examplars 
+  aligned with their corresponding timestamps. It becomes straighforward to:
+  * store multivariate time-series without complex pre-processing in the backend.
+  * apply filters and transformations on multiple interrelated metrics in the OpenTelemetry processor layer.   
 
 ![Multivariate time-series model](multivariate-time-series-model.png)
 
