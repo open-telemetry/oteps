@@ -37,30 +37,34 @@ multivariate time-series, a simple transformation to univariate time-series will
 OpenTelemetry endpoints.
 
 ## Explanation [WIP]
-As stated before the current metric data model supports univariate time-series:
-* For a specific resource, an instrumentation library provide a way to report multiple independent metrics.
-* For each metric, a name, a description, a unit and a list of data points with their corresponding labels is provided. 
+As stated before the current metric data model supports univariate time-series, so as a user we have:
+* for a specific resource, an instrumentation library that provides a way to report multiple independent metrics,
+* and for each metric, a set of metadata such as name, description, unit and a list of data points with their corresponding attributes. 
 
-In this proposal, we recommend to change the existing protocol as follow:
-* For a specific resource, an instrumentation library provide a way to report a collection of multivariate time-series.
-* For each multivariate time-series:
-  * Collection of metadata describing each metric.
-  * Columnar representation of timestamps, labels, metric values and examplars (all aligned together).
+For resources that natively produce mutlivariate time-series, the user has to transform this time-series into a 
+collection of univariate time-series duplicating the same set of attributes again and again. 
 
-The benefits of this representation are:
-* Labels (i.e. attributes) and timestamps are shared between multiple metrics and are no longer duplicated.
+In this proposal, we recommend to improve the existing protocol and at the same time significantly change the user 
+experience:
+* for a specific resource, an instrumentation library will provide a way to report a collection of multivariate time-series.
+* for each multivariate time-series, the user will be able to define:
+  * a collection of metadata describing each metric.
+  * a set of columnar representation for the timestamps, attributes, metric values and examplars (all aligned together).
+
+For backends that natively support mutlivariate time-series, the data will be stored without complex processing. For
+backends that only support univariate time-series, the data stream will be transformed into a collection of univariate time-series. 
+
+The benefits of this columnar representation are:
+* Attributes and timestamps are shared between multiple metrics and are no longer duplicated.
 * Creation, serialization, compression and deserialization are much more efficient with a columnar representation at the
-  protocol level.
-* Processing operations on multivariate time-series are greatly simplified by keeping labels, metric values and examplars 
-  aligned with their corresponding timestamps. It becomes straighforward to:
+  protocol level (see benchmark results).
+* Processing operations on multivariate time-series are greatly simplified by keeping attributes, 
+  metric values and examplars aligned with their corresponding timestamps. It becomes straightforward to:
   * store multivariate time-series without complex pre-processing in the backend.
   * apply filters and transformations on multiple interrelated metrics in the OpenTelemetry processor layer.   
 
+**TODO UPDATE THIS DIAGRAM**
 ![Multivariate time-series model](multivariate-time-series-model.png)
-
-Explain the proposed change as though it was already implemented and you were explaining it to a user. Depending on which layer the proposal addresses, the "user" may vary, or there may even be multiple.
-
-We encourage you to use examples, diagrams, or whatever else makes the most sense!
 
 ## Internal details
 
