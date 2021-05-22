@@ -195,9 +195,9 @@ negative sampling decision is made, as the child needs it to calculate
 a conditional probability for its own sampling decision.
 
 The specific details of this approach are considered out-of-scope for
-this text, however the result is an adjusted count on every span
+this text, however the result is an adjusted count on every span,
 making it easy for consumers to compute metrics from a stream of
-sampled spans without having to assemble compelte traces first.
+sampled spans without having to assemble complete traces first.
 
 ### Example: Statsd metrics
 
