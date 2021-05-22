@@ -24,7 +24,7 @@ scenarios in which sampling is common.
 2. _Histogram events:_ Each event represents an individual variable, signifying new membership in a distribution.
 
 A Tracing Span event qualifies as both of these cases simultaneously.
-It is a Counter event (of 1 span) and at lesat one Histogram event
+It is a Counter event (of 1 span) and at least one Histogram event
 (e.g., one of latency, one of request size).
 
 In Metrics, [Statsd Counter and Histogram events meet this definition](https://github.com/statsd/statsd/blob/master/docs/metric_types.md#sampling).
@@ -94,7 +94,7 @@ _adjusted count_.
 - _Adjusted count_ is the reciprocal of its inclusion probability, otherwise.
 
 The adjusted count of an event represents the expected contribution to
-the estimated population total of a sample framer represented by the
+the estimated population total of a sample frame represented by the
 individual event.  As stated, the sample event's adjusted count is
 easily derived from the Horvitz-Thompson estimator of the population
 total, a general-purpose statistical estimator that applies to all
@@ -118,7 +118,7 @@ on the circumstances and the protocol, briefly discussed:
 1. Encode the adjusted count directly as a floating point or integer number in the range [0, +Inf).  This is a conceptually easy way to understand sampling because larger numbers mean greater representivity.
 2. Encode the inclusion probability directly as a floating point number in the range [0, 1).  This is typical of the Statsd format, where each line includes an optional probability.  In this context, the probability is commonly referred to as a "sampling rate".  In this case, smaller numbers mean greater representivity.
 3. Encode the negative of the base-2 logarithm of inclusion probability.  This restricts inclusion probabilities to powers of two and allows the use of small non-negative integers to encode power-of-two adjusted counts.
-4. Fold the adjusted count into the data.  This is appropriate when the data itself carries counts, such as for OTLP Metrics Sum and Histogram points encoded using delta aggregation temporality.  This may lead to rounding errors, when adjusted counts are not integer valued.
+4. Multiply the adjusted count into the data.  This is appropriate when the data itself carries counts, such as for OTLP Metrics Sum and Histogram points encoded using delta aggregation temporality.  This technique is less desireable because while it preserves the expected value of the count or sum, the data loses information about variance.  This may also lead to rounding errors, when adjusted counts are not integer valued. 
 
 This is not an exhaustive list of approaches.  All of these techniques
 are considered appropriate.
@@ -132,52 +132,32 @@ as being distinct from a raw event where no sampling took place.
 
 An adjusted count of zero indicates an event that was recorded, where
 according to the sampling design its inclusion probability is zero.
-These events are may be included in a stream of sampled events as
-auxiliary information, and consu
 
 Recording events with zero adjusted count are a useful way to record
 auxiliary information while sampling, events that are considered
 interesting but which are accounted for by the adjusted count of other
 events in the same stream.
 
-Consider a span sampling design that applies a sampling decision only
-to the roots of a trace.  Non-root spans must be recorded when their
-parent span is selected for a sample.  For a class of spans that
-sometimes are and sometimes are not the root of a trace, we have three
-outcomes:
-
-1. Span is part of another trace: adjusted count is zero
-2. Span is a root, was selected for the sample: adjusted count is non-zero
-3. Span is a root, was not selected for the sample: not recorded.
-
 ### Sampling with attributes
 
 Sampling is a powerful approach when used with event data that has
 been annotated with key-value attributes and sampled with an unbiased
-design.  It is possible to select arbitrary subsets use those subsets
-to estimate the count of arbitrary subsets of the population.
+design.
 
-This application for sample data is prescribed by the statement above,
-"Every sample event is representative for adjusted count many copies
-of itself."  It relies on the use of an unbiased sampling design.
+Because an individual item is considered representative for _adjusted
+count_ many copies of itself, it is possible to select arbitrary
+subsets from a sample to estimate the count of arbitrary subsets of
+the population.
+
 Readers are referred to [recommended reading](#recommended-reading)
-for more resources on sampling with attributes.
+for more resources on sampling with attributes.  To summarize, there
+is a widely applicable procedure for sampling telemetry data from a
+population:
 
-### Summary: a general technique
-
-Sampling is a powerful approach when used with event data that has
-been annotated with key-value attributes.  It is possible to select
-arbitrary subsets of the sampled data and use each to estimate the count
-of arbitrary subsets of the population.
-
-To summarize, there is a widely applicable procedure for sampling
-telemetry data from a population:
-
-- describe how to map telemetry events into discrete frames
-- use an unbiased sampling design to select events
-- encode the adjusted count or inclusion probability in the recorded events
-- apply a predicate to events in the sample to select a subset of events
-- sum the adjusted counts of the subset to estimate the sub-population total.
+- use an unbiased sampling algorithm
+- encode the adjusted count or inclusion probability in or alongside sampled events
+- apply a predicate to events in the sample to select a subset
+- sum the adjusted counts in the subset to estimate the sub-population total.
 
 Applied correctly, this approach provides accurate estimates for
 population counts and distributions with support for ad-hoc queries
@@ -186,7 +166,7 @@ over the data.
 ### Changes proposed
 
 This OTEP proposes no formal changes in the OpenTelemetry
-specitication.  It is meant to lay a foundation for importing sampled
+specification.  It is meant to lay a foundation for importing sampled
 telemetry events from other systems as well as to begin specifying how
 OpenTelemetry SDKs that use probabilistic `Sampler` implementations
 should convey inclusion probability and how consumers of this
@@ -198,14 +178,26 @@ Google's [Dapper](https://research.google/pubs/pub36356/) tracing
 system describes the use of sampling to control the cost of trace
 collection at scale.
 
-The paper spends little time talking about Dapper's specific approach
-to sampling, which evolved over time.  Dapper made use of tracing
-context, similar to OpenTelemetry Baggage, to convey the probability
-that the current trace was selected for sampling.  This allowed each
-node in the trace to make an independent decision to begin sampling
-with themselves as a new root.  This technique can ensure a minimum
-rate of traces being started by every node in the system, however this
-is not described by the Dapper paper.
+Dapper's used a sampling approach where:
+
+- Root nodes in a trace use simple random sampling to decide to trace at the root
+- Propagate the tracing decision the inclusion probability into child contexts
+- Allow child contexts to boost the sampling probability of their sub-rooted trace.
+
+Allowing contexts to boost sampling probability addresses a scenario
+where a high-throughput service that sampled with low probabiliy
+rarely calls another, low-throughput service.  For the low-throughput
+service to record a sufficient number of traces, it has to increase
+its own odds of sampling.
+
+This requires propagating the inclusion probability used when a
+negative sampling decision is made, as the child needs it to calculate
+a conditional probability for its own sampling decision.
+
+The specific details of this approach are considered out-of-scope for
+this text, however the result is an adjusted count on every span
+making it easy for consumers to compute metrics from a stream of
+sampled spans without having to assemble compelte traces first.
 
 ### Example: Statsd metrics
 
