@@ -1,17 +1,18 @@
 # Configuration of Dynamic Span Creation vs Propagation
 
-Add the ability for operators to dynamically configure whether instrumentation creates additional spans or simply propagates external spans.
+Add the ability for operators to dynamically configure the level of detail at which instrumentation creates new spans or simply propagates external spans.
 
 ## Motivation
 
 The research on distributed tracing is extensive, and many proposals have been made to find a tradeoff between the performance impact of tracing and the expressiveness it delivers.
 The current approach to reducing the performance impact of tracing seems to center around sampling strategies.
 Operators either choose a static sampling rate, or may use adaptive sampling that changes depending on the amount of traffic their system receives.
+Yet other sampling strategies may analyze traces after they have been generated to determine whether to retain them, such as to retain erroneous or anomalous traces specifically.
 
 Sampling, however, has a number of disadvantages as we see it:
 
-- When sampling decisions do not take contextual information into account, we may inadvertently drop traces about interesting error or corner cases
-- The longer the sampling decision is postponed, the less benefit it provides in terms of a reduced performance impact
+- When sampling decisions do not take contextual information into account, we may inadvertently drop traces about interesting error or corner cases.
+- The longer the sampling decision is delayed, the less benefit it provides in terms of a reduced performance impact.
 
 We propose an additional feature of OpenTelemetry, where instrumentation libraries can be configured, at runtime, to provide dynamic expressiveness of generated traces.
 The motivation is that during normal operation, the system generates spans at a coarse level of detail.
@@ -19,15 +20,19 @@ In crisis situations, operators can configure the system to generate traces at a
 This will ensure a minimal performance impact in day-to-day operations, while an increased performance impact can be accepted for short periods of time during crises.
 This is not unlike how logs are specified at various levels of detail, such as DEBUG, INFO, WARN, and ERROR.
 
-We base this motivation on a number of piror observations:
+We base this motivation on a number of observations:
 
-- [In his Master's Thesis, Carosi](https://www.semanticscholar.org/paper/Protractor%3A-Leveraging-distributed-tracing-in-for-Carosi/708e776d9440abd56006a312168773fdc1ed9667) evaluates the performance impact on tracing applications with service meshes, and finds that the performance impact (in terms of response times) is negligible.
-- In our own work, we have measured response time overheads of up to 70% when blindly instrumenting all services in a microservice application with OpenTelemetry agents (mind you, these are simple services). The impact is negligible when strongly sampling requests.
+- In our own work, we have evaluated OpenTelemetry agents with practitioners from two large companies that both operate distributed systems with millions of daily transactions. Upon experiencing the quantity of spans generated, in particular by instrumentation agents and dependency injection strategies, they have expressed a concern with regards to network overhead and data storage. While sampling is a possible remedy, the use cases of our industry partners are such that detailed trace collection is extremely useful only in rare cases, while for the most part they would rather settle on more coarse traces.
 - The approach to dynamically adapting the expressiveness of traces has been touched upon in research papers, including [Mace](https://dl.acm.org/doi/10.1145/2815400.2815415), [Castanheira](https://dl.acm.org/doi/10.1145/3426746.3434058), and [Sambasivan](https://dl.acm.org/doi/10.1145/2987550.2987568).
+
+We believe that the ability to dynamically adapt the expressiveness of traces can be beneficial for the following reasons:
+
+- In our own work, we have measured response time overheads of up to 70% when blanket instrumenting services in a microservice application with OpenTelemetry agents (mind you, these are simple services). The impact is negligible when strongly sampling requests. This indicates that the performance overhead of dormant instrumentation should not impact existing data centers, while a performance hit can be accepted for short periods of time in crisis situations.
+- [In his Master's Thesis, Carosi](https://www.semanticscholar.org/paper/Protractor%3A-Leveraging-distributed-tracing-in-for-Carosi/708e776d9440abd56006a312168773fdc1ed9667) evaluates the performance impact on tracing applications with service meshes, and finds that the performance impact (in terms of response times) is negligible. For this reason, service meshes can be relied upon for day-to-day tracing at a coarse granularity, while otherwise dormant instrumentation libraries can be activated at need to generate traces at a higher level of detail.
 
 We hope that as OpenTelemetry continues to evolve and is implemented in a growing set of libraries, that it will be possible for operators to dynamically activate and deactivate trace points without requiring recompilation of applications or restarting services.
 
-This proposal will further benefit applications deployed in infrastructures that already provide tracing at an infrastructure level.
+As mentioned above, this proposal will further benefit applications deployed on platforms that already provide tracing at an infrastructure level.
 Such examples are seen in the development of Envoy and various gateways, which already attach trace and span IDs to requests.
 For many situations, the level of detail provided by Envoy is sufficient for correlating activities in microservice applications.
 In this case, OpenTelemetry libraries could operate in a "dormant" state where no additional spans are created by the application instrumentation or any libraries it uses.
