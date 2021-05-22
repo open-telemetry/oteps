@@ -118,7 +118,7 @@ on the circumstances and the protocol, briefly discussed:
 1. Encode the adjusted count directly as a floating point or integer number in the range [0, +Inf).  This is a conceptually easy way to understand sampling because larger numbers mean greater representivity.
 2. Encode the inclusion probability directly as a floating point number in the range [0, 1).  This is typical of the Statsd format, where each line includes an optional probability.  In this context, the probability is commonly referred to as a "sampling rate".  In this case, smaller numbers mean greater representivity.
 3. Encode the negative of the base-2 logarithm of inclusion probability.  This restricts inclusion probabilities to powers of two and allows the use of small non-negative integers to encode power-of-two adjusted counts.
-4. Multiply the adjusted count into the data.  This is appropriate when the data itself carries counts, such as for OTLP Metrics Sum and Histogram points encoded using delta aggregation temporality.  This technique is less desireable because while it preserves the expected value of the count or sum, the data loses information about variance.  This may also lead to rounding errors, when adjusted counts are not integer valued. 
+4. Multiply the adjusted count into the data.  This is appropriate when the data itself carries counts, such as for OTLP Metrics Sum and Histogram points encoded using delta aggregation temporality.  This technique is less desirable because while it preserves the expected value of the count or sum, the data loses information about variance.  This may also lead to rounding errors, when adjusted counts are not integer valued.
 
 This is not an exhaustive list of approaches.  All of these techniques
 are considered appropriate.
@@ -185,7 +185,7 @@ Dapper's used a sampling approach where:
 - Allow child contexts to boost the sampling probability of their sub-rooted trace.
 
 Allowing contexts to boost sampling probability addresses a scenario
-where a high-throughput service that sampled with low probabiliy
+where a high-throughput service that sampled with low probability
 rarely calls another, low-throughput service.  For the low-throughput
 service to record a sufficient number of traces, it has to increase
 its own odds of sampling.
