@@ -21,7 +21,7 @@ In order for a component to be included into Registry its authors have to fill a
 The registry should allow a clear visibility of component's ownership, quality and compatibility with other OpenTelemetry components.
 
 A component can be removed from the Registry if any declaration from the self-assessment form is violated and not remedied
-in a timely manner, provisionally one or two weeks.
+in a timely manner, provisionally three or four weeks.
 
 ## Internal details
 
