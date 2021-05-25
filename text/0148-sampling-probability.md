@@ -6,12 +6,18 @@ Specify a foundation for sampling techniques in OpenTelemetry.
 
 In tracing, metrics, and logs, there are widely known techniques for
 sampling a stream of events that, when performed correctly, enable
-collecting a tiny fraction of data while maintaining substantial
-visibility into the whole population of events described by the data.
+collecting a tiny fraction of the complete data while maintaining
+substantial visibility into the whole population of events.
 
-While sampling techniques vary, it is possible specify high-level
+These techniques are all forms of approximate counting.  Estimates
+calculated by the forms of sampling outlined here are considered
+accurate, they are random variables with an expected value equal to
+the true value.  With sampling we expected to introduce variance,
+which can be compensated for with a sufficient quantity of data.
+
+While sampling techniques vary, it is possible to specify high-level
 interoperability requirements that producers and consumers of sampled
-data may follow to enable a wide range of sampling designs.
+data can follow to enable a wide range of sampling designs.
 
 ## Explanation
 
