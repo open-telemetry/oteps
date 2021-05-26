@@ -50,7 +50,8 @@ individual events at an API boundary are sampled for collection.
 
 In sampling, the term _sampling design_ refers to how sampling
 probability is decided for a collection process and the term _sample
-frame_ refers to how events are organized into discrete populations.
+frame_ refers to how events are organized into discrete populations
+(e.g., a window in time, a particular span or metric name).
 
 After executing a sampling design over a frame, each item selected in
 the sample will have known _inclusion probability_, that determines
@@ -82,10 +83,10 @@ non-zero inclusion probability.  There are several other quantities of
 interest, after calculating a sample from a sample frame.
 
 - *Sample size*: the number of events with non-zero inclusion probability
-- *True population total*: the exact number of events in the frame
-- *Estimated population total*: the estimated number of events in the frame
+- *True population total*: the exact number of events in the frame, which may be unknown
+- *Estimated population total*: the estimated number of events in the frame, which is computed from the same.
 
-The sample size is known after it is calculated, but the size may or
+The sample size is always known after it is calculated, but the size may or
 may not be known ahead of time, depending on the design.  The true
 population total cannot be inferred directly from the sample, but can
 (sometimes) be counted separately.  The estimated population total is
@@ -139,10 +140,10 @@ as being distinct from a raw event where no sampling took place.
 An adjusted count of zero indicates an event that was recorded, where
 according to the sampling design its inclusion probability is zero.
 
-Recording events with zero adjusted count are a useful way to record
-auxiliary information while sampling, events that are considered
+Recording events with zero adjusted count is considered a useful way to record
+auxiliary information while sampling, for example, to encode events that are considered
 interesting but which are accounted for by the adjusted count of other
-events in the same stream.
+events in the same stream.  
 
 ### Sampling with attributes
 
