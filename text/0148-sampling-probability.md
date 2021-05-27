@@ -6,14 +6,13 @@ Specify a foundation for sampling techniques in OpenTelemetry.
 
 In tracing, metrics, and logs, there are widely known techniques for
 sampling a stream of events that, when performed correctly, enable
-collecting a tiny fraction of the complete data while maintaining
+collecting a fraction of the complete data while maintaining
 substantial visibility into the whole population of events.
 
 These techniques are all forms of approximate counting.  Estimates
 calculated by the forms of sampling outlined here are considered
-accurate, they are random variables with an expected value equal to
-the true value.  With sampling we expected to introduce variance,
-which can be compensated for with a sufficient quantity of data.
+accurate, in that they are random variables with an expected value
+equal to the true count.  With enough observations, 
 
 While sampling techniques vary, it is possible to specify high-level
 interoperability requirements that producers and consumers of sampled
@@ -36,12 +35,8 @@ It is a Counter event (of 1 span) and at least one Histogram event
 In Metrics, [Statsd Counter and Histogram events meet this definition](https://github.com/statsd/statsd/blob/master/docs/metric_types.md#sampling).
 
 In both cases, the goal in sampling is to estimate something about the
-population of all events, using only the events that were chosen in
-the sample.  Sampling theory defines various _sampling estimators_,
-algorithms for calculating statistics about the population using just
-the sample data.  For the broad class of telemetry sampling
-application considered here, we need an estimator for the population
-total represented by each individual event.
+population, meaning all the events, using only the events that were
+selected in the sample.
 
 ### Model and terminology
 
@@ -49,14 +44,16 @@ This model is meant to apply in telemetry collection situations where
 individual events at an API boundary are sampled for collection.
 
 In sampling, the term _sampling design_ refers to how sampling
-probability is decided for a collection process and the term _sample
-frame_ refers to how events are organized into discrete populations
-(e.g., a window in time, a particular span or metric name).
+probability is decided and the term _sample frame_ refers to how
+events are organized into discrete populations.  
+
+For example, a simple design uses uniform probability, and a simple
+framing technique is to collect one sample per distinct span name.
 
 After executing a sampling design over a frame, each item selected in
 the sample will have known _inclusion probability_, that determines
-how likely it was to be selected.  Implicitly, all the items that were
-not selected for the sample have zero inclusion probability.
+how likely the item was to be selected.  Implicitly, all the items
+that were not selected for the sample have zero inclusion probability.
 
 Descriptive words that are often used to describe sampling designs:
 
@@ -70,14 +67,16 @@ Our goal is to support flexibility in choosing sampling designs for
 producers of telemetry data, while allowing consumers of sampled
 telemetry data to be agnostic to the sampling design used.
 
-We are interested in the common case for telemetry collection, where
+### Sampling without replacement
+
+We are interested in the common case in telemetry collection, where
 sampling is performed while processing a stream of events and each
 event is considered just once.  Sampling designs of this form are
 referred to as _sampling without replacement_.  Unless stated
 otherwise, "sampling" in telemetry collection always refers to
 sampling without replacement.
 
-After executing a given sampling design over complete frame of data,
+After executing a given sampling design over a complete frame of data,
 the result is a set of selected sample events, each having known and
 non-zero inclusion probability.  There are several other quantities of
 interest, after calculating a sample from a sample frame.
@@ -86,11 +85,10 @@ interest, after calculating a sample from a sample frame.
 - *True population total*: the exact number of events in the frame, which may be unknown
 - *Estimated population total*: the estimated number of events in the frame, which is computed from the same.
 
-The sample size is always known after it is calculated, but the size may or
-may not be known ahead of time, depending on the design.  The true
-population total cannot be inferred directly from the sample, but can
-(sometimes) be counted separately.  The estimated population total is
-the expected value of the true population total.
+The sample size is always known after it is calculated, but the size
+may or may not be known ahead of time, depending on the design.
+Probabilistic sampling schemes require that the estimated population
+total equals the expected value of the true population total.
 
 ### Adjusted sample count
 
@@ -102,10 +100,16 @@ _adjusted count_.
 
 The adjusted count of an event represents the expected contribution to
 the estimated population total of a sample frame represented by the
-individual event.  As stated, the sample event's adjusted count is
-easily derived from the Horvitz-Thompson estimator of the population
-total, a general-purpose statistical estimator that applies to all
-_without replacement_ sampling designs.
+individual event.
+
+The use of a reciprocal inclusion probability matches our intuition
+for probabilities.  Items selected with "one-out-of-N" probability of
+inclusion count for N each, approximately speaking.
+
+This intuition is backed up with statistics.  This equation is known
+as the Horvitz-Thompson estimator of the population total, a
+general-purpose statistical "estimator" that applies to all _without
+replacement_ sampling designs.
 
 Assuming sample data is correctly computed, the consumer of sample
 data can treat every sample event as though an identical copy of
@@ -116,6 +120,28 @@ There is one essential requirement for this to work.  The selection
 procedure must be _statistically unbiased_, a term meaning that the
 process is required to give equal consideration to all possible
 outcomes.
+
+### Introducing variance
+
+The use of unbiased sampling outlined above makes it possible to
+estimate the population total for arbitrary subsets of the sample, as
+every individual sample has been independently assigned an adjusted
+count.
+
+There is a natural relationship between statistical bias and variance.
+Approximate counting comes with variance, a matter of fact which can
+be controlled for by the sample size.  Variance is unavoidable in an
+unbiased sample, but it vanishes when you have enough data.
+
+Although this makes it sounds like small sample sizes are a problem,
+due to expected high variance, this is just a limitation of the
+technique.  When variance is high, use a larger sample size.
+
+An easy approach for lowering variance is to aggregate sample frames
+together across time.  For example, although the estimates drawn from
+a one-minute sample may have high variance, combining an hour of
+one-minute sample frames into an aggregate data set is guaranteed to
+lower variance.  It must, because it remains unbiased.
 
 ### Encoding inclusion probability
 
