@@ -189,7 +189,7 @@ expected value of the count or sum, the data loses information about
 variance.  This may also lead to rounding errors, when adjusted counts
 are not integer valued.
 
-### Tracing considerations
+### Tracing Samplers
 
 In tracing specifically, a number of additional concerns arise which
 deserve special treatment.  Often, the primary concern when sampling
@@ -305,14 +305,14 @@ decision is true or false, propagate the inflationary probability `I`
 as the new parent context sampling probability.  If the decision is
 true, begin sampling a sub-rooted trace with adjusted count `1/I`.
 
-According to current accounts, this Sampler is no longer used at
+According to current statements, this Sampler is no longer used at
 Google.
 
 ### Non-Tracing applications
 
-TODO: sampling for just spans or metrics, logs
-TODO: weighted sampling
-TODO: tail sampling
+TODO: Counting spans is critical. Want this done before trace assembly.
+
+TODO: Sampling for just spans or metrics, logs.
 
 #### StatsD metric events
 
