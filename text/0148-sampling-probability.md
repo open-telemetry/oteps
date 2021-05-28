@@ -239,8 +239,8 @@ minimum Sampler probability across traces to ensure they are complete.
 
 Google's [Dapper](https://research.google/pubs/pub36356/) tracing
 system describes the use of sampling to control the cost of trace
-collection at scale.  Dapper's early Sampler algorithms, referred to
-as "inflationary" approach (although not published in the paper), is
+collection at scale.  Dapper's early Sampler algorithm, referred to as
+an "inflationary" approach (although not published in the paper), is
 reproduced here.
 
 This kind of Sampler allows non-root spans in a trace to raise the
