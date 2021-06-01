@@ -67,7 +67,7 @@ Our goal is to support flexibility in choosing sampling designs for
 producers of telemetry data, while allowing consumers of sampled
 telemetry data to be agnostic to the sampling design used.
 
-### Sampling without replacement
+#### Sampling without replacement
 
 We are interested in the common case in telemetry collection, where
 sampling is performed while processing a stream of events and each
@@ -90,7 +90,7 @@ may or may not be known ahead of time, depending on the design.
 Probabilistic sampling schemes require that the estimated population
 total equals the expected value of the true population total.
 
-### Adjusted sample count
+#### Adjusted sample count
 
 Following the model above, every event defines the notion of an
 _adjusted count_.
@@ -121,7 +121,7 @@ procedure must be _statistically unbiased_, a term meaning that the
 process is required to give equal consideration to all possible
 outcomes.
 
-### Introducing variance
+#### Introducing variance
 
 The use of unbiased sampling outlined above makes it possible to
 estimate the population total for arbitrary subsets of the sample, as
@@ -189,12 +189,30 @@ expected value of the count or sum, the data loses information about
 variance.  This may also lead to rounding errors, when adjusted counts
 are not integer valued.
 
-### Tracing Samplers
+### Trace Sampling
 
-In tracing specifically, a number of additional concerns arise which
-deserve special treatment.  Often, the primary concern when sampling
-traces is to ensure that traces are complete, meaning that all spans
-in the graph of parent-child relationships have been collected.
+Sampling techniques are always about lowering the cost of data
+collection and analsyis, but in tracing applications specifically the
+approaches can be categorized by whether they are able to reduce
+tracer (i.e., SDK) overhead, by not recording spans for unsampled
+traces.  Lowering tracer overhead requires making the sampling
+decision for a trace before all of its attributes are known.
+
+For a trace to be useful, it is often expected to be complete, meaning
+that a tree of spans branching from a certain root are all expected to
+be collected.  When sampling is applied to lower tracer overhead
+sampling, the expectation of collecting complete traces what can be
+done.  Sampling techniques that meet these constraints are
+collectively known as _Head trace sampling_.
+
+The decision to produce a span or a trace has to be made when the root
+span starts to avoid incomplete traces.  We can approximately count
+finished spans and traces, however, without knowing how the head trace
+sampling decision was made.  Sampled spans represent their adjusted
+count number of identical spans and traces, independent of whether the
+traces were complete, as long as they are selected in an unbiased way.
+
+Several head sampling techniques are outlined next.
 
 #### `Parent` Sampler
 
@@ -308,7 +326,7 @@ true, begin sampling a sub-rooted trace with adjusted count `1/I`.
 According to current statements, this Sampler is no longer used at
 Google.
 
-### Non-Tracing applications
+### Tail sampling
 
 TODO: Counting spans is critical. Want this done before trace assembly.
 
