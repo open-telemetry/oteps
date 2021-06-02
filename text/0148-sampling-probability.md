@@ -192,27 +192,51 @@ are not integer valued.
 ### Trace Sampling
 
 Sampling techniques are always about lowering the cost of data
-collection and analsyis, but in tracing applications specifically the
-approaches can be categorized by whether they are able to reduce
-tracer (i.e., SDK) overhead, by not recording spans for unsampled
-traces.  Lowering tracer overhead requires making the sampling
+collection and analsyis, but in trace collection and analsysis
+specifically the approaches can be categorized by whether they are
+able to reduce Tracer overhead by not recording spans for unsampled
+traces.  Lowering Tracer overhead requires making the sampling
 decision for a trace before all of its attributes are known.
 
-For a trace to be useful, it is often expected to be complete, meaning
-that a tree of spans branching from a certain root are all expected to
-be collected.  When sampling is applied to lower tracer overhead
-sampling, the expectation of collecting complete traces what can be
-done.  Sampling techniques that meet these constraints are
-collectively known as _Head trace sampling_.
+Traces are expected to be complete, meaning that a tree or sub-tree of
+spans branching from a certain root are expected to be fully
+collected.  When sampling is applied to lower Tracer overhead, there
+is generally an expectation that complete traces will be produced.
+Sampling techniques that lower Tracer overhead and produce complete
+traces are known as _Head trace sampling_ techniques.
 
-The decision to produce a span or a trace has to be made when the root
-span starts to avoid incomplete traces.  We can approximately count
-finished spans and traces, however, without knowing how the head trace
-sampling decision was made.  Sampled spans represent their adjusted
-count number of identical spans and traces, independent of whether the
-traces were complete, as long as they are selected in an unbiased way.
+The decision to produce and collect a sample trace has to be made when
+the root span starts, to avoid incomplete traces.  Using the sampling
+techniques outlined above, we can approximately count finished spans
+and traces, even without knowing how the head trace sampling decision
+was made.
 
-Several head sampling techniques are outlined next.
+#### Counting spans and traces
+
+Trace collection systems can estimate the total count of spans in the
+population using a sample of spans, whether or not traces are
+assembled, simply by encoding the adjusted count (or inclusion
+probability) in every sampled span.
+
+When counting sample spans, every span stands for a trace rooted at
+itself, and so when we approximately count spans we are also
+approximately counting traces rooted in those spans.  Sampled spans
+represent an adjusted count of identical spans in the population,
+regardless of whether complete traces are being collected
+for every span.
+
+Stated as a requirement: When sampling, tracing systems must be able
+to count spans without assembling traces first.  Several head sampling
+techniques are discussed in the following sections that meet all the
+criteria:
+
+- Reduces Tracer overhead
+- Produces complete traces
+- Supports counting spans.
+
+When using a Head sampling technique that meets these criteria,
+tracing collection systems are able to then sample from the set of
+complete traces in order to further reduce collection costs.
 
 #### `Parent` Sampler
 
@@ -224,7 +248,14 @@ root tracing decision.
 
 The `Parent` Sampler ensures complete traces, provided all spans are
 successfully recorded.  A downside of `Parent` sampling is that it
-takes away control of Tracer overhead from non-roots in the trace.
+takes away control of Tracer overhead from non-roots in the trace and,
+to support counting, requires propagating the inclusion probability in
+the W3C `tracestate` field (require a semantic convention).
+
+To count Parent-sampled spans, each span must directly encode its
+adjusted count (or inclusion probability) in the corresponding
+`SpanData`.  This may use a non-descriptive Resource or Span
+attribute named `sampling.parent.adjusted_count`, for example.
 
 #### `TraceIDRatio` Sampler
 
@@ -234,7 +265,7 @@ decision based on the TraceID.  This Sampler was not finished before
 the OpenTelemetry version 1.0 specification was released; it was left
 in place, with [a TODO and the recommendation to use it only for trace
 roots](https://github.com/open-telemetry/opentelemetry-specification/issues/1413).
-[OTEP 135 proposed a solution]()
+[OTEP 135 proposed a solution](https://github.com/open-telemetry/oteps/pull/135).
 
 The goal of the `TraceIDRatio` Sampler is to coordinate the tracing
 decision, but give each service control over Tracer overhead.  Each
@@ -253,6 +284,11 @@ span](https://github.com/open-telemetry/opentelemetry-specification/issues/355).
 Lacking the number of expected children, we require a way to know the
 minimum Sampler probability across traces to ensure they are complete.
 
+To count TraceIDRatio-sampled spans, each span must encode its
+adjusted count (or inclusion probability) in the corresponding
+`SpanData`.  This may use a non-descriptive Resource or Span attribute
+named `sampling.traceidratio.adjusted_count`, for example.
+
 #### Dapper's "Inflationary" Sampler
 
 Google's [Dapper](https://research.google/pubs/pub36356/) tracing
@@ -270,9 +306,10 @@ low-throughput service.  Low-throughput services are meant to inflate
 their sampling probability.
 
 The use of this technique requires propagating the inclusion
-probability of the incoming Context and whether it was sampled, in
-order to calculate the probability of starting to sample a new
-"sub-root" in the trace.
+probability of the incoming Context and whether it was sampled (using
+the W3C `tracestate`, as for counting spans sampled by a Parent
+sampler), in order to calculate the probability of starting to sample
+a new "sub-root" in the trace.
 
 Using standard notation for conditional probability, `P(x)` indicates
 the probability of `x` being true, and `P(x|y)` indicates the
@@ -322,11 +359,10 @@ Now the Sampler makes a decision with probability `D`.  Whether the
 decision is true or false, propagate the inflationary probability `I`
 as the new parent context sampling probability.  If the decision is
 true, begin sampling a sub-rooted trace with adjusted count `1/I`.
+This may use a non-descriptive Resource or Span attribute named
+`sampling.inflationary.adjusted_count`, for example.
 
-According to current statements, this Sampler is no longer used at
-Google.
-
-### Tail sampling
+### Event sampling
 
 TODO: Counting spans is critical. Want this done before trace assembly.
 
