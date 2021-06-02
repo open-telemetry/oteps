@@ -362,11 +362,13 @@ true, begin sampling a sub-rooted trace with adjusted count `1/I`.
 This may use a non-descriptive Resource or Span attribute named
 `sampling.inflationary.adjusted_count`, for example.
 
-### Event sampling
+### Telemetry event sampling
 
-TODO: Counting spans is critical. Want this done before trace assembly.
+Head sampling for traces has been discussed above, now we turn our
+attention to sampling arbitrary telemetry events, including metric and
+log events, finished spans, and complete traces.
 
-TODO: Sampling for just spans or metrics, logs.
+TODO:
 
 #### StatsD metric events
 
