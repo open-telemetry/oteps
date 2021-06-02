@@ -12,7 +12,7 @@ substantial visibility into the whole population of events.
 These techniques are all forms of approximate counting.  Estimates
 calculated by the forms of sampling outlined here are considered
 accurate, in that they are random variables with an expected value
-equal to the true count.  With enough observations, 
+equal to the true count.
 
 While sampling techniques vary, it is possible to specify high-level
 interoperability requirements that producers and consumers of sampled
