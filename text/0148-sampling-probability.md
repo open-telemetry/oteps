@@ -384,7 +384,24 @@ count (or inclusion probability) with each event.
 
 #### Simple sampling
 
-TODO
+Simple sampling means including an event in the sample with inclusion
+probability known in advance.  The probability can be fixed or vary
+based on properties of the event such as a span and metric name or
+attribute values.  The adjusted count of each telemetry event is the
+reciprocal of the inclusion probability used.
+
+Users may wish to configure different sampling probabilities for
+events of varying importance.  For example, an events with a
+boolean-valued `error` attribute can be sampled at 100% when
+`error=true` and at 1% when `error=false`.  In this case, `error=true`
+events have adjusted count equal to 1 and `error=false` events have
+adjusted count equal to 100.
+
+Simple sampling can be applied repeatedly, simply by multiplying the
+new adjusted count or inclusion probability into the existinhg
+adjusted count or inclusion probability.  An event sampled with
+probability 0.5 that is sampled again with probability 0.5 has an
+inclusion probability of 0.25 and an adjusted count of 4.
 
 #### Weighted sampling
 
