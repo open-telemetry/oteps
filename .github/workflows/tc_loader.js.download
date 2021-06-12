@@ -1,0 +1,303 @@
+
+
+
+// Cookie-reading function
+function readCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}   
+
+var tc_vars = {
+                siteCategory : wa_data.siteCategory,
+                environment : "PROD",
+                siteType : wa_data.siteType,
+                siteName : "UplayStore",
+                pageName : wa_data.pageName,
+                siteSection : wa_data.siteSection,
+                siteSubSection : wa_data.siteSubSection,
+                country : wa_data.country,
+                language : wa_data.language,
+                geocountry : wa_data.geocountry,
+                template : wa_data.template,
+                doNotTrack : window.navigator.doNotTrack,
+                genomeID : wa_data.genomeID,
+                mdmBID : wa_data.brandID, 
+                mdmIID : wa_data.gameID,
+                game : wa_data.game,
+                brand : wa_data.brand,
+                uplayID : wa_data.uplayID,
+                uplayPlus : wa_data.uplayPlus,
+                subscriptionType : wa_data.subscriptionType,
+                subscriptionDate : wa_data.subscriptionDate,
+                customerSegmentation : wa_data.customerSegmentation,
+                productType : wa_data.productType,
+                searchKeyWord :wa_data.searchKeyword,
+                totalResults :wa_data.searchResultsNumber,
+                errortype : wa_data.errorType,
+                currency : wa_data.currency,
+                freeOfferOperation: wa_data.freeOfferOperation,
+                freeOfferGame: wa_data.freeOfferGame,
+                registrationflow: wa_data.registrationflow,
+                platformSelection: wa_data.platformSelection,
+
+                
+                product : {
+                        masterID : wa_data.product.masterID,
+                        nameMaster : wa_data.product.nameMaster,
+                        productID : wa_data.product.productID,
+                        name : wa_data.product.productName,
+                        gameID : wa_data.product.gameID,      
+                        gameName : wa_data.product.gameName,        
+                        brandName : wa_data.product.brandName,       
+                        brandID : wa_data.product.brandID,     
+                        productType : wa_data.product.productType,
+                        editionName : wa_data.product.editionName,    
+                        isWishList : wa_data.product.isWishList,  
+                        releaseDate : wa_data.product.releaseDate,     
+                        platform : wa_data.product.platform,        
+                        productFormat : wa_data.product.productFormat,       
+                        productTypeDetail : wa_data.product.productTypeDetail,
+                        salesType : wa_data.product.salesType,
+                        stockAvailability : wa_data.product.availability,
+                        offerName : wa_data.offerName,
+                        unitSalePrice : wa_data.product.unitSalePrice, 
+                        salePrice : wa_data.product.salePrice,   
+                        discountName : wa_data.product.discountName,     
+                        discountAmount : wa_data.product.discountAmount,      
+                        discountRate : wa_data.product.discountRate      
+                    },    
+
+
+      
+                    cart : {
+                            purchase:wa_data.cart.purchase,
+                            checkout:wa_data.cart.checkout,
+                            cartOpen:wa_data.cart.cartOpen,
+                            cartView:wa_data.cart.cartView,
+                            cartAdd:wa_data.cart.cartAdd,
+                            cartRemove:wa_data.cart.cartRemove,
+                            itemNumber:wa_data.cart.itemNumber,
+                            currency:wa_data.cart.currency,
+                            cartID : wa_data.cart.cartID,
+                            orderTotalAmountDiscounted:wa_data.cart.orderTotalAmountDiscounted,   
+                            orderTotalAmountDiscountedTVAT:wa_data.cart.orderTotalAmountDiscountedTVAT,    
+                            orderShippingAmount:wa_data.cart.orderShippingAmount,
+                            orderShippingAmountVAT:wa_data.cart.orderShippingAmountVAT,
+                            orderPromoCode:wa_data.cart.orderPromoCode,
+                            orderPromoCodeName:wa_data.cart.orderPromoCodeName,
+                            orderPromoCodeRate:wa_data.cart.orderPromoCodeRate,
+                            orderPromoCodeAmount:wa_data.cart.orderPromoCodeAmount,
+                            orderPromoCodeAmountVAT:wa_data.cart.orderPromoCodeAmountVAT,
+                            fromCartToPurchase:wa_data.cart.FromCartToPurchase,
+                            orderShipping:wa_data.cart.orderShipping,
+                            paymentMethod:wa_data.cart.paymentMethod,
+                            uplayPointsCollected:wa_data.cart.uplayPointsCollected,    
+                            uplayPointsAvailable:wa_data.cart.uplayPointsAvailable,     
+                            uplayPointSpent:wa_data.cart.uplayPointSpent,   
+                            content : [/*{
+                                    masterID :'',
+                                    nameMaster :'',
+                                    productID :'',
+                                    mdmIID :'',
+                                    gameName :'', 
+                                    brandName :'',
+                                    mdmBID :'',
+                                    productType :'', 
+                                    productTypeDetail :'',  
+                                    isWishList :'',  
+                                    name :'', 
+                                    editionName :'',
+                                    releaseDate :'',
+                                    platform :'',
+                                    productFormat :'',
+                                    salesType :'',
+                                    unitSalePrice :'',
+                                    salePrice :'',
+                                    quantity :'',
+                                    lineItemTotalPrice :'',
+                                    lineItemTotalPriceVAT :'',
+                                    lineItemDiscountedAmount :'',
+                                    lineItemDiscountedRate :'',
+                                    lineItemDiscountedName :'',
+                                    lineItemTaxAmount :'',
+                                    lineItemTaxRate :''
+                                      }*/]
+                                }
+}
+
+
+if (wa_data.siteSection == "quick view product page")
+{
+tc_vars.siteSection = "product page";
+}
+
+if (window.location.href.indexOf("/the-division-2.html") > 1)
+{
+    tc_vars.pageName = "the division 2";
+    tc_vars.siteSection = "brand pages";
+}
+else if (window.location.href.indexOf("/assassins-creed-odyssey.html") > 1) 
+{
+    tc_vars.pageName = "assassins creed odyssey";
+    tc_vars.siteSection = "brand pages";
+}
+else if (window.location.href.indexOf("/the-crew-2.html") > 1) 
+{
+    tc_vars.pageName = "the crew 2";
+    tc_vars.siteSection = "brand pages";
+}
+else if (window.location.href.indexOf("/far-cry-5.html") > 1) 
+{
+    tc_vars.pageName = "far cry 5 hub";
+    tc_vars.siteSection = "brand pages";
+}
+else if (window.location.href.indexOf("/beyond-good-and-evil.html") > 1) 
+{
+    tc_vars.pageName = "beyond good and evil 2";
+    tc_vars.siteSection = "brand pages";
+}
+else if (window.location.href.indexOf("/skull-and-bones.html") > 1) 
+{
+    tc_vars.pageName = "skull and bones";
+    tc_vars.siteSection = "brand pages";
+}
+
+
+
+
+
+                //Scanning for the content using a loop
+if (typeof wa_data.cart.content !== 'undefined'){
+    //tc_vars.cart.content = [];
+    for(i=0; i < wa_data.cart.content.length; i++) {    
+        tc_vars.cart.content.push({
+                masterID : wa_data.cart.content[i].masterID,
+                nameMaster : wa_data.cart.content[i].nameMaster,
+                productID : wa_data.cart.content[i].productID,
+                gameID : wa_data.cart.content[i].gameID,
+                gameName : wa_data.cart.content[i].gameName,
+                brandName : wa_data.cart.content[i].brandName,
+                brandID : wa_data.cart.content[i].brandID,
+                productType : wa_data.cart.content[i].productType,
+                productTypeDetail : wa_data.cart.content[i].productTypeDetail,    
+                name : wa_data.cart.content[i].productName,
+                editionName:wa_data.cart.content[i].editionName,
+                isWishList:wa_data.cart.content[i].isWishList,
+                releaseDate:wa_data.cart.content[i].releaseDate,
+                platform:wa_data.cart.content[i].platform,
+                productFormat:wa_data.cart.content[i].productFormat,
+                salesType : wa_data.cart.content[i].salesType,
+                unitSalePrice : wa_data.cart.content[i].unitSalePrice,
+                salePrice : wa_data.cart.content[i].salePrice,
+                quantity : wa_data.cart.content[i].quantity,
+                lineItemTotalPrice:wa_data.cart.content[i].lineItemTotalPrice,
+                lineItemTotalPriceVAT:wa_data.cart.content[i].lineItemTotalPriceVAT,
+                lineItemDiscountedAmount : wa_data.cart.content[i].lineItemDiscountedAmount,
+                lineItemDiscountedRate:wa_data.cart.content[i].lineItemDiscountedRate,
+                lineItemDiscountedName:wa_data.cart.content[i].lineItemDiscountedName,
+                lineItemTaxAmount:wa_data.cart.content[i].lineItemTaxAmount,
+                lineItemTaxRate:wa_data.cart.content[i].lineItemTaxRate    
+                });
+    }
+}
+
+ if(wa_data.pageName == "thank you page")
+        {
+        tc_vars.orderTotalAmountDiscounted = wa_data.cart.orderTotalAmountDiscounted;
+        tc_vars.orderID = wa_data.cart.orderID;
+        tc_vars.paymentMethod = wa_data.cart.paymentMethod;       
+        }
+                
+if(wa_data.siteSection == "product page" || wa_data.siteSection === "master product page")
+        {
+        tc_vars.name = wa_data.product.productName;
+        tc_vars.productID = wa_data.product.productID;
+        }
+
+
+    // loginStatus definition
+if (tc_vars.uplayID !== "") {
+        tc_vars.loginStatus = '1';
+        }
+        else {
+        tc_vars.loginStatus = '0';
+        }
+
+
+
+
+
+
+/*for(i=0; i < tc_vars.cart.content.length; i++) {
+        tc_vars.cart.content[i].productID = wa_data.cart.content[i].productID;
+        tc_vars.cart.content[i].name = wa_data.cart.content[i].name;
+        tc_vars.cart.content[i].quantity = wa_data.cart.content[i].quantity;
+        tc_vars.cart.content[i].promoCode = wa_data.cart.content[i].promoCode;
+        tc_vars.cart.content[i].offerID = wa_data.cart.content[i].offerID;
+        tc_vars.cart.content[i].salesType = wa_data.cart.content[i].salesType;
+        tc_vars.cart.content[i].platform = wa_data.cart.content[i].platform;
+        tc_vars.cart.content[i].unitSalePrice = wa_data.cart.content[i].unitSalePrice;
+        tc_vars.cart.content[i].salePrice = wa_data.cart.content[i].salePrice;
+        tc_vars.cart.content[i].stockAvailability = wa_data.cart.content[i].stockAvailability;
+        tc_vars.cart.content[i].lineItemTotalAmountDiscounted = wa_data.cart.content[i].lineItemTotalAmountDiscounted;
+        tc_vars.cart.content[i].lineItemTotalAmountNotDiscounted = wa_data.cart.content[i].lineItemTotalAmountNotDiscounted;
+        tc_vars.cart.content[i].lineItemTaxAmount = wa_data.cart.content[i].lineItemTaxAmount;
+        tc_vars.cart.content[i].lineItemDiscountedAmount = wa_data.cart.content[i].lineItemDiscountedAmount;
+        tc_vars.cart.content[i].lineItemShippingCost = wa_data.cart.content[i].lineItemShippingCost;
+        tc_vars.cart.content[i].crossSell = wa_data.cart.content[i].crossSell;
+        tc_vars.cart.content[i].upSell = wa_data.cart.content[i].upSell;
+    }*/
+
+/*if (typeof tc_vars.cart.content !== 'undefined' && tc_vars.nav.pageName === 'Basket'){
+    tc_vars.cart.content = JSON.parse(JSON.stringify(wa_data.cart.content));
+}*/
+
+/* Push Method 
+tc_vars.cart.content.push({
+                productID : wa_data.cart.content[i].productID,
+                name : wa_data.cart.content[i].name,
+                quantity : wa_data.cart.content[i].quantity,
+                promoCode : wa_data.cart.content[i].promoCode,
+                offerID : wa_data.cart.content[i].offerID,
+                salesType : wa_data.cart.content[i].salesType,
+                platform : wa_data.cart.content[i].platform,
+                unitSalePrice : wa_data.cart.content[i].unitSalePrice,
+                salePrice : wa_data.cart.content[i].salePrice,
+                stockAvailability : wa_data.cart.content[i].stockAvailability,
+                lineItemTotalAmountDiscounted : wa_data.cart.content[i].lineItemTotalAmountDiscounted,
+                lineItemTotalAmountNotDiscounted : wa_data.cart.content[i].lineItemTotalAmountNotDiscounted,
+                lineItemTaxAmount : wa_data.cart.content[i].lineItemTaxAmount,
+                lineItemDiscountedAmount : wa_data.cart.content[i].lineItemDiscountedAmount,
+                lineItemShippingCost : wa_data.cart.content[i].lineItemShippingCost,
+                crossSell : wa_data.cart.content[i].crossSell,
+                upSell : wa_data.cart.content[i].upSell
+                */
+
+
+/////ADBLOCK/////
+
+if (wa_data.template == "UBIShop-Theme-Default-EU")
+{
+tc_vars.adblock = "adblock activated";
+
+var wa_ads_script = document.createElement('script');
+wa_ads_script.type = "text/javascript";
+wa_ads_script.src = "https://ubistatic2-a.akamaihd.net/worldwide_analytics/tagcommander/ads/ads.js";
+wa_ads_script.async = true;
+document.getElementsByTagName('head')[0].appendChild(wa_ads_script);
+}
+
+/////CONTENEURS/////
+    var a = Math.random() * 10000000000000;
+
+    var wa_script = document.createElement('script');
+    wa_script.type = "text/javascript";
+    wa_script.src = "https://ubistatic2-a.akamaihd.net/worldwide_analytics/tagcommander/ubisoftstore/tc_UbisoftStore_100.js";
+    wa_script.async = true;
+    document.getElementsByTagName('head')[0].appendChild(wa_script);
