@@ -246,49 +246,41 @@ was made.
 
 #### Counting spans and traces
 
-Trace collection systems can estimate the total count of spans in the
-population using a sample of spans, whether or not traces are
-assembled, simply by encoding the adjusted count (or inclusion
-probability) in every sampled span.
+When the [W3C Trace Context is-sampled
+flag](https://www.w3.org/TR/trace-context/#sampled-flag) is used to
+propagate a sampling decision, child spans have the same adjusted
+count as their parent.  This leads to a useful optimization.
 
-When counting sample spans, every span stands for a trace rooted at
-itself, and so when we approximately count spans we are also
-approximately counting traces rooted in those spans.  Sampled spans
-represent an adjusted count of identical spans in the population,
-regardless of whether complete traces are being collected
-for every span.
+It is nice-to-have, though not a requirement, that all spans in a
+trace directly encode their adjusted count.  This enables systems to
+count spans upon arrival, without the work of referring to their
+parent spans.  For example, knowing a span's adjusted count makes it
+possible to immediately produce metric events from span events.
 
-Stated as a requirement: When sampling, tracing systems must be able
-to count spans without assembling traces first.  Several head sampling
-techniques are discussed in the following sections that meet all the
-criteria:
+Several head sampling techniques are discussed in the following
+sections and evaluated in terms of their ability to meet all of the
+following criteria:
 
 - Reduces Tracer overhead
 - Produces complete traces
-- Supports counting spans.
-
-When using a Head sampling technique that meets these criteria,
-tracing collection systems are able to then sample from the set of
-complete traces in order to further reduce collection costs.
+- Spans are countable.
 
 #### `Parent` Sampler
 
-It is possible for a decision at the root of a trace to propagate
-throughout the trace using the [W3C Trace Context is-sampled
-flag](https://www.w3.org/TR/trace-context/#sampled-flag).  The
-inclusion probability of all spans in a trace is determined by the
-root tracing decision.
-
 The `Parent` Sampler ensures complete traces, provided all spans are
 successfully recorded.  A downside of `Parent` sampling is that it
-takes away control over Tracer overhead from non-roots in the trace and,
-to support counting, requires propagating the inclusion probability in
-the W3C `tracestate` field (require a semantic convention).
+takes away control over Tracer overhead from non-roots in the trace.
+To support counting spans, this Sampler requires propagating the
+effective adjusted count of the context to use when starting child
+spans.
+
+(To propagate the effective adjusted count in the W3C trace context,
+potentially a new field could be added to the `traceparent`.)
 
 To count Parent-sampled spans, each span must directly encode its
-adjusted count (or inclusion probability) in the corresponding
-`SpanData`.  This may use a non-descriptive Resource or Span
-attribute named `sampling.parent.adjusted_count`, for example.
+adjusted count in the corresponding `SpanData`.  This may use a
+non-descriptive Resource or Span attribute named
+`sampling.parent.adjusted_count`, for example.
 
 #### `TraceIDRatio` Sampler
 
@@ -339,10 +331,9 @@ low-throughput service.  Low-throughput services are meant to inflate
 their sampling probability.
 
 The use of this technique requires propagating the inclusion
-probability of the incoming Context and whether it was sampled (using
-the W3C `tracestate`, as for counting spans sampled by a Parent
-sampler), in order to calculate the probability of starting to sample
-a new "sub-root" in the trace.
+probability of the incoming Context and whether it was sampled (as for
+the Parent sampler), in order to calculate the probability of starting
+to sample a new "sub-root" in the trace.
 
 Using standard notation for conditional probability, `P(x)` indicates
 the probability of `x` being true, and `P(x|y)` indicates the
