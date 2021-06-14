@@ -42,8 +42,8 @@ substantial visibility into the whole population of events.
 
 These techniques are all forms of approximate counting.  Estimates
 calculated by the forms of sampling outlined here are considered
-accurate, in that they are random variables with an expected value
-equal to the true count.
+accurate, in the sense that they are random variables with an expected
+value equal to their true value.
 
 While sampling techniques vary, it is possible to specify high-level
 interoperability requirements that producers and consumers of sampled
@@ -57,33 +57,36 @@ Using the OpenTelemetry Metrics data model terminology, we have two
 scenarios in which sampling is common.
 
 1. _Counter events:_ Each event represents a count, signifying the change in a sum.
-2. _Histogram events:_ Each event represents an individual variable, signifying new membership in a distribution.
+2. _Histogram events:_ Each event represents an individual variable, signifying membership in a distribution.
 
 A Tracing Span event qualifies as both of these cases simultaneously.
-It is a Counter event (of 1 span) and at least one Histogram event
-(e.g., one of latency, one of request size).
+It is at least one Counter event (e.g., one request, the number of
+bytes read) and at least one Histogram event (e.g., request latency,
+request size).
 
 In Metrics, [Statsd Counter and Histogram events meet this definition](https://github.com/statsd/statsd/blob/master/docs/metric_types.md#sampling).
 
-In both cases, the goal in sampling is to estimate something about the
-population, meaning all the events, using only the events that were
-selected in the sample.
+In both cases, the goal in sampling is to estimate the count of events
+in the whole population, meaning all the events, using only the events
+that were selected in the sample.
 
 ### Model and terminology
 
 This model is meant to apply in telemetry collection situations where
-individual events at an API boundary are sampled for collection.
+individual events at an API boundary are sampled for collection.  Once
+the process of sampling individual API-level events is understood, we
+will learn to apply these techniques for sampling aggregated data.
 
 In sampling, the term _sampling design_ refers to how sampling
 probability is decided and the term _sample frame_ refers to how
-events are organized into discrete populations.  
+events are organized into discrete populations.
 
 For example, a simple design uses uniform probability, and a simple
 framing technique is to collect one sample per distinct span name.
 
 After executing a sampling design over a frame, each item selected in
 the sample will have known _inclusion probability_, that determines
-how likely the item was to be selected.  Implicitly, all the items
+how likely the item was to being selected.  Implicitly, all the items
 that were not selected for the sample have zero inclusion probability.
 
 Descriptive words that are often used to describe sampling designs:
@@ -406,14 +409,15 @@ Known as Tail sampling when applied to traces, using sampled data as
 the basis for further sampling is generally known as multi-stage
 sampling.  We have learned how to Head sample individual span events,
 and the output are finished spans representing more than one event in
-the population (i.e., `adjusted_count > 0`).  To maintain our ability
-to approximately count spans, or telemetry events in general, requires
-maintaining a property known _probability proportional to size_.
+the population (i.e., `adjusted_count > 1`).  To maintain our ability
+to approximately count spans without bias when re-sampling, or
+telemetry events in general, requires maintaining a property known
+_probability proportional to size_.
 
 Second-stage sampling algorithms that maintain this property and do
 not introduce bias are generally known as _weighted sampling
 algorithms_.  These algorithms give us a way to combine samples so
-that adjusted count is preserved.
+that the expected value of adjusted count is preserved.
 
 #### Weighted sampling
 
