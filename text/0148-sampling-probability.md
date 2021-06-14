@@ -117,7 +117,7 @@ interest, after calculating a sample from a sample frame.
 
 - *Sample size*: the number of events with non-zero inclusion probability
 - *True population total*: the exact number of events in the frame, which may be unknown
-- *Estimated population total*: the estimated number of events in the frame, which is computed from the same.
+- *Estimated population total*: the estimated number of events in the frame, which is computed from the sample.
 
 The sample size is always known after it is calculated, but the size
 may or may not be known ahead of time, depending on the design.
@@ -215,8 +215,7 @@ representivity.
 #### Multiply the adjusted count into the data
 
 When the data itself carries counts, such as for the Metrics Sum and
-Histogram points (encoded using delta aggregation temporality), we can
-fold the adjusted count into the data itself.
+Histogram points.
 
 This technique is less desirable because while it preserves the
 expected value of the count or sum, the data loses information about
