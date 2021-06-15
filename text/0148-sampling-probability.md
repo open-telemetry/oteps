@@ -397,27 +397,68 @@ Resource or Span attribute named
 
 Head sampling for traces has been discussed, covering strategies to
 lower Tracer overhead, ensure trace completeness, and count spans on
-arrival.  Sampled spans have an added attribute to directly encode the
-adjusted count, and the sum of adjusted counts for a set of spans
-accurately reflects the total population count.
+arrival.  Sampled spans have an additional attribute to directly
+encode the adjusted count, and the sum of adjusted counts for a set of
+spans accurately reflects the total population count.
 
 In systems based on collecting sample data, it is often useful to
-combine samples to maintain a small data set.  For example, given 24
-one-hour samples of 1000 spans each, can we combine the data into a
-one-day sample of 1000 spans?  To do this without introducing bias, we
-must take the adjusted count of each span into account.  Sampling
-algorithms that can do this are known as weighted sampling algorithms.
+merge samples, in order to maintain a small data set.  For example,
+given 24 one-hour samples of 1000 spans each, can we combine the data
+into a one-day sample of 1000 spans?  To do this without introducing
+bias, we must take the adjusted count of each span into account.
+Sampling algorithms that do this are known as _weighted sampling
+algorithms_.
 
-TODO
+#### Merging samples
 
-#### Weighted sampling
+To merge samples means to combine two or more frames of sample data
+into a single frame of sample data that reflects the combined
+populations of data in an unbiased way.  Two weighted sampling
+algorithms are listed below in [Recommended Reading](#recommended-reading).
 
-TODO
+In a broader context, weighted sampling algorithms support estimating
+population weight given individual item weights.  In a telemetry
+context, weights are counts, and weighted sampling algorithms support
+estimating total population count given inputs with unequal adjusted
+count.
 
-#### Example: Statsd 
+The output of weighted sampling, in a telemetry context, are samples
+containing events with new adjusted counts that maintain their power
+to estimate counts in the combined population.
+
+### Examples
+
+#### Sample Spans to Counter Metric
+
+For every span it receives, the example processor will synthesize
+metric data as though a Counter instrument named `S.count` for span
+named `S` had been incremented once per span at the original
+`Start()` call site.
+
+Logically spaking, this processor will add the adjusted count of each
+span to the instrument (e.g., `Add(adjusted_count, labels...)`)  for
+every span it receives, at the start time of the span.
+
+#### Sample Spans to Histogram Metric
+
+For every span it receives, the example processor will synthesize
+metric data as though a Histogram instrument named `S.duration` for
+span named `S` had been observed once per span at the original `End()`
+call site.
+
+The OpenTelemetry Metric data model does not support histogram buckets
+with non-integer counts, which forces the use of integer adjusted
+counts (i.e., integer-reciprocal sampling rates) here.
+
+Logically spaking, this processor will observe the span's duration its
+adjusted count number of times for every span it receives, at the end
+time of the span.
+
+#### Statsd Counter
 
 A Statsd counter event appears as a line of text, describing a
-number-valued event with optional attributes and sample rate.
+number-valued event with optional attributes and inclusion probability
+("sample rate").
 
 For example, a metric named `name` is incremented by `increment` using
 a counter event (`c`) with the given `sample_rate`.
@@ -433,19 +474,12 @@ random sampling scheme will arrive as:
 counter:100|c|@0.1
 ```
 
-Probability 0.1 leads to an adjusted count of 10.  Assuming the sample
-was selected using an unbiased algorithm, we can interpret this event
-as having an expected value of `100/0.1 = 1000`.
+Events in the example have with 0.1 inclusion probability have
+adjusted count of 10.  Assuming the sample was selected using an
+unbiased algorithm, we can interpret this event as having an expected
+count of `100/0.1 = 1000`.
 
-#### Example: Two-pass sampling
-
-TODO
-
-#### Example: Combining samples
-
-TODO
-
-#### Example: Downsampling
+#### Example: Sample span rate limiter
 
 TODO
 
@@ -453,7 +487,7 @@ TODO
 
 TODO
 
-## Propoesed specification changes
+## Proposed specification changes
 
 TODO
 
@@ -466,6 +500,8 @@ TODO
 [Priority sampling for estimation of arbitrary subset sums](https://dl.acm.org/doi/abs/10.1145/1314690.1314696)
 
 [A Generalization of Sampling Without Replacement From a Finite Universe](https://www.jstor.org/stable/2280784), JSTOR (1952)
+
+[Stream sampling for variance-optimal estimation of subset sums](https://arxiv.org/abs/0803.0473).
 
 ## Acknowledgements
 
