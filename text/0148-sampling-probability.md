@@ -481,11 +481,20 @@ count of `100/0.1 = 1000`.
 
 #### Example: Sample span rate limiter
 
-TODO
+A collector processor will introduce a slight delay in order to ensure
+it has received a complete frame of data, during which time it
+maintains a fixed-size buffer of input spans.  If the number of spans
+received exceeds the size of the buffer before the end of the
+interval, begin weighted sampling using the adjusted count of each
+span as input weight.
 
-#### Example: Multiple samples
+This processor drops spans when the configured rate threshold is
+exceeeded, otherwise it passes spans through with unmodifed adjusted
+count.
 
-TODO
+When the interval expires and the sample frame is considered complete,
+the selected sample spans are output with possibly updated adjusted
+counts.
 
 ## Proposed specification changes
 
