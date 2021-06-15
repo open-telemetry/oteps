@@ -61,9 +61,9 @@ scenarios in which sampling is common.
 2. _Histogram events:_ Each event represents an individual variable, signifying membership in a distribution.
 
 A Tracing Span event qualifies as both of these cases simultaneously.
-It is at least one Counter event (e.g., one request, the number of
-bytes read) and at least one Histogram event (e.g., request latency,
-request size).
+One span can be interpreted as at least one Counter event (e.g., one
+request, the number of bytes read) and at least one Histogram event
+(e.g., request latency, request size).
 
 In Metrics, [Statsd Counter and Histogram events meet this definition](https://github.com/statsd/statsd/blob/master/docs/metric_types.md#sampling).
 
@@ -418,23 +418,58 @@ populations of data in an unbiased way.  Two weighted sampling
 algorithms are listed below in [Recommended Reading](#recommended-reading).
 
 In a broader context, weighted sampling algorithms support estimating
-population weight given individual item weights.  In a telemetry
-context, weights are counts, and weighted sampling algorithms support
-estimating total population count given inputs with unequal adjusted
-count.
+population weights from a sample of unequal-weight items.  In a
+telemetry context, item weights are generally event counts, and
+weighted sampling algorithms support estimating total population
+counts from a sample with unequal-count items.
 
 The output of weighted sampling, in a telemetry context, are samples
-containing events with new adjusted counts that maintain their power
-to estimate counts in the combined population.
+containing events with new, unequal adjusted counts that maintain
+their power to estimate counts in the combined population.
 
-### Examples
+#### Maintaining "Probability proportional to size"
+
+The statistical property being maintained in the definition for
+weighted sampling used above is known as _probability propertional to
+size_.  The "size" of an item, in this context, refers to the
+magnitude of each item's contribution to the total that is being
+estimated. To avoid bias, larger-magnitude items should have a
+proportionally greater probability of being selected in a sample,
+compared with items of smaller magnitide.
+
+The interpretation of "size", therefore, depends on what is being
+estimated.  When sampling events with a natural size, such as for
+Metric Sum data points, the absolute value of the point should be
+multiplied with the adjusted count to form an effective input weight
+(i.e., its "size" or contribution to the population total).  The
+output adjusted count in this case is the output from weighted
+sampling divided by the (absolute) point value.
+
+#### Zero adjusted count
+
+An adjusted count with zero value carries meaningful information,
+specifically that the item participated in a probabilistic sampling
+scheme and was not selected.  A zero value can be be useful to record
+events when they provide useful information despite their effective
+count; we can use this to combine multiple sampling schemes in a
+single stream.
+
+For example, consider collecting two samples from a stream of spans,
+the first sample from those spans with attribute `A=1` and the second
+sample from those spans with attribute `B=2`.  Any span that has both
+of these properties is eligible to be selected for both samples, in
+which case it will have two non-zero adjusted counts.
+
+## Examples
+
+### Span sampling
 
 #### Sample Spans to Counter Metric
 
 For every span it receives, the example processor will synthesize
 metric data as though a Counter instrument named `S.count` for span
-named `S` had been incremented once per span at the original
-`Start()` call site.
+named `S` had been incremented once per span at the original `Start()`
+call site.
 
 Logically spaking, this processor will add the adjusted count of each
 span to the instrument (e.g., `Add(adjusted_count, labels...)`)  for
@@ -454,6 +489,25 @@ counts (i.e., integer-reciprocal sampling rates) here.
 Logically spaking, this processor will observe the span's duration its
 adjusted count number of times for every span it receives, at the end
 time of the span.
+
+#### Sample Spans rate limiting
+
+A collector processor will introduce a slight delay in order to ensure
+it has received a complete frame of data, during which time it
+maintains a fixed-size buffer of input spans.  If the number of spans
+received exceeds the size of the buffer before the end of the
+interval, begin weighted sampling using the adjusted count of each
+span as input weight.
+
+This processor drops spans when the configured rate threshold is
+exceeeded, otherwise it passes spans through with unmodifed adjusted
+count.
+
+When the interval expires and the sample frame is considered complete,
+the selected sample spans are output with possibly updated adjusted
+counts.
+
+### Metric sampling
 
 #### Statsd Counter
 
@@ -480,22 +534,28 @@ adjusted count of 10.  Assuming the sample was selected using an
 unbiased algorithm, we can interpret this event as having an expected
 count of `100/0.1 = 1000`.
 
-#### Example: Sample span rate limiter
+#### Metric exemplars with adjusted counts
 
-A collector processor will introduce a slight delay in order to ensure
-it has received a complete frame of data, during which time it
-maintains a fixed-size buffer of input spans.  If the number of spans
-received exceeds the size of the buffer before the end of the
-interval, begin weighted sampling using the adjusted count of each
-span as input weight.
+The OTLP protocol for metrics includes a repeated exemplars field in
+every data point.  This is a place where histogram implementations are
+able to provide example context to corrlate metrics with traces.
 
-This processor drops spans when the configured rate threshold is
-exceeeded, otherwise it passes spans through with unmodifed adjusted
-count.
+OTLP exemplars support additional attributes, those that were present
+on the API event and were dropped during aggregation.  Exemplars that
+are selected probabilistically and recorded with their adjusted counts
+make it possible to approximately count events using dimensions that
+were dropped during metric aggregation.  When sampling metric events,
+use probability proportional to size, meaning for Metric Sum data
+points include the absolute point value as a product in the input
+sample weight.
 
-When the interval expires and the sample frame is considered complete,
-the selected sample spans are output with possibly updated adjusted
-counts.
+An end-to-end pipeline of sampled metrics events can be constructed
+based on exemplars with adjusted counts, one capable of supporting
+approximate queries over high-cardinality metrics.
+
+#### Metric cardinality control
+
+TODO
 
 ## Proposed Tracing specification
 
