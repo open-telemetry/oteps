@@ -496,19 +496,64 @@ When the interval expires and the sample frame is considered complete,
 the selected sample spans are output with possibly updated adjusted
 counts.
 
-## Proposed specification changes
+## Proposed Tracing specification
+
+For the standard OpenTelemetry Span Sampler implementations to support
+a range of probability sampling schemes, this document recommends the
+use of a Span attribute named `sampling.X.adjusted_count` to encode
+the adjusted count computed by a Sampler named "X", whic should be
+unbiased.
+
+The value any attribute name prefixed with "sampling." and suffixed
+with ".adjusted_count" under this proposal MUST be an unbiased
+estimate of the total population count represented by the individual
+event.
+
+The specification will state that non-probabilistic rate limiters and
+other processors that distort the interpretation of adjusted count
+outlined above SHOULD erase the adjusted count attributes to prevent
+mis-counting events.
+
+### Suggested text
+
+After
+[Sampler](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampler)
+and before [Builtin
+Samplers](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#built-in-samplers),
+a new section named *Probability sampling* will introduce the term
+"adjusted count" and relate it to inclusion probability, citing
+external sources and this OTEP.  For example:
 
 TODO
+
+For the `TraceIDRatio` sampler, include the following additional text:
+
+> When returning a RECORD_AND_SAMPLE decision, the TraceIDRatio
+> Sampler MUST include the attribute
+> `sampling.traceidratio.adjusted_count=C` for `C` the reciprocal of the
+> configured trace ID ratio.
+> 
+> The returned tracestate used for the child context MUST include an
+> additional key-value carrying the head inclusion probability, equal
+> to the configured trace ID ratio. (TODO: spec the tracestate key for
+> head inclusion probability.)
+
+For the `Parent` sampler, include the following additional text:
+
+> When returning a RECORD_AND_SAMPLE decision, the Parent Sampler MUST
+> include the attribute `sampling.parent.adjusted_count=C` for `C` the
+> reciprocal of the parent trace context's head inclusion probability,
+> which is passed through W3C tracestate.
 
 ## Recommended reading
 
 [Sampling, 3rd Edition, by Steven K. Thompson](https://www.wiley.com/en-us/Sampling%2C+3rd+Edition-p-9780470402313).
 
+[A Generalization of Sampling Without Replacement From a Finite Universe](https://www.jstor.org/stable/2280784), JSTOR (1952)
+
 [Performance Is A Shape. Cost Is A Number: Sampling](https://docs.lightstep.com/otel/performance-is-a-shape-cost-is-a-number-sampling), 2020 blog post, Joshua MacDonald
 
 [Priority sampling for estimation of arbitrary subset sums](https://dl.acm.org/doi/abs/10.1145/1314690.1314696)
-
-[A Generalization of Sampling Without Replacement From a Finite Universe](https://www.jstor.org/stable/2280784), JSTOR (1952)
 
 [Stream sampling for variance-optimal estimation of subset sums](https://arxiv.org/abs/0803.0473).
 
