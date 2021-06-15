@@ -274,13 +274,19 @@ To support counting spans, this Sampler requires propagating the
 effective adjusted count of the context to use when starting child
 spans.
 
-(To propagate the effective adjusted count in the W3C trace context,
-potentially a new field could be added to the `traceparent`.)
+In other head trace sampling schemes, we will see that it is useful to
+propagate inclusion probability even for negative sampling decisions
+(where the adjusted count is zero), therefore we prefer to use the
+inclusion probability and not the adjusted count when propagating the
+sampling rate via trace context.  The inclusion probability of a
+context is referred to as its `head inclusion probability` for this
+reason.
 
-To count Parent-sampled spans, each span must directly encode its
-adjusted count in the corresponding `SpanData`.  This may use a
-non-descriptive Resource or Span attribute named
-`sampling.parent.adjusted_count`, for example.
+In addition to propagating head inclusion probability, to count
+Parent-sampled spans, each span must directly encode its adjusted
+count in the corresponding `SpanData`.  This may use a non-descriptive
+Resource or Span attribute named `sampling.parent.adjusted_count`, for
+example.
 
 #### `TraceIDRatio` Sampler
 
@@ -310,9 +316,9 @@ Lacking the number of expected children, we require a way to know the
 minimum Sampler probability across traces to ensure they are complete.
 
 To count TraceIDRatio-sampled spans, each span must encode its
-adjusted count (or inclusion probability) in the corresponding
-`SpanData`.  This may use a non-descriptive Resource or Span attribute
-named `sampling.traceidratio.adjusted_count`, for example.
+adjusted count in the corresponding `SpanData`.  This may use a
+non-descriptive Resource or Span attribute named
+`sampling.traceidratio.adjusted_count`, for example.
 
 #### Dapper's "Inflationary" Sampler
 
@@ -330,10 +336,10 @@ systems where a high-throughput service on occasion calls a
 low-throughput service.  Low-throughput services are meant to inflate
 their sampling probability.
 
-The use of this technique requires propagating the inclusion
-probability of the incoming Context and whether it was sampled (as for
-the Parent sampler), in order to calculate the probability of starting
-to sample a new "sub-root" in the trace.
+The use of this technique requires propagating the head inclusion
+probability (as discussed for the `Parent` sampler) of the incoming
+Context and whether it was sampled, in order to calculate the
+probability of starting to sample a new "sub-root" in the trace.
 
 Using standard notation for conditional probability, `P(x)` indicates
 the probability of `x` being true, and `P(x|y)` indicates the
@@ -346,23 +352,24 @@ P(x)=P(x|y)*P(y)+P(x|not y)*P(not y)
 
 The variables are:
 
-- **`C`**: The sampling probability of the parent context that is in
-  effect, independent of whether the parent context was sampled.
+- **`H`**: The head inclusion probability of the parent context that
+  is in effect, independent of whether the parent context was sampled,
+  the reciprocal of the parent context's effective adjusted count.
 - **`I`**: The inflationary sampling probability for the span being
   started.
 - **`D`**: The decision probability for whether to start a new sub-root.
 
 This Sampler cannot lower sampling probability, so if the new span is
-started with `C >= I` or when the context is already sampled, no new
+started with `H >= I` or when the context is already sampled, no new
 sampling decisions are made.  If the incoming context is already
-sampled, the adjusted count of the new span is `1/C`.
+sampled, the adjusted count of the new span is `1/H`.
 
-Assuming `C < I` and the incoming context was not sampled, we have the
+Assuming `H < I` and the incoming context was not sampled, we have the
 following probability equations:
 
 ```
 P(span sampled) = I
-P(parent sampled) = C
+P(parent sampled) = H
 P(span sampled | parent sampled) = 1
 P(span sampled | parent not sampled) = D
 ```
@@ -370,44 +377,38 @@ P(span sampled | parent not sampled) = D
 Using the formula above, 
 
 ```
-I = 1*C + D*(1-C)
+I = 1*H + D*(1-H)
 ```
 
 solve for D:
 
 ```
-D = (I - C) / (1 - C)
+D = (I - H) / (1 - H)
 ```
 
 Now the Sampler makes a decision with probability `D`.  Whether the
-decision is true or false, propagate the inflationary probability `I`
-as the new parent context sampling probability.  If the decision is
-true, begin sampling a sub-rooted trace with adjusted count `1/I`.
-This may use a non-descriptive Resource or Span attribute named
+decision is true or false, propagate `I` as the new head inclusion
+probability.  If the decision is true, begin recording a sub-rooted
+trace with adjusted count `1/I`.  This may use a non-descriptive
+Resource or Span attribute named
 `sampling.inflationary.adjusted_count`, for example.
 
-### Event sampling
+### Working with adjusted counts
 
 Head sampling for traces has been discussed, covering strategies to
-lower Tracer overhead and ensure trace completeness.  Sampled spans
-retain their existing form, with an added attribute to carry the
-adjusted count.  After spans are finished and their attributes known,
-spans can be sampled again ("re-sampled") using a broad range of
-unequal probability sampling schemes.
+lower Tracer overhead, ensure trace completeness, and count spans on
+arrival.  Sampled spans have an added attribute to directly encode the
+adjusted count, and the sum of adjusted counts for a set of spans
+accurately reflects the total population count.
 
-Known as Tail sampling when applied to traces, using sampled data as
-the basis for further sampling is generally known as multi-stage
-sampling.  We have learned how to Head sample individual span events,
-and the output are finished spans representing more than one event in
-the population (i.e., `adjusted_count > 1`).  To maintain our ability
-to approximately count spans without bias when re-sampling, or
-telemetry events in general, requires maintaining a property known
-_probability proportional to size_.
+In systems based on collecting sample data, it is often useful to
+combine samples to maintain a small data set.  For example, given 24
+one-hour samples of 1000 spans each, can we combine the data into a
+one-day sample of 1000 spans?  To do this without introducing bias, we
+must take the adjusted count of each span into account.  Sampling
+algorithms that can do this are known as weighted sampling algorithms.
 
-Second-stage sampling algorithms that maintain this property and do
-not introduce bias are generally known as _weighted sampling
-algorithms_.  These algorithms give us a way to combine samples so
-that the expected value of adjusted count is preserved.
+TODO
 
 #### Weighted sampling
 
