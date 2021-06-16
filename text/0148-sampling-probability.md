@@ -69,6 +69,128 @@ a quantity known as **adjusted count**.  In common language, a
 N.  Adjusted count is the expected value of the number of events in
 the population represented by an individual sample event.
 
+<detail>
+<summary>
+Example applications that apply probability sampling to lower the cost 
+of telemetry collection.
+</summary>
+
+## Examples
+
+In all of these examples, the use of probability sampling leads to an
+attribute like `sampling.sampler_name.adjusted_count`.  Consumers of
+spans, metrics, and logs annotated with adjusted counts are able to
+calculate accurate statistics about the population of events, at a
+basic level, without knowing details about the sampling configuration.
+
+### Span sampling
+
+#### Sample spans to Counter Metric
+
+For every span it receives, the example processor will synthesize
+metric data as though a Counter instrument named `S.count` for span
+named `S` had been incremented once per span at the original `Start()`
+call site.
+
+This processor will add the adjusted count of each span to the
+instrument (e.g., `Add(adjusted_count, labels...)`)  for every span it
+receives, logically effective at the start or end time of the span.
+
+#### Sample spans to Histogram Metric
+
+For every span it receives, the example processor will synthesize
+metric data as though a Histogram instrument named `S.duration` for
+span named `S` had been observed once per span at the original `End()`
+call site.
+
+The OpenTelemetry Metric data model does not support histogram buckets
+with non-integer counts, which forces the use of integer adjusted
+counts here (i.e., 1-in-N sampling rates where N is an integer).
+
+Logically spaking, this processor will observe the span's duration its
+adjusted count number of times for every span it receives, at the end
+time of the span.
+
+#### Sample span rate limiting
+
+A collector processor will introduce a slight delay in order to ensure
+it has received a complete frame of data, during which time it
+maintains a fixed-size buffer of input spans.  If the number of spans
+received exceeds the size of the buffer before the end of the
+interval, begin weighted sampling using the adjusted count of each
+span as input weight.
+
+This processor drops spans when the configured rate threshold is
+exceeeded, otherwise it passes spans through with unmodifed adjusted
+count.
+
+When the interval expires and the sample frame is considered complete,
+the selected sample spans are output with possibly updated adjusted
+counts.
+
+### Metric sampling
+
+#### Statsd Counter
+
+A Statsd counter event appears as a line of text, describing a
+number-valued event with optional attributes and inclusion probability
+("sample rate").
+
+For example, a metric named `name` is incremented by `increment` using
+a counter event (`c`) with the given `sample_rate`.
+
+```
+name:increment|c|@sample_rate
+```
+
+For example, a count of 100 that was selected for a 1-in-10 simple
+random sampling scheme will arrive as:
+
+```
+counter:100|c|@0.1
+```
+
+Events in the example have with 0.1 inclusion probability have
+adjusted count of 10.  Assuming the sample was selected using an
+unbiased algorithm, we can interpret this event as having an expected
+count of `100/0.1 = 1000`.
+
+#### Metric exemplars with adjusted counts
+
+The OTLP protocol for metrics includes a repeated exemplars field in
+every data point.  This is a place where histogram implementations are
+able to provide example context to corrlate metrics with traces.
+
+OTLP exemplars support additional attributes, those that were present
+on the API event and were dropped during aggregation.  Exemplars that
+are selected probabilistically and recorded with their adjusted counts
+make it possible to approximately count events using dimensions that
+were dropped during metric aggregation.  When sampling metric events,
+use probability proportional to size, meaning for Metric Sum data
+points include the absolute point value as a product in the input
+sample weight.
+
+An end-to-end pipeline of sampled metrics events can be constructed
+based on exemplars with adjusted counts, one capable of supporting
+approximate queries over sampled metric events at high cardinality.
+
+#### Metric cardinality limiter
+
+A metrics processor can be configured to limit cardinality for a
+single metric name, allowing no more than K distinct label sets per
+export interval.  The export interval is fixed to a short interval so
+that a complete set of distinct labels can be stored temporarily.
+
+Caveats: as presented, this works for Sum and histograms received in
+Delta temporality and where the Sum is monotonic, as discussed in
+[opentelemetry-proto/issues/303](https://github.com/open-telemetry/opentelemetry-proto/issues/303).
+
+Considering data points received during the interval, when the number
+of points exceeds K, select a probability proportional to size sample
+of points, output every point with an additional (non-descriptive)
+`sampling.cardinality_limit.adjusted_count` attribute.
+</details>
+
 ## Explanation
 
 Consider a hypothetical telemetry signal in which an API event
@@ -485,121 +607,6 @@ sample from those spans with attribute `B=2`.  Any span that has both
 of these properties is eligible to be selected for both samples, in
 which case one event could have two non-zero adjusted counts (e.g.,
 `sampling.by_a.adjusted_count` and `sampling.by_b.adjusted_count`).
-
-## Examples
-
-In all of these examples, the use of probability sampling leads to an
-attribute like `sampling.sampler_name.adjusted_count`.  Consumers of
-spans, metrics, and logs annotated with adjusted counts are able to
-calculate accurate statistics about the population of events, at a
-basic level, without knowing details about the sampling configuration.
-
-### Span sampling
-
-#### Sample spans to Counter Metric
-
-For every span it receives, the example processor will synthesize
-metric data as though a Counter instrument named `S.count` for span
-named `S` had been incremented once per span at the original `Start()`
-call site.
-
-This processor will add the adjusted count of each span to the
-instrument (e.g., `Add(adjusted_count, labels...)`)  for every span it
-receives, logically effective at the start or end time of the span.
-
-#### Sample spans to Histogram Metric
-
-For every span it receives, the example processor will synthesize
-metric data as though a Histogram instrument named `S.duration` for
-span named `S` had been observed once per span at the original `End()`
-call site.
-
-The OpenTelemetry Metric data model does not support histogram buckets
-with non-integer counts, which forces the use of integer adjusted
-counts here (i.e., 1-in-N sampling rates where N is an integer).
-
-Logically spaking, this processor will observe the span's duration its
-adjusted count number of times for every span it receives, at the end
-time of the span.
-
-#### Sample span rate limiting
-
-A collector processor will introduce a slight delay in order to ensure
-it has received a complete frame of data, during which time it
-maintains a fixed-size buffer of input spans.  If the number of spans
-received exceeds the size of the buffer before the end of the
-interval, begin weighted sampling using the adjusted count of each
-span as input weight.
-
-This processor drops spans when the configured rate threshold is
-exceeeded, otherwise it passes spans through with unmodifed adjusted
-count.
-
-When the interval expires and the sample frame is considered complete,
-the selected sample spans are output with possibly updated adjusted
-counts.
-
-### Metric sampling
-
-#### Statsd Counter
-
-A Statsd counter event appears as a line of text, describing a
-number-valued event with optional attributes and inclusion probability
-("sample rate").
-
-For example, a metric named `name` is incremented by `increment` using
-a counter event (`c`) with the given `sample_rate`.
-
-```
-name:increment|c|@sample_rate
-```
-
-For example, a count of 100 that was selected for a 1-in-10 simple
-random sampling scheme will arrive as:
-
-```
-counter:100|c|@0.1
-```
-
-Events in the example have with 0.1 inclusion probability have
-adjusted count of 10.  Assuming the sample was selected using an
-unbiased algorithm, we can interpret this event as having an expected
-count of `100/0.1 = 1000`.
-
-#### Metric exemplars with adjusted counts
-
-The OTLP protocol for metrics includes a repeated exemplars field in
-every data point.  This is a place where histogram implementations are
-able to provide example context to corrlate metrics with traces.
-
-OTLP exemplars support additional attributes, those that were present
-on the API event and were dropped during aggregation.  Exemplars that
-are selected probabilistically and recorded with their adjusted counts
-make it possible to approximately count events using dimensions that
-were dropped during metric aggregation.  When sampling metric events,
-use probability proportional to size, meaning for Metric Sum data
-points include the absolute point value as a product in the input
-sample weight.
-
-An end-to-end pipeline of sampled metrics events can be constructed
-based on exemplars with adjusted counts, one capable of supporting
-approximate queries over sampled metric events at high cardinality.
-
-#### Metric cardinality limiter
-
-A metrics processor can be configured to limit cardinality for a
-single metric name, allowing no more than K distinct label sets per
-export interval.  The export interval is fixed to a short interval so
-that a complete set of distinct labels can be stored temporarily.
-
-Caveats: as presented, this works for Sum and histograms received in
-Delta temporality and where the Sum is monotonic, as discussed in
-[opentelemetry-proto/issues/303](https://github.com/open-telemetry/opentelemetry-proto/issues/303).
-
-Considering data points received during the interval, when the number
-of points exceeds K, select a probability proportional to size sample
-of points, output every point with an additional (non-descriptive)
-`sampling.cardinality_limit.adjusted_count` attribute.
 
 ## Proposed Tracing specification
 
