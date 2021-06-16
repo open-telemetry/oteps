@@ -619,8 +619,8 @@ a range of probability sampling schemes, this document recommends the
 use of a Span attribute named `sampling.sampler_name.adjusted_count`
 to encode an unbiased adjusted count computed by a Sampler.
 
-The value any attribute name prefixed with "sampling." and suffixed
-with ".adjusted_count" under this proposal MUST be an unbiased
+The value any attribute name prefixed with `sampling.` and suffixed
+with `.adjusted_count` under this proposal MUST be an unbiased
 estimate of the total population count represented by the individual
 event.
 
@@ -643,7 +643,7 @@ tracing is the *effective* probability of the Sampler returning
 context when the [W3C Trace Context is-sampled
 flag](https://www.w3.org/TR/trace-context/#sampled-flag) is in use.
 
-#### Adjusted Count attributes
+#### Adjusted count span attribute
 
 The recommended way to convey inclusion probability *for events*
 sampled in OpenTelemetry is in the form of the **adjusted count**,
@@ -661,11 +661,11 @@ population.
 
 Attributes used to express the adjusted count in an unbiased
 probability sampling scheme SHOULD use a Span attribute name with
-prefix "sampling." and with suffix ".adjusted_count" (e.g.,
-"sampling.sampler_name.adjusted_count").  Adjusted count attributes
+prefix `sampling.` and with suffix `.adjusted_count` (e.g.,
+`sampling.sampler_name.adjusted_count`).  Adjusted count attributes
 MAY be integer or floating-point values.
 
-#### Inclusion probability tracestate 
+#### Inclusion probability tracestate value
 
 The recommended way to convey sampling probability *for contexts* in
 OpenTelemetry is through the W3C Trace Context tracestate using the
@@ -682,6 +682,24 @@ number greater than or equal to 0 and less than or equal to 1.  The
 floating point precision of the number SHOULD follow implementation
 language standards and SHOULD be high enough to identify when Samplers
 have different inclusion probabilities.
+
+#### Counting spans
+
+Consumers of a stream of span data that may or may not have been
+sampled can follow these steps to count or approximately count the
+total number of spans in the population.
+
+For each span processed, locate all span attributes with prefix
+`sampling.` and suffix `.adjusted_count`.  If there are no adjusted
+count attributes on the span, count a single event.  If there is
+exactly one adjusted count attribute, count that many identical span
+events.
+
+If there are more than one adjusted count attribute on the span, the
+processor SHOULD make a consistent choice for spans of a given
+resource.  By default, the SDK's first preference MUST the builtin
+`TraceIDRatio` sampler, and its second preference MUST be the builtin
+`Parent` sampler.
 ```
 
 For the `TraceIDRatio` sampler, include the following additional text:
@@ -692,7 +710,7 @@ Sampler MUST include the attribute
 `sampling.traceidratio.adjusted_count=C`, where `C` is the reciprocal of the
 configured trace ID ratio.
 
-The returned tracestate used for the child context SHOULD have the
+The returned tracestate used for the child context MUST have the
 tracestate `head_probability` key set to the configured trace
 ID ratio.
 ```
