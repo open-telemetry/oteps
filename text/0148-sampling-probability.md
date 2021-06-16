@@ -24,9 +24,10 @@
     + [Multiply the adjusted count into the data](#multiply-the-adjusted-count-into-the-data)
   * [Trace Sampling](#trace-sampling)
     + [Counting spans and traces](#counting-spans-and-traces)
-    + [`Parent` Sampler](#parent-sampler)
-    + [`TraceIDRatio` Sampler](#traceidratio-sampler)
-    + [Dapper's "Inflationary" Sampler](#dappers-inflationary-sampler)
+    + [Head sampling for traces](#head-sampling-for-traces)
+      - [`Parent` Sampler](#parent-sampler)
+      - [`TraceIDRatio` Sampler](#traceidratio-sampler)
+      - [Dapper's "Inflationary" Sampler](#dappers-inflationary-sampler)
   * [Working with adjusted counts](#working-with-adjusted-counts)
     + [Merging samples](#merging-samples)
     + [Maintaining "Probability proportional to size"](#maintaining-probability-proportional-to-size)
@@ -420,7 +421,7 @@ following criteria:
 <details> <summary> Details about Sampler implementations that meet
 the requirements stated above.  </summary>
 
-#### `Parent` Sampler
+##### `Parent` Sampler
 
 The `Parent` Sampler ensures complete traces, provided all spans are
 successfully recorded.  A downside of `Parent` sampling is that it
@@ -443,7 +444,7 @@ count in the corresponding `SpanData`.  This may use a non-descriptive
 Resource or Span attribute named `sampling.parent.adjusted_count`, for
 example.
 
-#### `TraceIDRatio` Sampler
+##### `TraceIDRatio` Sampler
 
 The OpenTelemetry tracing specification includes a built-in Sampler
 designed for probability sampling using a deterministic sampling
@@ -475,7 +476,7 @@ adjusted count in the corresponding `SpanData`.  This may use a
 non-descriptive Resource or Span attribute named
 `sampling.traceidratio.adjusted_count`, for example.
 
-#### Dapper's "Inflationary" Sampler
+##### Dapper's "Inflationary" Sampler
 
 Google's [Dapper](https://research.google/pubs/pub36356/) tracing
 system describes the use of sampling to control the cost of trace
