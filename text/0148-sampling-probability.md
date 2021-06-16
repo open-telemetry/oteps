@@ -94,9 +94,7 @@ call site.
 
 This processor will add the adjusted count of each span to the
 instrument (e.g., `Add(adjusted_count, labels...)`)  for every span it
-receives, logically effective at the start or end time of the span.
-
-This is a core use-case for probability sampling.
+receives, logically taking place at the start or end time of the span.
 
 #### Sample spans to Histogram Metric
 
@@ -112,8 +110,6 @@ counts here (i.e., 1-in-N sampling rates where N is an integer).
 Logically spaking, this processor will observe the span's duration its
 adjusted count number of times for every span it receives, at the end
 time of the span.
-
-This is a core use-case for probability sampling.
 
 #### Sample span rate limiting
 
@@ -174,14 +170,12 @@ OTLP exemplars support additional attributes, those that were present
 on the API event and were dropped during aggregation.  Exemplars that
 are selected probabilistically and recorded with their adjusted counts
 make it possible to approximately count events using dimensions that
-were dropped during metric aggregation.  When sampling metric events,
-use probability proportional to size, meaning for Metric Sum data
-points include the absolute point value as a product in the input
-sample weight.
+were dropped during metric aggregation.
 
 An end-to-end pipeline of sampled metrics events can be constructed
 based on exemplars with adjusted counts, one capable of supporting
-approximate queries over sampled metric events at high cardinality.
+approximate-count queries over sampled metric events at high
+cardinality.
 
 #### Metric cardinality limiter
 
@@ -190,9 +184,10 @@ single metric name, allowing no more than K distinct label sets per
 export interval.  The export interval is fixed to a short interval so
 that a complete set of distinct labels can be stored temporarily.
 
-Caveats: as presented, this works for Sum and histograms received in
-Delta temporality and where the Sum is monotonic, as discussed in
-[opentelemetry-proto/issues/303](https://github.com/open-telemetry/opentelemetry-proto/issues/303).
+Caveats: as presented, this works for Sum and Histogram points
+received with Delta aggregation temporality and where the Sum is
+monotonic (see
+[opentelemetry-proto/issues/303](https://github.com/open-telemetry/opentelemetry-proto/issues/303)).
 
 Considering data points received during the interval, when the number
 of points exceeds K, select a probability proportional to size sample
@@ -645,21 +640,24 @@ Probability Samplers are Samplers that output statistically unbiased
 inclusion probability.  Inclusion probability in the context of
 tracing is the *effective* probability of the Sampler returning
 `RECORD_AND_SAMPLE`, which can be decided locally or derived from the
-parent context using the [W3C Trace Context is-sampled
-flag](https://www.w3.org/TR/trace-context/#sampled-flag).
+context when the [W3C Trace Context is-sampled
+flag](https://www.w3.org/TR/trace-context/#sampled-flag) is in use.
 
 #### Adjusted Count attributes
 
-The recommended way to convey sampling probability *for events* in
-OpenTelemetry is in the form of an **adjusted count**, which is the
-reciprocal (i.e., mathematical inverse function) of inclusion
-probability.
+The recommended way to convey inclusion probability *for events*
+sampled in OpenTelemetry is in the form of the **adjusted count**,
+which is the reciprocal (i.e., mathematical inverse function) of
+inclusion probability.
 
 The implied goal of probability sampling is to support estimating the
 count of spans in the population using the spans that were sampled.
-Probability Samplers and probabilistic Span processors SHOULD maintain
-the expected value of the sum of Span adjusted counts, to support this
-goal.
+The adjusted count associated with a Span is the expected value of the
+number of identical Spans within the population that each Span
+represents.  Probability samplers SHOULD ensure the samples they
+compute are unbiased, which implies that the expected value of the sum
+of adjusted counts in the sample equals the true count of spans in the
+population.
 
 Attributes used to express the adjusted count in an unbiased
 probability sampling scheme SHOULD use a Span attribute name with
