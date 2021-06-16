@@ -600,34 +600,83 @@ After
 [Sampler](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampler)
 and before [Builtin
 Samplers](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#built-in-samplers),
-a new section named *Probability sampling* will introduce the term
-"adjusted count" and relate it to inclusion probability, citing
-external sources and this OTEP.  For example:
+a new section will introduce the term "adjusted count" and relate it
+to inclusion probability.  For example:
 
-TODO
+```md
+### Probability sampling
+
+Probability Samplers are Samplers that output statistically unbiased
+inclusion probability.  Inclusion probability in the context of
+tracing is the *effective* probability of the Sampler returning
+`RECORD_AND_SAMPLE`, which can be decided locally or derived from the
+parent context using the [W3C Trace Context is-sampled
+flag](https://www.w3.org/TR/trace-context/#sampled-flag).
+
+#### Adjusted Count attributes
+
+The recommended way to convey sampling probability *for events* in
+OpenTelemetry is in the form of an **adjusted count**, which is the
+reciprocal (i.e., mathematical inverse function) of inclusion
+probability.
+
+The implied goal of probability sampling is to support estimating the
+count of spans in the population using the spans that were sampled.
+Probability Samplers and probabilistic Span processors SHOULD maintain
+the expected value of the sum of Span adjusted counts, to support this
+goal.
+
+Attributes used to express the adjusted count in an unbiased
+probability sampling scheme SHOULD use a Span attribute name with
+prefix "sampling." and with suffix ".adjusted_count" (e.g.,
+"sampling.sampler_name.adjusted_count").  Adjusted count attributes
+MAY be integer or floating-point values.
+
+#### Inclusion probability tracestate 
+
+The recommended way to convey sampling probability *for contexts* in
+OpenTelemetry is through the W3C Trace Context tracestate using the
+key `head_probability`.
+
+Probability Samplers SHOULD encode the effective sampling inclusion
+probability using tracestate, for the context that was in effect when
+the W3C is-sampled bit was set.  The tracestate field SHOULD be set in
+both sampled and unsampled cases, to convey the inclusion probability
+even for unsampled contexts.
+
+The `head_probability` tracestate key is set to a floating-point
+number greater than or equal to 0 and less than or equal to 1.  The
+floating point precision of the number SHOULD follow implementation
+language standards and SHOULD be high enough to identify when Samplers
+have different inclusion probabilities.
+```
 
 For the `TraceIDRatio` sampler, include the following additional text:
 
-> When returning a `RECORD_AND_SAMPLE` decision, the TraceIDRatio
-> Sampler MUST include the attribute
-> `sampling.traceidratio.adjusted_count=C` for `C` the reciprocal of the
-> configured trace ID ratio.
-> 
-> The returned tracestate used for the child context MUST include an
-> additional key-value carrying the head inclusion probability, equal
-> to the configured trace ID ratio. (TODO: spec the tracestate key for
-> head inclusion probability.)
+```md
+When returning a `RECORD_AND_SAMPLE` decision, the TraceIDRatio
+Sampler MUST include the attribute
+`sampling.traceidratio.adjusted_count=C`, where `C` is the reciprocal of the
+configured trace ID ratio.
+
+The returned tracestate used for the child context SHOULD have the
+tracestate `head_probability` key set to the configured trace
+ID ratio.
+```
 
 For the `Parent` sampler, include the following additional text:
 
-> When returning a `RECORD_AND_SAMPLE` decision, the Parent Sampler MUST
-> include the attribute `sampling.parent.adjusted_count=C` for `C` the
-> reciprocal of the parent trace context's head inclusion probability,
-> which is passed through W3C tracestate.
+```md
+When returning a `RECORD_AND_SAMPLE` decision, the Parent Sampler MUST
+include the attribute `sampling.parent.adjusted_count=C`, where `C` is the
+reciprocal of the parent trace context's head inclusion probability,
+which is passed through W3C tracestate using the `head_probability` key.
+```
 
 ## Recommended reading
 
-[Sampling, 3rd Edition, by Steven K. Thompson](https://www.wiley.com/en-us/Sampling%2C+3rd+Edition-p-9780470402313).
+[Sampling, 3rd Edition, by Steven
+K. Thompson](https://www.wiley.com/en-us/Sampling%2C+3rd+Edition-p-9780470402313).
 
 [A Generalization of Sampling Without Replacement From a Finite Universe](https://www.jstor.org/stable/2280784), JSTOR (1952)
 
