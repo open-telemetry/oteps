@@ -458,24 +458,31 @@ For example, consider collecting two samples from a stream of spans,
 the first sample from those spans with attribute `A=1` and the second
 sample from those spans with attribute `B=2`.  Any span that has both
 of these properties is eligible to be selected for both samples, in
-which case it will have two non-zero adjusted counts.
+which case one event could have two non-zero adjusted counts (e.g.,
+`sampling.by_a.adjusted_count` and `sampling.by_b.adjusted_count`).
 
 ## Examples
 
+In all of these examples, the use of probability sampling leads to an
+attribute like `sampling.sampler_name.adjusted_count`.  Consumers of
+spans, metrics, and logs annotated with adjusted counts are able to
+calculate accurate statistics about the population of events, at a
+basic level, without knowing details about the sampling configuration.
+
 ### Span sampling
 
-#### Sample Spans to Counter Metric
+#### Sample spans to Counter Metric
 
 For every span it receives, the example processor will synthesize
 metric data as though a Counter instrument named `S.count` for span
 named `S` had been incremented once per span at the original `Start()`
 call site.
 
-Logically spaking, this processor will add the adjusted count of each
-span to the instrument (e.g., `Add(adjusted_count, labels...)`)  for
-every span it receives, at the start time of the span.
+This processor will add the adjusted count of each span to the
+instrument (e.g., `Add(adjusted_count, labels...)`)  for every span it
+receives, logically effective at the start or end time of the span.
 
-#### Sample Spans to Histogram Metric
+#### Sample spans to Histogram Metric
 
 For every span it receives, the example processor will synthesize
 metric data as though a Histogram instrument named `S.duration` for
@@ -484,13 +491,13 @@ call site.
 
 The OpenTelemetry Metric data model does not support histogram buckets
 with non-integer counts, which forces the use of integer adjusted
-counts (i.e., integer-reciprocal sampling rates) here.
+counts here (i.e., 1-in-N sampling rates where N is an integer).
 
 Logically spaking, this processor will observe the span's duration its
 adjusted count number of times for every span it receives, at the end
 time of the span.
 
-#### Sample Spans rate limiting
+#### Sample span rate limiting
 
 A collector processor will introduce a slight delay in order to ensure
 it has received a complete frame of data, during which time it
@@ -551,29 +558,35 @@ sample weight.
 
 An end-to-end pipeline of sampled metrics events can be constructed
 based on exemplars with adjusted counts, one capable of supporting
-approximate queries over high-cardinality metrics.
+approximate queries over sampled metric events at high cardinality.
 
-#### Metric cardinality control
+#### Metric cardinality limiter
 
-TODO
+A metrics processor can be configured to limit cardinality for a
+single metric name, allowing no more than K distinct label sets per
+export interval.  The export interval is fixed to a short interval so
+that a complete set of distinct labels can be stored temporarily.
+
+Caveats: as presented, this works for Sum and histograms received in
+Delta temporality and where the Sum is monotonic, as discussed in
+[opentelemetry-proto/issues/303](https://github.com/open-telemetry/opentelemetry-proto/issues/303).
+
+Considering data points received during the interval, when the number
+of points exceeds K, select a probability proportional to size sample
+of points, output every point with an additional (non-descriptive)
+`sampling.cardinality_limit.adjusted_count` attribute.
 
 ## Proposed Tracing specification
 
 For the standard OpenTelemetry Span Sampler implementations to support
 a range of probability sampling schemes, this document recommends the
-use of a Span attribute named `sampling.X.adjusted_count` to encode
-the adjusted count computed by a Sampler named "X", whic should be
-unbiased.
+use of a Span attribute named `sampling.sampler_name.adjusted_count`
+to encode an unbiased adjusted count computed by a Sampler.
 
 The value any attribute name prefixed with "sampling." and suffixed
 with ".adjusted_count" under this proposal MUST be an unbiased
 estimate of the total population count represented by the individual
 event.
-
-The specification will state that non-probabilistic rate limiters and
-other processors that distort the interpretation of adjusted count
-outlined above SHOULD erase the adjusted count attributes to prevent
-mis-counting events.
 
 ### Suggested text
 
@@ -589,7 +602,7 @@ TODO
 
 For the `TraceIDRatio` sampler, include the following additional text:
 
-> When returning a RECORD_AND_SAMPLE decision, the TraceIDRatio
+> When returning a `RECORD_AND_SAMPLE` decision, the TraceIDRatio
 > Sampler MUST include the attribute
 > `sampling.traceidratio.adjusted_count=C` for `C` the reciprocal of the
 > configured trace ID ratio.
@@ -601,7 +614,7 @@ For the `TraceIDRatio` sampler, include the following additional text:
 
 For the `Parent` sampler, include the following additional text:
 
-> When returning a RECORD_AND_SAMPLE decision, the Parent Sampler MUST
+> When returning a `RECORD_AND_SAMPLE` decision, the Parent Sampler MUST
 > include the attribute `sampling.parent.adjusted_count=C` for `C` the
 > reciprocal of the parent trace context's head inclusion probability,
 > which is passed through W3C tracestate.
