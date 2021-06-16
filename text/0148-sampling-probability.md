@@ -69,21 +69,20 @@ a quantity known as **adjusted count**.  In common language, a
 N.  Adjusted count is the expected value of the number of events in
 the population represented by an individual sample event.
 
-<details>
-<summary>
-Example applications that apply probability sampling to lower the cost 
-of telemetry collection.
-</summary>
-
 ## Examples
 
 In all of these examples, the use of probability sampling leads to an
-attribute like `sampling.sampler_name.adjusted_count`.  Consumers of
-spans, metrics, and logs annotated with adjusted counts are able to
-calculate accurate statistics about the population of events, at a
-basic level, without knowing details about the sampling configuration.
+attribute named like `sampling.sampler_name.adjusted_count`.
+Consumers of spans, metrics, and logs annotated with adjusted counts
+are able to calculate accurate statistics about the population of
+events, at a basic level, without knowing details about the sampling
+configuration.
 
 ### Span sampling
+
+<details> 
+<summary> Example use-cases for probability sampling of spans
+generally involve generating metrics from spans.</summary>
 
 #### Sample spans to Counter Metric
 
@@ -95,6 +94,8 @@ call site.
 This processor will add the adjusted count of each span to the
 instrument (e.g., `Add(adjusted_count, labels...)`)  for every span it
 receives, logically effective at the start or end time of the span.
+
+This is a core use-case for probability sampling.
 
 #### Sample spans to Histogram Metric
 
@@ -110,6 +111,8 @@ counts here (i.e., 1-in-N sampling rates where N is an integer).
 Logically spaking, this processor will observe the span's duration its
 adjusted count number of times for every span it receives, at the end
 time of the span.
+
+This is a core use-case for probability sampling.
 
 #### Sample span rate limiting
 
@@ -127,8 +130,13 @@ count.
 When the interval expires and the sample frame is considered complete,
 the selected sample spans are output with possibly updated adjusted
 counts.
+</details>
 
 ### Metric sampling
+
+<details> 
+<summary> Example use-cases for probability sampling of metrics
+are aimed at lowering cost and addressing high cardinality.</summary>
 
 #### Statsd Counter
 
