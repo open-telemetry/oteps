@@ -633,20 +633,20 @@ Samplers](https://github.com/open-telemetry/opentelemetry-specification/blob/mai
 a new section will introduce the term "adjusted count" and relate it
 to inclusion probability.  For example:
 
-```md
+```markdown
 ### Probability sampling
 
 Probability Samplers are Samplers that output statistically unbiased
 inclusion probability.  Inclusion probability in the context of
 tracing is the *effective* probability of the Sampler returning
-`RECORD_AND_SAMPLE`, which can be decided locally or derived from the
-context when the [W3C Trace Context is-sampled
+`RECORD_AND_SAMPLE` when invoked, which can be decided locally or 
+derived from the context when the [W3C Trace Context is-sampled
 flag](https://www.w3.org/TR/trace-context/#sampled-flag) is in use.
 
 #### Adjusted count span attribute
 
 The recommended way to convey inclusion probability *for events*
-sampled in OpenTelemetry is in the form of the **adjusted count**,
+sampled in OpenTelemetry is in the form of an **adjusted count**,
 which is the reciprocal (i.e., mathematical inverse function) of
 inclusion probability.
 
@@ -683,7 +683,7 @@ floating point precision of the number SHOULD follow implementation
 language standards and SHOULD be high enough to identify when Samplers
 have different inclusion probabilities.
 
-#### Counting spans
+#### Counting probabilistically sampled spans
 
 Consumers of a stream of span data that may or may not have been
 sampled can follow these steps to count or approximately count the
