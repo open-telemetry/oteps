@@ -415,10 +415,10 @@ following criteria:
 - Produces complete traces
 - Spans are countable.
 
-<details>
-<summary>
-Detail about Samplers for head trace sampling.
-</summary>
+#### Head sampling for traces
+
+<details> <summary> Details about Sampler implementations that meet
+the requirements stated above.  </summary>
 
 #### `Parent` Sampler
 
