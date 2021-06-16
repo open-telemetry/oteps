@@ -7,7 +7,7 @@
   * [Model and terminology](#model-and-terminology)
     + [Sampling without replacement](#sampling-without-replacement)
     + [Adjusted sample count](#adjusted-sample-count)
-    + [Introducing variance](#introducing-variance)
+    + [Sampling and variance](#sampling-and-variance)
   * [Conveying the sampling probability](#conveying-the-sampling-probability)
     + [Encoding adjusted count](#encoding-adjusted-count)
     + [Encoding inclusion probability](#encoding-inclusion-probability)
@@ -20,11 +20,17 @@
     + [Dapper's "Inflationary" Sampler](#dappers-inflationary-sampler)
   * [Working with adjusted counts](#working-with-adjusted-counts)
     + [Merging samples](#merging-samples)
-  * [Examples](#examples)
-    + [Sample Spans to Counter Metric](#sample-spans-to-counter-metric)
-    + [Sample Spans to Histogram Metric](#sample-spans-to-histogram-metric)
+    + [Maintaining "Probability proportional to size"](#maintaining-probability-proportional-to-size)
+    + [Zero adjusted count](#zero-adjusted-count)
+- [Examples](#examples)
+  * [Span sampling](#span-sampling)
+    + [Sample spans to Counter Metric](#sample-spans-to-counter-metric)
+    + [Sample spans to Histogram Metric](#sample-spans-to-histogram-metric)
+    + [Sample span rate limiting](#sample-span-rate-limiting)
+  * [Metric sampling](#metric-sampling)
     + [Statsd Counter](#statsd-counter)
-    + [Example: Sample span rate limiter](#example-sample-span-rate-limiter)
+    + [Metric exemplars with adjusted counts](#metric-exemplars-with-adjusted-counts)
+    + [Metric cardinality limiter](#metric-cardinality-limiter)
 - [Proposed Tracing specification](#proposed-tracing-specification)
   * [Suggested text](#suggested-text)
 - [Recommended reading](#recommended-reading)
@@ -156,7 +162,7 @@ procedure must be _statistically unbiased_, a term meaning that the
 process is required to give equal consideration to all possible
 outcomes.
 
-#### Introducing variance
+#### Sampling and variance
 
 The use of unbiased sampling outlined above makes it possible to
 estimate the population total for arbitrary subsets of the sample, as
