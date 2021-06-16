@@ -69,7 +69,7 @@ a quantity known as **adjusted count**.  In common language, a
 N.  Adjusted count is the expected value of the number of events in
 the population represented by an individual sample event.
 
-<detail>
+<details>
 <summary>
 Example applications that apply probability sampling to lower the cost 
 of telemetry collection.
