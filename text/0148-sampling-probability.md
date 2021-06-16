@@ -272,6 +272,11 @@ following criteria:
 - Produces complete traces
 - Spans are countable.
 
+<details>
+<summary>
+Detail about Samplers for head trace sampling.
+</summary>
+
 #### `Parent` Sampler
 
 The `Parent` Sampler ensures complete traces, provided all spans are
@@ -360,8 +365,7 @@ P(x)=P(x|y)*P(y)+P(x|not y)*P(not y)
 The variables are:
 
 - **`H`**: The head inclusion probability of the parent context that
-  is in effect, independent of whether the parent context was sampled,
-  the reciprocal of the parent context's effective adjusted count.
+  is in effect, independent of whether the parent context was sampled
 - **`I`**: The inflationary sampling probability for the span being
   started.
 - **`D`**: The decision probability for whether to start a new sub-root.
@@ -399,6 +403,8 @@ probability.  If the decision is true, begin recording a sub-rooted
 trace with adjusted count `1/I`.  This may use a non-descriptive
 Resource or Span attribute named
 `sampling.inflationary.adjusted_count`, for example.
+
+</details>
 
 ### Working with adjusted counts
 
