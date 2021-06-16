@@ -313,7 +313,7 @@ Approximate counting comes with variance, a matter of fact which can
 be controlled for by the sample size.  Variance is unavoidable in an
 unbiased sample, but it vanishes when you have enough data.
 
-Although this makes it sounds like small sample sizes are a problem,
+Although this makes it sound like small sample sizes are a problem,
 due to expected high variance, this is just a limitation of the
 technique.  When variance is high, use a larger sample size.
 
@@ -371,7 +371,7 @@ are not integer valued.
 ### Trace Sampling
 
 Sampling techniques are always about lowering the cost of data
-collection and analsyis, but in trace collection and analsysis
+collection and analysis, but in trace collection and analysis
 specifically, approaches can be categorized by whether they reduce
 Tracer overhead.  Tracer overhead is reduced by not recording spans
 for unsampled traces and requires making the sampling decision for a
@@ -482,7 +482,7 @@ reproduced here.
 This kind of Sampler allows non-root spans in a trace to raise the
 probability of tracing, using a conditional probability formula shown
 below.  Traces produced in this way are complete sub-trees, not
-necessarily complete.  This technique is succesful especially in
+necessarily complete.  This technique is successful especially in
 systems where a high-throughput service on occasion calls a
 low-throughput service.  Low-throughput services are meant to inflate
 their sampling probability.
