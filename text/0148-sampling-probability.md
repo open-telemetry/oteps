@@ -42,19 +42,32 @@ Objective: Specify a foundation for sampling techniques in OpenTelemetry.
 
 ## Motivation
 
-In tracing, metrics, and logs, there are widely known techniques for
-sampling a stream of events that, when performed correctly, enable
-collecting a fraction of the complete data while maintaining
-substantial visibility into the whole population of events.
+Probability sampling allows consumers of sampled telemetry data to
+collect a fraction of telemetry events and use them to estimate total
+quantities about the population of events, such as the total rate of
+events with a particular attribute.  Sampling is a general-purpose
+facility for lowering cost at the expense of lower data quality.
 
-These techniques are all forms of approximate counting.  Estimates
-calculated by the forms of sampling outlined here are considered
-accurate, in the sense that they are random variables with an expected
-value equal to their true value.
+These techniques enable reducing the cost of telemetry collection,
+both for producers (i.e., SDKs) and for processors (i.e., Collectors),
+without losing the ability to (at least coarsely) monitor the whole
+system.
 
-While sampling techniques vary, it is possible to specify high-level
-interoperability requirements that producers and consumers of sampled
-data can follow to enable a wide range of sampling designs.
+Sampling builds on results from probability theory, most significantly
+the concept of expected value.  Estimates drawn from probability
+samples are *random variables* that, when correct procedures are
+followed, accurately reflect their true value, making them unbiased.
+Unbiased samples can be used for after-the-fact analysis.  We can
+answer questions such as "what fraction of events had property X?"
+using the fraction of events in the sample that have property X.
+
+This document outlines how producers and consumers of sample telemetry
+data can convey estimates about the total count of telemetry events,
+without conveying information about how the sample was computed, using
+a quantity known as **adjusted count**.  In common language, a
+"one-in-N" sampling scheme emits events with adjusted count equal to
+N.  Adjusted count is the expected value of the number of events in
+the population represented by an individual sample event.
 
 ## Explanation
 
