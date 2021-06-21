@@ -139,7 +139,7 @@ The resulting resource will have the Schema URL calculated as follows:
 - **Else if the Schema urls of the old and updating resources are compatible**
   **then the older resource will be converted to newer schema url and merged.**
 - Else this is a merging error (this is the case when the Schema URL of the old
-  and updating resources are not empty and are different).
+  and updating resources are not empty and are not compatible).
 
 ### Resource conversion logic
 
