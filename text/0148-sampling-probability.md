@@ -82,7 +82,7 @@ configuration.
 ### Span sampling
 
 <details> 
-<summary> Example use-cases for probability sampling of spans
+<summary>Example use-cases for probability sampling of spans
 generally involve generating metrics from spans.</summary>
 
 #### Sample spans to Counter Metric
@@ -107,7 +107,7 @@ The OpenTelemetry Metric data model does not support histogram buckets
 with non-integer counts, which forces the use of integer adjusted
 counts here (i.e., 1-in-N sampling rates where N is an integer).
 
-Logically spaking, this processor will observe the span's duration its
+Logically speaking, this processor will observe the span's duration its
 adjusted count number of times for every span it receives, at the end
 time of the span.
 
@@ -164,7 +164,7 @@ count of `100/0.1 = 1000`.
 
 The OTLP protocol for metrics includes a repeated exemplars field in
 every data point.  This is a place where histogram implementations are
-able to provide example context to corrlate metrics with traces.
+able to provide example context to correlate metrics with traces.
 
 OTLP exemplars support additional attributes, those that were present
 on the API event and were dropped during aggregation.  Exemplars that
@@ -436,7 +436,7 @@ reason.
 In addition to propagating head inclusion probability, to count
 Parent-sampled spans, each span must directly encode its adjusted
 count in the corresponding `SpanData`.  This may use a non-descriptive
-Resource or Span attribute named `sampling.parent.adjusted_count`, for
+Span attribute named `sampling.parent.adjusted_count`, for
 example.
 
 ##### `TraceIDRatio` Sampler
