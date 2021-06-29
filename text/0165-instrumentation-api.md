@@ -123,7 +123,7 @@ The implementation of `onStart` and `onEnd` populate the attributes with the res
 which operate on the request domain object. In Java it looks like [this](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation-api/src/main/java/io/opentelemetry/instrumentation/api/instrumenter/http/HttpAttributesExtractor.java).
 
 An implementation of each semantic convention method is required, i.e., no default implementation of the
-interface methods is provided. This is to ensure it is a conscience decision by the instrumentation library
+interface methods is provided. This is to ensure it is a conscious decision by the instrumentation library
 author to avoid populating a semantic convention because it is not available in that framework. The
 expectation is these interfaces will generally lead instrumentation authors into populating all of
 OpenTelemetry's semantic conventions.
