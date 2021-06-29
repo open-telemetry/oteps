@@ -6,7 +6,14 @@ API providing support to library instrumentation authors.
 
 The OpenTelemetry API provides a means for data collection, for example starting / stopping
 spans or recording metrics. However, this is only half the story when it comes to instrumenting and
-misses out on common patterns required during instrumentation of libraries. Without defining these
+misses out on common patterns required during instrumentation of libraries. For example, server
+instrumentation will always need to extract context from incoming headers and use it as the parent
+of a created span. There are also ongoing discussions on how to model nested spans. Both of these
+are telemetry concepts that do not actually tie directly to any one library, and abstracting it into
+an instrumentation API allows library instrumentation to only deal with attribute mapping of library
+objects for the most part.
+
+Without defining these
 patterns through an instrumentation API, it is difficult to ensure consistency of quality and user
 experience of different instrumentation libraries.
 
@@ -35,10 +42,10 @@ allows instrumentation to implement `Extractor`s, which map from a request or re
 attributes. Extractors enforce a contract, for example by defining an abstract class, which includes
 all the semantic conventions of a given namespace in OpenTelemetry. The library instrumentation just
 implements extractors relevant to the library - for example, an HTTP framework will implement the
-HTTP extractor. This allows all HTTP attributes to be filled without specific knowledge of the
-semantic conventions themselves.
+HTTP extractor. This allows all HTTP attributes to be filled without the potential to miss
+attributes.
 
-An `InstrumentaterBuilder` stitches together `Instrumenter` and `Extractor`s, as well as consistently
+An `InstrumenterBuilder` stitches together `Instrumenter` and `Extractor`s, as well as consistently
 defining a set of well known configuration knobs for library users. The instrumentation library will
 initialize a builder with defaults registering the implemented `Extractor`s and return it to the
 user of the instrumentation, which can further configure it to their needs.
@@ -92,7 +99,7 @@ class TracingServletFilter implements Filter {
 
 ### AttributesExtractor
 
-`AttribuesExtractor` allows populating attributes from a library's request and response domain
+`AttribuetsExtractor` allows populating attributes from a library's request and response domain
 objects.
 
 The `AttributesExtractor` interface itself is two callbacks that are called from `start` and `end`
@@ -135,7 +142,7 @@ A `RequestListener` is a simple callback called at the start and end of an opera
 attributes with the registered `AttributesExtractor`s.
 
 - `Context start(Context context, Attributes requestAttributes)`: Called at the start of a request
-- `void end(Context context, Attributes responseAttributes)`: Called at the end of a request
+- `void end(Context context, Attributes responseAttributes, Throwable error)`: Called at the end of a request
 
 One major use case we have found for these listeners is to compute metrics. A `RequestListener` is
 implemented to populate HTTP server metrics [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation-api/src/main/java/io/opentelemetry/instrumentation/api/instrumenter/http/HttpServerMetrics.java).
@@ -165,7 +172,7 @@ can handle multiple kinds of spans based on the request i.e., `SERVER` or `CONSU
 conventions often define this, so for example `HttpSpanStatusExtractor` would wrap an `HttpAttributesExtractor`
 to determine the status based on the HTTP status code if available, or the error otherwise.
 
-- `EndTimeExtractor`: Maps the request object to an end time. Rarely used but sometimes necessary.
+- `EndTimeExtractor`: Maps the response object to an end time. Rarely used but sometimes necessary.
 
 ### InstrumenterBuilder
 
