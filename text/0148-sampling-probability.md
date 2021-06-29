@@ -87,7 +87,7 @@ generally involve generating metrics from spans.</summary>
 
 #### Sample spans to Counter Metric
 
-For every span it receives, the example processor will synthesize
+For every complete span it receives, the example processor will synthesize
 metric data as though a Counter instrument named `S.count` for span
 named `S` had been incremented once per span at the original `Start()`
 call site.
@@ -115,7 +115,7 @@ time of the span.
 
 A collector processor will introduce a slight delay in order to ensure
 it has received a complete frame of data, during which time it
-maintains a fixed-size buffer of input spans.  If the number of spans
+maintains a fixed-size buffer of complete input spans.  If the number of spans
 received exceeds the size of the buffer before the end of the
 interval, begin weighted sampling using the adjusted count of each
 span as input weight.
@@ -238,7 +238,7 @@ that were not selected for the sample have zero inclusion probability.
 Descriptive words that are often used to describe sampling designs:
 
 - *Fixed*: the sampling design is the same from one frame to the next
-- *Adaptive*: the sampling design changes from one frame to the next
+- *Adaptive*: the sampling design changes from one frame to the next based on the observed data
 - *Equal-Probability*: the sampling design uses a single inclusion probability per frame
 - *Unequal-Probability*: the sampling design uses multiple inclusion probabilities per frame
 - *Reservoir*: the sampling design uses fixed space, has fixed-size output.
@@ -327,9 +327,12 @@ lower variance.  It must, because the data remains unbiased.
 
 Some possibilities for encoding the adjusted count or inclusion
 probability are discussed below, depending on the circumstances and
-the protocol.
+the protocol.  Here, the focus is on how to count sampled telemetry
+events in general, not a specific kind of event.  As we shall see in
+the following section, tracing comes with its addional complications.
 
-There are several ways of encoding this information:
+There are several ways of encoding this adjusted count or inclusion
+probability:
 
 - as a dedicated field in an OTLP protobuf message
 - as a non-descriptive Attribute in an OTLP Span, Metric, or Log
@@ -341,6 +344,12 @@ We can encode the adjusted count directly as a floating point or
 integer number in the range [0, +Inf).  This is a conceptually easy
 way to understand sampling because larger numbers mean greater
 representivity.
+
+Note that it is possible, given this description, to produce adjusted
+counts that are not integers.  Adjusted counts are an approximatation,
+and the expected value of an integer can be a fractional count.
+Floating-point adjusted counts can be avoided with the use of
+integer-reciprocal inclusion probabilities.
 
 #### Encoding inclusion probability
 
