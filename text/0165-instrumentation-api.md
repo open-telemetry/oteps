@@ -99,7 +99,7 @@ class TracingServletFilter implements Filter {
 
 ### AttributesExtractor
 
-`AttribuetsExtractor` allows populating attributes from a library's request and response domain
+`AttributesExtractor` allows populating attributes from a library's request and response domain
 objects.
 
 The `AttributesExtractor` interface itself is two callbacks that are called from `start` and `end`
