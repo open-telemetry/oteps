@@ -394,23 +394,77 @@ produced.  Sampling techniques that lower Tracer overhead and produce
 complete traces are known as _Head trace sampling_ techniques.
 
 The decision to produce and collect a sample trace has to be made when
-the root span starts, to avoid incomplete traces.  Using the sampling
-techniques outlined above, we can approximately count finished spans
-and traces, even without knowing how the head trace sampling decision
-was made.
+the root span starts, to avoid incomplete traces.  Then, assuming
+complete traces can be collected, the adjusted count of the root span
+determines an adjusted count for every span in the trace.
 
-#### Counting spans and traces
+#### Counting child spans using root span adjusted counts
 
-When the [W3C Trace Context is-sampled
-flag](https://www.w3.org/TR/trace-context/#sampled-flag) is used to
-propagate a sampling decision, child spans have the same adjusted
-count as their parent.  This leads to a useful optimization.
+The adjusted count of a root span determines the adjusted count of
+each of its children based on the following logic:
 
-It is nice-to-have, though not a requirement, that all spans in a
-trace directly encode their adjusted count.  This enables systems to
-count spans upon arrival, without the work of referring to their
-parent spans.  For example, knowing a span's adjusted count makes it
-possible to immediately produce metric events from span events.
+- The root span is considered representative of _adjusted count_ many
+  identical root spans, because it was selected using unbiased sampling
+- Context propagation conveys _causation_, the fact the one span produces 
+  another
+- A root span causes each of the child spans in its trace to be produced
+- A sampled root span represents _adjusted count_ many traces, representing
+  the cause of _adjusted count_ many occurances per child span in the 
+  sampled trace.
+
+Using this reasoning, we can define a sample collected from all root
+spans in the system, which allows estimating the count of all spans in
+the population.  Take a simple probability sample of root spans:
+
+1. In the `Sampler` decision for root spans, use the initial span properties 
+   to determine the inclusion probability `P`
+2. Make a pseudo-random selection with probability `P`, if true return
+   `RECORD_AND_SAMPLE` (so that the W3C Trace Context `is-sampled`
+   flag is set in all child contexts)
+3. Encode a span attribute `sampling.root.adjusted_count` equal to `1/P` on the root span
+4. Collect all spans where the W3C Trace Context `is-sampled` flag is set.
+
+After collecting all sampled spans, locate the root span for each.
+Apply the root span's adjusted count to every child in the associated
+trace.  The sum of adjusted counts on all sampled spans is expected to
+equal the population total number spans.
+
+Now, having stored the sample spans with their adjusted counts, and
+assuming the source of randomness is good, we can extrapolate counts
+for the population using arbitrary queries over the sampled spans.
+Sampled spans can be translated into approximate metrics the
+population of spans, after their adjusted counts are known.
+
+The cost of this analysis, using only the root span's adjusted count,
+is that all root spans have to be collected before we can count
+non-root spans.  The cost of indexing and looking up the root span
+adjusted counts makes this analysis relatively expensive to perform in
+real time.
+
+#### Using head trace probability to count all spans
+
+If the W3C `is-sampled` flag will be used to determine whether
+`RECORD_AND_SAMPLE` is returned in a Sampler, then in order to count
+sample spans without first locating the root span requires propagating
+the _head trace sampling probability_ through the context.
+
+Head trace sampling probability may be thought of as the probability
+of causing a child span to be a sampled.  Propagators that maintain
+this variable MUST obey the rules of conditional probability.  In this
+model, the adjusted count of each span depends on the adjusted count
+of its parent, not of the root in a trace.  Still, the sum of adjusted
+counts of all sampled spans is expected to equal the population total
+number of spans.
+
+This applies to other forms of telemetry that happen (i.e., are
+caused) within a context carrying head trace sampling probability.
+For example, we may record log events and metrics exemplars with
+adjusted counts equal to the inverse of the current head trace
+sampling probability when they are produced.
+
+This technique allows translating spans and logs to metrics without
+first locating their root span, a significant performance advantage
+compared with first collecting and indexing root spans.
 
 Several head sampling techniques are discussed in the following
 sections and evaluated in terms of their ability to meet all of the
@@ -435,12 +489,10 @@ effective adjusted count of the context to use when starting child
 spans.
 
 In other head trace sampling schemes, we will see that it is useful to
-propagate inclusion probability even for negative sampling decisions
-(where the adjusted count is zero), therefore we prefer to use the
-inclusion probability and not the adjusted count when propagating the
-sampling rate via trace context.  The inclusion probability of a
-context is referred to as its `head inclusion probability` for this
-reason.
+propagate head trace sampling probability even for negative sampling
+decisions (where the adjusted count is zero), therefore we prefer to
+use the head trace sampling probability (not the inverse, an effective
+adjusted count) when propagating the sampling rate via trace context.
 
 In addition to propagating head inclusion probability, to count
 Parent-sampled spans, each span must directly encode its adjusted
