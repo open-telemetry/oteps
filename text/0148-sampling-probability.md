@@ -396,7 +396,7 @@ spans branching from a certain root are expected to be fully
 collected.  When sampling is applied to reduce Tracer overhead, there
 is generally an expectation that complete traces will still be
 produced.  Sampling techniques that lower Tracer overhead and produce
-complete traces are known as _Head trace sampling_ techniques.
+complete traces are known as _Head-based trace sampling_ techniques.
 
 The decision to produce and collect a sample trace has to be made when
 the root span starts, to avoid incomplete traces.  Then, assuming
