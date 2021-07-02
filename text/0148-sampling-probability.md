@@ -403,13 +403,13 @@ determines an adjusted count for every span in the trace.
 The adjusted count of a root span determines the adjusted count of
 each of its children based on the following logic:
 
-- The root span is considered representative of _adjusted count_ many
+- The root span is considered representative of `adjusted_count` many
   identical root spans, because it was selected using unbiased sampling
 - Context propagation conveys _causation_, the fact the one span produces 
   another
 - A root span causes each of the child spans in its trace to be produced
-- A sampled root span represents _adjusted count_ many traces, representing
-  the cause of _adjusted count_ many occurances per child span in the 
+- A sampled root span represents `adjusted_count` many traces, representing
+  the cause of `adjusted_count` many occurances per child span in the 
   sampled trace.
 
 Using this reasoning, we can define a sample collected from all root
