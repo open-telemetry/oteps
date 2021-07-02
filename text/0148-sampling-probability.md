@@ -1,4 +1,4 @@
-# Probability sampling of telemetry events
+s# Probability sampling of telemetry events
 
 <!-- toc -->
 
@@ -72,12 +72,11 @@ the population represented by an individual sample event.
 
 ## Examples
 
-In all of these examples, the use of probability sampling leads to an
-attribute named like `sampling.sampler_name.adjusted_count`.
-Consumers of spans, metrics, and logs annotated with adjusted counts
-are able to calculate accurate statistics about the population of
-events, at a basic level, without knowing details about the sampling
-configuration.
+These examples use the proposed attribute `sampling.adjusted_count` to
+convey sampling probability.  Consumers of spans, metrics, and logs
+annotated with adjusted counts are able to calculate accurate
+statistics about the whole population of events, at a basic level,
+without knowing details about the sampling configuration.
 
 ### Span sampling
 
@@ -163,8 +162,9 @@ count of `100/0.1 = 1000`.
 #### Metric exemplars with adjusted counts
 
 The OTLP protocol for metrics includes a repeated exemplars field in
-every data point.  This is a place where histogram implementations are
-able to provide example context to correlate metrics with traces.
+every data point.  This is a place where Metric aggregators (e.g., 
+histograms) are able to provide example context to correlate metrics 
+with traces.
 
 OTLP exemplars support additional attributes, those that were present
 on the API event and were dropped during aggregation.  Exemplars that
@@ -191,14 +191,13 @@ monotonic (see
 
 Considering data points received during the interval, when the number
 of points exceeds K, select a probability proportional to size sample
-of points, output every point with an additional (non-descriptive)
-`sampling.cardinality_limit.adjusted_count` attribute.
+of points, output every point with a `sampling.adjusted_count` attribute.
 </details>
 
 ## Explanation
 
-Consider a hypothetical telemetry signal in which an API event
-produces a unit of data that has one or more associated numbers.
+Consider a hypothetical telemetry signal in which a stream of
+data items is produced containing one or more associated numbers.
 Using the OpenTelemetry Metrics data model terminology, we have two
 scenarios in which sampling is common.
 
@@ -225,10 +224,13 @@ will learn to apply these techniques for sampling aggregated data.
 
 In sampling, the term _sampling design_ refers to how sampling
 probability is decided and the term _sample frame_ refers to how
-events are organized into discrete populations.
+events are organized into discrete populations.  The design of a 
+sampling strategy dictates how the population is framed.
 
 For example, a simple design uses uniform probability, and a simple
-framing technique is to collect one sample per distinct span name.
+framing technique is to collect one sample per distinct span name per
+hour.  A different sample framing could collect one sample across all
+span names every 10 minutes.
 
 After executing a sampling design over a frame, each item selected in
 the sample will have known _inclusion probability_, that determines
@@ -311,17 +313,20 @@ count.
 There is a natural relationship between statistical bias and variance.
 Approximate counting comes with variance, a matter of fact which can
 be controlled for by the sample size.  Variance is unavoidable in an
-unbiased sample, but it vanishes when you have enough data.
+unbiased sample, but variance diminishes with increasing sample size.
 
 Although this makes it sound like small sample sizes are a problem,
 due to expected high variance, this is just a limitation of the
 technique.  When variance is high, use a larger sample size.
 
 An easy approach for lowering variance is to aggregate sample frames
-together across time.  For example, although the estimates drawn from
-a one-minute sample may have high variance, combining an hour of
-one-minute sample frames into an aggregate data set is guaranteed to
-lower variance.  It must, because the data remains unbiased.
+together across time, which generally increases the size of the
+subpopulations being counted.  For example, although the estimates for
+the rate of spans by distinct name drawn from a one-minute sample may
+have high variance, combining an hour of one-minute sample frames into
+an aggregate data set is guaranteed to lower variance (assuming the
+numebr of span names stays fixed).  It must, because the data remains
+unbiased, and more data yields lower variance.
 
 ### Conveying the sampling probability
 
@@ -421,7 +426,7 @@ the population.  Take a simple probability sample of root spans:
 2. Make a pseudo-random selection with probability `P`, if true return
    `RECORD_AND_SAMPLE` (so that the W3C Trace Context `is-sampled`
    flag is set in all child contexts)
-3. Encode a span attribute `sampling.root.adjusted_count` equal to `1/P` on the root span
+3. Encode a span attribute `sampling.adjusted_count` equal to `1/P` on the root span
 4. Collect all spans where the W3C Trace Context `is-sampled` flag is set.
 
 After collecting all sampled spans, locate the root span for each.
@@ -497,8 +502,7 @@ adjusted count) when propagating the sampling rate via trace context.
 In addition to propagating head inclusion probability, to count
 Parent-sampled spans, each span must directly encode its adjusted
 count in the corresponding `SpanData`.  This may use a non-descriptive
-Span attribute named `sampling.parent.adjusted_count`, for
-example.
+Span attribute named `sampling.adjusted_count`, for example.
 
 ##### `TraceIDRatio` Sampler
 
@@ -528,9 +532,7 @@ Lacking the number of expected children, we require a way to know the
 minimum Sampler probability across traces to ensure they are complete.
 
 To count TraceIDRatio-sampled spans, each span must encode its
-adjusted count in the corresponding `SpanData`.  This may use a
-non-descriptive Resource or Span attribute named
-`sampling.traceidratio.adjusted_count`, for example.
+adjusted count in the corresponding `SpanData`.
 
 ##### Dapper's "Inflationary" Sampler
 
@@ -600,9 +602,7 @@ D = (I - H) / (1 - H)
 Now the Sampler makes a decision with probability `D`.  Whether the
 decision is true or false, propagate `I` as the new head inclusion
 probability.  If the decision is true, begin recording a sub-rooted
-trace with adjusted count `1/I`.  This may use a non-descriptive
-Resource or Span attribute named
-`sampling.inflationary.adjusted_count`, for example.
+trace with adjusted count `1/I`.
 
 </details>
 
@@ -662,28 +662,22 @@ sampling divided by the (absolute) point value.
 An adjusted count with zero value carries meaningful information,
 specifically that the item participated in a probabilistic sampling
 scheme and was not selected.  A zero value can be be useful to record
-events when they provide useful information despite their effective
-count; we can use this to combine multiple sampling schemes in a
-single stream.
-
-For example, consider collecting two samples from a stream of spans,
-the first sample from those spans with attribute `A=1` and the second
-sample from those spans with attribute `B=2`.  Any span that has both
-of these properties is eligible to be selected for both samples, in
-which case one event could have two non-zero adjusted counts (e.g.,
-`sampling.by_a.adjusted_count` and `sampling.by_b.adjusted_count`).
+events outside of a sample, when they provide useful information
+despite their effective count.  We can use this to record error
+exemplars, for example, even when they are not selected by the
+Sampler.
 
 ## Proposed Tracing specification
 
 For the standard OpenTelemetry Span Sampler implementations to support
 a range of probability sampling schemes, this document recommends the
-use of a Span attribute named `sampling.sampler_name.adjusted_count`
-to encode an unbiased adjusted count computed by a Sampler.
+use of a Span attribute named `sampling.adjusted_count` to encode an
+unbiased adjusted count computed by a Sampler reflecting the whole 
+population of spans.
 
-The value any attribute name prefixed with `sampling.` and suffixed
-with `.adjusted_count` under this proposal MUST be an unbiased
-estimate of the total population count represented by the individual
-event.
+The value the `sampling.adjusted_count` attribuet under this proposal
+MUST be an unbiased estimate of the total population count represented
+by the individual event.
 
 ### Suggested text
 
@@ -720,11 +714,10 @@ compute are unbiased, which implies that the expected value of the sum
 of adjusted counts in the sample equals the true count of spans in the
 population.
 
-Attributes used to express the adjusted count in an unbiased
-probability sampling scheme SHOULD use a Span attribute name with
-prefix `sampling.` and with suffix `.adjusted_count` (e.g.,
-`sampling.sampler_name.adjusted_count`).  Adjusted count attributes
-MAY be integer or floating-point values.
+The adjusted count in an unbiased probability sampling scheme SHOULD
+be expressed using a Span attribute named `sampling.adjusted_count`
+when it represents the whole population of events.  Adjusted count 
+attributes MAY be integer or floating-point values.
 
 #### Inclusion probability tracestate value
 
@@ -750,11 +743,9 @@ Consumers of a stream of span data that may or may not have been
 sampled can follow these steps to count or approximately count the
 total number of spans in the population.
 
-For each span processed, locate all span attributes with prefix
-`sampling.` and suffix `.adjusted_count`.  If there are no adjusted
-count attributes on the span, count a single event.  If there is
-exactly one adjusted count attribute, count that many identical span
-events.
+For each span processed, locate the `sampling.adjusted_count` attribute. 
+If there is none, count a single span event.  If the attribute is set, 
+count that many identical span events.
 
 If there are more than one adjusted count attribute on the span, the
 processor SHOULD make a consistent choice for spans of a given
@@ -768,7 +759,7 @@ For the `TraceIDRatio` sampler, include the following additional text:
 ```md
 When returning a `RECORD_AND_SAMPLE` decision, the TraceIDRatio
 Sampler MUST include the attribute
-`sampling.traceidratio.adjusted_count=C`, where `C` is the reciprocal of the
+`sampling.adjusted_count=C`, where `C` is the reciprocal of the
 configured trace ID ratio.
 
 The returned tracestate used for the child context MUST have the
@@ -780,7 +771,7 @@ For the `Parent` sampler, include the following additional text:
 
 ```md
 When returning a `RECORD_AND_SAMPLE` decision, the Parent Sampler MUST
-include the attribute `sampling.parent.adjusted_count=C`, where `C` is the
+include the attribute `sampling.adjusted_count=C`, where `C` is the
 reciprocal of the parent trace context's head inclusion probability,
 which is passed through W3C tracestate using the `head_probability` key.
 ```
