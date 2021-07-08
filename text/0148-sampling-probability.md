@@ -396,7 +396,7 @@ spans branching from a certain root are expected to be fully
 collected.  When sampling is applied to reduce Tracer overhead, there
 is generally an expectation that complete traces will still be
 produced.  Sampling techniques that lower Tracer overhead and produce
-complete traces are known as _Head trace sampling_ techniques.
+complete traces are known as _Head-based trace sampling_ techniques.
 
 The decision to produce and collect a sample trace has to be made when
 the root span starts, to avoid incomplete traces.  Then, assuming
@@ -710,8 +710,8 @@ count of spans in the population using the spans that were sampled.
 The adjusted count associated with a Span is the expected value of the
 number of identical Spans within the population that each Span
 represents.  Probability samplers SHOULD ensure the samples they
-compute are unbiased, which implies that the expected value of the sum
-of adjusted counts in the sample equals the true count of spans in the
+compute are unbiased, which implies that the sum
+of adjusted counts in the sample approximates the true count of spans in the
 population.
 
 The adjusted count in an unbiased probability sampling scheme SHOULD
@@ -725,7 +725,7 @@ The recommended way to convey sampling probability *for contexts* in
 OpenTelemetry is through the W3C Trace Context tracestate using the
 key `head_probability`.
 
-Probability Samplers SHOULD encode the effective sampling inclusion
+Probability Samplers MAY encode the effective sampling inclusion
 probability using tracestate, for the context that was in effect when
 the W3C is-sampled bit was set.  The tracestate field SHOULD be set in
 both sampled and unsampled cases, to convey the inclusion probability
