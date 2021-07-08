@@ -675,7 +675,7 @@ use of a Span attribute named `sampling.adjusted_count` to encode an
 unbiased adjusted count computed by a Sampler reflecting the whole 
 population of spans.
 
-The value the `sampling.adjusted_count` attribuet under this proposal
+The value the `sampling.adjusted_count` attribute under this proposal
 MUST be an unbiased estimate of the total population count represented
 by the individual event.
 
@@ -746,34 +746,32 @@ total number of spans in the population.
 For each span processed, locate the `sampling.adjusted_count` attribute. 
 If there is none, count a single span event.  If the attribute is set, 
 count that many identical span events.
-
-If there are more than one adjusted count attribute on the span, the
-processor SHOULD make a consistent choice for spans of a given
-resource.  By default, the SDK's first preference MUST the builtin
-`TraceIDRatio` sampler, and its second preference MUST be the builtin
-`Parent` sampler.
 ```
 
 For the `TraceIDRatio` sampler, include the following additional text:
 
 ```md
 When returning a `RECORD_AND_SAMPLE` decision, the TraceIDRatio
-Sampler MUST include the attribute
-`sampling.adjusted_count=C`, where `C` is the reciprocal of the
-configured trace ID ratio.
+Sampler MUST include the attribute `sampling.adjusted_count=C`, where
+`C` is the reciprocal of the configured trace ID ratio.
 
-The returned tracestate used for the child context MUST have the
-tracestate `head_probability` key set to the configured trace
-ID ratio.
+The returned tracestate used for the child context MAY have the
+tracestate `otel` key with the sub-key `headprob` set to the configured 
+trace ID ratio.
 ```
 
 For the `Parent` sampler, include the following additional text:
 
 ```md
-When returning a `RECORD_AND_SAMPLE` decision, the Parent Sampler MUST
+When returning a `RECORD_AND_SAMPLE` decision, the Parent Sampler MAY
 include the attribute `sampling.adjusted_count=C`, where `C` is the
-reciprocal of the parent trace context's head inclusion probability,
-which is passed through W3C tracestate using the `head_probability` key.
+reciprocal of the parent trace context's head inclusion probability.
+
+The tracestate `otel` key with the sub-key `headprob` is used to lookup
+and propagate the configured  trace ID ratio.  When the `otel` key with 
+sub-key `headprob` is not located and `is-sampled` is set, the Sampler 
+MUST set `sampling.adjusted_count=0` to signal that spans cannot be 
+reliably counted.
 ```
 
 ## Recommended reading
