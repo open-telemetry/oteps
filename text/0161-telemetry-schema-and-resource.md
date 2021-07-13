@@ -1,6 +1,6 @@
 # Telemetry Schema and Resource
 
-Specify a mechnism for users of Resource to interact with Resource leveraging
+Specify a mechanism for users of Resource to interact with Resource leveraging
 TelemetrySchema version for a stable API.
 
 ## Motivation
