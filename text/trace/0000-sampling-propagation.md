@@ -14,9 +14,9 @@ determines the child's adjusted count, cannot be recorded without
 propagating it through the context.
 
 We propose to propagate the trace sampling probability that is in
-effect whenever the [W3C
-sampled](https://www.w3.org/TR/trace-context/#sampled-flag) flag is
-set by extending the `traceparent`.
+effect alongside the [W3C
+sampled](https://www.w3.org/TR/trace-context/#sampled-flag) flag by
+extending the `traceparent`.
 
 ## Explanation
 
@@ -32,14 +32,14 @@ For example, the value 2 corresponds with 1-in-4 sampling, the value
 
 Wheres the [version-0 W3C trace context `traceparent`
 header](https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers)
-is a concatenation of four fields, this proposal would upgrade
-`traceparent` to version 1:
+is a concatenation of four fields,
 
 ```
 traceparent: (version)-(trace_id)-(span_id)-(flags)
 ```
 
-The version 1 `traceparent` header will use a new field named `log-count`, i.e.,:
+This proposal would upgrade `traceparent` to version 1 with a new
+field named `log-count`,
 
 ```
 traceparent: (version)-(trace_id)-(span_id)-(flags)-(log-count)
