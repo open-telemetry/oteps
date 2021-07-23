@@ -6,12 +6,12 @@ Propose extending the W3C trace context `traceparent` to convey head trace sampl
 
 The head trace probability is useful in child contexts to be able to
 record the effective sampling probability in child spans.  This is
-documented in [OTEP 148](TODO: after merging), which establishes
-semantic conventions for conveying the adjusted count of a span via
-attributes recorded with the span.  When a sampling decision is based
-on the parent's context, the effective sampling probability, which
-determines the child's adjusted count, cannot be recorded without
-propagating it through the context.
+documented in [OTEP 148](TODO), which establishes semantic conventions
+for conveying the adjusted count of a span via attributes recorded
+with the span.  When a sampling decision is based on the parent's
+context, the effective sampling probability, which determines the
+child's adjusted count, cannot be recorded without propagating it
+through the context.
 
 We propose to propagate the trace sampling probability that is in
 effect alongside the [W3C
@@ -86,18 +86,18 @@ just 3 bytes per `traceparent`.
 
 ## Internal details
 
+The reasoning behind restricting the set of sampling rates is that it:
+
+- Lowers the cost of propagating head sampling probability
+- Makes math involving partial traces tractable.
+
 A use known as "inflationary sampling" from Google's Dapper system is
-documented in [OTEP 148](TODO: inflationary sampling section).  This
-is is used to justify propagating the head sampling probability even
-when unsampled.
+documented in [OTEP 148](TODO).  This is is used to justify
+propagating the head sampling probability even when unsampled.
 
 [An algorithm for making statistical inferance from partially-sampled
 traces has been published](https://arxiv.org/pdf/2107.07703.pdf) that
-explains how to work with power-of-2 sampling rates.  The reasoning
-behind restricting the set of sampling rates is:
-
-- Lowers the cost of propagating head sampling probability
-- Makes math involving partial traces tractable
+explains how to work with power-of-2 sampling rates.
 
 ## Trade-offs and mitigations
 
