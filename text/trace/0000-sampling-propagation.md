@@ -64,8 +64,8 @@ These are extended [from the W3C
 examples](https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers):
 
 ```
-Value = 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01-05
-base16(version) = 00
+Value = 01-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01-05
+base16(version) = 01
 base16(trace-id) = 4bf92f3577b34da6a3ce929d0e0e4736
 base16(parent-id) = 00f067aa0ba902b7
 base16(trace-flags) = 01  // sampled
@@ -73,12 +73,12 @@ base16(log-count) = 05  // head probability is 2^-5.
 ```
 
 ```
-Value = 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-00-00
-base16(version) = 00
+Value = 01-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-00-00
+base16(version) = 01
 base16(trace-id) = 4bf92f3577b34da6a3ce929d0e0e4736
 base16(parent-id) = 00f067aa0ba902b7
 base16(trace-flags) = 00  // not sampled
-base16(log-count) = 10 // head probability is 2^-16
+base16(log-count) = 11 // head probability is 2^-17
 ```
 
 We are able to express sampling probabilities as small as 2^-255 using
