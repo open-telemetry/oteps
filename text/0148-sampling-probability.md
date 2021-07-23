@@ -667,111 +667,53 @@ despite their effective count.  We can use this to record error
 exemplars, for example, even when they are not selected by the
 Sampler.
 
-## Proposed Tracing specification
+## Proposed specification text
 
-For the standard OpenTelemetry Span Sampler implementations to support
-a range of probability sampling schemes, this document recommends the
-use of a Span attribute named `sampling.adjusted_count` to encode an
-unbiased adjusted count computed by a Sampler reflecting the whole 
-population of spans.
+The following text will be added to the semantic conventions for
+tracing.
 
-The value the `sampling.adjusted_count` attribute under this proposal
-MUST be an unbiased estimate of the total population count represented
-by the individual event.
-
-### Suggested text
-
-After
-[Sampler](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampler)
-and before [Builtin
-Samplers](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#built-in-samplers),
-a new section will introduce the term "adjusted count" and relate it
-to inclusion probability.  For example:
-
-```markdown
-### Probability sampling
-
-Probability Samplers are Samplers that output statistically unbiased
-inclusion probability.  Inclusion probability in the context of
-tracing is the *effective* probability of the Sampler returning
-`RECORD_AND_SAMPLE` when invoked, which can be decided locally or 
-derived from the context when the [W3C Trace Context is-sampled
-flag](https://www.w3.org/TR/trace-context/#sampled-flag) is in use.
-
-#### Adjusted count span attribute
-
-The recommended way to convey inclusion probability *for events*
-sampled in OpenTelemetry is in the form of an **adjusted count**,
-which is the reciprocal (i.e., mathematical inverse function) of
-inclusion probability.
-
-The implied goal of probability sampling is to support estimating the
-count of spans in the population using the spans that were sampled.
-The adjusted count associated with a Span is the expected value of the
-number of identical Spans within the population that each Span
-represents.  Probability samplers SHOULD ensure the samples they
-compute are unbiased, which implies that the sum
-of adjusted counts in the sample approximates the true count of spans in the
-population.
-
-The adjusted count in an unbiased probability sampling scheme SHOULD
-be expressed using a Span attribute named `sampling.adjusted_count`
-when it represents the whole population of events.  Adjusted count 
-attributes MAY be integer or floating-point values.
-
-#### Inclusion probability tracestate value
-
-The recommended way to convey sampling probability *for contexts* in
-OpenTelemetry is through the W3C Trace Context tracestate using the
-key `head_probability`.
-
-Probability Samplers MAY encode the effective sampling inclusion
-probability using tracestate, for the context that was in effect when
-the W3C is-sampled bit was set.  The tracestate field SHOULD be set in
-both sampled and unsampled cases, to convey the inclusion probability
-even for unsampled contexts.
-
-The `head_probability` tracestate key is set to a floating-point
-number greater than or equal to 0 and less than or equal to 1.  The
-floating point precision of the number SHOULD follow implementation
-language standards and SHOULD be high enough to identify when Samplers
-have different inclusion probabilities.
-
-#### Counting probabilistically sampled spans
-
-Consumers of a stream of span data that may or may not have been
-sampled can follow these steps to count or approximately count the
-total number of spans in the population.
-
-For each span processed, locate the `sampling.adjusted_count` attribute. 
-If there is none, count a single span event.  If the attribute is set, 
-count that many identical span events.
 ```
+# Semantic conventions for Sampled spans
 
-For the `TraceIDRatio` sampler, include the following additional text:
+This document defines how to describe an what sampling was performed
+when recording a span that has had sampling logic applied.
 
-```md
-When returning a `RECORD_AND_SAMPLE` decision, the TraceIDRatio
-Sampler MUST include the attribute `sampling.adjusted_count=C`, where
-`C` is the reciprocal of the configured trace ID ratio.
+Span sampling attributes support computing metrics about spans that
+are part of a sampled trace from knowing their sampling inclusion
+probability.
 
-The returned tracestate used for the child context MAY have the
-tracestate `otel` key with the sub-key `headprob` set to the configured 
-trace ID ratio.
-```
+The _adjusted count_ of a span is defined as follows:
 
-For the `Parent` sampler, include the following additional text:
+- Adjusted count equals zero when inclusion probability equals zero
+- Adjusted count equals the mathematical inverse (i.e., reciprocal) of sampling inclusion probability when inclusion probability is non-zero.
 
-```md
-When returning a `RECORD_AND_SAMPLE` decision, the Parent Sampler MAY
-include the attribute `sampling.adjusted_count=C`, where `C` is the
-reciprocal of the parent trace context's head inclusion probability.
+Consumers of spans carrying an adjusted count attribute are able to
+use the adjusted count of the span to increment a counter of matching
+spans.
 
-The tracestate `otel` key with the sub-key `headprob` is used to lookup
-and propagate the configured  trace ID ratio.  When the `otel` key with 
-sub-key `headprob` is not located and `is-sampled` is set, the Sampler 
-MUST set `sampling.adjusted_count=0` to signal that spans cannot be 
-reliably counted.
+## Probability Sampling Attributes
+
+The `sampler.adjusted_count` attribute MUST reflect an unbiased
+estimate of the number of representative spans in the population of
+spans being produced.
+
+When built-in Samplers are used, the name of the effective Sampler
+that computed the adjusted count is included to indicate how the sample
+was computed, which may give additional information.
+
+| Attribute | Type | Description | Examples | Required |
+|---|---|---|---|---|
+| `sampler.adjusted_count` | number | Effective count of the associated span. | 10 | No |
+| `sampler.name` | string | The name of the Sampler that determined the adjusted count. | `Parent` | Yes |
+
+For the built-in samplers, the following names are specified:
+
+| Built-in Sampler | Sets `sampler.adjusted_count`? | `sampler.name` | Notes |
+| -- | -- | -- |
+| AlwaysOn | No | Not applicable | Sampling attributes are not used | 
+| AlwaysOff | No | Not applicable | Spans are not recorded |
+| ParentBased | Maybe | `Parent` | Adjusted count requires propagation |
+| TraceIDRatio | Yes | `TraceIDRatio` | |
 ```
 
 ## Recommended reading
