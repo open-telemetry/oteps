@@ -6,7 +6,7 @@ Propose extending the W3C trace context `traceparent` to convey head trace sampl
 
 The head trace probability is useful in child contexts to be able to
 record the effective sampling probability in child spans.  This is
-documented in [OTEP 148](TODO), which establishes semantic conventions
+documented in [OTEP 170](TODO), which establishes semantic conventions
 for conveying the adjusted count of a span via attributes recorded
 with the span.  When a sampling decision is based on the parent's
 context, the effective sampling probability, which determines the
@@ -92,7 +92,7 @@ The reasoning behind restricting the set of sampling rates is that it:
 - Makes math involving partial traces tractable.
 
 A use known as "inflationary sampling" from Google's Dapper system is
-documented in [OTEP 148](TODO).  This is is used to justify
+documented in [OTEP 170](TODO).  This is is used to justify
 propagating the head sampling probability even when unsampled.
 
 [An algorithm for making statistical inferance from partially-sampled
@@ -118,7 +118,7 @@ proposal uses the base-2 logarithm of adjusted count to save space
 ## Open questions
 
 This OTEP suggests how to modify the W3C trace context to accomodate
-sampling in OpenTelemetry.  [OTEP 148](TODO) suggests semantic
+sampling in OpenTelemetry.  [OTEP 170](TODO) suggests semantic
 conventions for encoding adjusted count in a Span, but neither text
 specifies how to modify the built-in Samplers to produce the proposed
 new `traceparent` field so that the `ParentBased` Sampler can
