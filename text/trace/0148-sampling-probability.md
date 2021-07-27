@@ -485,20 +485,15 @@ the requirements stated above.
 The `Parent` Sampler ensures complete traces, provided all spans are
 successfully recorded.  A downside of `Parent` sampling is that it
 takes away control over Tracer overhead from non-roots in the trace.
-To support counting spans, this Sampler requires propagating the
-effective adjusted count of the context to use when starting child
-spans.
+To support real-time span-to-metrics applications, this Sampler
+requires propagating the sampling probability or adjusted count of
+the context in effect when starting child spans.  This is expanded
+upon in [OTEP 168](https://github.com/open-telemetry/oteps/pull/168).
 
-In other head trace sampling schemes, we will see that it is useful to
-propagate head trace sampling probability even for negative sampling
-decisions (where the adjusted count is zero), therefore we prefer to
-use the head trace sampling probability (not the inverse, an effective
-adjusted count) when propagating the sampling rate via trace context.
-
-In addition to propagating head inclusion probability, to count
-Parent-sampled spans, each span must directly encode its adjusted
-count in the corresponding `SpanData`.  This may use a non-descriptive
-Span attribute named `sampler.adjusted_count`, for example.
+When propagating head sampling probability, spans recorded by the
+`Parent` sampler MAY encode the adjusted count in the corresponding
+`SpanData` using a non-descriptive Span attribute named
+`sampler.adjusted_count`.
 
 ##### `TraceIDRatio` Sampler
 
