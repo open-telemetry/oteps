@@ -28,10 +28,6 @@
       - [`Parent` Sampler](#parent-sampler)
       - [`TraceIDRatio` Sampler](#traceidratio-sampler)
       - [Dapper's "Inflationary" Sampler](#dappers-inflationary-sampler)
-  * [Working with adjusted counts](#working-with-adjusted-counts)
-    + [Merging samples](#merging-samples)
-    + [Maintaining "Probability proportional to size"](#maintaining-probability-proportional-to-size)
-    + [Zero adjusted count](#zero-adjusted-count)
 - [Proposed specification text](#proposed-specification-text)
 - [Recommended reading](#recommended-reading)
 - [Acknowledgements](#acknowledgements)
@@ -597,16 +593,6 @@ Now the Sampler makes a decision with probability `D`.  Whether the
 decision is true or false, propagate `I` as the new head inclusion
 probability.  If the decision is true, begin recording a sub-rooted
 trace with adjusted count `1/I`.
-
-#### Zero adjusted count
-
-An adjusted count with zero value carries meaningful information,
-specifically that the item participated in a probabilistic sampling
-scheme and was not selected.  A zero value can be be useful to record
-events outside of a sample, when they provide useful information
-despite their effective count.  We can use this to record error
-exemplars, for example, even when they are not selected by the
-Sampler.
 
 ## Proposed specification text
 
