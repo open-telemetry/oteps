@@ -1,4 +1,4 @@
-s# Probability sampling of telemetry events
+# Probability sampling of telemetry events
 
 <!-- toc -->
 
