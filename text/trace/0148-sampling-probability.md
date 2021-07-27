@@ -32,8 +32,7 @@ s# Probability sampling of telemetry events
     + [Merging samples](#merging-samples)
     + [Maintaining "Probability proportional to size"](#maintaining-probability-proportional-to-size)
     + [Zero adjusted count](#zero-adjusted-count)
-- [Proposed Tracing specification](#proposed-tracing-specification)
-  * [Suggested text](#suggested-text)
+- [Proposed specification text](#proposed-specification-text)
 - [Recommended reading](#recommended-reading)
 - [Acknowledgements](#acknowledgements)
 
@@ -72,7 +71,7 @@ the population represented by an individual sample event.
 
 ## Examples
 
-These examples use the proposed attribute `sampling.adjusted_count` to
+These examples use the proposed attribute `sampler.adjusted_count` to
 convey sampling probability.  Consumers of spans, metrics, and logs
 annotated with adjusted counts are able to calculate accurate
 statistics about the whole population of events, at a basic level,
@@ -80,9 +79,8 @@ without knowing details about the sampling configuration.
 
 ### Span sampling
 
-<details> 
-<summary>Example use-cases for probability sampling of spans
-generally involve generating metrics from spans.</summary>
+Example use-cases for probability sampling of spans
+generally involve generating metrics from spans.
 
 #### Sample spans to Counter Metric
 
@@ -121,18 +119,16 @@ span as input weight.
 
 This processor drops spans when the configured rate threshold is
 exceeeded, otherwise it passes spans through with unmodifed adjusted
-count.
+counts.
 
 When the interval expires and the sample frame is considered complete,
 the selected sample spans are output with possibly updated adjusted
 counts.
-</details>
 
 ### Metric sampling
 
-<details> 
-<summary> Example use-cases for probability sampling of metrics
-are aimed at lowering cost and addressing high cardinality.</summary>
+Example use-cases for probability sampling of metrics
+are aimed at lowering cost and addressing high cardinality.
 
 #### Statsd Counter
 
@@ -191,8 +187,7 @@ monotonic (see
 
 Considering data points received during the interval, when the number
 of points exceeds K, select a probability proportional to size sample
-of points, output every point with a `sampling.adjusted_count` attribute.
-</details>
+of points, output every point with a `sampler.adjusted_count` attribute.
 
 ## Explanation
 
@@ -326,7 +321,7 @@ the rate of spans by distinct name drawn from a one-minute sample may
 have high variance, combining an hour of one-minute sample frames into
 an aggregate data set is guaranteed to lower variance (assuming the
 numebr of span names stays fixed).  It must, because the data remains
-unbiased, and more data yields lower variance.
+unbiased, so more data results in lower variance.
 
 ### Conveying the sampling probability
 
@@ -334,7 +329,7 @@ Some possibilities for encoding the adjusted count or inclusion
 probability are discussed below, depending on the circumstances and
 the protocol.  Here, the focus is on how to count sampled telemetry
 events in general, not a specific kind of event.  As we shall see in
-the following section, tracing comes with its addional complications.
+the following section, tracing comes with addional complications.
 
 There are several ways of encoding this adjusted count or inclusion
 probability:
@@ -364,20 +359,21 @@ where each line includes an optional probability.  In this context,
 the probability is also commonly referred to as a "sampling rate".  In
 this case, smaller numbers mean greater representivity.
 
-#### Encoding negative base-2 logarithm of inclusion probability
+#### Encoding base-2 logarithm of adjusted count
 
-We can encode the negative base-2 logarithm of inclusion probability.
-This restricts inclusion probabilities to powers of two and allows the
-use of small non-negative integers to encode power-of-two adjusted
-counts.  In this case, larger numbers mean exponentially greater
-representivity.
+We can encode the base-2 logarithm of adjusted count (i.e., negative
+base-2 logarithm of inclusion probability).  By using an integer
+field, restricting adjusted counts and inclusion probabilities to
+powers of two, this allows the use of small non-negative integers to
+encode the adjusted count.  In this case, larger numbers mean
+exponentially greater representivity.
 
 #### Multiply the adjusted count into the data
 
 When the data itself carries counts, such as for the Metrics Sum and
-Histogram points.
+Histogram points, the adjusted count can be multipled into the data.
 
-This technique is less desirable because while it preserves the
+This technique is less desirable because, while it preserves the
 expected value of the count or sum, the data loses information about
 variance.  This may also lead to rounding errors, when adjusted counts
 are not integer valued.
@@ -426,7 +422,7 @@ the population.  Take a simple probability sample of root spans:
 2. Make a pseudo-random selection with probability `P`, if true return
    `RECORD_AND_SAMPLE` (so that the W3C Trace Context `is-sampled`
    flag is set in all child contexts)
-3. Encode a span attribute `sampling.adjusted_count` equal to `1/P` on the root span
+3. Encode a span attribute `sampler.adjusted_count` equal to `1/P` on the root span
 4. Collect all spans where the W3C Trace Context `is-sampled` flag is set.
 
 After collecting all sampled spans, locate the root span for each.
@@ -481,8 +477,8 @@ following criteria:
 
 #### Head sampling for traces
 
-<details> <summary> Details about Sampler implementations that meet
-the requirements stated above.  </summary>
+Details about Sampler implementations that meet
+the requirements stated above.
 
 ##### `Parent` Sampler
 
@@ -502,7 +498,7 @@ adjusted count) when propagating the sampling rate via trace context.
 In addition to propagating head inclusion probability, to count
 Parent-sampled spans, each span must directly encode its adjusted
 count in the corresponding `SpanData`.  This may use a non-descriptive
-Span attribute named `sampling.adjusted_count`, for example.
+Span attribute named `sampler.adjusted_count`, for example.
 
 ##### `TraceIDRatio` Sampler
 
@@ -604,8 +600,6 @@ decision is true or false, propagate `I` as the new head inclusion
 probability.  If the decision is true, begin recording a sub-rooted
 trace with adjusted count `1/I`.
 
-</details>
-
 ### Working with adjusted counts
 
 Head sampling for traces has been discussed, covering strategies to
@@ -670,7 +664,8 @@ Sampler.
 ## Proposed specification text
 
 The following text will be added to the semantic conventions for
-tracing.
+recording the Sampler name and adjusted count (if known) as
+OpenTelemetry Span attributes.
 
 ```
 # Semantic conventions for Sampled spans
