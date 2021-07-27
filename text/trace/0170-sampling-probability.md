@@ -644,18 +644,18 @@ that computed the adjusted count is included to indicate how the sample
 was computed, which may give additional information.
 
 | Attribute | Type | Description | Examples | Required |
-|---|---|---|---|---|
-| `sampler.adjusted_count` | number | Effective count of the associated span. | 10 | No |
-| `sampler.name` | string | The name of the Sampler that determined the adjusted count. | `Parent` | Yes |
+|---------- | ---- | ----------- | -------- | -------- |
+| `sampler.adjusted_count` | number | Effective count of the span. | 10       | No  |
+| `sampler.name`           | string | The name of the Sampler.     | `Parent` | Yes |
 
 For the built-in samplers, the following names are specified:
 
-| Built-in Sampler | Sets `sampler.adjusted_count`? | `sampler.name` | Notes |
-| -- | -- | -- |
-| AlwaysOn | No | Not applicable | Sampling attributes are not used | 
-| AlwaysOff | No | Not applicable | Spans are not recorded |
-| ParentBased | Maybe | `Parent` | Adjusted count requires propagation |
-| TraceIDRatio | Yes | `TraceIDRatio` | |
+| Built-in Sampler | Sets `sampler.adjusted_count`? | `sampler.name` | Notes  |
+| ---------------- | ------------------------------ | -------------- | ------ |
+| AlwaysOn     | No    | Not applicable | Sampling attributes are not used    | 
+| AlwaysOff    | No    | Not applicable | Spans are not recorded              |
+| ParentBased  | Maybe | `Parent`       | Adjusted count requires propagation |
+| TraceIDRatio | Yes   | `TraceIDRatio` |                                     |
 ```
 
 Note that the `AlwaysOn` and `AlwaysOff` Samplers do not need to
