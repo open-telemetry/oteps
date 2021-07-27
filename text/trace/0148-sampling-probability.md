@@ -428,12 +428,12 @@ the population.  Take a simple probability sample of root spans:
 After collecting all sampled spans, locate the root span for each.
 Apply the root span's adjusted count to every child in the associated
 trace.  The sum of adjusted counts on all sampled spans is expected to
-equal the population total number spans.
+equal the population total number of spans.
 
 Now, having stored the sample spans with their adjusted counts, and
 assuming the source of randomness is good, we can extrapolate counts
 for the population using arbitrary queries over the sampled spans.
-Sampled spans can be translated into approximate metrics the
+Sampled spans can be translated into approximate metrics over the
 population of spans, after their adjusted counts are known.
 
 The cost of this analysis, using only the root span's adjusted count,
