@@ -659,8 +659,8 @@ For the built-in samplers, the following names are specified:
 ```
 
 Note that the `AlwaysOn` and `AlwaysOff` Samplers do not need to
-recorder their names, since they are indistinguishable from not having
-a stampler configured.  When there is no `sampler.name` attribute
+record their names, since they are indistinguishable from not having
+a Sampler configured.  When there is no `sampler.name` attribute
 present and a Span is recorded, it should be counted as one span
 (i.e., count == adjusted_count).
 
