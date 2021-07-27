@@ -488,7 +488,7 @@ takes away control over Tracer overhead from non-roots in the trace.
 To support real-time span-to-metrics applications, this Sampler
 requires propagating the sampling probability or adjusted count of
 the context in effect when starting child spans.  This is expanded
-upon in [OTEP 168](https://github.com/open-telemetry/oteps/pull/168).
+upon in [OTEP 168 (WIP)](https://github.com/open-telemetry/oteps/pull/168).
 
 When propagating head sampling probability, spans recorded by the
 `Parent` sampler MAY encode the adjusted count in the corresponding
@@ -661,7 +661,12 @@ For the built-in samplers, the following names are specified:
 Note that the `AlwaysOn` and `AlwaysOff` Samplers do not need to
 recorder their names, since they are indistinguishable from not having
 a stampler configured.  When there is no `sampler.name` attribute
-present
+present and a Span is recorded, it should be counted as one span
+(i.e., count == adjusted_count).
+
+See [OTEP 168 (WIP)](https://github.com/open-telemetry/oteps/pull/168)
+for details about how to report sampling probability when using the
+`Parent` Sampler.
 
 ## Recommended reading
 
