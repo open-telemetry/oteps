@@ -510,7 +510,9 @@ decision, but give each service control over Tracer overhead.  Each
 service sets its sampling probability independently, and the
 coordinated decision ensures that some traces will be complete.
 Traces are complete when the TraceID ratio falls below the minimum
-Sampler probability across the whole trace.
+Sampler probability across the whole trace.  Techniques have been
+developed for [analysis of partial traces that are compatible with
+TraceID ratio sampling](https://arxiv.org/pdf/2107.07703.pdf).
 
 The `TraceIDRatio` Sampler has another difficulty with testing for
 completeness.  It is impossible to know whether there are missing leaf
@@ -522,8 +524,9 @@ span](https://github.com/open-telemetry/opentelemetry-specification/issues/355).
 Lacking the number of expected children, we require a way to know the
 minimum Sampler probability across traces to ensure they are complete.
 
-To count TraceIDRatio-sampled spans, each span must encode its
-adjusted count in the corresponding `SpanData`.
+To count TraceIDRatio-sampled spans, each span MAY encode its adjusted
+count in the corresponding `SpanData` using a non-descriptive Span
+attribute named `sampler.adjusted_count`.
 
 ##### Dapper's "Inflationary" Sampler
 
@@ -595,57 +598,6 @@ decision is true or false, propagate `I` as the new head inclusion
 probability.  If the decision is true, begin recording a sub-rooted
 trace with adjusted count `1/I`.
 
-### Working with adjusted counts
-
-Head sampling for traces has been discussed, covering strategies to
-lower Tracer overhead, ensure trace completeness, and count spans on
-arrival.  Sampled spans have an additional attribute to directly
-encode the adjusted count, and the sum of adjusted counts for a set of
-spans accurately reflects the total population count.
-
-In systems based on collecting sample data, it is often useful to
-merge samples, in order to maintain a small data set.  For example,
-given 24 one-hour samples of 1000 spans each, can we combine the data
-into a one-day sample of 1000 spans?  To do this without introducing
-bias, we must take the adjusted count of each span into account.
-Sampling algorithms that do this are known as _weighted sampling
-algorithms_.
-
-#### Merging samples
-
-To merge samples means to combine two or more frames of sample data
-into a single frame of sample data that reflects the combined
-populations of data in an unbiased way.  Two weighted sampling
-algorithms are listed below in [Recommended Reading](#recommended-reading).
-
-In a broader context, weighted sampling algorithms support estimating
-population weights from a sample of unequal-weight items.  In a
-telemetry context, item weights are generally event counts, and
-weighted sampling algorithms support estimating total population
-counts from a sample with unequal-count items.
-
-The output of weighted sampling, in a telemetry context, are samples
-containing events with new, unequal adjusted counts that maintain
-their power to estimate counts in the combined population.
-
-#### Maintaining "Probability proportional to size"
-
-The statistical property being maintained in the definition for
-weighted sampling used above is known as _probability propertional to
-size_.  The "size" of an item, in this context, refers to the
-magnitude of each item's contribution to the total that is being
-estimated. To avoid bias, larger-magnitude items should have a
-proportionally greater probability of being selected in a sample,
-compared with items of smaller magnitide.
-
-The interpretation of "size", therefore, depends on what is being
-estimated.  When sampling events with a natural size, such as for
-Metric Sum data points, the absolute value of the point should be
-multiplied with the adjusted count to form an effective input weight
-(i.e., its "size" or contribution to the population total).  The
-output adjusted count in this case is the output from weighted
-sampling divided by the (absolute) point value.
-
 #### Zero adjusted count
 
 An adjusted count with zero value carries meaningful information,
@@ -706,6 +658,11 @@ For the built-in samplers, the following names are specified:
 | TraceIDRatio | Yes | `TraceIDRatio` | |
 ```
 
+Note that the `AlwaysOn` and `AlwaysOff` Samplers do not need to
+recorder their names, since they are indistinguishable from not having
+a stampler configured.  When there is no `sampler.name` attribute
+present
+
 ## Recommended reading
 
 [Sampling, 3rd Edition, by Steven
@@ -719,8 +676,10 @@ K. Thompson](https://www.wiley.com/en-us/Sampling%2C+3rd+Edition-p-9780470402313
 
 [Stream sampling for variance-optimal estimation of subset sums](https://arxiv.org/abs/0803.0473).
 
+[Estimation from Partially Sampled Distributed Traces](https://arxiv.org/pdf/2107.07703.pdf), 2021 Dynatrace Research report, Otmar Ertl
+
 ## Acknowledgements
 
 Thanks to [Neena Dugar](https://github.com/neena) and [Alex
-Kehlenbeck](https://github.com/akehlenbeck) for reconstructing the
-Dapper Sampler algorithm.
+Kehlenbeck](https://github.com/akehlenbeck) for their help
+reconstructing the Dapper Sampler algorithm.
