@@ -1,126 +1,116 @@
 # Propagate head trace sampling probability
 
-Propose extending the W3C trace context `traceparent` to convey head trace sampling probability.
+Use the W3C trace context to convey consistent head trace sampling probability.
 
 ## Motivation
 
-The head trace probability is useful in child contexts to be able to
-record the effective sampling probability in child spans.  This is
-documented in [OTEP 170](TODO), which establishes semantic conventions
-for conveying the adjusted count of a span via span attributes.  When
-a sampling decision is based on the parent's context, the effective
-sampling probability, which determines the child's adjusted count,
-cannot be recorded without propagating it through the context.
+The head trace sampling probability is the probability factor
+associated with the start of a tracing context that determines whether
+child contexts are sampled or not.  It is useful to know the head
+trace sampling probability associated with a context in order to build
+span-to-metrics pipelines when the built-in `ParentBased` Sampler is
+used.
+
+A consistent trace sampling decision is one that can be carried out at
+any node in a trace, which supports collecting partial traces.
+OpenTelemetry specifies a built-in `TraceIDRatioBased` Sampler that
+aims to accomplish this goal but was left incomplete (see
+[TODOs](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#traceidratiobased))in the specification.
 
 We propose to propagate the trace sampling probability that is in
-effect alongside the [W3C
-sampled](https://www.w3.org/TR/trace-context/#sampled-flag) flag
-either by extending the `traceparent` or through the use of
-`tracestate` with an `otel` vendor tag.
+effect alongside the [W3C sampled flag](https://www.w3.org/TR/trace-context/#sampled-flag) 
+using `tracestate` with an `otelprob` vendor tag.
 
 ## Explanation
 
-Two variations of this proposal are presented.  The first, based on
-`traceparent`, is the more-ideal choice because it ensures broad
-support and reduces the number of bytes per request.  The second,
-based on a `tracestate` key=value, is less appealing as `tracestate`
-has the appearance of a vendor-specific field, when it is not.
+Two pieces of information are needed to convey consistent head trace
+sampling probability:
 
-In both cases, to limit the cost of this extension and for statistical
-reasons documented below, we propose to limit head tracing probability
-to powers of two.  This limits the available head sampling
+1. The head trace sampling probability
+2. Source of consistent sampling decisions.
+
+This proposal uses one byte of information for each of these.
+
+### Probability value
+
+To limit the cost of this extension and for statistical reasons
+documented below, we propose to limit head trace sampling probability
+to powers of two.  This limits the available head trace sampling
 probabilities to 1/2, 1/4, 1/8, and so on.  We can compactly encode
-these probabilities as small integers using the base-2 logarithm of
-the adjusted count.
+these probabilities as small integer values using the base-2 logarithm
+of the adjusted count (i.e., inverse probability).
 
-For example, the value 2 corresponds with 1-in-4 sampling, the value
-10 corresponds with 1-in-1024 sampling.
+For example, the probability value 2 corresponds with 1-in-4 sampling,
+the probability value 10 corresponds with 1-in-1024 sampling.  Using
+one byte of information we can convey sampling rates as small as 2^-255.
 
-### Proposal using `traceparent`
+### Random value
 
-Wheres the [version-0 W3C trace context `traceparent`
-header](https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers)
-is a concatenation of four fields,
+With head trace sampling probabilities limited to powers of two, the
+amount of randomness needed per trace context is limited.  A
+consistent sampling decision is accomplished by propagating a
+geometrically distributed random variable with shape parameter `1/2`,
+requiring only two bits of randomness on average per trace.  See
+[Estimation from Partially Sampled Distributed
+Traces](https://arxiv.org/pdf/2107.07703.pdf) section 2.8 for a
+detailed explanation.
 
-```
-traceparent: (version)-(trace_id)-(span_id)-(flags)
-```
-
-This proposal would upgrade `traceparent` to version 1 with a new
-field named `log_count`,
-
-```
-traceparent: (version)-(trace_id)-(span_id)-(flags)-(log_count)
-```
-
-where `log_count` is the base-2 logarithm of the adjusted count of a
-child span created in this context (i.e., the logarithm of the
-effective count, thus "log_count").  To compute the adjusted count of
-a child span created in this context, use `2^log_count`.  A log_count
-of `0` corresponds with `(2^0)=1`, thus 0 conveys a context with
-probability 1.
-
-The sampling probability of a context is independent from whether it
-is sampled.  We consider it useful to convey sampling probability even
-when unsampled, as shown by Dapper's "inflationary" sampler.  Note,
-however, that an unsampled trace with probability 1-in-1 is illogical.
-To prevent illogical interpretation and to avoid errors introduced by
-downgrading `traceparent` to the version 0 format, a new flag
-`probabilistic` flag is introduced to indicate when the `log_count`
-field is meaningful.
-
-This flag would use the 2nd available bit in the W3C trace flags
-field (i.e., 0x2).
-
-#### Examples using `traceparent`
-
-These are extended [from the W3C
-examples](https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers):
+Such a random variable `r` can be generated using the following
+pseudocode:
 
 ```
-Traceparent = 01-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-03-05
-base16(version) = 01
-base16(trace_id) = 4bf92f3577b34da6a3ce929d0e0e4736
-base16(parent_id) = 00f067aa0ba902b7
-base16(trace_flags) = 03  // sampled, probabilistic
-base16(log_count) = 05  // head probability is 2^-5.
+r := 0
+for {
+  if nextRandomBit() {
+    break // The expected value of r is 2
+  }
+  r++
+}
 ```
 
-```
-Traceparent = 01-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-02-11
-base16(version) = 01
-base16(trace_id) = 4bf92f3577b34da6a3ce929d0e0e4736
-base16(parent_id) = 00f067aa0ba902b7
-base16(trace_flags) = 02  // not sampled, probabilistic
-base16(log_count) = 11 // head probability is 2^-17
-```
+This can be computed from a stream of random bits as the number of
+leading zeros using efficient instructions on modern computer
+architectures.
 
-We are able to express sampling probabilities as small as 2^-255 using
-just 3 bytes per `traceparent`.
+For example, the value 3 means there were three leading zeros and
+corresponds with being sampled at probabilities 1-in-1 through 1-in-8
+but not at probabilities 1-in-16 and smaller.  Using one byte of
+information we can convey a consistent sampling decision for sampling
+rates as small as 2^-255.
 
-### Proposal using `tracestate`
+### Proposed `tracestate` syntax
 
-The `otel` vendor tag will be used to convey information using the
-`headprob` sub-key with value set to the decimal value of the
-`log_count` field documented above, where `k` represents `1-in-(2^k)`
-head sampling.
-
-#### Examples using `tracestate` 
-
-To convey 1-in-1024 head sampling:
+The consistent sampling decision and head trace sampling probability
+will be propagated using four bytes of base16 content, as follows:
 
 ```
-tracestate: otel=headprob:10
+tracestate: otelprob=PPRR
 ```
 
-To convey 1-in-8 head sampling:
+where `PP` are two bytes of base16 probability value and `RR` are two
+bytes of base16 random value.
+
+### Examples
+
+The following `tracestate` value:
 
 ```
-tracestate: otel=headprob:3
+tracestate: otelprob=0a03
 ```
 
-This uses around 10x as many bytes per request as the `traceparent`
-proposal (e.g., 29 bytes vs. 3 bytes).
+translates to
+
+```
+base16(probability) = 03 // 1-in-8 head probability
+base16(randomness) = 0a // qualifies for 1-in-1024 sampling or greater
+```
+
+Any `TraceIDRatioBased` Sampler configured with probability 2^-10 or
+greater will enable sampling this trace, whereas any
+`TraceIDRatioBased` Sampler configured with probability 2^-11 or less
+will stop sampling this trace.  The W3C `sampled` flag is set to true
+when the probability value is less than or equal to the randomness
+value.
 
 ## Internal details
 
