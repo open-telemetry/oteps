@@ -622,9 +622,15 @@ The adjusted count of a span is defined as follows:
 - Adjusted count equals zero when inclusion probability equals zero
 - Adjusted count equals the mathematical inverse (i.e., reciprocal) of inclusion probability when inclusion probability is non-zero.
 
+The zero value for adjusted count can be used when recording a Span
+that was not selected by the Sampler, as a means of conveying
+exceptional events while maintaining accurate accounting.
+
 Consumers of spans carrying an adjusted count attribute are able to
 use the adjusted count of the span to increment a counter of matching
-spans.
+spans.  This probabilistic counting method is will be accurate as long
+as the Sampler produces unbiased adjusted counts that are expected to
+equal true population counts.
 
 #### Probability Sampling Attributes (Proposed text)
 
