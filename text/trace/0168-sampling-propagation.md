@@ -124,6 +124,42 @@ The reasoning behind restricting the set of sampling rates is that it:
 traces has been published](https://arxiv.org/pdf/2107.07703.pdf) that
 explains how to work with a limited number of power-of-2 sampling rates.
 
+### Behavior of the `TraceIDRatioBased` Sampler
+
+The Sampler must be configured with a power-of-two probability
+`P=2^-S`.
+
+Using one byte to represent both the probability and randomness values
+means each value is limited to 255.  As a special case, the head
+probability `P=0` is represented using the probability value `S=255`,
+meaning `P=0` is indistinguishable from `P=2^-255`.  We propose to
+limit valid head sampling probabilities to `P=2^-254` or greater to
+address this ambiguity.
+
+If the context is a new root, the initial `tracestate` must be created
+using geometrically-distributed random value `R` (as described above,
+with maximum value 254) and the initial head probability `S`.
+
+If the context is not a new root, output a new `tracestate` with the
+same `R` value as the parent context, using the Sampler's own value of
+`S` for the head probability.
+
+In both cases, set the `sampled` bit if `S<=R`.
+
+### Behavior of the `ParentBased` sampler
+
+The `ParentBased` sampler is unmodified by this proposal.  It honors
+the W3C `sampled` flag and copies the incoming `tracestate` keys to
+the child context.
+
+### Behavior of the `AlwaysOn` Sampler
+
+The `AlwaysOn` Sampler behaves the same as `TraceIDRatioBased` with `P=1` (i.e., `S=0`)
+
+### Behavior of the `AlwaysOff` Sampler
+
+The `AlwaysOff` Sampler behaves the same as `TraceIDRatioBased` with `P=0` (i.e., `S=255`).
+
 ## Trade-offs and mitigations
 
 Restricting head sampling rates to powers of two does not limit tail
