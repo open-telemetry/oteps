@@ -4,22 +4,22 @@ Use the W3C trace context to convey consistent head trace sampling probability.
 
 ## Motivation
 
-The head trace sampling probability is the probability factor
-associated with the start of a tracing context that determines whether
-child contexts are sampled or not.  It is useful to know the head
-trace sampling probability associated with a context in order to build
-span-to-metrics pipelines when the built-in `ParentBased` Sampler is
-used.
+The head trace sampling probability is the probability associated with
+the start of a trace context that determines whether child contexts
+are sampled or not when using the `ParentBased` Sampler.  It is useful
+to know the head trace sampling probability associated with a context
+in order to build span-to-metrics pipelines when the built-in
+`ParentBased` Sampler is used.
 
 A consistent trace sampling decision is one that can be carried out at
 any node in a trace, which supports collecting partial traces.
 OpenTelemetry specifies a built-in `TraceIDRatioBased` Sampler that
 aims to accomplish this goal but was left incomplete (see
-[TODOs](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#traceidratiobased))in the specification.
+[TODOs](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#traceidratiobased) in the specification).
 
-We propose to propagate the trace sampling probability that is in
-effect alongside the [W3C sampled flag](https://www.w3.org/TR/trace-context/#sampled-flag) 
-using `tracestate` with an `otelprob` vendor tag.
+We propose to propagate the necessary information alongside the [W3C
+sampled flag](https://www.w3.org/TR/trace-context/#sampled-flag) using
+`tracestate` with an `otelprob` vendor tag.
 
 ## Explanation
 
@@ -117,10 +117,11 @@ value.
 The reasoning behind restricting the set of sampling rates is that it:
 
 - Lowers the cost of propagating head sampling probability
+- Limits the number of random bits required
 - Makes math involving partial traces tractable.
 
 A use known as "inflationary sampling" from Google's Dapper system is
-documented in [OTEP 170](TODO).  This is is used to justify
+documented in [OTEP 170](https://github.com/open-telemetry/oteps/pull/170).  This is is used to justify
 propagating the head sampling probability even when unsampled.
 
 [An algorithm for making statistical inference from partially-sampled
@@ -130,7 +131,10 @@ explains how to work with a limited number of power-of-2 sampling rates.
 ## Trade-offs and mitigations
 
 Restricting head sampling rates to powers of two does not limit tail
-Samplers from using arbitrary probabilities.
+Samplers from using arbitrary probabilities.  The
+`sampler.adjusted_count` attribute specified in [OTEP
+170](https://github.com/open-telemetry/oteps/pull/170) is not limited
+to power-of-two values.
 
 Restricting head sampling rates to powers of two does not limit
 Samplers from using arbitrary effective probabilities over a period of
@@ -141,8 +145,5 @@ sampling half of the time leads to an effective sampling rate of 3/8.
 
 Google's Dapper system propagated a field in its trace context called
 "inverse_probability", which is equivalent to adjusted count.  This
-proposal uses the base-2 logarithm of adjusted count to save space
-
-## Open questions
-
-Which of these two proposals is better and/or more likely to succeed?
+proposal uses the base-2 logarithm of adjusted count to save space and
+limit required randomness.
