@@ -684,7 +684,7 @@ For the built-in samplers, the following names are specified:
 
 | Built-in Sampler | Sets `sampler.adjusted_count`? | `sampler.name` | Notes                     |
 | ---------------- | ------------------------------ | -------------- | ------------------------- |
-| AlwaysOn         | Not set    | Not set        | Adjusted count equals exported count          |
+| AlwaysOn         | No         | Not set        | Adjusted count equals exported count          |
 | AlwaysOff        | Don't care | Don't care     | Exported count is zero, spans are not counted |
 | ParentBased      | Maybe      | `Parent`       | Adjusted count is known when it is propagated |
 | TraceIDRatio     | Yes        | `TraceIDRatio` | Adjusted count is known                       |
