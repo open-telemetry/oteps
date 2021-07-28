@@ -603,17 +603,16 @@ OpenTelemetry Span attributes.
 
 ### Semantic conventions for Sampled spans (Proposed text)
 
-This document defines conventions for counting spans in a sample taken
-over all spans created in all contexts in a distributed system.  These
-conventions support accurate counting of system-wide events using only
-the fraction of spans that were collected in a probability sampling
-scheme.  With these conventions, consumers of OTLP Span data are able
-to compute approximate metrics about the system using only the sample
-Spans that was collected, thus we refer to these conventions as
-supporting Span-to-Metrics pipelines.
+This document defines conventions for counting system-wide span events
+using sampled spans.  These conventions support accurate counting of
+system-wide events using only the fraction of spans that were
+collected in a probability sampling scheme.  With these conventions,
+consumers of OTLP Span data are able to compute approximate metrics
+about the system using only the sample data that was collected, thus
+we refer to these conventions as supporting Span-to-Metrics pipelines.
 
 The _sampling rate_, also known as _inclusion probability_, is the
-probability that a Span is included in the Sample that is collected.
+probability that a Span is included in the Sample being collected.
 Sampling rate is conveyed in a form known as _adjusted count_, which
 tells the receiver how many events in the population are represented
 by the individual Span as a result of sampling.
