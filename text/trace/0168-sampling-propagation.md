@@ -120,10 +120,6 @@ The reasoning behind restricting the set of sampling rates is that it:
 - Limits the number of random bits required
 - Makes math involving partial traces tractable.
 
-A use known as "inflationary sampling" from Google's Dapper system is
-documented in [OTEP 170](https://github.com/open-telemetry/oteps/pull/170).  This is is used to justify
-propagating the head sampling probability even when unsampled.
-
 [An algorithm for making statistical inference from partially-sampled
 traces has been published](https://arxiv.org/pdf/2107.07703.pdf) that
 explains how to work with a limited number of power-of-2 sampling rates.
