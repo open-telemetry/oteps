@@ -601,7 +601,7 @@ The following text will be added to the semantic conventions for
 recording the Sampler name and adjusted count (if known) as
 OpenTelemetry Span attributes.
 
-### Semantic conventions for Sampled spans [Proposed text]
+### Semantic conventions for Sampled spans (Proposed text)
 
 This document defines conventions for counting spans in a sample taken
 over all spans created in all contexts in a distributed system.  These
@@ -627,7 +627,7 @@ Consumers of spans carrying an adjusted count attribute are able to
 use the adjusted count of the span to increment a counter of matching
 spans.
 
-#### Probability Sampling Attributes [Proposed text]
+#### Probability Sampling Attributes (Proposed text)
 
 The `sampler.adjusted_count` attribute, when set, MUST equal an
 unbiased estimate of the number of representative spans in the
@@ -689,7 +689,6 @@ For the built-in samplers, the following names are specified:
 | AlwaysOff        | Don't care | Don't care     | Exported count is zero, spans are not counted |
 | ParentBased      | Maybe      | `Parent`       | Adjusted count is known when it is propagated |
 | TraceIDRatio     | Yes        | `TraceIDRatio` | Adjusted count is known                       |
-```
 
 ## Recommended reading
 
