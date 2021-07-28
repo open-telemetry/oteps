@@ -601,59 +601,95 @@ The following text will be added to the semantic conventions for
 recording the Sampler name and adjusted count (if known) as
 OpenTelemetry Span attributes.
 
-```
-# Semantic conventions for Sampled spans
+### Semantic conventions for Sampled spans [Proposed text]
 
-This document defines how to describe an what sampling was performed
-when recording a span that has had sampling logic applied.
+This document defines conventions for counting spans in a sample taken
+over all spans created in all contexts in a distributed system.  These
+conventions support accurate counting of system-wide events using only
+the fraction of spans that were collected in a probability sampling
+scheme.  With these conventions, consumers of OTLP Span data are able
+to compute approximate metrics about the system using only the sample
+Spans that was collected, thus we refer to these conventions as
+supporting Span-to-Metrics pipelines.
 
-Span sampling attributes support computing metrics about spans that
-are part of a sampled trace from knowing their sampling inclusion
-probability.
+The _sampling rate_, also known as _inclusion probability_, is the
+probability that a Span is included in the Sample that is collected.
+Sampling rate is conveyed in a form known as _adjusted count_, which
+tells the receiver how many events in the population are represented
+by the individual Span as a result of sampling.
 
-The _adjusted count_ of a span is defined as follows:
+The adjusted count of a span is defined as follows:
 
 - Adjusted count equals zero when inclusion probability equals zero
-- Adjusted count equals the mathematical inverse (i.e., reciprocal) of sampling inclusion probability when inclusion probability is non-zero.
+- Adjusted count equals the mathematical inverse (i.e., reciprocal) of inclusion probability when inclusion probability is non-zero.
 
 Consumers of spans carrying an adjusted count attribute are able to
 use the adjusted count of the span to increment a counter of matching
 spans.
 
-## Probability Sampling Attributes
+#### Probability Sampling Attributes [Proposed text]
 
-The `sampler.adjusted_count` attribute MUST reflect an unbiased
-estimate of the number of representative spans in the population of
-spans being produced.
+The `sampler.adjusted_count` attribute, when set, MUST equal an
+unbiased estimate of the number of representative spans in the
+population of spans in the system.
 
-When built-in Samplers are used, the name of the effective Sampler
-that computed the adjusted count is included to indicate how the sample
-was computed, which may give additional information.
+The _exported count_ associated with a span is defined as either 1 or
+0, depending on whether the span is exported and thus counted.  The
+exported count is 1 if the span is exported (because it will be
+counted) and 0 if the span is not exported.
+
+To avoid recording redundent information, both the `sampler.name` and
+`sampler.adjusted_count` attributes MAY be omitted when the counting
+algorithm given below produces a correct result.
+
+There are scenarios where the adjusted count is unknown, such as when
+using the `ParentBased` Sampler with a W3C version-0 `traceparent`
+context.
+
+The `sampler.adjusted_count` SHOULD be omitted when its value is 1 or
+unknown.  The adjusted count can be safely omitted when it is 1
+because that is exactly the number of events associated the span in
+that case.  In case the adjusted count is unknown, `sampler.name` MUST
+be set with a Sampler name to signify an unknown adjusted count.
+
+The presence of a `sampler.name` without a `sampler.adjusted_count`
+SHOULD be taken as a signal that a span-to-metrics pipeline cannot be
+established without external information.  Otherwise, `sampler.name`
+SHOULD be set when the adjusted count is not equal to 1.
+
+The algorithm for spans-to-metrics is as follows:
+
+```
+// Calls `span_to_metrics(span, C)` for the effective count `C` of 
+// every `span` received.
+for _, span := <-spans_received {
+  if count, has := span.attributes['sampler.adjusted_count']; has {
+    span_to_metrics(span, count)
+  } else if name, has := span.attributes['sampler.name]; has {
+    log.Error("span requires trace assembly before counting")
+  } else {
+    span_to_metrics(span, 1)
+  }
+}
+```
+
+To summarize, these two attributes convey information about the
+Sampler that recorded a span.
 
 | Attribute | Type | Description | Examples | Required |
 |---------- | ---- | ----------- | -------- | -------- |
-| `sampler.adjusted_count` | number | Effective count of the span. | 10       | No  |
-| `sampler.name`           | string | The name of the Sampler.     | `Parent` | Yes |
+| `sampler.adjusted_count` | number | Effective count of the span. | 10       | Yes, when adjusted count is not equal to 1 |
+| `sampler.name`           | string | The name of the Sampler.     | `Parent` | Yes, when adjusted count is not equal to the exported count |
 
 For the built-in samplers, the following names are specified:
 
-| Built-in Sampler | Sets `sampler.adjusted_count`? | `sampler.name` | Notes  |
-| ---------------- | ------------------------------ | -------------- | ------ |
-| AlwaysOn     | No    | Not applicable | Sampling attributes are not used    | 
-| AlwaysOff    | No    | Not applicable | Spans are not recorded              |
-| ParentBased  | Maybe | `Parent`       | Adjusted count requires propagation |
-| TraceIDRatio | Yes   | `TraceIDRatio` |                                     |
+| Built-in Sampler | Sets `sampler.adjusted_count`? | `sampler.name` | Notes                     |
+| ---------------- | ------------------------------ | -------------- | ------------------------- |
+| AlwaysOn         | Not set    | Not set        | Adjusted count equals exported count          |
+| AlwaysOff        | Don't care | Don't care     | Exported count is zero, spans are not counted |
+| ParentBased      | Maybe      | `Parent`       | Adjusted count is known when it is propagated |
+| TraceIDRatio     | Yes        | `TraceIDRatio` | Adjusted count is known                       |
 ```
-
-Note that the `AlwaysOn` and `AlwaysOff` Samplers do not need to
-record their names, since they are indistinguishable from not having
-a Sampler configured.  When there is no `sampler.name` attribute
-present and a Span is recorded, it should be counted as one span
-(i.e., count == adjusted_count).
-
-See [OTEP 168 (WIP)](https://github.com/open-telemetry/oteps/pull/168)
-for details about how to report sampling probability when using the
-`Parent` Sampler.
 
 ## Recommended reading
 
