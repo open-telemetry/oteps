@@ -138,7 +138,7 @@ address this ambiguity.
 
 If the context is a new root, the initial `tracestate` must be created
 using geometrically-distributed random value `R` (as described above,
-with maximum value 254) and the initial head probability `S`.
+with maximum value 254) and the initial head probability value `S`.
 
 If the context is not a new root, output a new `tracestate` with the
 same `R` value as the parent context, using the Sampler's own value of
