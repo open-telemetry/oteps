@@ -686,14 +686,23 @@ Sampler that recorded a span.
 | `sampler.adjusted_count` | number | Effective count of the span. | 10       | Yes, when adjusted count is not equal to 1 |
 | `sampler.name`           | string | The name of the Sampler.     | `Parent` | Yes, when adjusted count is not equal to the exported count |
 
-For the built-in samplers, the following names are specified:
+For the built-in samplers, the specified behavior for setting
+`sampler.adjusted_count` and `sampler.name` is as follows.
 
-| Built-in Sampler | Sets `sampler.adjusted_count`? | `sampler.name` | Notes                     |
-| ---------------- | ------------------------------ | -------------- | ------------------------- |
-| AlwaysOn         | No         | Not set        | Adjusted count equals exported count          |
-| AlwaysOff        | Don't care | Don't care     | Exported count is zero, spans are not counted |
-| ParentBased      | Maybe      | `Parent`       | Adjusted count is known when it is propagated |
-| TraceIDRatio     | Yes        | `TraceIDRatio` | Adjusted count is known                       |
+| Built-in Sampler | Sets `sampler.adjusted_count`? | `sampler.name` | Notes                  |
+| ---------------- | --------------------------- | -------------- | ------------------------- |
+| AlwaysOn         | No         | Not set        | Adjusted count equals exported count       |
+| AlwaysOff        | Don't care | Don't care     | Exported count is zero, spans are never counted |
+| ParentBased      | Yes        | Not set        | In case the adjusted count is known. |
+| ParentBased      | No         | `Parent`       | In case the adjusted count is unknown. |
+| TraceIDRatio     | Yes        | Not set        | In case the adjusted count is known. |
+| TraceIDRatio     | No         | `TraceIDRatio` | In case of unspecified behavior. |
+
+When this proposal is adopted across a system using built-in samplers,
+probability sampling can be applied and spans can be unambiguously
+counted by the receiver.  In the case where a Sampler name is set
+because the adjusted count is unknown, the reciever will have to
+assemble the trace in order to count it properly.
 
 ## Recommended reading
 
