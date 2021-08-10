@@ -56,7 +56,10 @@ a language-independent columnar memory format for flat and hierarchical data, or
 on modern hardware like CPUs and GPUs. As demonstrated by our [benchmark](https://github.com/lquerel/otel-multivariate-time-series/blob/main/README2.md)
 leveraging Apache Arrow will give us access to a mature solution optimized for our exact need as well as a broader ecosystem.
 Efficient implementation of Apache Arrow exists for most of the languages (Java, Go, C++, Rust, ...). Connectors with Apache Arrow
-buffer exist for well-known file format (e.g. Parquet) and for well-known backend (e.g. BigQuery). 
+buffer exist for well-known file format (e.g. Parquet) and for well-known backend (e.g. BigQuery). By reusing this existing infrastructure,
+we accelerate the development of the Open Telemetry protocol while expanding its field of application. 
+
+
 
 ## Trade-offs and mitigations
 
