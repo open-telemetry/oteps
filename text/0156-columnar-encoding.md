@@ -74,13 +74,21 @@ Specialized processors can be developped to convert batch of events into the exi
 
 ## Trade-offs and mitigations
 
+A columnar-oriented protocol is not necessarily desirable for all scenarios (e.g. devices that do not have the resources to accumulate data in batches). The proposed mixed solution allows to better address these different scenarios.
+
+Implementing a new columnar format is complex and costly (multiple language implementations, tests, optimizations, industry adoption). Reusing Apache Arrow is an interesting approach to mitigate this issue. 
+
 ## Prior art and alternatives
 * [Column-oriented DBMS](https://en.wikipedia.org/wiki/Column-oriented_DBMS) 
 * [Apache Arrow](https://arrow.apache.org/)
 
 ## Open questions
+More work needs to be done around examplars and histograms representation.
+
+More discussions should happen on the processor and storage layers. This approach could simplify significantly the design of OTEL compatible stream processing and database systems.
 
 ## Future possibilities
+* Leverage Apache Arrow dictionary  
 
 ## Appendices
 
