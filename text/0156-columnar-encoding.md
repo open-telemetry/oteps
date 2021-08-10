@@ -50,26 +50,45 @@ adding a new columnar event entity to better support multivariate time-series an
 
 ## Internal details
 
-In addition to the 3 existing entities (metrics, logs and traces), we introduce the event entity (see [this protobuf specification](#event-proto)
+In addition to the 3 existing resource entities (metrics, logs and traces), we introduce the resource event entity (see [this protobuf specification](#event-proto)
 for more details) encoding a batch of events into an Apache Arrow buffer. [Apache Arrow](https://arrow.apache.org/) is 
 a language-independent columnar memory format for flat and hierarchical data, organized for efficient analytic operations 
 on modern hardware like CPUs and GPUs. As demonstrated by our [benchmark](https://github.com/lquerel/otel-multivariate-time-series/blob/main/README2.md)
 leveraging Apache Arrow will give us access to a mature solution optimized for our exact need as well as a broader ecosystem.
+
+![resource-events](img/0156-resource-events.svg)
+
 Efficient implementation of Apache Arrow exists for most of the languages (Java, Go, C++, Rust, ...). Connectors with Apache Arrow
 buffer exist for well-known file format (e.g. Parquet) and for well-known backend (e.g. BigQuery). By reusing this existing infrastructure,
 we accelerate the development of the Open Telemetry protocol while expanding its field of application. 
 
-![resource-events](img/0156-resource-events.svg)
-
 ![arrow-ecosystem](img/0156-arrow-ecosystem.svg)
+
+### Corners cases
+
+Backends that don't support natively multivariate time-series can still automatically transform these events in multiple univariate time-series and operate as usual.
+
+Specialized processors can be developped to group metrics, logs and traces in optimized batch of events in order to connect existing OTEL collectors with backends supporting this new protocol extension.
+
+Specialized processors can be developped to convert batch of events into the existing entities for backends that don't support this protocol extension.
 
 ## Trade-offs and mitigations
 
+A columnar-oriented protocol is not necessarily desirable for all scenarios (e.g. devices that do not have the resources to accumulate data in batches). The proposed mixed solution allows to better address these different scenarios.
+
+Implementing a new columnar format is complex and costly (multiple language implementations, tests, optimizations, industry adoption). Reusing Apache Arrow is an interesting approach to mitigate this issue. 
+
 ## Prior art and alternatives
+* [Column-oriented DBMS](https://en.wikipedia.org/wiki/Column-oriented_DBMS) 
+* [Apache Arrow](https://arrow.apache.org/)
 
 ## Open questions
+More work needs to be done around examplars and histograms representation.
+
+More discussions should happen on the processor and storage layers. This approach could simplify significantly the design of OTEL compatible stream processing and database systems.
 
 ## Future possibilities
+* Leverage Apache Arrow dictionary  
 
 ## Appendices
 
