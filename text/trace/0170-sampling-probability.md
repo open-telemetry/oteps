@@ -608,7 +608,7 @@ using sampled spans.  These conventions support accurate counting of
 system-wide events using only the fraction of spans that were
 collected in a probability sampling scheme.  With these conventions,
 consumers of OTLP Span data are able to compute approximate metrics
-about the system using only the sample data that was collected, thus
+about the system using only the sample span data that was collected, thus
 we refer to these conventions as supporting Span-to-Metrics pipelines.
 
 The _sampling rate_, also known as _inclusion probability_, is the
@@ -628,7 +628,7 @@ exceptional events while maintaining accurate accounting.
 
 Consumers of spans carrying an adjusted count attribute are able to
 use the adjusted count of the span to increment a counter of matching
-spans.  This probabilistic counting method is will be accurate as long
+spans.  This probabilistic counting method will be accurate as long
 as the Sampler produces unbiased adjusted counts that are expected to
 equal true population counts.
 
@@ -638,18 +638,13 @@ The `sampler.adjusted_count` attribute, when set, MUST equal an
 unbiased estimate of the number of representative spans in the
 population of spans in the system.
 
-The _exported count_ associated with a span is defined as either 1 or
-0, depending on whether the span is exported and thus counted.  The
-exported count is 1 if the span is exported (because it will be
-counted) and 0 if the span is not exported.
-
 To avoid recording redundent information, both the `sampler.name` and
 `sampler.adjusted_count` attributes MAY be omitted when the counting
 algorithm given below produces a correct result.
 
 There are scenarios where the adjusted count is unknown, such as when
-using the `ParentBased` Sampler with a W3C version-0 `traceparent`
-context.
+using the `ParentBased` Sampler without the `tracestate` specified in 
+this proposal.
 
 The `sampler.adjusted_count` SHOULD be omitted when its value is 1 or
 unknown.  The adjusted count can be safely omitted when it is 1
@@ -684,7 +679,7 @@ Sampler that recorded a span.
 | Attribute | Type | Description | Examples | Required |
 |---------- | ---- | ----------- | -------- | -------- |
 | `sampler.adjusted_count` | number | Effective count of the span. | 10       | Yes, when adjusted count is not equal to 1 |
-| `sampler.name`           | string | The name of the Sampler.     | `Parent` | Yes, when adjusted count is not equal to the exported count |
+| `sampler.name`           | string | The name of the Sampler.     | `Parent` | Yes, when the true adjusted count is unknown |
 
 For the built-in samplers, the specified behavior for setting
 `sampler.adjusted_count` and `sampler.name` is as follows.
