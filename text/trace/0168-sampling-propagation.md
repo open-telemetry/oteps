@@ -14,12 +14,15 @@ in order to build span-to-metrics pipelines when the built-in
 A consistent trace sampling decision is one that can be carried out at
 any node in a trace, which supports collecting partial traces.
 OpenTelemetry specifies a built-in `TraceIDRatioBased` Sampler that
-aims to accomplish this goal but was left incomplete (see
-[TODOs](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#traceidratiobased) in the specification).
+aims to accomplish this goal but was left incomplete (see a
+[TODO](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#traceidratiobased) 
+in the specification).
 
 We propose to propagate the necessary information alongside the [W3C
 sampled flag](https://www.w3.org/TR/trace-context/#sampled-flag) using
-`tracestate` with an `otelprob` vendor tag.
+`tracestate` with an `otel` vendor tag, which will require
+(separately) [specifying how the OpenTelemetry project uses
+`tracestate` itself](https://github.com/open-telemetry/opentelemetry-specification/pull/1852).
 
 ## Explanation
 
@@ -29,7 +32,9 @@ sampling probability:
 1. The head trace sampling probability
 2. Source of consistent sampling decisions.
 
-This proposal uses one byte of information for each of these.
+This proposal uses 6 bits of information for each of these and does
+not depend on built-in TraceID randomness, which is not sufficiently
+specified for probability sampling at this time.
 
 ### Probability value
 
@@ -42,16 +47,29 @@ of the adjusted count (i.e., inverse probability).
 
 For example, the probability value 2 corresponds with 1-in-4 sampling,
 the probability value 10 corresponds with 1-in-1024 sampling.  Using
-one byte of information we can convey sampling rates as small as 2^-255.
+six bits of information we can convey sampling rates as small as
+2^-62.  The value 63 is reserved to mean sampling with probability 0,
+which conveys an adjusted count of 0 for the associated context.
 
 ### Random value
 
 With head trace sampling probabilities limited to powers of two, the
 amount of randomness needed per trace context is limited.  A
-consistent sampling decision is accomplished by propagating a
-geometrically distributed random variable with shape parameter `1/2`,
-requiring only two bits of randomness on average per trace.  See
-[Estimation from Partially Sampled Distributed
+consistent sampling decision is accomplished by propagating a specific
+random variable.  The random variable is a described by a discrete
+geometric distribution having shape parameter `1/2`, listed below:
+
+| Value | Probability |
+| ----- | ----------- |
+| 0 | 1/2 |
+| 1 | 1/4 |
+| 2 | 1/8 |
+| 3 | 1/16 |
+| 4 | 1/32 |
+| ... | ... |
+| N | 1/(2^(N+1)) |
+
+See [Estimation from Partially Sampled Distributed
 Traces](https://arxiv.org/pdf/2107.07703.pdf) section 2.8 for a
 detailed explanation.
 
@@ -74,9 +92,10 @@ architectures.
 
 For example, the value 3 means there were three leading zeros and
 corresponds with being sampled at probabilities 1-in-1 through 1-in-8
-but not at probabilities 1-in-16 and smaller.  Using one byte of
+but not at probabilities 1-in-16 and smaller.  Using one six bits of
 information we can convey a consistent sampling decision for sampling
-rates as small as 2^-255.
+rates as small as 2^-62.  The value 63 is reserved to mean 0
+probability.
 
 ### Proposed `tracestate` syntax
 
@@ -84,7 +103,7 @@ The consistent sampling decision and head trace sampling probability
 will be propagated using four bytes of base16 content, as follows:
 
 ```
-tracestate: otelprob=PPRR
+tracestate: otel=p:PP;r:RR
 ```
 
 where `PP` are two bytes of base16 probability value and `RR` are two
@@ -95,7 +114,7 @@ bytes of base16 random value.
 The following `tracestate` value:
 
 ```
-tracestate: otelprob=0a03
+tracestate: otel=r:0a;p:03
 ```
 
 translates to
