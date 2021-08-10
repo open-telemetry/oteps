@@ -23,8 +23,8 @@ a mouse move that simultaneously reports the values of x and y, a meteorological
 cloud cover, dew point, humidity and wind speed; an http transaction chararterized by many interrelated metrics sharing 
 the same labels are all common examples of multivariate time-series.
 
-This [benchmark](https://github.com/lquerel/otel-multivariate-time-series/blob/main/README2.md) illustrates the potential 
-gain we can obtain for a multivariate time-series scenario.
+This [benchmark](https://github.com/lquerel/otel-multivariate-time-series/blob/main/README2.md) illustrates in detail
+the potential gain we can obtain for a multivariate time-series scenario.
 
 ## Explanation
 
@@ -42,5 +42,18 @@ a proven approach to optimize the creation, size, and processing of data batches
 * faster data processing (better data locality => better use of the CPU cache lines)
 * faster serialization and deserialization (less objects to process)
 * faster batch creation (less memory allocation)
-* better IO efficiency (less data transmit)
+* better IO efficiency (less data to transmit)
 
+The benefit of this approach increases proportionally with the size of the batches. Using the existing "row-oriented" 
+representation is well suited for small batch scenarios. Therefore, this proposal suggests to **extend** the protocol by 
+adding a new columnar event entity to better support multivariate time-series and large batches of events.
+
+## Internal details
+
+## Trade-offs and mitigations
+
+## Prior art and alternatives
+
+## Open questions
+
+## Future possibilities
