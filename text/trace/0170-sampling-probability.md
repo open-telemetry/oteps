@@ -657,6 +657,9 @@ SHOULD be taken as a signal that a span-to-metrics pipeline cannot be
 established without external information.  Otherwise, `sampler.name`
 SHOULD be set when the adjusted count is not equal to 1.
 
+Implementations SHOULD avoid dropping attributes that begin with the
+`sampler.` prefix when [limiting the number of span attributes](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#span-limits).
+
 The algorithm for spans-to-metrics is as follows:
 
 ```
