@@ -111,6 +111,7 @@ While you do not need to prescribe a particular implementation - indeed, OTEPs s
 
 ## Trade-offs and mitigations
 
+Talk about adoption and what we need to do to increase 
 [TBD]
 *What are some (known!) drawbacks? What are some ways that they might be mitigated?*
 

@@ -59,7 +59,9 @@ Efficient implementation of Apache Arrow exists for most of the languages (Java,
 buffer exist for well-known file format (e.g. Parquet) and for well-known backend (e.g. BigQuery). By reusing this existing infrastructure,
 we accelerate the development of the Open Telemetry protocol while expanding its field of application. 
 
+![resource-events](img/0156-resource-events.svg)
 
+![arrow-ecosystem](img/0156-arrow-ecosystem.svg)
 
 ## Trade-offs and mitigations
 
