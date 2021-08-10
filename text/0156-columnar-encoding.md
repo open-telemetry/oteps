@@ -50,6 +50,8 @@ adding a new columnar event entity to better support multivariate time-series an
 
 ## Internal details
 
+A new type of entity 
+
 ## Trade-offs and mitigations
 
 ## Prior art and alternatives
@@ -57,3 +59,63 @@ adding a new columnar event entity to better support multivariate time-series an
 ## Open questions
 
 ## Future possibilities
+
+## Appendices
+
+### event.proto
+Protobuf specification (draft) for an Arrow-based Open Telemetry event.
+
+```protobuf
+syntax = "proto3";
+
+package opentelemetry.proto.arrow_events.v1;
+
+import "opentelemetry/proto/common/v1/common.proto";
+import "opentelemetry/proto/resource/v1/resource.proto";
+
+option java_multiple_files = true;
+option java_package = "io.opentelemetry.proto.events.v1";
+option java_outer_classname = "EventsProto";
+option go_package = "github.com/open-telemetry/opentelemetry-proto/gen/go/events/v1";
+
+// A column-oriented collection of events from a Resource.
+message ResourceEvents {
+  // The resource for the events in this message.
+  // If this field is not set then no resource info is known.
+  opentelemetry.proto.resource.v1.Resource resource = 1;
+
+  // A list of events that originate from a resource.
+  repeated InstrumentationLibraryEvents instrumentation_library_events = 2;
+
+  // This schema_url applies to the data in the "resource" field. It does not apply
+  // to the data in the "instrumentation_library_events" field which have their own
+  // schema_url field.
+  string schema_url = 3;
+}
+
+// A collection of Events produced by an InstrumentationLibrary.
+message InstrumentationLibraryEvents {
+  // The instrumentation library information for the events in this message.
+  // Semantically when InstrumentationLibrary isn't set, it is equivalent with
+  // an empty instrumentation library name (unknown).
+  opentelemetry.proto.common.v1.InstrumentationLibrary instrumentation_library = 1;
+
+  // A list of batch of events that originate from an instrumentation library.
+  repeated BatchEvent batches = 2;
+
+  // dropped_events_count is the number of dropped events. If the value is 0, then no
+  // events were dropped.
+  uint32 dropped_events_count = 3;
+}
+
+// A typed collection of events with a columnar-oriented representation.
+// All the events in this collection share the same schema url.
+message BatchEvent {
+  // This schema_url applies to all events in this batch.
+  string schema_url = 1;
+
+  uint32 size = 2;
+
+  bytes  arrow_buffer = 5;
+}
+```
