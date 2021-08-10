@@ -50,7 +50,13 @@ adding a new columnar event entity to better support multivariate time-series an
 
 ## Internal details
 
-A new type of entity 
+In addition to the 3 existing entities (metrics, logs and traces), we introduce the event entity (see [this protobuf specification](#event-proto)
+for more details) encoding a batch of events into an Apache Arrow buffer. [Apache Arrow](https://arrow.apache.org/) is 
+a language-independent columnar memory format for flat and hierarchical data, organized for efficient analytic operations 
+on modern hardware like CPUs and GPUs. As demonstrated by our [benchmark](https://github.com/lquerel/otel-multivariate-time-series/blob/main/README2.md)
+leveraging Apache Arrow will give us access to a mature solution optimized for our exact need as well as a broader ecosystem.
+Efficient implementation of Apache Arrow exists for most of the languages (Java, Go, C++, Rust, ...). Connectors with Apache Arrow
+buffer exist for well-known file format (e.g. Parquet) and for well-known backend (e.g. BigQuery). 
 
 ## Trade-offs and mitigations
 
@@ -62,7 +68,7 @@ A new type of entity
 
 ## Appendices
 
-### event.proto
+### event proto
 Protobuf specification (draft) for an Arrow-based Open Telemetry event.
 
 ```protobuf
