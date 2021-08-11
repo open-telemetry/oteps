@@ -38,6 +38,7 @@ metric value and few other attributes. A batch of metrics behave as a table with
 Another way to represent the same data is to represent them in columns instead of rows, i.e. a column containing all the
 timestamp, a distinct column per label name, a column for the metric values, and so on. This columnar representation is
 a proven approach to optimize the creation, size, and processing of data batches. The main benefits of a such approach are:
+
 * better data compression rate (group of similar data)
 * faster data processing (better data locality => better use of the CPU cache lines)
 * faster serialization and deserialization (less objects to process)
@@ -79,20 +80,24 @@ A columnar-oriented protocol is not necessarily desirable for all scenarios (e.g
 Implementing a new columnar format is complex and costly (multiple language implementations, tests, optimizations, industry adoption). Reusing Apache Arrow is an interesting approach to mitigate this issue.
 
 ## Prior art and alternatives
-* [Column-oriented DBMS](https://en.wikipedia.org/wiki/Column-oriented_DBMS) 
+
+* [Column-oriented DBMS](https://en.wikipedia.org/wiki/Column-oriented_DBMS)
 * [Apache Arrow](https://arrow.apache.org/)
 
 ## Open questions
+
 More work needs to be done around examplars and histograms representation.
 
 More discussions should happen on the processor and storage layers. This approach could simplify significantly the design of OTEL compatible stream processing and database systems.
 
 ## Future possibilities
+
 * Leverage Apache Arrow dictionary
 
 ## Appendices
 
 ### event proto
+
 Protobuf specification (draft) for an Arrow-based OpenTelemetry event.
 
 ```protobuf
