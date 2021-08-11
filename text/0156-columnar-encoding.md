@@ -24,7 +24,8 @@ cloud cover, dew point, humidity and wind speed; an http transaction chararteriz
 the same labels are all common examples of multivariate time-series.
 
 This [benchmark](https://github.com/lquerel/otel-multivariate-time-series/blob/main/README2.md) illustrates in detail
-the potential gain we can obtain for a multivariate time-series scenario.
+the potential gain we can obtain for a multivariate time-series scenario. To represent different scenarios, this
+benchmark has been performed with the following batch size: 10, 100, 500, 1000, 5000, 10000.
 
 ## Explanation
 
@@ -65,16 +66,48 @@ we accelerate the development of the OpenTelemetry protocol while expanding its 
 
 ![arrow-ecosystem](img/0156-arrow-ecosystem.svg)
 
-### OpenTelemetry metrics to Arrow mapping
+### OpenTelemetry entities to Arrow mapping
+
+Apache Arrow is a general-purpose in memory columnar format with a fast serialization and deserialization support. All
+Arrow entities must be defined with a schema. For OpenTelemetry the following Arrow schemas are proposed to map the
+existing entities i.e. metrics, logs and traces. **By fixing these schemas we allow all the participants exporters,
+processors, and consumers to encode and decode efficiently these telemetry streams.** Nothing will prevent a processor
+supporting this protocol extension to filter, aggregate, project Arrow buffers. To do so, the processor will be able to
+leverage the processing capability of Apache Arrow to directly process the batches (some Arrow frameworks support
+SIMD accelerations).
+
+By storing Arrow buffers in a protobuf field of type 'bytes' we can leverage the zero-copy capability of some Protobuf
+implementations (e.g. C++, Java, Rust) in order to get the most out of Arrow (relying on zero-copy ser/deser framework).
+
+Null values support can be configured per field (third parameter in the field description). When enabled, a validity map
+mechanism is used.
+
+>> Please read this documentation to get a complete description of the [Arrow Memory Layout](https://arrow.apache.org/docs/format/Columnar.html#format-columnar).
+
+#### OpenTelemetry metrics to Arrow mapping
+
+This Arrow schema describes the representation of univariate and **multivariate** time-series. 
+
+Labels are mapped to a set of dedicated column scoped by the logical struct 'labels'. The list of labels can be easily 
+determined from the schema by any participants. Metrics follow the same organization and are scoped by the logical
+struct 'metrics'.
+
+Attributes and exemplars are encoded with a list of structs instead of a struct of fields (columns). This mapping is
+based on the assumption that the number of attributes or exemplars can vary greatly from one measurement point to another
+for the same time-series. Arrow encodes this type representation with an offsets buffer and a child/data array.
+If this assumption is not true, another option will be to declare one column per attribute and exemplar with a validity
+bitmap enabled. **This should be validated by experimentation on realistic datasets.** 
+
+For more details on the Arrow Memory Layout see this [document](https://arrow.apache.org/docs/format/Columnar.html#variable-size-binary-layout).
 
 ```rust
 // Multivariate time-series schema declaration
 Schema::new(vec![
-    // times
+    // Time range
     Field::new("start_time_unix_nano", DataType::UInt64, false),
     Field::new("time_unix_nano", DataType::UInt64, false),
 
-    // labels
+    // Labels
     Field::new(
             "labels",
             DataType::Struct(vec![
@@ -85,18 +118,20 @@ Schema::new(vec![
             true,
     ),
 
-    // metrics
+    // Metrics
+    // Only one metric in the structure if this schema represent a univariate time-series.
+    // Multiple fields in the structure to represent multivariate time-series.
     Field::new(
         "metrics",
         DataType::Struct(vec![
-            Field::new("metric_1", DataType::Int64, true),
-            Field::new("metric_2", DataType::Float64, true),
+            Field::new("metric_1", DataType::Int64, false),
+            Field::new("metric_2", DataType::Float64, false),
             // ...
         ]),
         false,
     ),
 
-    // attributes
+    // Attributes
     Field::new("attributes", DataType::List(
         Box::new(Field::new(
             "attribute",
@@ -108,7 +143,7 @@ Schema::new(vec![
         ))
     ), true),
 
-    // exemplars
+    // Exemplars
     Field::new("exemplars", DataType::List(
         Box::new(Field::new(
             "exemplar",
@@ -145,20 +180,37 @@ Schema::new(vec![
 ])
 ```
 
-### OpenTelemetry logs to Arrow mapping
+#### OpenTelemetry logs to Arrow mapping
+
+This Arrow schema describes the representation of logs.
+
+Labels are mapped to a set of dedicated column scoped by the logical struct 'labels'. The list of labels can be easily
+determined from the schema by any participants. Metrics follow the same organization and are scoped by the logical
+struct 'metrics'.
+
+Attributes with a list of structs instead of a struct of fields (columns). This mapping is based on the assumption that
+the number of attributes can vary greatly from one log entry to another for the same log stream. Arrow encodes this type
+representation with an offsets buffer and a child/data array. If this assumption is not true, another option will be to
+declare one column per attribute with a validity bitmap enabled. **This should be validated by experimentation on
+realistic datasets.**
+
+For more details on the Arrow Memory Layout see this [document](https://arrow.apache.org/docs/format/Columnar.html#variable-size-binary-layout).
 
 ```rust
-// log schema declaration
+// Log schema declaration
 Schema::new(vec![
-    // time
+    // Timestamp
     Field::new("time_unix_nano", DataType::UInt64, false),
 
     Field::new("severity_number", DataType::UInt8, false),
-    Field::new("severity_text", DataType::Utf8, false),
+    Field::new("severity_text", DataType::Utf8, true),
     Field::new("name", DataType::Utf8, false),
-    Field::new("body", DataType::Utf8, false),
+    Field::new("body", DataType::Utf8, true),
+    Field::new("flags", DataType::Int32, true),
+    Field::new("span_id", DataType::Binary, true),
+    Field::new("trace_id", DataType::Binary, true),
 
-    // attributes
+    // Attributes
     Field::new("attributes", DataType::List(
         Box::new(Field::new(
             "attribute",
@@ -169,17 +221,29 @@ Schema::new(vec![
             true,
         ))
     ), true),
-
-    Field::new("flags", DataType::Int32, false),
-    Field::new("span_id", DataType::Binary, false),
-    Field::new("trace_id", DataType::Binary, false),
 ])
 ```
 
-### OpenTelemetry traces to Arrow mapping
+#### OpenTelemetry traces to Arrow mapping
+
+This Arrow schema describes the representation of traces.
+
+Labels are mapped to a set of dedicated column scoped by the logical struct 'labels'. The list of labels can be easily
+determined from the schema by any participants. Metrics follow the same organization and are scoped by the logical
+struct 'metrics'.
+
+Attributes with a list of structs instead of a struct of fields (columns). This mapping is based on the assumption that
+the number of attributes can vary greatly from one log entry to another for the same log stream. Arrow encodes this type
+representation with an offsets buffer and a child/data array. If this assumption is not true, another option will be to
+declare one column per attribute with a validity bitmap enabled. **This should be validated by experimentation on
+realistic datasets.**
+
+Events and links follow the same representation used for the attributes.
+
+For more details on the Arrow Memory Layout see this [document](https://arrow.apache.org/docs/format/Columnar.html#variable-size-binary-layout).
 
 ```rust
-// trace schema declaration
+// Trace schema declaration
 Schema::new(vec![
     // times
     Field::new("start_time_unix_nano", DataType::UInt64, false),
@@ -187,12 +251,12 @@ Schema::new(vec![
 
     Field::new("trace_id", DataType::Binary, false),
     Field::new("span_id", DataType::Binary, false),
-    Field::new("trace_state", DataType::Utf8, false),
-    Field::new("parent_span_id", DataType::Binary, false),
+    Field::new("trace_state", DataType::Utf8, true),
+    Field::new("parent_span_id", DataType::Binary, true),
     Field::new("name", DataType::Utf8, false),
     Field::new("kind", DataType::UInt8, false),
 
-    // attributes
+    // Attributes
     Field::new("attributes", DataType::List(
         Box::new(Field::new(
             "attribute",
@@ -204,7 +268,7 @@ Schema::new(vec![
         ))
     ), true),
 
-    // events
+    // Events
     Field::new("events", DataType::List(
         Box::new(Field::new(
             "event",
@@ -226,7 +290,7 @@ Schema::new(vec![
         ))
     ), true),
 
-    // links
+    // Links
     Field::new("links", DataType::List(
         Box::new(Field::new(
             "link",
