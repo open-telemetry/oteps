@@ -86,9 +86,9 @@ mechanism is used.
 
 #### OpenTelemetry metrics to Arrow mapping
 
-This Arrow schema describes the representation of univariate and **multivariate** time-series. 
+This Arrow schema describes the representation of univariate and **multivariate** time-series.
 
-Labels are mapped to a set of dedicated column scoped by the logical struct 'labels'. The list of labels can be easily 
+Labels are mapped to a set of dedicated column scoped by the logical struct 'labels'. The list of labels can be easily
 determined from the schema by any participants. Metrics follow the same organization and are scoped by the logical
 struct 'metrics'.
 
@@ -96,7 +96,7 @@ Attributes and exemplars are encoded with a list of structs instead of a struct 
 based on the assumption that the number of attributes or exemplars can vary greatly from one measurement point to another
 for the same time-series. Arrow encodes this type representation with an offsets buffer and a child/data array.
 If this assumption is not true, another option will be to declare one column per attribute and exemplar with a validity
-bitmap enabled. **This should be validated by experimentation on realistic datasets.** 
+bitmap enabled. **This should be validated by experimentation on realistic datasets.**
 
 For more details on the Arrow Memory Layout see this [document](https://arrow.apache.org/docs/format/Columnar.html#variable-size-binary-layout).
 
