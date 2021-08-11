@@ -68,9 +68,9 @@ we accelerate the development of the OpenTelemetry protocol while expanding its 
 
 Backends that don't support natively multivariate time-series can still automatically transform these events in multiple univariate time-series and operate as usual.
 
-Specialized processors can be developped to group metrics, logs and traces in optimized batch of events in order to connect existing OTEL collectors with backends supporting this new protocol extension.
+Specialized processors can be developed to group metrics, logs and traces in optimized batch of events in order to connect existing OTEL collectors with backends supporting this new protocol extension.
 
-Specialized processors can be developped to convert batch of events into the existing entities for backends that don't support this protocol extension.
+Specialized processors can be developed to convert batch of events into the existing entities for backends that don't support this protocol extension.
 
 ## Trade-offs and mitigations
 
