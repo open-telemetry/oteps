@@ -6,16 +6,16 @@ such as multivariate time-series, large batches of traces and logs.
 
 ## Motivation
 
-With the current version of the OpenTelemetry protocol, users are **forced to transform multivariate time-series into a 
+With the current version of the OpenTelemetry protocol, users **will have to transform multivariate time-series into a 
 collection of univariate time-series** resulting in a large amount of duplication and additional overhead covering the 
 entire chain from exporters to backends.
 
-The volume of metrics, traces and logs is constantly increasing to meet new scenarios where accuracy and completeness
-of measurements are important. Therefore, the efficiency of the protocol capturing these large telemetry streams is crucial.
+As Volume of metrics, traces and logs increases to meet new demands, it is important that we build further optimizations 
+and protocol efficiencies.
 
 The analytical database industry and more recently the stream processing solutions have used columnar encoding methods 
 to optimize the processing and the storage of structured data. This proposal aims to leverage this representation to 
-make the OpenTelemetry protocol more efficient end-to-end.
+enhance the OpenTelemetry protocol when handling columnar encoding.
 
 > Definition: a multivariate time series has more than one time-dependent variable. Each variable depends not only on 
 its past values but also has some dependency on other variables. A 3 axis accelerometer reporting 3 metrics simultaneously; 
