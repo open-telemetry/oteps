@@ -1,6 +1,6 @@
 # Columnar encoding for the OpenTelemetry protocol
 
-This OTEP proposes to extend (in a compatible way) the Open Telemetry protocol with a **generic columnar representation
+This OTEP proposes to extend (in a compatible way) the OpenTelemetry protocol with a **generic columnar representation
 for metrics, logs and traces**. This extension will significantly improve the efficiency of the protocol for scenarios
 such as multivariate time-series, large batches of traces and logs.
 
@@ -64,6 +64,192 @@ buffer exist for well-known file format (e.g. Parquet) and for well-known backen
 we accelerate the development of the OpenTelemetry protocol while expanding its field of application.
 
 ![arrow-ecosystem](img/0156-arrow-ecosystem.svg)
+
+### OpenTelemetry metrics to Arrow mapping
+
+```rust
+// Multivariate time-series schema declaration
+Schema::new(vec![
+    // times
+    Field::new("start_time_unix_nano", DataType::UInt64, false),
+    Field::new("time_unix_nano", DataType::UInt64, false),
+
+    // labels
+    Field::new(
+            "labels",
+            DataType::Struct(vec![
+                Field::new("label_1", DataType::Utf8, false),
+                Field::new("label_2", DataType::Utf8, false),
+                // ...
+            ]),
+            true,
+    ),
+
+    // metrics
+    Field::new(
+        "metrics",
+        DataType::Struct(vec![
+            Field::new("metric_1", DataType::Int64, true),
+            Field::new("metric_2", DataType::Float64, true),
+            // ...
+        ]),
+        false,
+    ),
+
+    // attributes
+    Field::new("attributes", DataType::List(
+        Box::new(Field::new(
+            "attribute",
+            DataType::Struct(vec![
+                Field::new("name", DataType::Utf8, false),
+                Field::new("value", DataType::Utf8, false),
+            ]),
+            true,
+        ))
+    ), true),
+
+    // exemplars
+    Field::new("exemplars", DataType::List(
+        Box::new(Field::new(
+            "exemplar",
+            DataType::Struct(vec![
+                Field::new("filtered_attributes", DataType::List(
+                    Box::new(Field::new(
+                        "attribute",
+                        DataType::Struct(vec![
+                            Field::new("name", DataType::Utf8, false),
+                            Field::new("value", DataType::Utf8, false),
+                        ]),
+                        true,
+                    ))
+                ), true),
+                Field::new("filtered_labels", DataType::List(
+                    Box::new(Field::new(
+                        "label",
+                        DataType::Struct(vec![
+                            Field::new("name", DataType::Utf8, false),
+                            Field::new("value", DataType::Utf8, false),
+                        ]),
+                        true,
+                    ))
+                ), true),
+                Field::new("time_unix_nano", DataType::UInt64, false),
+                // Could be Float64 or Int64
+                Field::new("value", DataType::Float64, false),
+                Field::new("span_id", DataType::Binary, false),
+                Field::new("trace_id", DataType::Binary, false),
+            ]),
+            true,
+        ))
+    ), true),
+])
+```
+
+### OpenTelemetry logs to Arrow mapping
+
+```rust
+// log schema declaration
+Schema::new(vec![
+    // time
+    Field::new("time_unix_nano", DataType::UInt64, false),
+
+    Field::new("severity_number", DataType::UInt8, false),
+    Field::new("severity_text", DataType::Utf8, false),
+    Field::new("name", DataType::Utf8, false),
+    Field::new("body", DataType::Utf8, false),
+
+    // attributes
+    Field::new("attributes", DataType::List(
+        Box::new(Field::new(
+            "attribute",
+            DataType::Struct(vec![
+                Field::new("name", DataType::Utf8, false),
+                Field::new("value", DataType::Utf8, false),
+            ]),
+            true,
+        ))
+    ), true),
+
+    Field::new("flags", DataType::Int32, false),
+    Field::new("span_id", DataType::Binary, false),
+    Field::new("trace_id", DataType::Binary, false),
+])
+```
+
+### OpenTelemetry traces to Arrow mapping
+
+```rust
+// trace schema declaration
+Schema::new(vec![
+    // times
+    Field::new("start_time_unix_nano", DataType::UInt64, false),
+    Field::new("end_time_unix_nano", DataType::UInt64, false),
+
+    Field::new("trace_id", DataType::Binary, false),
+    Field::new("span_id", DataType::Binary, false),
+    Field::new("trace_state", DataType::Utf8, false),
+    Field::new("parent_span_id", DataType::Binary, false),
+    Field::new("name", DataType::Utf8, false),
+    Field::new("kind", DataType::UInt8, false),
+
+    // attributes
+    Field::new("attributes", DataType::List(
+        Box::new(Field::new(
+            "attribute",
+            DataType::Struct(vec![
+                Field::new("name", DataType::Utf8, false),
+                Field::new("value", DataType::Utf8, false),
+            ]),
+            true,
+        ))
+    ), true),
+
+    // events
+    Field::new("events", DataType::List(
+        Box::new(Field::new(
+            "event",
+            DataType::Struct(vec![
+                Field::new("time_unix_nano", DataType::UInt64, false),
+                Field::new("name", DataType::Utf8, false),
+                Field::new("attributes", DataType::List(
+                    Box::new(Field::new(
+                        "attribute",
+                        DataType::Struct(vec![
+                            Field::new("name", DataType::Utf8, false),
+                            Field::new("value", DataType::Utf8, false),
+                        ]),
+                        true,
+                    ))
+                ), true),
+            ]),
+            true,
+        ))
+    ), true),
+
+    // links
+    Field::new("links", DataType::List(
+        Box::new(Field::new(
+            "link",
+            DataType::Struct(vec![
+                Field::new("trace_id", DataType::Binary, false),
+                Field::new("span_id", DataType::Binary, false),
+                Field::new("trace_state", DataType::Utf8, false),
+                Field::new("attributes", DataType::List(
+                    Box::new(Field::new(
+                        "attribute",
+                        DataType::Struct(vec![
+                            Field::new("name", DataType::Utf8, false),
+                            Field::new("value", DataType::Utf8, false),
+                        ]),
+                        true,
+                    ))
+                ), true),
+            ]),
+            true,
+        ))
+    ), true),
+])
+```
 
 ### Corners cases
 
