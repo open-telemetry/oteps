@@ -1,4 +1,4 @@
-# Columnar encoding for the Open Telemetry protocol
+# Columnar encoding for the OpenTelemetry protocol
 
 This OTEP proposes to extend (in a compatible way) the Open Telemetry protocol with a **generic columnar representation 
 for metrics, logs and traces**. This extension will significantly improve the efficiency of the protocol for scenarios 
@@ -15,7 +15,7 @@ of measurements are important. Therefore, the efficiency of the protocol capturi
 
 The analytical database industry and more recently the stream processing solutions have used columnar encoding methods 
 to optimize the processing and the storage of structured data. This proposal aims to leverage this representation to 
-make the Open Telemetry protocol more efficient end-to-end.
+make the OpenTelemetry protocol more efficient end-to-end.
 
 > Definition: a multivariate time series has more than one time-dependent variable. Each variable depends not only on 
 its past values but also has some dependency on other variables. A 3 axis accelerometer reporting 3 metrics simultaneously; 
@@ -29,7 +29,7 @@ the potential gain we can obtain for a multivariate time-series scenario.
 ## Explanation
 
 Fundamentally metrics, logs and traces are all structured events occurring at a certain time and optionally covering a 
-specified time span. Creating an efficient and generic representation for events will benefit the entire Open Telemetry 
+specified time span. Creating an efficient and generic representation for events will benefit the entire OpenTelemetry 
 eco-system. 
 
 Currently all the OTEL entities are stored in "rows". A metric entity is a protobuf message containing timestamp, labels,
@@ -60,7 +60,7 @@ leveraging Apache Arrow will give us access to a mature solution optimized for o
 
 Efficient implementation of Apache Arrow exists for most of the languages (Java, Go, C++, Rust, ...). Connectors with Apache Arrow
 buffer exist for well-known file format (e.g. Parquet) and for well-known backend (e.g. BigQuery). By reusing this existing infrastructure,
-we accelerate the development of the Open Telemetry protocol while expanding its field of application. 
+we accelerate the development of the OpenTelemetry protocol while expanding its field of application. 
 
 ![arrow-ecosystem](img/0156-arrow-ecosystem.svg)
 
@@ -93,7 +93,7 @@ More discussions should happen on the processor and storage layers. This approac
 ## Appendices
 
 ### event proto
-Protobuf specification (draft) for an Arrow-based Open Telemetry event.
+Protobuf specification (draft) for an Arrow-based OpenTelemetry event.
 
 ```protobuf
 syntax = "proto3";
