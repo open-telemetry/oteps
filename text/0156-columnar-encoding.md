@@ -11,7 +11,8 @@ collection of univariate time-series** resulting in a large amount of duplicatio
 entire chain from exporters to backends.
 
 As Volume of metrics, traces and logs increases to meet new demands, it is important that we build further optimizations
-and protocol efficiencies.
+and protocol efficiencies. CPU, memory, and network bandwidth must be optimized to minimize the impact on devices,
+processes and overall cost of collecting and transmitting large streams of telemetry data.
 
 The analytical database industry and more recently the stream processing solutions have used columnar encoding methods
 to optimize the processing and the storage of structured data. This proposal aims to leverage this representation to
