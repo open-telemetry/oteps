@@ -245,7 +245,7 @@ For more details on the Arrow Memory Layout see this [document](https://arrow.ap
 ```rust
 // Trace schema declaration
 Schema::new(vec![
-    // times
+    // Time range
     Field::new("start_time_unix_nano", DataType::UInt64, false),
     Field::new("end_time_unix_nano", DataType::UInt64, false),
 
