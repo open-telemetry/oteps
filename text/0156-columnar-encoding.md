@@ -49,7 +49,7 @@ a proven approach to optimize the creation, size, and processing of data batches
 
 The benefit of this approach increases proportionally with the size of the batches. Using the existing "row-oriented"
 representation is well suited for small batch scenarios. Therefore, this proposal suggests to **extend** the protocol by
-adding a new columnar event entity to better support multivariate time-series and large batches of events.
+adding a new columnar event entity to better support multivariate time-series and large batches of logs and traces.
 
 ## Internal details
 
@@ -69,13 +69,17 @@ we accelerate the development of the OpenTelemetry protocol while expanding its 
 
 ### OpenTelemetry entities to Arrow mapping
 
-Apache Arrow is a general-purpose in memory columnar format with a fast serialization and deserialization support. All
+Apache Arrow is a general-purpose in-memory columnar format with a fast serialization and deserialization support. All
 Arrow entities must be defined with a schema. For OpenTelemetry the following Arrow schemas are proposed to map the
 existing entities i.e. metrics, logs and traces. **By fixing these schemas we allow all the participants exporters,
 processors, and consumers to encode and decode efficiently these telemetry streams.** Nothing will prevent a processor
 supporting this protocol extension to filter, aggregate, project Arrow buffers. To do so, the processor will be able to
-leverage the processing capability of Apache Arrow to directly process the batches (some Arrow frameworks support
-SIMD accelerations).
+leverage the processing capability of Apache Arrow to directly process in-situ and with minimum of memory copy the
+batches (some Arrow frameworks support SIMD accelerations and SQL data processing).
+Alternatively, and although this is not the most optimal approach, it will be entirely possible for processors that
+already have a row-oriented processing framework to convert Arrow buffers into a stream of metrics, logs, or traces to
+apply their existing processing capabilities, and then rebuild the Arrow buffers before to send the message to other
+intermediaries or backends.
 
 By storing Arrow buffers in a protobuf field of type 'bytes' we can leverage the zero-copy capability of some Protobuf
 implementations (e.g. C++, Java, Rust) in order to get the most out of Arrow (relying on zero-copy ser/deser framework).
