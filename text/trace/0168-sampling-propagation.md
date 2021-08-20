@@ -7,10 +7,12 @@ Use the W3C trace context to convey consistent head trace sampling probability.
 The head trace sampling probability is the probability associated with
 the start of a trace context that was used to determine whether the
 W3C `sampled` flag is set, which determines whether child contexts
-will be  sampled by a `ParentBased` Sampler.  It is useful
-to know the head trace sampling probability associated with a context
-in order to build span-to-metrics pipelines when the built-in
-`ParentBased` Sampler is used.
+will be sampled by a `ParentBased` Sampler.  It is useful to know the
+head trace sampling probability associated with a context in order to
+build span-to-metrics pipelines when the built-in `ParentBased`
+Sampler is used.  Further motivation for supporting span-to-metrics
+pipelines is presented in [OTEP
+170](https://github.com/open-telemetry/oteps/pull/170).
 
 A consistent trace sampling decision is one that can be carried out at
 any node in a trace, which supports collecting partial traces.
@@ -120,7 +122,7 @@ architectures.
 
 For example, the value 3 means there were three leading zeros and
 corresponds with being sampled at probabilities 1-in-1 through 1-in-8
-but not at probabilities 1-in-16 and smaller.  Using one six bits of
+but not at probabilities 1-in-16 and smaller.  Using six bits of
 information we can convey a consistent sampling decision for sampling
 rates as small as 2^-62.
 
@@ -227,6 +229,8 @@ as the number of leading zeros among those 62 random bits.
 
 This proposal requires modifying the W3C traceparent specification,
 therefore we do not propose to use bits of the TraceID.
+
+[This issue has been filed with the W3C trace context group.](https://github.com/w3c/trace-context/issues/463)
 
 ### Not using TraceID hashing
 
