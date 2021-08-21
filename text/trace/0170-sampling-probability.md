@@ -605,7 +605,7 @@ bits of information, with 63 ordinary values and one zero value.
 Here, we propose a biased encoding for head sampling probability equal
 to 1 plus the `P` value as proposed in OTEP 168.  The proposed span
 field, a biased base-2 logarithm of the adjusted count, is named
-simply `log_adjusted_count` and requires 7 bits of information:
+simply `log_head_adjusted_count` and requires 7 bits of information:
 
 | Value | Head Adjusted Count |
 | ----- | ---------------- |
@@ -625,15 +625,38 @@ simply `log_adjusted_count` and requires 7 bits of information:
 Combined with the proposal for propagating head sampling probability
 in OTEP 168, the result is that Sampling can be enabled in an
 up-to-date system and all Spans, roots and children alike, will have a
-non-zero values in the `log_adjusted_count` field.  Consumers of a
-stream of Span data with non-zero values in the `log_adjusted_count`
+non-zero values in the `log_head_adjusted_count` field.  Consumers of a
+stream of Span data with non-zero values in the `log_head_adjusted_count`
 field can approximately and accurately count Spans using adjusted
 counts.
 
 Non-probabilistic Samplers such as the [Leaky-bucket rate-limited
 sampler](https://github.com/open-telemetry/opentelemetry-specification/issues/1769)
-SHOULD set the `log_adjusted_count` field to zero to indicate an
+SHOULD set the `log_head_adjusted_count` field to zero to indicate an
 unknown adjusted count.
+
+### Proposed `Span` field documentation
+
+The following text will be added to the `Span` message in
+`opentelemetry/proto/trace/v1/trace.proto`:
+
+```
+  // Log-head-adjusted count is the logarithm of adjusted count for
+  // this span as calculated at the head, offset by +1, with the
+  // following recognized values.
+  //
+  // 0: The zero value represents an UNKNOWN adjusted count.
+  //    Consumers of these Spans cannot cannot compute span metrics.
+  //
+  // 1: An adjusted count of 1.
+  // 
+  // 2-63: Values 2 through 63 represent an adjusted count of 2^(Value-1)
+  //
+  // 64: Value 64 represents an adjusted count of zero.
+  //
+  // Values greater than 64 are unrecognized.
+  uint32 log_head_adjusted_count = <next_tag>;
+```
 
 ## Recommended reading
 
