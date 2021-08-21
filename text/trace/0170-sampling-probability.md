@@ -42,18 +42,19 @@ Objective: Specify a foundation for sampling techniques in OpenTelemetry.
 Probability sampling allows consumers of sampled telemetry data to
 collect a fraction of telemetry events and use them to estimate total
 quantities about the population of events, such as the total rate of
-events with a particular attribute.  Sampling is a general-purpose
-facility for lowering cost at the expense of lower data quality.
+events with a particular attribute.
 
 These techniques enable reducing the cost of telemetry collection,
 both for producers (i.e., SDKs) and for processors (i.e., Collectors),
 without losing the ability to (at least coarsely) monitor the whole
 system.
 
-Sampling builds on results from probability theory, most significantly
-the concept of expected value.  Estimates drawn from probability
-samples are *random variables* that, when correct procedures are
-followed, accurately reflect their true value, making them unbiased.
+Sampling builds on results from probability theory.  Estimates drawn
+from probability samples are *random variables* that are expected to
+equal their true value.  When all outcomes are equally likely, meaning
+all the potential combinations of items used to compute a sample of
+the sampling logic are equally likely, we say the sample is _unbiased_.
+
 Unbiased samples can be used for after-the-fact analysis.  We can
 answer questions such as "what fraction of events had property X?"
 using the fraction of events in the sample that have property X.
@@ -68,25 +69,29 @@ the population represented by an individual sample event.
 
 ## Examples
 
-These examples use the proposed attribute `sampler.adjusted_count` to
+These examples use an attribute named `sampler.adjusted_count` to
 convey sampling probability.  Consumers of spans, metrics, and logs
 annotated with adjusted counts are able to calculate accurate
-statistics about the whole population of events, at a basic level,
-without knowing details about the sampling configuration.
+statistics about the whole population of events, without knowing
+details about the sampling configuration.
+
+The hypothetical `sampler.adjusted_count` attribute is used throughout
+these examples to demonstrate this concept, although the proposal
+below for OpenTelemetry `Span` messages introduces a dedicated field
+with specific interpretation for conveying head sampling probability.
 
 ### Span sampling
 
-Example use-cases for probability sampling of spans
-generally involve generating metrics from spans.
+Example use-cases for probability sampling of spans generally involve
+generating metrics from spans.
 
 #### Sample spans to Counter Metric
 
 For every complete span it receives, the example processor will synthesize
-metric data as though a Counter instrument named `S.count` for span
-named `S` had been incremented once per span at the original `Start()`
-call site.
+metric data as though a Counter named `S.count` corresponding to a span
+named `S` had been incremented once per original span.
 
-This processor will add the adjusted count of each span to the
+This processor will add the span's adjusted count to the
 instrument (e.g., `Add(adjusted_count, labels...)`)  for every span it
 receives, logically taking place at the start or end time of the span.
 
@@ -94,8 +99,7 @@ receives, logically taking place at the start or end time of the span.
 
 For every span it receives, the example processor will synthesize
 metric data as though a Histogram instrument named `S.duration` for
-span named `S` had been observed once per span at the original `End()`
-call site.
+span named `S` had been observed once per original span.
 
 The OpenTelemetry Metric data model does not support histogram buckets
 with non-integer counts, which forces the use of integer adjusted
@@ -152,24 +156,6 @@ adjusted count of 10.  Assuming the sample was selected using an
 unbiased algorithm, we can interpret this event as having an expected
 count of `100/0.1 = 1000`.
 
-#### Metric exemplars with adjusted counts
-
-The OTLP protocol for metrics includes a repeated exemplars field in
-every data point.  This is a place where Metric aggregators (e.g., 
-histograms) are able to provide example context to correlate metrics 
-with traces.
-
-OTLP exemplars support additional attributes, those that were present
-on the API event and were dropped during aggregation.  Exemplars that
-are selected probabilistically and recorded with their adjusted counts
-make it possible to approximately count events using dimensions that
-were dropped during metric aggregation.
-
-An end-to-end pipeline of sampled metrics events can be constructed
-based on exemplars with adjusted counts, one capable of supporting
-approximate-count queries over sampled metric events at high
-cardinality.
-
 #### Metric cardinality limiter
 
 A metrics processor can be configured to limit cardinality for a
@@ -184,7 +170,7 @@ monotonic (see
 
 Considering data points received during the interval, when the number
 of points exceeds K, select a probability proportional to size sample
-of points, output every point with a `sampler.adjusted_count` attribute.
+of points, output every point with an adjusted count attribute.
 
 ## Explanation
 
@@ -419,7 +405,7 @@ the population.  Take a simple probability sample of root spans:
 2. Make a pseudo-random selection with probability `P`, if true return
    `RECORD_AND_SAMPLE` (so that the W3C Trace Context `is-sampled`
    flag is set in all child contexts)
-3. Encode a span attribute `sampler.adjusted_count` equal to `1/P` on the root span
+3. Encode a span adjusted count attribute equal to `1/P` on the root span
 4. Collect all spans where the W3C Trace Context `is-sampled` flag is set.
 
 After collecting all sampled spans, locate the root span for each.
@@ -488,9 +474,8 @@ the context in effect when starting child spans.  This is expanded
 upon in [OTEP 168 (WIP)](https://github.com/open-telemetry/oteps/pull/168).
 
 When propagating head sampling probability, spans recorded by the
-`Parent` sampler MAY encode the adjusted count in the corresponding
-`SpanData` using a non-descriptive Span attribute named
-`sampler.adjusted_count`.
+`Parent` sampler could encode the adjusted count in the corresponding
+`SpanData` using a Span attribute named `sampler.adjusted_count`.
 
 ##### `TraceIDRatio` Sampler
 
@@ -521,9 +506,9 @@ span](https://github.com/open-telemetry/opentelemetry-specification/issues/355).
 Lacking the number of expected children, we require a way to know the
 minimum Sampler probability across traces to ensure they are complete.
 
-To count TraceIDRatio-sampled spans, each span MAY encode its adjusted
-count in the corresponding `SpanData` using a non-descriptive Span
-attribute named `sampler.adjusted_count`.
+To count TraceIDRatio-sampled spans, each span could encode its
+adjusted count in the corresponding `SpanData` using a Span attribute
+named `sampler.adjusted_count`.
 
 ##### Dapper's "Inflationary" Sampler
 
@@ -595,112 +580,60 @@ decision is true or false, propagate `I` as the new head inclusion
 probability.  If the decision is true, begin recording a sub-rooted
 trace with adjusted count `1/I`.
 
-## Proposed specification text
+## Proposed `Span` protocol
 
-The following text will be added to the semantic conventions for
-recording the Sampler name and adjusted count (if known) as
-OpenTelemetry Span attributes.
+Earlier drafts of this document had proposed the use of Span
+attributes to convey a the combined effects of head- and tail-sampling
+in the form of an (optional) adjusted count and (optional) sampler
+name.  The group did not reach agreement on whether and/or how to
+convey tail sampling.
 
-### Semantic conventions for Sampled spans (Proposed text)
+Following the proposal for propagating consistent head trace sampling
+probability developed in [OTEP
+168](https://github.com/open-telemetry/oteps/pull/168), this proposal
+is limited to adding a field to encode the head sampling probability.
+The OTEP 168 proposal for propagation limits head sampling
+probabilities to powers of two, hence we are able to encode the
+corresponding adjusted count using a small non-negative integer.
 
-This document defines conventions for counting system-wide span events
-using sampled spans.  These conventions support accurate counting of
-system-wide events using only the fraction of spans that were
-collected in a probability sampling scheme.  With these conventions,
-consumers of OTLP Span data are able to compute approximate metrics
-about the system using only the sample span data that was collected, thus
-we refer to these conventions as supporting Span-to-Metrics pipelines.
+Interoperability with existing Propagators and Span data means
+recognizing Spans with unknown adjusted count when the new field is
+unset.  Thus, the 0 value shall mean unknown adjusted count.
 
-The _sampling rate_, also known as _inclusion probability_, is the
-probability that a Span is included in the Sample being collected.
-Sampling rate is conveyed in a form known as _adjusted count_, which
-tells the receiver how many events in the population are represented
-by the individual Span as a result of sampling.
+The OTEP 168 proposal for propagating head sampling probability uses 6
+bits of information, with 63 ordinary values and one zero value.
+Here, we propose a biased encoding for head sampling probability equal
+to 1 plus the `P` value as proposed in OTEP 168.  The proposed span
+field, a biased base-2 logarithm of the adjusted count, is named
+simply `log_adjusted_count` and requires 7 bits of information:
 
-The adjusted count of a span is defined as follows:
+| Value | Head Adjusted Count |
+| ----- | ---------------- |
+| 0 | _Unknown_ |
+| 1 | 1 |
+| 2 | 2 |
+| 3 | 4 |
+| 4 | 8 |
+| 5 | 16 |
+| 6 | 32 |
+| ... | ... |
+| X | 2^(X-1) |
+| ... | ... |
+| 63 | 2^62 |
+| 64 | 0 |
 
-- Adjusted count equals zero when inclusion probability equals zero
-- Adjusted count equals the mathematical inverse (i.e., reciprocal) of inclusion probability when inclusion probability is non-zero.
+Combined with the proposal for propagating head sampling probability
+in OTEP 168, the result is that Sampling can be enabled in an
+up-to-date system and all Spans, roots and children alike, will have a
+non-zero values in the `log_adjusted_count` field.  Consumers of a
+stream of Span data with non-zero values in the `log_adjusted_count`
+field can approximately and accurately count Spans using adjusted
+counts.
 
-The zero value for adjusted count can be used when recording a Span
-that was not selected by the Sampler, as a means of conveying
-exceptional events while maintaining accurate accounting.
-
-Consumers of spans carrying an adjusted count attribute are able to
-use the adjusted count of the span to increment a counter of matching
-spans.  This probabilistic counting method will be accurate as long
-as the Sampler produces unbiased adjusted counts that are expected to
-equal true population counts.
-
-#### Probability Sampling Attributes (Proposed text)
-
-The `sampler.adjusted_count` attribute, when set, MUST equal an
-unbiased estimate of the number of representative spans in the
-population of spans in the system.
-
-To avoid recording redundent information, both the `sampler.name` and
-`sampler.adjusted_count` attributes MAY be omitted when the counting
-algorithm given below produces a correct result.
-
-There are scenarios where the adjusted count is unknown, such as when
-using the `ParentBased` Sampler without the `tracestate` specified in 
-this proposal.
-
-The `sampler.adjusted_count` SHOULD be omitted when its value is 1 or
-unknown.  The adjusted count can be safely omitted when it is 1
-because that is exactly the number of events associated the span in
-that case.  In case the adjusted count is unknown, `sampler.name` MUST
-be set with a Sampler name to signify an unknown adjusted count.
-
-The presence of a `sampler.name` without a `sampler.adjusted_count`
-SHOULD be taken as a signal that a span-to-metrics pipeline cannot be
-established without external information.  Otherwise, `sampler.name`
-SHOULD be set when the adjusted count is not equal to 1.
-
-Implementations SHOULD avoid dropping attributes that begin with the
-`sampler.` prefix when [limiting the number of span attributes](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#span-limits).
-
-The algorithm for spans-to-metrics is as follows:
-
-```
-// Calls `span_to_metrics(span, C)` for the effective count `C` of 
-// every `span` received.
-for _, span := <-spans_received {
-  if count, has := span.attributes['sampler.adjusted_count']; has {
-    span_to_metrics(span, count)
-  } else if name, has := span.attributes['sampler.name]; has {
-    log.Error("span requires trace assembly before counting")
-  } else {
-    span_to_metrics(span, 1)
-  }
-}
-```
-
-To summarize, these two attributes convey information about the
-Sampler that recorded a span.
-
-| Attribute | Type | Description | Examples | Required |
-|---------- | ---- | ----------- | -------- | -------- |
-| `sampler.adjusted_count` | number | Effective count of the span. | 10       | Yes, when adjusted count is not equal to 1 |
-| `sampler.name`           | string | The name of the Sampler.     | `Parent` | Yes, when the true adjusted count is unknown |
-
-For the built-in samplers, the specified behavior for setting
-`sampler.adjusted_count` and `sampler.name` is as follows.
-
-| Built-in Sampler | Sets `sampler.adjusted_count`? | `sampler.name` | Notes                  |
-| ---------------- | --------------------------- | -------------- | ------------------------- |
-| AlwaysOn         | No         | Not set        | Adjusted count equals exported count       |
-| AlwaysOff        | Don't care | Don't care     | Exported count is zero, spans are never counted |
-| ParentBased      | Yes        | Not set        | In case the adjusted count is known. |
-| ParentBased      | No         | `Parent`       | In case the adjusted count is unknown. |
-| TraceIDRatio     | Yes        | Not set        | In case the adjusted count is known. |
-| TraceIDRatio     | No         | `TraceIDRatio` | In case of unspecified behavior. |
-
-When this proposal is adopted across a system using built-in samplers,
-probability sampling can be applied and spans can be unambiguously
-counted by the receiver.  In the case where a Sampler name is set
-because the adjusted count is unknown, the reciever will have to
-assemble the trace in order to count it properly.
+Non-probabilistic Samplers such as the [Leaky-bucket rate-limited
+sampler](https://github.com/open-telemetry/opentelemetry-specification/issues/1769)
+SHOULD set the `log_adjusted_count` field to zero to indicate an
+unknown adjusted count.
 
 ## Recommended reading
 
