@@ -600,12 +600,15 @@ Interoperability with existing Propagators and Span data means
 recognizing Spans with unknown adjusted count when the new field is
 unset.  Thus, the 0 value shall mean unknown adjusted count.
 
-The OTEP 168 proposal for propagating head sampling probability uses 6
-bits of information, with 63 ordinary values and one zero value.
+The OTEP 168 proposal for _propagating_ head sampling probability uses
+6 bits of information, with 62 ordinary values, one zero value, and a
+single unused value.
+
 Here, we propose a biased encoding for head sampling probability equal
 to 1 plus the `P` value as proposed in OTEP 168.  The proposed span
 field, a biased base-2 logarithm of the adjusted count, is named
-simply `log_head_adjusted_count` and requires 7 bits of information:
+simply `log_head_adjusted_count` and still requires 6 bits of
+information.
 
 | Value | Head Adjusted Count |
 | ----- | ---------------- |
@@ -619,8 +622,8 @@ simply `log_head_adjusted_count` and requires 7 bits of information:
 | ... | ... |
 | X | 2^(X-1) |
 | ... | ... |
-| 63 | 2^62 |
-| 64 | 0 |
+| 62 | 2^61 |
+| 63 | 0 |
 
 Combined with the proposal for propagating head sampling probability
 in OTEP 168, the result is that Sampling can be enabled in an
