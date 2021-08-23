@@ -52,7 +52,7 @@ of the adjusted count (i.e., inverse probability).
 For example, the probability value 2 corresponds with 1-in-4 sampling,
 the probability value 10 corresponds with 1-in-1024 sampling.  Using
 six bits of information we can convey sampling rates as small as
-2^-62.  The value 63 is reserved to mean sampling with probability 0,
+2^-61.  The value 62 is reserved to mean sampling with probability 0,
 which conveys an adjusted count of 0 for the associated context.
 
 When propagated the probability value will be interpreted as shown in
@@ -65,9 +65,18 @@ the following table:
 | 2 | 1/4 |
 | 3 | 1/8 |
 | ... | ... |
-| N | 1/(2^N) |
+| N | 2^-N |
 | ... | ... |
-| 63 | 0 |
+| 61 | 2^-61 |
+| 62 | 0 |
+| 63 | _Reserved_ |
+
+The value 63 is reserved for use in encoding adjusted count in Span
+data.  [Described in OTEP
+170](https://github.com/open-telemetry/oteps/pull/170), Span data
+would encode the probability value described here offset by +1, when
+the adjusted count is known, and would encode 0 when the adjusted
+count is unknown.
 
 ### Randomness value
 
@@ -93,8 +102,8 @@ below:
 
 Such a random variable `R` can be generated using the following
 pseudocode.  Note there is a tiny probability that the code has to
-reject the calculated result and start over, since the value 63 is
-defined to have adjusted count 0, not 2^63.
+reject the calculated result and start over, since the value 62 is
+defined to have adjusted count 0, not 2^62.
 
 ```golang
 func nextRandomness() int {
@@ -122,9 +131,7 @@ architectures.
 
 For example, the value 3 means there were three leading zeros and
 corresponds with being sampled at probabilities 1-in-1 through 1-in-8
-but not at probabilities 1-in-16 and smaller.  Using six bits of
-information we can convey a consistent sampling decision for sampling
-rates as small as 2^-62.
+but not at probabilities 1-in-16 and smaller.
 
 ### Proposed `tracestate` syntax
 
@@ -188,15 +195,16 @@ specially.
 
 If the context is a new root, the initial `tracestate` must be created
 using geometrically-distributed random value `R` (as described above,
-with maximum value 62) and the initial head probability value `S`.  If
-the `P=0` use `S=63`, the specified value for zero.
+with maximum value 61) and the initial head probability value `S`.  If
+the head probability is zero (i.e., `P=0`) use `S=62`, the specified
+value for zero probability.
 
 If the context is not a new root, output a new `tracestate` with the
 same `R` value as the parent context, and this Sampler's value of `S`
 for the outgoing context's probability value (i.e., as the value for
 `P`).
 
-In both cases, set the `sampled` bit if `S<=R` and `S<63`.
+In both cases, set the `sampled` bit if `S<=R` and `S<62`.
 
 ### Behavior of the `ParentBased` sampler
 
@@ -210,7 +218,7 @@ The `AlwaysOn` Sampler behaves the same as `TraceIDRatioBased` with `P=1` (i.e.,
 
 ### Behavior of the `AlwaysOff` Sampler
 
-The `AlwaysOff` Sampler behaves the same as `TraceIDRatioBased` with `P=0` (i.e., `S=63`).
+The `AlwaysOff` Sampler behaves the same as `TraceIDRatioBased` with `P=0` (i.e., `S=62`).
 
 ## Prototype
 
