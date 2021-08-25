@@ -653,9 +653,9 @@ The following text will be added to the `Span` message in
   //
   // 1: An adjusted count of 1.
   // 
-  // 2-63: Values 2 through 63 represent an adjusted count of 2^(Value-1)
+  // 2-62: Values 2 through 62 represent an adjusted count of 2^(Value-1)
   //
-  // 64: Value 64 represents an adjusted count of zero.
+  // 63: Value 63 represents an adjusted count of zero.
   //
   // Values greater than 64 are unrecognized.
   uint32 log_head_adjusted_count = <next_tag>;
