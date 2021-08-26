@@ -18,7 +18,33 @@ This document describes approach for instrumentation layers, suppressing duplica
 - Semantic Conventions: Client libraries instrumentation MUST make context current to enable correlation with underlying layers of instrumentation
 - OTel SDK SHOULD allow suppression strategy configuration:
   - suppress nested by kind (e.g. only one CLIENT allowed)
-  - suppress nested by kind + type (only one HTTP CLIENT allowed, but outer DB -> nested HTTP is ok)
+  - suppress nested by kind + convention it follows (only one HTTP CLIENT allowed, but outer DB -> nested HTTP is ok)
+
+#### SpanKey API
+
+SpanKey allows to read/write span to context.
+Defines known SpanKey, shared between instrumentations (static singletons):  HTTP, RPC, DB, Messaging.
+
+#### Example
+
+- HTTP Client 1:
+  - Gets HTTP CLIENT span from context: `SpanKey.HTTP_CLIENT.fromContextOrNull(ctx)`
+  - No HTTP client span on the context:
+    - start span
+    - store span in context: `SpanKey.HTTP_CLIENT.storeInContext(ctx, span)`
+    - Make `ctx` current
+- Http Client 2:
+  - Gets HTTP CLIENT span from context: `SpanKey.HTTP_CLIENT.fromContextOrNull(Context.current())`
+  - HTTP client span is already there: do not instrument
+
+Suppression logic is configurable and encapsulated in `SpanKey` - instrumentation should not depend on configuration, e.g.:
+
+- suppressing by kind only - context key does not distinguish conventions within kind
+  - `SpanKey.HTTP_CLIENT.fromContextOrNull` returns CLIENT span
+  - `SpanKey.HTTP_CLIENT.storeInContext` stores span in CLIENT span context key
+- suppressing by kind + convention - context key is per convention and kind
+  - `SpanKey.HTTP_CLIENT.fromContextOrNull` returns HTTP CLIENT span
+  - `SpanKey.HTTP_CLIENT.storeInContext` stores span in CLIENT + convention span context key
 
 ## Internal details
 
