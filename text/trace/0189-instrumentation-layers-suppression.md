@@ -1,0 +1,127 @@
+# Instrumentation Layers and Suppression
+
+This document describes approach for instrumentation layers, suppressing duplicate layers and unambiguously enriching spans.
+
+## Motivation
+
+- Provide clarity for instrumentation layers: e.g. DB calls on top of REST API
+- Give mechanism to suppress instrumentation layers for the same type: e.g. multiple instrumented HTTP clients using each other.
+- Give mechanism to enrich specific spans unambiguously: e.g. HTTP server span with routing information
+
+## Explanation
+
+### Spec changes proposal
+
+- Semantic Conventions: Each span MUST follow one convention, specific to the call it describes
+- Trace API: Add `SpanKey` API that gets span following specific convention from the context (e.g. `SpanKey.HTTP_CLIENT.fromContextOrNull(context)`).
+- Semantic Conventions: instrumentation MUST back off if span of same kind and following same contention is already in the context by using `ContextKey` API.
+- Semantic Conventions: Client libraries instrumentation MUST make context current to enable correlation with underlying layers of instrumentation
+- OTel SDK SHOULD allow suppression strategy configuration:
+  - suppress nested by kind (e.g. only one CLIENT allowed)
+  - suppress nested by kind + type (only one HTTP CLIENT allowed, but outer DB -> nested HTTP is ok)
+
+## Internal details
+
+Client libraries frequently use common protocols (HTTP, gRPC, DB drivers) to perform RPC calls, which are usually instrumented by OpenTelemetry.
+At the same time, client library is rarely a thin client and may need its own instrumentation to
+
+- connect traces to application code
+- provide extra context:
+  - duration of composite operations
+  - overall result of all operation
+  - any extra library-specific information not available on transport call span
+
+Both, client library 'logical' and transport 'physical' spans are useful. They also rarely can be combined together because they have 1:many relationship.
+
+So instrumentations form *layers*, where each layer follows specific convention (or describes certain library).
+
+*Example*:
+
+- HTTP SERVER span
+  - DB CLIENT call - 1
+    - HTTP CLIENT call - 1
+      - DNS CLIENT
+      - TLS CLIENT
+    - HTTP CLIENT call - 2
+
+There are two HTTP client spans under DB call, they are children of DB client spans.  DB spans follow DB semantics only, HTTP spans similarly only follow HTTP semantics. If there are other layers of instrumentation (TLS) - it happens under HTTP client spans.
+
+### Duplication problem
+
+Duplication is a common issue in auto-instrumentation:
+
+- e.g. HTTP clients frequently are built on top of other HTTP clients, making multiple layers of HTTP spans
+- Libraries may decide to add native instrumentation for common protocols like HTTP or gRPC:
+  - to support legacy correlation protocols
+  - to make better decisions failures (e.g. 404, 409)
+  - give better library-specific context
+  - support users that can't or don't want to use auto-instrumentation
+
+So what happens in reality without attempts to suppress duplicates:
+
+- HTTP SERVER span (middleware)
+  - HTTP SERVER span (servlet)
+    - Controller INTERNAL span
+      - HTTP CLIENT call - 1 (Google HTTP client)
+        - HTTP CLIENT call - 1 (Apache HTTP client)
+
+#### Proposed solution
+
+Disallow multiple layers of the same instrumentation, i.e. above picture translates into:
+
+- HTTP SERVER span (middleware)
+  - Controller INTERNAL span
+    - HTTP CLIENT call - 1 (Google HTTP client)
+
+To do so, instrumentation:
+
+- checks if span with same kind + type is registered on context already
+  - yes: backs off, never starting a span
+  - no: starts a span and registers it on the context
+
+Registration is done by writing a span on the context under the key. For this to work between different instrumentations (native and auto), the API to access spans must be in Trace API.
+
+Same mechanism can be used by users/instrumentations to enrich spans, e.g. add route info to HTTP server span (current span is ambiguous)
+
+### Configuration
+
+Suppression strategy should be configurable:
+
+- backends don't always support nested CLIENT spans (extra hints needed for Application Map to show outbound connection)
+- users may prefer to reduce verbosity and costs by suppressing spans of same kind
+
+So two strategies should be supported:
+
+- suppress all nested of same kind
+- suppress all nested of same kind + type (default?)
+
+### Implementation
+
+https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation-api/src/main/java/io/opentelemetry/instrumentation/api/instrumenter/SpanKey.java
+
+## Trade-offs and mitigations
+
+Trace API change is needed to support native library instrumentations - taking dependency on unstable experimental instrumentation API (or common contrib code) is not a good option. Instrumentation API is a good temporary place until we can put it in Trace API, native instrumentation can use reflection to access `SpanKey` in instrumentation API.
+
+## Prior art and alternatives
+
+- Terminal context: suppressing anything below
+- Exposing spans stack and allowing to walk it accessing span properties
+- Suppress all nested spans of same kind
+- Make logical calls INTERNAL
+
+Discussions:
+
+- https://github.com/open-telemetry/opentelemetry-specification/issues/1767
+- https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/903
+- https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/465
+- https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/1822
+- https://github.com/open-telemetry/opentelemetry-specification/issues/526
+- https://github.com/open-telemetry/opentelemetry-python-contrib/issues/369
+- https://github.com/open-telemetry/opentelemetry-python-contrib/issues/445
+- https://github.com/open-telemetry/opentelemetry-python-contrib/issues/456
+
+## Open questions
+
+- Backends need hint to separate logical CLIENT spans from physical ones
+- Good default (suppress by kind or kind + type)
