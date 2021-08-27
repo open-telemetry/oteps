@@ -5,7 +5,7 @@ This document describes approach for instrumentation layers, suppressing duplica
 ## Motivation
 
 - Provide clarity for instrumentation layers: e.g. DB calls on top of REST API
-- Give mechanism to suppress instrumentation layers for the same type: e.g. multiple instrumented HTTP clients using each other.
+- Give mechanism to suppress instrumentation layers for the same convention: e.g. multiple instrumented HTTP clients using each other.
 - Give mechanism to enrich specific spans unambiguously: e.g. HTTP server span with routing information
 
 ## Explanation
@@ -101,7 +101,7 @@ Disallow multiple layers of the same instrumentation, i.e. above picture transla
 
 To do so, instrumentation:
 
-- checks if span with same kind + type is registered on context already
+- checks if span with same kind + convention is registered on context already
   - yes: backs off, never starting a span
   - no: starts a span and registers it on the context
 
@@ -119,11 +119,11 @@ Suppression strategy should be configurable:
 So two strategies should be supported:
 
 - suppress all nested of same kind
-- suppress all nested of same kind + type (default?)
+- suppress all nested of same kind + convention (default?)
 
 ### Implementation
 
-Here's [Instrumentation API in Java implementation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation-api/src/main/java/io/opentelemetry/instrumentation/api/instrumenter/SpanKey.java) with suppression by type
+Here's [Instrumentation API in Java implementation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation-api/src/main/java/io/opentelemetry/instrumentation/api/instrumenter/SpanKey.java) with suppression by convention.
 
 ## Trade-offs and mitigations
 
@@ -150,5 +150,5 @@ Discussions:
 ## Open questions
 
 - Backends need hint to separate logical CLIENT spans from physical ones
-- Good default (suppress by kind or kind + type)
+- Good default (suppress by kind or kind + convention)
 - Should we have configuration option to never suppress anything
