@@ -12,11 +12,11 @@ This document describes approach for instrumentation layers, suppressing duplica
 
 ### Spec changes proposal
 
-- Semantic Conventions: Each span MUST follow at most one convention, specific to the call it describes. 
+- Semantic Conventions: Each span MUST follow at most one convention, specific to the call it describes.
 - Trace API: Add `SpanKey` API that gets span following specific convention from the context (e.g. `SpanKey.HTTP_CLIENT.fromContextOrNull(context)`).
 - Semantic Conventions: instrumentation MUST back off if span of same kind and following same contention is already in the context by using `SpanKey` API.
 - Semantic Conventions: Client libraries instrumentation MUST make context current to enable correlation with underlying layers of instrumentation
-- OTel SDK SHOULD allow suppression strategy configuration 
+- OTel SDK SHOULD allow suppression strategy configuration
   - suppress nested by kind (e.g. only one CLIENT allowed)
   - suppress nested by kind + convention it follows (only one HTTP CLIENT allowed, but outer DB -> nested HTTP is ok)
 
