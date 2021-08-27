@@ -12,11 +12,11 @@ This document describes approach for instrumentation layers, suppressing duplica
 
 ### Spec changes proposal
 
-- Semantic Conventions: Each span MUST follow one convention, specific to the call it describes
+- Semantic Conventions: Each span MUST follow at most one convention, specific to the call it describes. 
 - Trace API: Add `SpanKey` API that gets span following specific convention from the context (e.g. `SpanKey.HTTP_CLIENT.fromContextOrNull(context)`).
-- Semantic Conventions: instrumentation MUST back off if span of same kind and following same contention is already in the context by using `ContextKey` API.
+- Semantic Conventions: instrumentation MUST back off if span of same kind and following same contention is already in the context by using `SpanKey` API.
 - Semantic Conventions: Client libraries instrumentation MUST make context current to enable correlation with underlying layers of instrumentation
-- OTel SDK SHOULD allow suppression strategy configuration:
+- OTel SDK SHOULD allow suppression strategy configuration 
   - suppress nested by kind (e.g. only one CLIENT allowed)
   - suppress nested by kind + convention it follows (only one HTTP CLIENT allowed, but outer DB -> nested HTTP is ok)
 
@@ -59,7 +59,7 @@ At the same time, client library is rarely a thin client and may need its own in
 
 Both, client library 'logical' and transport 'physical' spans are useful. They also rarely can be combined together because they have 1:many relationship.
 
-So instrumentations form *layers*, where each layer follows specific convention (or describes certain library).
+So instrumentations form *layers*, where each layer follows specific convention or no convention at all. Spans that are not convention-specific (generic manual spans, INTERNAL spans) are never suppressed.
 
 *Example*:
 
@@ -123,7 +123,7 @@ So two strategies should be supported:
 
 ### Implementation
 
-https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation-api/src/main/java/io/opentelemetry/instrumentation/api/instrumenter/SpanKey.java
+Here's [Instrumentation API in Java implementation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation-api/src/main/java/io/opentelemetry/instrumentation/api/instrumenter/SpanKey.java) with suppression by type
 
 ## Trade-offs and mitigations
 
@@ -138,16 +138,17 @@ Trace API change is needed to support native library instrumentations - taking d
 
 Discussions:
 
-- https://github.com/open-telemetry/opentelemetry-specification/issues/1767
-- https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/903
-- https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/465
-- https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/1822
-- https://github.com/open-telemetry/opentelemetry-specification/issues/526
-- https://github.com/open-telemetry/opentelemetry-python-contrib/issues/369
-- https://github.com/open-telemetry/opentelemetry-python-contrib/issues/445
-- https://github.com/open-telemetry/opentelemetry-python-contrib/issues/456
+- [Client library + auto instrumentation](https://github.com/open-telemetry/opentelemetry-specification/issues/1767)
+- [Prevent duplicate telemetry when using both library and auto instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/903)
+- [Generic mechanism for preventing multiple Server/Client spans](https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/465)
+- [Proposal for modeling nested CLIENT instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/1822)
+- [SpanKind with layers](https://github.com/open-telemetry/opentelemetry-specification/issues/526)
+- [Should instrumentations be able to interact with or know about other instrumentations](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/369)
+- [Server instrumentations should look for parent spans in current context before extracting context from carriers](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/445)
+- [CLIENT spans should update their parent span's kind to INTERNAL](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/456)
 
 ## Open questions
 
 - Backends need hint to separate logical CLIENT spans from physical ones
 - Good default (suppress by kind or kind + type)
+- Should we have configuration option to never suppress anything
