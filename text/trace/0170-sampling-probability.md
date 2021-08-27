@@ -661,6 +661,28 @@ The following text will be added to the `Span` message in
   uint32 log_head_adjusted_count = <next_tag>;
 ```
 
+### Proposed `Sampler` interface changes
+
+The Trace SDK specification of the `SamplingResult` will be extended
+with a new field to be returned by all Samplers.
+
+```
+- The sampling probability of the span is encoded as one plus the
+  inverse of head inclusion probability, known as "adjusted count",
+  which is the effective count of the Span for use in Span-to-Metrics
+  pipelines.  The value 0 is used to represent unknown adjusted count,
+  and the value 63 is used to represent known-zero adjusted count.
+  For values >0 and <63, the adjusted count of the Span is
+  2^(value-1), representing power-of-two probabilities between 
+  1 and 2^-61.
+  
+  The corresonding `SamplerResult` field SHOULD be named
+  `log_head_adjusted_count` to match the Span data model.
+```
+
+See [OTEP 168](https://github.com/open-telemetry/oteps/pull/168) for 
+details on how each of the built-in Samplers is expected to behave.
+
 ## Recommended reading
 
 [Sampling, 3rd Edition, by Steven
