@@ -13,38 +13,60 @@ This document describes approach for instrumentation layers, suppressing duplica
 ### Spec changes proposal
 
 - Semantic Conventions: Each span MUST follow at most one convention, specific to the call it describes.
-- Trace API: Add `SpanKey` API that gets span following specific convention from the context (e.g. `SpanKey.HTTP_CLIENT.fromContextOrNull(context)`).
-- Semantic Conventions: instrumentation MUST back off if span of same kind and following same contention is already in the context by using `SpanKey` API.
+- Trace API: Add `SpanKey` API that
+  - checks if similar span already exists on the context (e.g. `SpanKey.HTTP_CLIENT.exists(context)`)
+  - gets span following specific convention from the context (e.g. `SpanKey.HTTP_CLIENT.fromContextOrNull(context)`).
+- Semantic Conventions: instrumentation MUST back off if span of same kind and following same contention is already exists on the context by using `SpanKey` API.
 - Semantic Conventions: Client libraries instrumentation MUST make context current to enable correlation with underlying layers of instrumentation
 - OTel SDK SHOULD allow suppression strategy configuration
   - suppress nested by kind (e.g. only one CLIENT allowed)
   - suppress nested by kind + convention it follows (only one HTTP CLIENT allowed, but outer DB -> nested HTTP is ok)
+  - suppress none
 
 #### SpanKey API
 
-SpanKey allows to read/write span to context.
-Defines known SpanKey, shared between instrumentations (static singletons):  HTTP, RPC, DB, Messaging.
+SpanKey allows to
 
-#### Example
+- read/write span to context
+- check if specific span is on the context
+- encapsulate different suppression strategies
+- define known SpanKey, shared between instrumentations (static singletons):  HTTP, RPC, DB, Messaging.
+
+#### Suppression Example
 
 - HTTP Client 1:
-  - Gets HTTP CLIENT span from context: `SpanKey.HTTP_CLIENT.fromContextOrNull(ctx)`
+  - Check if HTTP CLIENT span exists on the context: `SpanKey.HTTP_CLIENT.exists(ctx)`
   - No HTTP client span on the context:
     - start span
     - store span in context: `SpanKey.HTTP_CLIENT.storeInContext(ctx, span)`
     - Make `ctx` current
 - Http Client 2:
-  - Gets HTTP CLIENT span from context: `SpanKey.HTTP_CLIENT.fromContextOrNull(Context.current())`
+  - Checks if HTTP CLIENT span is already on the context: `SpanKey.HTTP_CLIENT.exists(Context.current())`
   - HTTP client span is already there: do not instrument
 
-Suppression logic is configurable and encapsulated in `SpanKey` - instrumentation should not depend on configuration, e.g.:
+Suppression logic is configurable and encapsulated in `SpanKey` - specific library instrumentation should not depend on configuration, e.g.:
 
 - suppressing by kind only - context key does not distinguish conventions within kind
+  - `SpanKey.HTTP_CLIENT.exists` returns true if any CLIENT span  is on the context
   - `SpanKey.HTTP_CLIENT.fromContextOrNull` returns CLIENT span
   - `SpanKey.HTTP_CLIENT.storeInContext` stores span in CLIENT span context key
 - suppressing by kind + convention - context key is per convention and kind
+  - `SpanKey.HTTP_CLIENT.exists` returns true if HTTP CLIENT span is  on the context
   - `SpanKey.HTTP_CLIENT.fromContextOrNull` returns HTTP CLIENT span
   - `SpanKey.HTTP_CLIENT.storeInContext` stores span in CLIENT + convention span context key
+- suppressing none
+  - `SpanKey.HTTP_CLIENT.exists` returns false ignoring context
+  - `SpanKey.HTTP_CLIENT.fromContextOrNull` returns innermost HTTP CLIENT span on the context
+  - `SpanKey.HTTP_CLIENT.storeInContext` stores span in CLIENT + convention span context key
+
+#### Enrichment Example
+
+- HTTP SERVER 1 - middleware/servlet
+  - HTTP INTERNAL 1 - controller
+    - User code that wants to add event/attribute/status to HTTP SERVER span
+    - some internal instrumentation logic that sets route info status and exception ot anything else available after controller span starts.
+  
+Assuming user code uses current context, it will get controller INTERNAL span. In order to enrich HTTP SERVER span, users may use `SpanKey.HTTP_SERVER.fromContextOrNull`.
 
 ## Internal details
 
@@ -116,10 +138,11 @@ Suppression strategy should be configurable:
 - backends don't always support nested CLIENT spans (extra hints needed for Application Map to show outbound connection)
 - users may prefer to reduce verbosity and costs by suppressing spans of same kind
 
-So two strategies should be supported:
+So following strategies should be supported:
 
 - suppress all nested of same kind
 - suppress all nested of same kind + convention (default?)
+- suppress none (mostly for debugging instrumentation code and internal observability)
 
 ### Implementation
 
