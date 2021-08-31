@@ -21,7 +21,6 @@ and thus to ship and use stable instrumentation.
 
 ## Roadmap
 
-
 | Description | Done By     |
 |-------------|-------------|
 | This OTEP, consisting of scenarios and a proposed roadmap, is approved and merged. | 09/30/2021 |
@@ -86,10 +85,10 @@ Publish -> | INTERMEDIARY | -> Receive
 ```
 
 1. The producer creates a message.
-1. The producer publishes the message to an intermediary.
-1. The consumer receives the message from an intermediary.
-1. The consumer processes the message.
-1. The consumer settles the message by notifying the intermediary that the
+2. The producer publishes the message to an intermediary.
+3. The consumer receives the message from an intermediary.
+4. The consumer processes the message.
+5. The consumer settles the message by notifying the intermediary that the
    message was processed successfully.
 
 The semantic conventions need to define how to handle failures and retries in
@@ -176,7 +175,7 @@ a future point in time, but are not in scope for this OTEP.
 
 Messaging semantic conventions for tracing and for metrics overlap and should
 be as consistent as possible. However, semantic conventions for metrics will be
-handled seperately and are not in scope for this OTEP.
+handled separately and are not in scope for this OTEP.
 
 ## Further reading
 
