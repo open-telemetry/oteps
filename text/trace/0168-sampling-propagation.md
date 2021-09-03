@@ -52,27 +52,26 @@ of the adjusted count (i.e., inverse probability).
 For example, the probability value 2 corresponds with 1-in-4 sampling,
 the probability value 10 corresponds with 1-in-1024 sampling.  Using
 six bits of information we can convey sampling rates as small as
-2^-61.  The value 62 is reserved to mean sampling with probability 0,
+2**-61.  The value 62 is reserved to mean sampling with probability 0,
 which conveys an adjusted count of 0 for the associated context.
 
 When propagated the probability value will be interpreted as shown in
-the following table:
+the following table, which uses an offset of +1:
 
 | Probability Value | Head Probability |
 | ----- | ----------- |
-| 0 | 1 |
-| 1 | 1/2 |
-| 2 | 1/4 |
-| 3 | 1/8 |
+| 0 | Unknown |
+| 1 | 1 |
+| 2 | 1/2 |
+| 3 | 1/4 |
 | ... | ... |
-| N | 2^-N |
+| N | 2**(-N+1) |
 | ... | ... |
-| 61 | 2^-61 |
-| 62 | 0 |
-| 63 | _Reserved_ |
+| 61 | 2**-60 |
+| 62 | 2**-61 |
+| 63 | 0 |
 
-The value 63 is reserved for use in encoding adjusted count in Span
-data.  [Described in OTEP
+[Described in OTEP
 170](https://github.com/open-telemetry/oteps/pull/170), Span data
 would encode the probability value described here offset by +1, when
 the adjusted count is known, and would encode 0 when the adjusted
@@ -93,17 +92,18 @@ below:
 | 1 | 1/4 |
 | 2 | 1/8 |
 | 3 | 1/16 |
-| 4 | 1/32 |
 | ... | ... |
-| 0 <= `R` <= 62 | 1/(2^(`R`+1)) |
+| 0 <= `R` <= 61 | 1/(2**(-`R`+1)) |
 | ... | ... |
-| 62 | 2^-63 |
-| `R` >= 63 | Reject |
+| 60 | 2**-61 |
+| 61 | 2**-62 |
+| 62 | 2**-62 |
+| 63 | 0 |
 
 Such a random variable `R` can be generated using the following
 pseudocode.  Note there is a tiny probability that the code has to
 reject the calculated result and start over, since the value 62 is
-defined to have adjusted count 0, not 2^62.
+defined to have adjusted count 0, not 2**62.
 
 ```golang
 func nextRandomness() int {
@@ -167,9 +167,9 @@ base16(probability) = 03 // 1-in-8 head probability
 base16(randomness) = 0a // qualifies for 1-in-1024 sampling or greater
 ```
 
-Any `TraceIDRatioBased` Sampler configured with probability 2^-10 or
+Any `TraceIDRatioBased` Sampler configured with probability 2**-10 or
 greater will enable sampling this trace, whereas any
-`TraceIDRatioBased` Sampler configured with probability 2^-11 or less
+`TraceIDRatioBased` Sampler configured with probability 2**-11 or less
 will stop sampling this trace.  The W3C `sampled` flag is set to true
 when the probability value is less than or equal to the randomness
 value.
@@ -190,21 +190,21 @@ explains how to work with a limited number of power-of-2 sampling rates.
 ### Behavior of the `TraceIDRatioBased` Sampler
 
 The Sampler must be configured with a power-of-two probability
-`P=2^-S` except for the special case of `P=0`, which is handled
+`2**-S` except for the special case of zero probability, which is handled
 specially.
 
 If the context is a new root, the initial `tracestate` must be created
 using geometrically-distributed random value `R` (as described above,
 with maximum value 61) and the initial head probability value `S`.  If
-the head probability is zero (i.e., `P=0`) use `S=62`, the specified
-value for zero probability.
+the head probability is zero use `S=63`, the specified value for zero
+probability.
 
 If the context is not a new root, output a new `tracestate` with the
 same `R` value as the parent context, and this Sampler's value of `S`
 for the outgoing context's probability value (i.e., as the value for
 `P`).
 
-In both cases, set the `sampled` bit if `S<=R` and `S<62`.
+In both cases, set the `sampled` bit if `S<=R` and `S<63`.
 
 ### Behavior of the `ParentBased` sampler
 
@@ -219,6 +219,49 @@ The `AlwaysOn` Sampler behaves the same as `TraceIDRatioBased` with `P=1` (i.e.,
 ### Behavior of the `AlwaysOff` Sampler
 
 The `AlwaysOff` Sampler behaves the same as `TraceIDRatioBased` with `P=0` (i.e., `S=62`).
+
+## Worked example
+
+The behavior of these tables can be verified by hand using a smaller
+example.  The following table shows how these equations work where
+`R`, `P`, and `S` are limited to 3 bits.
+
+Values of `P`, which have the same encoded value and interpretation as
+for the proposed `log_head_adjusted_count` field of OTEP 170, would be
+interpreted as follows:
+
+| `P` value | Adjusted count |
+| -----     | -----          |
+| 0         | Unknown        |
+| 1         | 1              |
+| 2         | 2              |
+| 3         | 4              |
+| 4         | 8              |
+| 5         | 16             |
+| 6         | 32             |
+| 7         | 0              |
+
+Note there are only 6 non-zero, non-unknown values for the adjusted
+count. Thus there are six defined values of `R` and `S`.  The
+following table shows `R` and the corresponding selection probability,
+along with the calculated adjusted count for each `S`:
+
+| `R` value | `R` selection probability | `S=0` | `S=1` | `S=2` | `S=4` | `S=5` | `S=6` |
+| --        | --                        | --    | --    | --    | --    | --    | --    |
+| 0         | 1/2                       | 1     | 0     | 0     | 0     | 0     | 0     |
+| 1         | 1/4                       | 1     | 2     | 0     | 0     | 0     | 0     |
+| 2         | 1/8                       | 1     | 2     | 4     | 0     | 0     | 0     |
+| 3         | 1/16                      | 1     | 2     | 4     | 8     | 0     | 0     |
+| 4         | 1/32                      | 1     | 2     | 4     | 8     | 16    | 0     |
+| 5         | 1/32                      | 1     | 2     | 4     | 8     | 16    | 32    |
+
+Notice that the sum of `R` selection probability times adjusted count
+in each of the `S=*` columns equals 1.  For example, in the `S=5`
+column we have `0*1/2 + 0*1/4 + 0*1/8 + 0*1/16 + 16*1/32 + 16*1/32 =
+16/32 + 16/32 = 1`.  In the `S=2` column we have `0*1/2 + 0*1/4 +
+4*1/8 + 4*1/16 + 4*1/32 + 4*1/32 = 4/8 + 4/16 + 4/32 + 4/32 = 1/2 +
+1/4 + 1/8 + 1/8 = 1`.  We conclude that when `R` is chosen with the
+given probabilities, any choice of `S` produces one expected span.
 
 ## Prototype
 
