@@ -78,6 +78,13 @@ public abstract class Resource {
      * <p> Returns an invalid Resource if conversion is not possible.
      */
     public Resource convertToSchema(String schemaUrl);
+    /**
+     * Returns a new instance of Resource with labels compatible with the
+     * given schema file.
+     *
+     * <p> Returns an invalid Resource if conversion is not possible.
+     */
+    public Resource convertToSchema(File schemaFile);
 }
 ```
 
