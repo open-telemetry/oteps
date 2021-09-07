@@ -1,6 +1,6 @@
 # Instrumentation Layers and Suppression
 
-This document describes approach for instrumentation layers, suppressing duplicate layers and unambiguously enriching spans.
+This document describes approach for tracing instrumentation layers, suppressing duplicate layers and unambiguously enriching spans.
 
 ## Motivation
 
@@ -12,16 +12,19 @@ This document describes approach for instrumentation layers, suppressing duplica
 
 ### Spec changes proposal
 
-- Semantic Conventions: Each span MUST follow at most one convention, specific to the call it describes.
+- Tracing Semantic Conventions: Each span MUST follow a single (besides general) convention, specific to the call it describes.
 - Trace API: Add `SpanKey` API that
   - checks if similar span already exists on the context (e.g. `SpanKey.HTTP_CLIENT.exists(context)`)
   - gets span following specific convention from the context (e.g. `SpanKey.HTTP_CLIENT.fromContextOrNull(context)`).
-- Semantic Conventions: instrumentation MUST back off if span of same kind and following same contention is already exists on the context by using `SpanKey` API.
-- Semantic Conventions: Client libraries instrumentation MUST make context current to enable correlation with underlying layers of instrumentation
+- Tracing Semantic Conventions: instrumentation MUST back off if span of same kind and following same contention is already exists on the context by using `SpanKey` API.
+- Tracing Semantic Conventions: Client libraries instrumentation MUST make context current to enable correlation with underlying layers of instrumentation
 - OTel SDK SHOULD allow suppression strategy configuration
   - suppress nested by kind (e.g. only one CLIENT allowed)
   - suppress nested by kind + convention it follows (only one HTTP CLIENT allowed, but outer DB -> nested HTTP is ok)
   - suppress none
+
+Note: some conventions may explicitly include others (e.g. [FaaS](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/faas.md) may include [HTTP](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md)), in this case for the purpose of this document, we assume span follows single convention. Instrumentation should only include explicitly mentioned sub-conventions (except general).
+[General](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/span-general.md) convention attributes are allowed on all spans when applicable.
 
 #### SpanKey API
 
