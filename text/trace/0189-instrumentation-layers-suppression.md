@@ -16,7 +16,8 @@ This document describes approach for tracing instrumentation layers, suppressing
 - Trace API: Add `SpanKey` API that
   - checks if similar span already exists on the context (e.g. `SpanKey.HTTP_CLIENT.exists(context)`)
   - gets span following specific convention from the context (e.g. `SpanKey.HTTP_CLIENT.fromContextOrNull(context)`).
-- Tracing Semantic Conventions: instrumentation MUST back off if span of same kind and following same contention is already exists on the context by using `SpanKey` API.
+- Tracing Semantic Conventions: instrumentation MUST back off if span of same kind and following same convention is already exists on the context by using `SpanKey` API.
+
 - Tracing Semantic Conventions: Client libraries instrumentation MUST make context current to enable correlation with underlying layers of instrumentation
 - OTel SDK SHOULD allow suppression strategy configuration
   - suppress nested by kind (e.g. only one CLIENT allowed)
