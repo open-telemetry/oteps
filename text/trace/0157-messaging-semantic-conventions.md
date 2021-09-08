@@ -196,10 +196,10 @@ handled separately and are not in scope for this OTEP.
 ### In-memory queues or channels
 
 Messaging semantic conventions are not meant for instrumenting in-memory queues
-and channels, but are intended for inter-application systems. In-memory queues
+and channels but are intended for inter-application systems. In-memory queues
 and channels exist in many variations which can be very different from
-inter-application messaging systems, furthermore requirements for the analysis
-and visualization of distributed traces are different. For those reasons it
+inter-application messaging systems, furthermore, requirements for the analysis
+and visualization of distributed traces are different. For those reasons, it
 makes sense to treat both concepts differently in the context of distributed
 tracing.
 
