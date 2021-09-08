@@ -32,7 +32,7 @@ sampled flag](https://www.w3.org/TR/trace-context/#sampled-flag) using
 Two pieces of information are needed to convey consistent head trace
 sampling probability:
 
-1. The head trace sampling probability
+1. The head trace sampling probability.
 2. Source of consistent sampling decisions.
 
 This proposal uses 6 bits of information for each of these and does
@@ -85,20 +85,22 @@ omitting `p`.
 With head trace sampling probabilities limited to powers of two, the
 amount of randomness needed per trace context is limited.  A
 consistent sampling decision is accomplished by propagating a specific
-random variable denoted `r`.  The random variable is a described by a
-geometric distribution having shape parameter `1/2`, listed below:
+random variable denoted `r`.  The random variable is described by a
+(truncated) geometric distribution having shape parameter `1/2`, listed below:
 
-| `r` Value | Selection Probability |
-| ---------------- | --------------------- |
-| 0 | 1/2 |
-| 1 | 1/4 |
-| 2 | 1/8 |
-| 3 | 1/16 |
-| ... | ... |
-| 0 <= `r` <= 61 | 1/(2**(-`r`+1)) |
-| ... | ... |
-| 60 | 2**-61 |
-| 61 | 2**-61 |
+| `r` Value        | Selection Probability | Sampling probability   |
+| ---------------- | --------------------- | ----                   |
+| 0                | 1/2                   | 1-in-1                 |
+| 1                | 1/4                   | 1-in-2 and above       |
+| 2                | 1/8                   | 1-in-4 and above       |
+| 3                | 1/16                  | 1-in-8 and above       |
+| ...              | ...                   | ...                    |
+| 0 <= `r` <= 60   | 1/(2**(-`r`-1))       | 1-in-2**-`r` and above |
+| ...              | ...                   | ...                    |
+| 58               | 2**-59                | 1-in-2**-58 and above  |
+| 59               | 2**-60                | 1-in-2**-59 and above  |
+| 60               | 2**-61                | 1-in-2**-60 and above  |
+| 61               | 2**-61                | 1-in-2**-61 and above  |
 
 Such a random variable `r` can be generated using the following
 pseudocode.
@@ -114,7 +116,7 @@ func nextRandomness() int {
 ```
 
 This can be computed from a stream of random bits as the number of
-leadieng zeros using efficient instructions on modern computer
+leading zeros using efficient instructions on modern computer
 architectures.
 
 For example, the value 3 means there were three leading zeros and
@@ -125,7 +127,7 @@ but not at probabilities 1-in-16 and smaller.
 
 The consistent sampling randomness valuw (`r`) and and head sampling
 probability value (`p`) will be propagated using two bytes of base16 content
-for each of the two fields, as follows,
+for each of the two fields, as follows:
 
 ```
 tracestate: otel=p:PP;r:RR
@@ -152,13 +154,13 @@ tracestate: otel=r:0a;p:03
 translates to
 
 ```
-base16(probability) = 03 // 1-in-8 head probability
-base16(randomness) = 0a // qualifies for 1-in-1024 sampling or greater
+base16(probability) = 03 // 1-in-4 head probability
+base16(randomness) = 0a // qualifies for 1-in-1024 or greater probability consistent sampling
 ```
 
-Any `TraceIDRatioBased` Sampler configured with probability 2**-10 or
+Any `TraceIDRatioBased` Sampler configured with probability 2**-9 or
 greater will enable sampling this trace, whereas any
-`TraceIDRatioBased` Sampler configured with probability 2**-11 or less
+`TraceIDRatioBased` Sampler configured with probability 2**-10 or less
 will stop sampling this trace.
 
 ## Internal details
@@ -177,7 +179,8 @@ explains how to work with a limited number of power-of-2 sampling rates.
 ### Behavior of the `TraceIDRatioBased` Sampler
 
 The Sampler MUST be configured with a power-of-two probability
-expressed as `2**-s` except for the special case of zero probability.
+expressed as `2**-s` with s being an integer in the range [0, 61]
+except for the special case of zero probability.
 
 If the context is a new root, the initial `tracestate` must be created
 with randomness value `r`, as described above, in the range [0, 61].
@@ -189,9 +192,8 @@ set to the value of `s+1` in the range [1, 63].  If the sampling
 probability is zero (the special case where `s` is undefined), use
 `p=63` the specified value for zero probability.
 
-In both cases, set the `sampled` bit if the outgoing `p` minus one is
-less than the outgoing `r` plus one and `p` is less than 63 (i.e.,
-`p-1 < r+1` and `p < 63` implies sampled).
+In both cases, set the sampled bit if the outgoing `p` minus one is
+less than or equal to the outgoing `r` (i.e., `p-1 <= r`).
 
 If the context is not a new root and the incoming context's `r` value
 is not set, the implementation SHOULD notify the user of an error
@@ -216,12 +218,12 @@ consistently across the trace.
 ### Behavior of the `AlwaysOn` Sampler
 
 The `AlwaysOn` Sampler behaves the same as `TraceIDRatioBased` with
-100% sampling probability (i.e., `s=0` yielding `p=1`).
+100% sampling probability (i.e., `p=1`).
 
 ### Behavior of the `AlwaysOff` Sampler
 
 The `AlwaysOff` Sampler behaves the same as `TraceIDRatioBased` with
-zero probability (i.e., `p=63`, `s` undefined).
+zero probability (i.e., `p=63`).
 
 ## Worked 3-bit example
 
@@ -249,7 +251,7 @@ count. Thus there are six defined values of `r` and `s`.  The
 following table shows `r` and the corresponding selection probability,
 along with the calculated adjusted count for each `s`:
 
-| `r` value | `r` selection probability | `s=0` | `s=1` | `s=2` | `s=4` | `s=5` | `s=6` |
+| `r` value | `r` selection probability | `s=0` | `s=1` | `s=2` | `s=3` | `s=4` | `s=5` |
 | --        | --                        | --    | --    | --    | --    | --    | --    |
 | 0         | 1/2                       | 1     | 0     | 0     | 0     | 0     | 0     |
 | 1         | 1/4                       | 1     | 2     | 0     | 0     | 0     | 0     |
@@ -259,24 +261,24 @@ along with the calculated adjusted count for each `s`:
 | 5         | 1/32                      | 1     | 2     | 4     | 8     | 16    | 32    |
 
 Notice that the sum of `r` selection probability times adjusted count
-in each of the `s=*` columns equals 1.  For example, in the `s=5`
+in each of the `s=*` columns equals 1.  For example, in the `s=4`
 column we have `0*1/2 + 0*1/4 + 0*1/8 + 0*1/16 + 16*1/32 + 16*1/32 =
 16/32 + 16/32 = 1`.  In the `s=2` column we have `0*1/2 + 0*1/4 +
 4*1/8 + 4*1/16 + 4*1/32 + 4*1/32 = 4/8 + 4/16 + 4/32 + 4/32 = 1/2 +
 1/4 + 1/8 + 1/8 = 1`.  We conclude that when `r` is chosen with the
 given probabilities, any choice of `s` produces one expected span.
 
-## Summary
+## Invariant checking
 
 The following table summarizes how the three Sampler cases behave with
 respect to the incoming and outgoing values for `p`, `r`, and
 `sampled`:
 
-| Sampler                | Incoming `r` | Incoming `p` | Incoming `sampled` | Outgoing `r`    | Outgoing `p`   | Outgoing `sampled` |
-| --                     | --           | --           | --                 | --              | --             | --                 |
-| Parent                 | unused       | expected     | respected          | passed through  | passed through | passed through     |
-| TraceIDRatio(Non-Root) | used         | unused       | ignored            | passed through  | set to `s+1`   | set to `p-1 < r+1 && p < 63` |
-| TraceIDRatio(Root)     | n/a          | n/a          | n/a                | random variable | set to `s+1`   | set to `p-1 < r+1 && p < 63` |
+| Sampler                | Incoming `r` | Incoming `p` | Incoming `sampled` | Outgoing `r`               | Outgoing `p`               | Outgoing `sampled`         |
+| --                     | --           | --           | --                 | --                         | --                         | --                         |
+| Parent                 | unused       | expected     | respected          | checked and passed through | checked and passed through | checked and passed through |
+| TraceIDRatio(Non-Root) | used         | unused       | ignored            | checked and passed through | set to `s+1`               | set to `p-1 <= r`          |
+| TraceIDRatio(Root)     | n/a          | n/a          | n/a                | random variable            | set to `s+1`               | set to `p-1 <= r`          |
 
 There are several cases where the resulting span's
 `log_head_adjusted_count` is unknown:
@@ -284,19 +286,37 @@ There are several cases where the resulting span's
 | Sampler                | Unknown condition |
 | --                     | --                |
 | Parent                 | no incoming `p`   |
-| TraceIDRatio(Root)     | no incoming `r`   |
-| TraceIDRatio(Non-Root) | none              |
+| TraceIDRatio(Non-Root) | no incoming `r`   |
+| TraceIDRatio(Root)     | none              |
 
-There are cases where the combination of `p` and `r` and `sampled`
-that cannot be generated by the built-in samplers.  The case where
-sampled is true with `p=63` indicating 0% probability may be used when
-recording spans that were selected by a different sampler while a
-probability sampler is also in use.  These cases are known as "zero
-adjusted count" contexts which are sampled with 0% probability.
+The inputs are recognized as out-of-range as follows:
 
-The case where sampled is false with `p=1` indicating 100% probability
-is an illogical condition.  See [Propagating `p` when
-unsampled](#propagating-p-when-unsampled) below.
+| Range invariate | Remedy                           |
+| --              | --                               |
+| `p < 0`         | drop `p` from tracestate         |
+| `p > 63`        | drop `p` from tracestate         |
+| `r < 0`         | drop `r` and `p` from tracestate |
+| `r > 61`        | drop `r` and `p` from tracestate |
+
+There are cases where the combination of `p` and `r` and `sampled` are
+inconsistent with each other.  The `sampled` flag is equivalent to the
+expression `p - 1 <= r`.  When the invariant `sampled <=> p - 1 <= r`
+is violated, the `ParentBased` sampler MUST correct the propagated
+values as discussed below.
+
+The violation is always addressed by honoring the `sampled` flag and
+setting `log_head_adjusted_count` to either 0 (Unknown) or 63 (Zero).
+
+If `sampled` is false and the invariant is bilated, drop `p` from the
+outgoing context to convey unknown head probability.
+
+The case where `sampled` is true with `p=63` indicating 0% probability
+may by regarded as a special case to allow zero adjusted count
+sampling, which permits non-probabilistic sampling to take place in
+the presence of probability sampling.
+
+If `sampled` is true with `p<63`, drop `p` from the outgoing context
+to convey unknown head probability.
 
 ## Prototype
 
@@ -309,9 +329,9 @@ were needed.
 
 ### Not using TraceID randomness
 
-It would be possible, if TraceID were specified to have at least 62
+It would be possible, if TraceID were specified to have at least 61
 uniform random bits, to compute the randomness value described above
-as the number of leading zeros among those 62 random bits.
+as the number of leading zeros among those 61 random bits.
 
 This proposal requires modifying the W3C traceparent specification,
 therefore we do not propose to use bits of the TraceID.
