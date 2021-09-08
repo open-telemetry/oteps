@@ -308,15 +308,18 @@ The violation is always addressed by honoring the `sampled` flag and
 setting `log_head_adjusted_count` to either 0 (Unknown) or 63 (Zero).
 
 If `sampled` is false and the invariant is bilated, drop `p` from the
-outgoing context to convey unknown head probability.
+outgoing context to convey unknown head probability.  Set
+`log_head_adjusted_count` to 0.
 
 The case where `sampled` is true with `p=63` indicating 0% probability
 may by regarded as a special case to allow zero adjusted count
 sampling, which permits non-probabilistic sampling to take place in
-the presence of probability sampling.
+the presence of probability sampling.  Set `log_head_adjusted_count`
+to 63.
 
 If `sampled` is true with `p<63`, drop `p` from the outgoing context
-to convey unknown head probability.
+to convey unknown head probability.  Set `log_head_adjusted_count` to
+0.
 
 ## Prototype
 
