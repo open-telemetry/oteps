@@ -49,14 +49,14 @@ probabilities to 1/2, 1/4, 1/8, and so on.  We can compactly encode
 these probabilities as small integer values using the base-2 logarithm
 of the adjusted count.
 
-For example, the probability value 2 corresponds with 1-in-4 sampling,
-and the probability value 10 corresponds with 1-in-1024 sampling.  Using
-six bits of information we can convey sampling rates as small as
-2**-61.  The value 63 is reserved to mean sampling with probability 0,
-which conveys an adjusted count of 0 for the associated context.
+Using six bits of information we can convey known and unknown sampling
+rates as small as 2**-61.  The value 63 is reserved to mean sampling
+with probability 0, which conveys an adjusted count of 0 for the
+associated context.
 
 When propagated, the probability value will be interpreted as shown in
-the folowing table, which uses an offset of +1:
+the folowing table, which uses an offset of +1 in order to place the
+Unknown value at 0:
 
 | Probability Value | Head Probability | Note                   |
 | -----             | -----------      | ----                   |
@@ -76,9 +76,9 @@ the folowing table, which uses an offset of +1:
 sampled by the `ParentBased` sampler will encode the value that was
 propagated by the parent span as its "probability value" `p`.
 
-The value `p=0` MAY be propagated using `tracestate` explicitly, although
-equivalent interpretation can be obtained by omitting `p`, since that
-is the default.
+The value `p=0` SHOULD NOT be propagated using `tracestate`
+explicitly, because the equivalent interpretation can be obtained by
+omitting `p`.
 
 ### Randomness value
 
@@ -86,8 +86,7 @@ With head trace sampling probabilities limited to powers of two, the
 amount of randomness needed per trace context is limited.  A
 consistent sampling decision is accomplished by propagating a specific
 random variable denoted `r`.  The random variable is a described by a
-discrete geometric distribution having shape parameter `1/2`, listed
-below:
+geometric distribution having shape parameter `1/2`, listed below:
 
 | `r` Value | Selection Probability |
 | ---------------- | --------------------- |
@@ -106,14 +105,11 @@ pseudocode.
 
 ```golang
 func nextRandomness() int {
-  // Repeat until a valid result is produced.
-  for {
-    r := 0
-    for r < 61 && nextRandomBit() == false {
-      r++
-    }
-    return R
+  r := 0
+  for r < 61 && nextRandomBit() == false {
+    r++
   }
+  return R
 }
 ```
 
@@ -181,29 +177,29 @@ explains how to work with a limited number of power-of-2 sampling rates.
 ### Behavior of the `TraceIDRatioBased` Sampler
 
 The Sampler MUST be configured with a power-of-two probability
-expressed as `2**-s` except for the special case of zero probability,
-which is handled specially.
+expressed as `2**-s` except for the special case of zero probability.
 
 If the context is a new root, the initial `tracestate` must be created
-with randomness value `r` (as described above, in the range [0, 61]),
-and the initial head probability value `p` set to the initial value of
-`s` plus 1 (in the range [1, 63].  If the head probability is zero use
-`p=63`, the specified value for zero probability.
-
+with randomness value `r`, as described above, in the range [0, 61].
 If the context is not a new root, output a new `tracestate` with the
-same `r` value as the parent context, and 1 plus this Sampler's value
-of `s` for the outgoing context's `p` value.  The incoming context's
-`p` is not used.
+same `r` value as the parent context.
+
+When sampled, in both cases, the context's probability value `p` is
+set to the value of `s+1` in the range [1, 63].  If the sampling
+probability is zero (the special case where `s` is undefined), use
+`p=63` the specified value for zero probability.
+
+In both cases, set the `sampled` bit if the outgoing `p` minus 1 is
+less than the outgoing `r` minus 1 and `p` is less than 63, i.e.,
+sampled implies `p-1 < r+1` and `p < 63`.
 
 If the context is not a new root and the incoming context's `r` value
 is not set, the implementation SHOULD notify the user of an error
 condition and follow the incoming context's `sampled` flag.
 
-The span's `log_head_adjusted_count` field is set to the outgoing `p`.
-
-In both cases, set the `sampled` bit if the outgoing `p` minus 1 is
-less than the outgoing `r` minus 1 and `p` is less than 63, i.e.,
-sampled implies `p-1 < r+1` and `p < 63`.
+The span's `log_head_adjusted_count` field is set to the outgoing `p`
+unless `r` is unknown, in which case it MUST be set to zero (unknown
+probability).
 
 ### Behavior of the `ParentBased` sampler
 
