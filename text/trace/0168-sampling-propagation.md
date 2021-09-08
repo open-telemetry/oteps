@@ -275,8 +275,8 @@ respect to the incoming and outgoing values for `p`, `r`, and
 | Sampler                | Incoming `r` | Incoming `p` | Incoming `sampled` | Outgoing `r`    | Outgoing `p`   | Outgoing `sampled` |
 | --                     | --           | --           | --                 | --              | --             | --                 |
 | Parent                 | unused       | expected     | respected          | passed through  | passed through | passed through     |
-| TraceIDRatio(Non-Root) | used         | unused       | ignored            | passed through  | set to `s+1`   | set to `p-1 < r+1` |
-| TraceIDRatio(Root)     | n/a          | n/a          | n/a                | random variable | set to `s+1`   | set to `p-1 < r+1` |
+| TraceIDRatio(Non-Root) | used         | unused       | ignored            | passed through  | set to `s+1`   | set to `p-1 < r+1 && p < 63` |
+| TraceIDRatio(Root)     | n/a          | n/a          | n/a                | random variable | set to `s+1`   | set to `p-1 < r+1 && p < 63` |
 
 There are several cases where the resulting span's
 `log_head_adjusted_count` is unknown:
