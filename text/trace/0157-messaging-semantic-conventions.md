@@ -142,7 +142,14 @@ checkpoint needs to be forwarded.
 
 #### Examples
 
-1. Kafka: TODO
+1. The following configurations should be instrumented and tested for Kafka or
+   a similar messaging system:
+
+   * 1 producer, 2 consumers in the same consumer group
+   * 1 producer, 2 consumers in different consumer groups
+   * 2 producers, 2 consumers in the same consumer group
+
+   Each of the producers produces a continuous stream of messages.
 
 ## Open questions
 
