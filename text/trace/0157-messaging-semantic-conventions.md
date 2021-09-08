@@ -31,13 +31,19 @@ and thus to ship and use stable instrumentation.
 
 ## Terminology
 
+To leverage existing standards, the terminology used in this document is based
+on the [CloudEvents specification](https://github.com/cloudevents/spec/blob/v1.0.1/spec.md).
+CloudEvents is hosted by the CNCF and provides a specification for describing
+event data in common formats to provide interoperability across services,
+platforms and systems.
+
 ### Message
 
-A "message" is a transport wrapper for the transfer of information between two
-or more parties. The information is a combination of data and metadata.
-Messages may be transferred directly between parties or via one or more
-intermediaries.  A message may carry annotations that are directed at
-intermediaries on the message path. Messages are uniquely identifiable.
+A "message" is a transport wrapper for the transfer of information. The
+information is a combination of data and metadata.  Messages may be transferred
+directly between parties or via one or more intermediaries.  A message may
+carry annotations that are directed at intermediaries on the message path.
+Messages are uniquely identifiable.
 
 In the strict sense, a _message_ is an item of data that is sent to a specific
 destination, whereas an _event_ is a signal emitted by a component upon
@@ -89,7 +95,8 @@ Publish -> | INTERMEDIARY | -> Receive
 3. The consumer receives the message from an intermediary.
 4. The consumer processes the message.
 5. The consumer settles the message by notifying the intermediary that the
-   message was processed successfully.
+   message was processed. In some cases, the message is settled before it is
+   processed, or it is settled automatically when it is received.
 
 The semantic conventions need to define how to handle failures and retries in
 all stages that interface with the intermediary: publish, receive and settle.
@@ -121,14 +128,16 @@ individually.
 
 ### Checkpoint-based settlement
 
-Checkpoint-based settlement systems are likely to consume multiple messages at
-once. Messages are created, published (possibly) in batches with other
-unrelated messages, and delivered in (reshuffled) batches.
-
 Messages are processed as a stream and settled to specific checkpoints. A
 checkpoint points to a position of the stream up to which messages were
 processed and settled. Messages cannot be settled individually, instead, the
 checkpoint needs to be forwarded.
+
+Checkpoint-based settlement systems are designed to efficiently receive and
+settle batches of messages. However, it is not possible to settle messages
+independent of their position in the stream (e. g., if message B is located at
+a later position in the stream than message A, then message B cannot be settled
+without also settling message A).
 
 ```
                                Checkpoint
@@ -183,6 +192,16 @@ a future point in time, but are not in scope for this OTEP.
 Messaging semantic conventions for tracing and for metrics overlap and should
 be as consistent as possible. However, semantic conventions for metrics will be
 handled separately and are not in scope for this OTEP.
+
+### In-memory queues or channels
+
+Messaging semantic conventions are not meant for instrumenting in-memory queues
+and channels, but are intended for inter-application systems. In-memory queues
+and channels exist in many variations which can be very different from
+inter-application messaging systems, furthermore requirements for the analysis
+and visualization of distributed traces are different. For those reasons it
+makes sense to treat both concepts differently in the context of distributed
+tracing.
 
 ## Further reading
 
