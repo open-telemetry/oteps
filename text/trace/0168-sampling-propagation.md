@@ -114,7 +114,7 @@ zeros in a random 61-bit string, specified in a way that does not
 require TraceID values to be constructed with random bits in specific
 positions or with hard requirements on their uniformity.  In
 mathematical terms, the r-value is described by a truncated geometric
-distribution having shape parameter `1/2`, listed below:
+distribution, listed below:
 
 | `r` Value        | Probability of `r-value` | Implied sampling probabilities |
 | ---------------- | ------------------------ | ----------------------         |
@@ -154,17 +154,16 @@ but not at probabilities 1-in-16 and smaller.
 
 ### Proposed `tracestate` syntax
 
-The consistent sampling randomness valuw (`r`) and and head sampling
-probability value (`p`) will be propagated using two bytes of base16 content
-for each of the two fields, as follows:
+The consistent sampling r-value (`r`) and and head sampling
+probability p-value (`p`) will be propagated using two bytes of base16
+content for each of the two fields, as follows:
 
 ```
 tracestate: otel=p:PP;r:RR
 ```
 
-where `PP` are two bytes of base16 probability value and `RR` are two
-bytes of base16 random value.  These values are omitted when they are
-unknown.
+where `PP` are two bytes of base16 p-value and `RR` are two bytes of
+base16 r-value.  These values are omitted when they are unknown.
 
 This proposal should be taken as a recommendation and will be modified
 to [match whatever format OpenTelemtry specifies for its
@@ -183,8 +182,8 @@ tracestate: otel=r:0a;p:03
 translates to
 
 ```
-base16(probability) = 03 // 1-in-4 head probability
-base16(randomness) = 0a // qualifies for 1-in-1024 or greater probability consistent sampling
+base16(p-value) = 03 // 1-in-4 head probability
+base16(r-value) = 0a // qualifies for 1-in-1024 or greater probability consistent sampling
 ```
 
 Any `TraceIDRatioBased` Sampler configured with probability 2**-9 or
@@ -216,15 +215,15 @@ with randomness value `r`, as described above, in the range [0, 61].
 If the context is not a new root, output a new `tracestate` with the
 same `r` value as the parent context.
 
-When sampled, in both cases, the context's probability value `p` is
-set to the value of `s+1` in the range [1, 63].  If the sampling
-probability is zero (the special case where `s` is undefined), use
-`p=63` the specified value for zero probability.
+When sampled, in both cases, the context's p-value `p` is set to the
+value of `s+1` in the range [1, 63].  If the sampling probability is
+zero (the special case where `s` is undefined), use `p=63` the
+specified value for zero probability.
 
 In both cases, set the sampled bit if the outgoing `p` minus one is
 less than or equal to the outgoing `r` (i.e., `p-1 <= r`).
 
-If the context is not a new root and the incoming context's `r` value
+If the context is not a new root and the incoming context's r-value
 is not set, the implementation SHOULD notify the user of an error
 condition and follow the incoming context's `sampled` flag.
 
@@ -239,10 +238,10 @@ the W3C `sampled` flag and copies the incoming `tracestate` keys to
 the child context.
 
 The span's `log_head_adjusted_count` field is set to the incoming
-value of `p` when both `p` and `r` are defined.  When `r` is not
-defined, the span's `log_head_adjusted_count` MUST be set to 0
-indicating unknown probability, because the decision cannot be made
-consistently across the trace.
+p-value when both `p` and `r` are defined.  When `r` is not defined,
+the span's `log_head_adjusted_count` MUST be set to 0 indicating
+unknown probability, because the decision cannot be made consistently
+across the trace.
 
 ### Behavior of the `AlwaysOn` Sampler
 
