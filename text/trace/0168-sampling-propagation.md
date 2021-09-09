@@ -279,22 +279,22 @@ count. Thus there are six defined values of `r` and `s`.  The
 following table shows `r` and the corresponding selection probability,
 along with the calculated adjusted count for each `s`:
 
-| `r` value | `r` selection probability | `s=0` | `s=1` | `s=2` | `s=3` | `s=4` | `s=5` |
-| --        | --                        | --    | --    | --    | --    | --    | --    |
-| 0         | 1/2                       | 1     | 0     | 0     | 0     | 0     | 0     |
-| 1         | 1/4                       | 1     | 2     | 0     | 0     | 0     | 0     |
-| 2         | 1/8                       | 1     | 2     | 4     | 0     | 0     | 0     |
-| 3         | 1/16                      | 1     | 2     | 4     | 8     | 0     | 0     |
-| 4         | 1/32                      | 1     | 2     | 4     | 8     | 16    | 0     |
-| 5         | 1/32                      | 1     | 2     | 4     | 8     | 16    | 32    |
+| `r` value | probability of `r` | `s=0` | `s=1` | `s=2` | `s=3` | `s=4` | `s=5` |
+| --        | --                 | --    | --    | --    | --    | --    | --    |
+| 0         | 1/2                | 1     | 0     | 0     | 0     | 0     | 0     |
+| 1         | 1/4                | 1     | 2     | 0     | 0     | 0     | 0     |
+| 2         | 1/8                | 1     | 2     | 4     | 0     | 0     | 0     |
+| 3         | 1/16               | 1     | 2     | 4     | 8     | 0     | 0     |
+| 4         | 1/32               | 1     | 2     | 4     | 8     | 16    | 0     |
+| 5         | 1/32               | 1     | 2     | 4     | 8     | 16    | 32    |
 
-Notice that the sum of `r` selection probability times adjusted count
-in each of the `s=*` columns equals 1.  For example, in the `s=4`
-column we have `0*1/2 + 0*1/4 + 0*1/8 + 0*1/16 + 16*1/32 + 16*1/32 =
-16/32 + 16/32 = 1`.  In the `s=2` column we have `0*1/2 + 0*1/4 +
-4*1/8 + 4*1/16 + 4*1/32 + 4*1/32 = 4/8 + 4/16 + 4/32 + 4/32 = 1/2 +
-1/4 + 1/8 + 1/8 = 1`.  We conclude that when `r` is chosen with the
-given probabilities, any choice of `s` produces one expected span.
+Notice that the sum of `r` probability times adjusted count in each of
+the `s=*` columns equals 1.  For example, in the `s=4` column we have
+`0*1/2 + 0*1/4 + 0*1/8 + 0*1/16 + 16*1/32 + 16*1/32 = 16/32 + 16/32 =
+1`.  In the `s=2` column we have `0*1/2 + 0*1/4 + 4*1/8 + 4*1/16 +
+4*1/32 + 4*1/32 = 4/8 + 4/16 + 4/32 + 4/32 = 1/2 + 1/4 + 1/8 + 1/8 =
+1`.  We conclude that when `r` is chosen with the given probabilities,
+any choice of `s` produces one expected span.
 
 ## Invariant checking
 
