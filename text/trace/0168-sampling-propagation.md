@@ -47,9 +47,9 @@ documented below, we propose to limit head trace sampling probability
 to powers of two.  This limits the available head trace sampling
 probabilities to 1/2, 1/4, 1/8, and so on.  We can compactly encode
 these probabilities as small integer values using the base-2 logarithm
-of the adjusted count known.
+of the adjusted count.
 
-Using six bits of information we can convey known and unknown sampling
+Using six bits of information we can convey unknown and known sampling
 rates as small as 2**-61.  The value 63 is reserved to mean sampling
 with probability 0, which conveys an adjusted count of 0 for the
 associated context.
