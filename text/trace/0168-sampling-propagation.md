@@ -40,85 +40,114 @@ not depend on built-in TraceID randomness, which is not sufficiently
 specified for probability sampling at this time.  This proposal closely 
 follows [research by Otmar Ertl](https://arxiv.org/pdf/2107.07703.pdf).
 
-### Probability value
+### p-value
 
 To limit the cost of this extension and for statistical reasons
 documented below, we propose to limit head trace sampling probability
 to powers of two.  This limits the available head trace sampling
 probabilities to 1/2, 1/4, 1/8, and so on.  We can compactly encode
 these probabilities as small integer values using the base-2 logarithm
-of the adjusted count.
+of the adjusted count known.
 
 Using six bits of information we can convey known and unknown sampling
 rates as small as 2**-61.  The value 63 is reserved to mean sampling
 with probability 0, which conveys an adjusted count of 0 for the
 associated context.
 
-When propagated, the probability value will be interpreted as shown in
-the folowing table, which uses an offset of +1 in order to place the
-Unknown value at 0:
+When propagated, the "p-value" as it is known will be interpreted as
+shown in the folowing table.  The p-value for known sampling
+probabilities is the negative base-2 logarithm of the probability,
+offset by +1 to so that the 0 p-value can be treated as unknown (for
+backwards compatibility):
 
-| Probability Value | Head Probability | Note                   |
-| -----             | -----------      | ----                   |
-| 0                 | Unknown          | Reserved for span data |
-| 1                 | 1                |                        |
-| 2                 | 1/2              |                        |
-| 3                 | 1/4              |                        |
-| ...               | ...              |                        |
-| N                 | 2**(-N+1)        | 1 in 2**(N-1)          |
-| ...               | ...              |                        |
-| 61                | 2**-60           |                        |
-| 62                | 2**-61           |                        |
-| 63                | 0                | Maximum encoded value  |
+| p-value | Head Probability | Note                                                 |
+| -----   | -----------      | ----                                                 |
+| 0       | Unknown          | Do not propagate `p=0`, instead omit from tracestate |
+| 1       | 1                |                                                      |
+| 2       | 1/2              |                                                      |
+| 3       | 1/4              |                                                      |
+| ...     | ...              |                                                      |
+| N       | 2**(-N+1)        | 1 in 2**(N-1)                                        |
+| ...     | ...              |                                                      |
+| 61      | 2**-60           |                                                      |
+| 62      | 2**-61           |                                                      |
+| 63      | 0                | Maximum encoded value                                |
 
 [Described in OTEP
-170](https://github.com/open-telemetry/oteps/pull/170), Span data
-sampled by the `ParentBased` sampler will encode the value that was
-propagated by the parent span as its "probability value" `p`.
+170](https://github.com/open-telemetry/oteps/pull/170), the
+`ParentBased` sampler will use the incoming context's p-value as
+specified here to set the span's `log_head_adjusted_count` field.
 
 The value `p=0` SHOULD NOT be propagated using `tracestate`
 explicitly, because the equivalent interpretation can be obtained by
 omitting `p`.
 
-### Randomness value
+### r-value
 
 With head trace sampling probabilities limited to powers of two, the
 amount of randomness needed per trace context is limited.  A
 consistent sampling decision is accomplished by propagating a specific
-random variable denoted `r`.  The random variable is described by a
-(truncated) geometric distribution having shape parameter `1/2`, listed below:
+random variable known as the r-value.
 
-| `r` Value        | Selection Probability | Sampling probability   |
-| ---------------- | --------------------- | ----                   |
-| 0                | 1/2                   | 1-in-1                 |
-| 1                | 1/4                   | 1-in-2 and above       |
-| 2                | 1/8                   | 1-in-4 and above       |
-| 3                | 1/16                  | 1-in-8 and above       |
-| ...              | ...                   | ...                    |
-| 0 <= `r` <= 60   | 1/(2**(-`r`-1))       | 1-in-2**-`r` and above |
-| ...              | ...                   | ...                    |
-| 58               | 2**-59                | 1-in-2**-58 and above  |
-| 59               | 2**-60                | 1-in-2**-59 and above  |
-| 60               | 2**-61                | 1-in-2**-60 and above  |
-| 61               | 2**-61                | 1-in-2**-61 and above  |
+To develop an intuition for r-values, consider a scenario where every
+bit of the `TraceID` is generated by a uniform random bit generator
+(i.e., every bit is 0 or 1 with equal probability).  An 128-bit
+`TraceID` can therefore be treated as a 128-bit unsigned integer,
+which can be mapped into a fraction with range [0, 1) by dividing by
+2**128, a form known as the TraceID-ratio.  Now, probability sampling
+could be achieved by comparing the TraceID-ratio with the sampling
+probability, setting the `sampled` flag when TraceID-ratio is less
+than the sampling probability.
 
-Such a random variable `r` can be generated using the following
-pseudocode.
+It is easy to see that with sampling probability 1, all TraceIDs will
+be accepted because TraceID ratios are exclusively less than 1.
+Sampling with probability 50% will select TraceID ratios less than
+0.5, which maps to all TraceIDs less than 2**127 or, equivalently, all
+TraceIDs where the most significant bit is zero.  By the same logic,
+sampling with probability 25% means accepting TraceIDs where the most
+significant two bits are zero.  In general, with exact probability
+`2**-S` is equivalent to selecting TraceIDs with `S` leading zeros in
+this example scenario.
+
+The r-value specified here directly describes the number of leading
+zeros in a random 61-bit string, specified in a way that does not
+require TraceID values to be constructed with random bits in specific
+positions or with hard requirements on their uniformity.  In
+mathematical terms, the r-value is described by a truncated geometric
+distribution having shape parameter `1/2`, listed below:
+
+| `r` Value        | Probability of `r-value` | Implied sampling probabilities |
+| ---------------- | ------------------------ | ----------------------         |
+| 0                | 1/2                      | 1                              |
+| 1                | 1/4                      | 1/2 and above                  |
+| 2                | 1/8                      | 1/4 and above                  |
+| 3                | 1/16                     | 1/8 and above                  |
+| ...              | ...                      | ...                            |
+| 0 <= `r` <= 60   | 1/(2**(-`r`-1))          | 2**-`r` and above              |
+| ...              | ...                      | ...                            |
+| 58               | 2**-59                   | 2**-58 and above               |
+| 59               | 2**-60                   | 2**-59 and above               |
+| 60               | 2**-61                   | 2**-60 and above               |
+| 61               | 2**-61                   | 2**-61 and above               |
+
+Such a random variable `r` can be generated using efficient
+instructions on modern computer architectures.
 
 ```golang
-func nextRandomness() int {
-  r := 0
-  for r < 61 && nextRandomBit() == false {
-    r++
-  }
-  return R
+import (
+	"math/rand"
+	"math/bits"
+)
+
+func nextRValueLeading() int {
+	x := uint64(rand.Int63()) // 63 least-significant bits are random
+	y := x << 1 | 0x7         // 61 most-significant bits are random
+	return bits.LeadingZeros64(y)
 }
 ```
 
-This can be computed from a stream of random bits as the number of
-leading zeros using efficient instructions on modern computer
-architectures.
-
+More examples for calculating r-values are shown in
+[here](https://gist.github.com/jmacd/79c38c1056035c52f6fff7b7fc071274).
 For example, the value 3 means there were three leading zeros and
 corresponds with being sampled at probabilities 1-in-1 through 1-in-8
 but not at probabilities 1-in-16 and smaller.
