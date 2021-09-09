@@ -131,7 +131,7 @@ distribution, listed below:
 | 61               | 2**-61                   | 2**-61 and above               |
 
 Such a random variable `r` can be generated using efficient
-instructions on modern computer architectures.
+instructions on modern computer architectures, for example:
 
 ```golang
 import (
