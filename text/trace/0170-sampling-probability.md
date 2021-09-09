@@ -296,7 +296,7 @@ Some possibilities for encoding the adjusted count or inclusion
 probability are discussed below, depending on the circumstances and
 the protocol.  Here, the focus is on how to count sampled telemetry
 events in general, not a specific kind of event.  As we shall see in
-the following section, tracing comes with addional complications.
+the following section, tracing comes with additional complications.
 
 There are several ways of encoding this adjusted count or inclusion
 probability:
@@ -338,7 +338,7 @@ exponentially greater representivity.
 #### Multiply the adjusted count into the data
 
 When the data itself carries counts, such as for the Metrics Sum and
-Histogram points, the adjusted count can be multipled into the data.
+Histogram points, the adjusted count can be multiplied into the data.
 
 This technique is less desirable because, while it preserves the
 expected value of the count or sum, the data loses information about
@@ -377,7 +377,7 @@ each of its children based on the following logic:
   another
 - A root span causes each of the child spans in its trace to be produced
 - A sampled root span represents `adjusted_count` many traces, representing
-  the cause of `adjusted_count` many occurances per child span in the
+  the cause of `adjusted_count` many occurrences per child span in the
   sampled trace.
 
 Using this reasoning, we can define a sample collected from all root
