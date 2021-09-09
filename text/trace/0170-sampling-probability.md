@@ -20,7 +20,7 @@
     + [Multiply the adjusted count into the data](#multiply-the-adjusted-count-into-the-data)
   * [Trace Sampling](#trace-sampling)
     + [Counting child spans using root span adjusted counts](#counting-child-spans-using-root-span-adjusted-counts)
-	+ [Using head trace probability to count all spans](#using-head-trace-probability-to-count-all-spans)
+    + [Using head trace probability to count all spans](#using-head-trace-probability-to-count-all-spans)
     + [Head sampling for traces](#head-sampling-for-traces)
       - [`Parent` Sampler](#parent-sampler)
       - [`TraceIDRatio` Sampler](#traceidratio-sampler)
@@ -101,13 +101,13 @@ example using the OpenTelemetry Metrics API directly,
 
 ```
 func (p *spanToMetricsProcessor) OnEnd(span trace.ReadOnlySpan) {
-	ctx := context.Background()
-	counter := p.meter.NewInt64Counter(span.Name() + "_count")
-	counter.Add(
-		ctx, 
-		span.AdjustedCount(), 
-		span.Attributes()...,
-			)
+    ctx := context.Background()
+    counter := p.meter.NewInt64Counter(span.Name() + "_count")
+    counter.Add(
+        ctx,
+        span.AdjustedCount(),
+        span.Attributes()...,
+            )
 }
 ```
 
@@ -127,16 +127,16 @@ This example, therefore, uses a hypothetical `RecordMany()` method to
 capture multiple observations of a Histogram measurement at once:
 
 ```
-	histogram := p.meter.NewFloat64Histogram(
-		span.Name() + "_duration",
-		metric.WithUnits("ms"),
-	)
-	histogram.RecordMany(
-		ctx,
-		span.Duration().Milliseconds(), 
-		span.AdjustedCount(), 
-		span.Attributes()...,
-	)
+    histogram := p.meter.NewFloat64Histogram(
+        span.Name() + "_duration",
+        metric.WithUnits("ms"),
+    )
+    histogram.RecordMany(
+        ctx,
+        span.Duration().Milliseconds(),
+        span.AdjustedCount(),
+        span.Attributes()...,
+    )
 ```
 
 #### Sample span rate limiting
@@ -186,7 +186,7 @@ will learn to apply these techniques for sampling aggregated data.
 
 In sampling, the term _sampling design_ refers to how sampling
 probability is decided and the term _sample frame_ refers to how
-events are organized into discrete populations.  The design of a 
+events are organized into discrete populations.  The design of a
 sampling strategy dictates how the population is framed.
 
 For example, a simple design uses uniform probability, and a simple
@@ -373,18 +373,18 @@ each of its children based on the following logic:
 
 - The root span is considered representative of `adjusted_count` many
   identical root spans, because it was selected using unbiased sampling
-- Context propagation conveys _causation_, the fact the one span produces 
+- Context propagation conveys _causation_, the fact the one span produces
   another
 - A root span causes each of the child spans in its trace to be produced
 - A sampled root span represents `adjusted_count` many traces, representing
-  the cause of `adjusted_count` many occurances per child span in the 
+  the cause of `adjusted_count` many occurances per child span in the
   sampled trace.
 
 Using this reasoning, we can define a sample collected from all root
 spans in the system, which allows estimating the count of all spans in
 the population.  Take a simple probability sample of root spans:
 
-1. In the `Sampler` decision for root spans, use the initial span properties 
+1. In the `Sampler` decision for root spans, use the initial span properties
    to determine the inclusion probability `P`
 2. Make a pseudo-random selection with probability `P`, if true return
    `RECORD_AND_SAMPLE` (so that the W3C Trace Context `is-sampled`
@@ -547,7 +547,7 @@ P(span sampled | parent sampled) = 1
 P(span sampled | parent not sampled) = D
 ```
 
-Using the formula above, 
+Using the formula above,
 
 ```
 I = 1*H + D*(1-H)
@@ -636,7 +636,7 @@ The following text will be added to the `Span` message in
   //    Consumers of these Spans cannot cannot compute span metrics.
   //
   // 1: An adjusted count of 1.
-  // 
+  //
   // 2-62: Values 2 through 62 represent an adjusted count of 2^(Value-1)
   //
   // 63: Value 63 represents an adjusted count of zero.
@@ -657,14 +657,14 @@ with a new field to be returned by all Samplers.
   pipelines.  The value 0 is used to represent unknown adjusted count,
   and the value 63 is used to represent known-zero adjusted count.
   For values >0 and <63, the adjusted count of the Span is
-  2^(value-1), representing power-of-two probabilities between 
+  2^(value-1), representing power-of-two probabilities between
   1 and 2^-61.
-  
+
   The corresonding `SamplerResult` field SHOULD be named
   `log_head_adjusted_count` to match the Span data model.
 ```
 
-See [OTEP 168](https://github.com/open-telemetry/oteps/pull/168) for 
+See [OTEP 168](https://github.com/open-telemetry/oteps/pull/168) for
 details on how each of the built-in Samplers is expected to behave.
 
 ## Recommended reading
