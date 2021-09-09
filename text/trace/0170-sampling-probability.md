@@ -8,10 +8,6 @@
     + [Sample spans to Counter Metric](#sample-spans-to-counter-metric)
     + [Sample spans to Histogram Metric](#sample-spans-to-histogram-metric)
     + [Sample span rate limiting](#sample-span-rate-limiting)
-  * [Metric sampling](#metric-sampling)
-    + [Statsd Counter](#statsd-counter)
-    + [Metric exemplars with adjusted counts](#metric-exemplars-with-adjusted-counts)
-    + [Metric cardinality limiter](#metric-cardinality-limiter)
 - [Explanation](#explanation)
   * [Model and terminology](#model-and-terminology)
     + [Sampling without replacement](#sampling-without-replacement)
@@ -87,27 +83,61 @@ generating metrics from spans.
 
 #### Sample spans to Counter Metric
 
-For every complete span it receives, the example processor will synthesize
-metric data as though a Counter named `S.count` corresponding to a span
-named `S` had been incremented once per original span.
+In this example, an OpenTelemetry SDK for tracing is configured with a
+`SpanProcessor` that counts sample spans as they are processed based
+on their adjusted counts.  The SDK could be used to monitor request
+rates using Prometheus, for example.
 
-This processor will add the span's adjusted count to the
-instrument (e.g., `Add(adjusted_count, labels...)`)  for every span it
-receives, logically taking place at the start or end time of the span.
+For every complete sample span it receives, the example
+`SpanProcessor` will synthesize metric data as though a Counter named
+`S_count` corresponding to a span named `S` had been incremented once
+per original span.  Using the adjusted count of sampled spans instead,
+the value of `S_count` is expected to equal to equal the true number
+of spans.
+
+This `SpanProcessor` will for every span it receives add the span's
+adjusted count to a corresponding metric Counter instrument.  For
+example using the OpenTelemetry Metrics API directly,
+
+```
+func (p *spanToMetricsProcessor) OnEnd(span trace.ReadOnlySpan) {
+	ctx := context.Background()
+	counter := p.meter.NewInt64Counter(span.Name() + "_count")
+	counter.Add(
+		ctx, 
+		span.AdjustedCount(), 
+		span.Attributes()...,
+			)
+}
+```
 
 #### Sample spans to Histogram Metric
 
 For every span it receives, the example processor will synthesize
-metric data as though a Histogram instrument named `S.duration` for
+metric data as though a Histogram instrument named `S_duration` for
 span named `S` had been observed once per original span.
 
 The OpenTelemetry Metric data model does not support histogram buckets
 with non-integer counts, which forces the use of integer adjusted
 counts here (i.e., 1-in-N sampling rates where N is an integer).
 
-Logically speaking, this processor will observe the span's duration its
-adjusted count number of times for every span it receives, at the end
-time of the span.
+Logically speaking, this processor will observe the span's duration
+_adjusted count_ number of times for every sample span it receives.
+This example, therefore, uses a hypothetical `RecordMany()` method to
+capture multiple observations of a Histogram measurement at once:
+
+```
+	histogram := p.meter.NewFloat64Histogram(
+		span.Name() + "_duration",
+		metric.WithUnits("ms"),
+	)
+	histogram.RecordMany(
+		ctx,
+		span.Duration().Milliseconds(), 
+		span.AdjustedCount(), 
+		span.Attributes()...,
+	)
+```
 
 #### Sample span rate limiting
 
@@ -125,52 +155,6 @@ counts.
 When the interval expires and the sample frame is considered complete,
 the selected sample spans are output with possibly updated adjusted
 counts.
-
-### Metric sampling
-
-Example use-cases for probability sampling of metrics
-are aimed at lowering cost and addressing high cardinality.
-
-#### Statsd Counter
-
-A Statsd counter event appears as a line of text, describing a
-number-valued event with optional attributes and inclusion probability
-("sample rate").
-
-For example, a metric named `name` is incremented by `increment` using
-a counter event (`c`) with the given `sample_rate`.
-
-```
-name:increment|c|@sample_rate
-```
-
-For example, a count of 100 that was selected for a 1-in-10 simple
-random sampling scheme will arrive as:
-
-```
-counter:100|c|@0.1
-```
-
-Events in the example have with 0.1 inclusion probability have
-adjusted count of 10.  Assuming the sample was selected using an
-unbiased algorithm, we can interpret this event as having an expected
-count of `100/0.1 = 1000`.
-
-#### Metric cardinality limiter
-
-A metrics processor can be configured to limit cardinality for a
-single metric name, allowing no more than K distinct label sets per
-export interval.  The export interval is fixed to a short interval so
-that a complete set of distinct labels can be stored temporarily.
-
-Caveats: as presented, this works for Sum and Histogram points
-received with Delta aggregation temporality and where the Sum is
-monotonic (see
-[opentelemetry-proto/issues/303](https://github.com/open-telemetry/opentelemetry-proto/issues/303)).
-
-Considering data points received during the interval, when the number
-of points exceeds K, select a probability proportional to size sample
-of points, output every point with an adjusted count attribute.
 
 ## Explanation
 
