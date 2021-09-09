@@ -32,8 +32,8 @@ sampled flag](https://www.w3.org/TR/trace-context/#sampled-flag) using
 Two pieces of information are needed to convey consistent head trace
 sampling probability:
 
-1. The head trace sampling probability.
-2. Source of consistent sampling decisions.
+1. p-value representing the head trace sampling probability.
+2. r-value representing the "randomness" as the source of consistent sampling decisions.
 
 This proposal uses 6 bits of information for each of these and does
 not depend on built-in TraceID randomness, which is not sufficiently
@@ -229,7 +229,7 @@ zero probability (i.e., `p=63`).
 
 The behavior of these tables can be verified by hand using a smaller
 example.  The following table shows how these equations work where
-`r`, `p`, and `s` are limited to 3 bits.
+`r`, `p`, and `s` are limited to 3 bits instead of 6 bits.
 
 Values of `p`, which have the same encoded value and interpretation as
 for the proposed `log_head_adjusted_count` field of OTEP 170, would be
@@ -336,7 +336,7 @@ It would be possible, if TraceID were specified to have at least 61
 uniform random bits, to compute the randomness value described above
 as the number of leading zeros among those 61 random bits.
 
-This proposal requires modifying the W3C traceparent specification,
+However, this would require modifying the W3C traceparent specification,
 therefore we do not propose to use bits of the TraceID.
 
 [This issue has been filed with the W3C trace context group.](https://github.com/w3c/trace-context/issues/463)
