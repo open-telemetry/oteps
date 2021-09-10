@@ -1,6 +1,6 @@
 # Scenarios and Open Questions for Tracing semantic conventions for HTTP
 
-This document aims to capture scenarios/open questions and a road map, both of 
+This document aims to capture scenarios/open questions and a road map, both of
 which will serve as a basis for [stabilizing](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#stable)
 the [existing semantic conventions for HTTP](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md),
 which are currently in an [experimental](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#experimental)
@@ -36,28 +36,32 @@ and thus to ship and use stable instrumentation.
 Scenarios and open questions mentioned below must be addressed via separate PRs.
 
 ### Error status
-Per current spec 4xx must result in span with Error status. In many cases 
+
+Per current spec 4xx must result in span with Error status. In many cases
 404/409 error criteria depends on the app though.
 
 ### Required attribute sets
+
 > At least one of the following sets of attributes is required:
-> 
+>
 > * `http.url`
 > * `http.scheme`, `http.host`, `http.target`
 > * `http.scheme`, [`net.peer.name`](span-general.md), [`net.peer.port`](span-general.md), `http.target`
 > * `http.scheme`, [`net.peer.ip`](span-general.md), [`net.peer.port`](span-general.md), `http.target`
 
-As a result, users that write queries against raw data or Zipkin/Jaeger don't 
+As a result, users that write queries against raw data or Zipkin/Jaeger don't
 have consistent story across instrumentations and languages. e.g. they'd need to
 write queries like
 `select * where (getPath(http.url) == "/a/b" || getPath(http.target) == "/a/b")`
 
 ### Optional attributes
+
 As a library owner, I don't understand the benefits of optional attributes:
 they create overhead, they don't seem to be generically useful (e.g. flavor),
 and are inconsistent across languages/libraries unless unified.
 
 ### Retries, redirects and hedging policies
+
 Each try/redirect/hedging request must have unique context to be traceable and
 to unambiguously ask for support from downstream service, which implies span
 per call.
@@ -65,7 +69,8 @@ per call.
 Redirects: users may need observability into what server hop had an error/took
 too long. E.g., was 500/timeout from the final destination or a proxy?
 
-### Sampling:
+### Sampling
+
 * Need to mention between pre-sampling/post-sampling attributes (all that are
 required and available pre-sampling should be provided)
 * To make it efficient for noop case, need a hint for instrumentation
@@ -73,16 +78,19 @@ required and available pre-sampling should be provided)
 creating pre-sampling attributes.
 
 ### Context propagation needs explanation
+
 * Reusing instances of client HTTP requests between tries (it’s likely, so clean
   up context before making a call).
   
 ### WebSockets/Long-polling and streaming
+
 Anything we can do better here? In many cases connection has app-lifetime,
 messages are independent - can we explain to users how to do manual tracing
 for individual messages? Do span events per message make sense at all?
 Need some real-life/expertize here.
 
 ### Request/Response body (technically out-of-scope, but we should have an idea how to let users do it)
+
 There is a lot of user feedback that they want it, but
 
 * We can’t read body in generic instrumentation
@@ -94,26 +102,26 @@ There is a lot of user feedback that they want it, but
 * Reading/writing body may happen outside of HTTP client API (e.g. through
   network streams) – how users can track it too?
 
-### Not HTTP-specific, but needs to be explained/mentioned:
+### Not HTTP-specific, but needs to be explained/mentioned
+
 * Extracting/injecting context from the wire
 * Always making spans current (in case of lower-level instrumentations)
-   * Client HTTP spans could have children or extra events (TLS/DNS)
-   * Server spans - need to pass it to user code
+  * Client HTTP spans could have children or extra events (TLS/DNS)
+  * Server spans - need to pass it to user code
 
-
-## Out of scope 
+## Out of scope
 
 HTTP protocol is being widely used within many different platforms and systems,
 which brings a lot of intersections with a transmission protocol layer and an
 application layer. However, for HTTP Semantic Conventions specification we want
 to be strictly focused on HTTP-specific aspects of distributed tracing to keep
 the specification clear. Therefore, the following scenarios, including but not
-limited to, are considered out of scope for this workgroup: 
+limited to, are considered out of scope for this workgroup:
 
-* Batch operations. 
+* Batch operations.
 * Fan-in and fan-out operations (e.g., GraphQL)  
 * HTTP as a transport layer for other systems (e.g., Messaging system built on
-  top of HTTP). 
+  top of HTTP).
 
 To address these scenarios, we might want to work with OpenTelemetry community
-to build instrumentation guidelines going forward. 
+to build instrumentation guidelines going forward.
