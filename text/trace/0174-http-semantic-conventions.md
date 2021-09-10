@@ -31,6 +31,8 @@ and thus to ship and use stable instrumentation.
 
 ## Scope: scenarios and open questions
 
+> NOTE. The scope defined here is subject for discussions and can be adjusted.
+
 Scenarios and open questions mentioned below must be addressed via separate PRs.
 
 ### Error status
@@ -69,17 +71,17 @@ required and available pre-sampling should be provided)
 * To make it efficient for noop case, need a hint for instrumentation
 (e.g., `GlobalOTel.isEnabled()`) that SDK is present and configured before
 creating pre-sampling attributes.
- 
+
 ### Context propagation needs explanation
 * Reusing instances of client HTTP requests between tries (it’s likely, so clean
-up context before making a call).
+  up context before making a call).
   
 ### WebSockets/Long-polling and streaming
 Anything we can do better here? In many cases connection has app-lifetime,
 messages are independent - can we explain to users how to do manual tracing
 for individual messages? Do span events per message make sense at all?
 Need some real-life/expertize here.
- 
+
 ### Request/Response body (technically out-of-scope, but we should have an idea how to let users do it)
 There is a lot of user feedback that they want it, but
 
