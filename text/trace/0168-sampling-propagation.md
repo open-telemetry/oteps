@@ -378,6 +378,21 @@ were needed.
 
 ## Trade-offs and mitigations
 
+### Naming question
+
+This proposal changes the logic of the `TraceIDRatioBased` sampler,
+currently part of the OpenTelemetry specification, in a way that makes
+the name no longer meaningful.  The proposed sampler may be named
+`ConsistentSampler` and the existing `TraceIDRatioBased` sampler can
+be deprecated.
+
+Many SDKs already implement the `TraceIDRatioBased` sampler and it has
+been used for probability sampling at trace roots with arbitrary
+(i.e., not power-of-two) probabilities.  Because of this, we may keep
+the current (under-specified) `TraceIDRatioBased` sampler and rename
+it `ProbabilitySampler` to convey that it does behave in a specified
+way with respect to the bits of the TraceID.
+
 ### Not using TraceID randomness
 
 It would be possible, if TraceID were specified to have at least 61
