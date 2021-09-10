@@ -206,9 +206,9 @@ base16(p-value) = 03 // 1-in-4 head probability
 base16(r-value) = 0a // qualifies for 1-in-1024 or greater probability consistent sampling
 ```
 
-Any `TraceIDRatioBased` Sampler configured with probability 2**-9 or
+Any `TraceIDRatioBased` Sampler configured with probability 2**-10 or
 greater will enable sampling this trace, whereas any
-`TraceIDRatioBased` Sampler configured with probability 2**-10 or less
+`TraceIDRatioBased` Sampler configured with probability 2**-11 or less
 will stop sampling this trace.
 
 ## Internal details
