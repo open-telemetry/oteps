@@ -147,14 +147,14 @@ func nextRValueLeading() int {
 }
 ```
 
-Or we may compute the number of trialing zeros, for example:
+Or we may compute the number of trailing zeros instead, for example:
 
 ```golang
 import (
 	"math/rand"
 )
 
-func nextRValueLeading() int {
+func nextRValueTrailing() int {
 	x := uint64(rand.Int63())
 	for r := 0; r < 61; r++ {
 		if x & 0x1 == 0x1 {
