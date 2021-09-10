@@ -131,7 +131,8 @@ distribution, listed below:
 | 61               | 2**-61                   | 2**-61 and above               |
 
 Such a random variable `r` can be generated using efficient
-instructions on modern computer architectures, for example:
+instructions on modern computer architectures, for example we may
+compute the number of leading zeros using hardware support:
 
 ```golang
 import (
@@ -143,6 +144,25 @@ func nextRValueLeading() int {
 	x := uint64(rand.Int63()) // 63 least-significant bits are random
 	y := x << 1 | 0x7         // 61 most-significant bits are random
 	return bits.LeadingZeros64(y)
+}
+```
+
+Or we may compute the number of trialing zeros, for example:
+
+```golang
+import (
+	"math/rand"
+)
+
+func nextRValueLeading() int {
+	x := uint64(rand.Int63())
+	for r := 0; r < 61; r++ {
+		if x & 0x1 == 0x1 {
+			return r
+		}
+		x = x >> 1
+	}
+	return 61
 }
 ```
 
