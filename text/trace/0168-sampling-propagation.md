@@ -236,7 +236,7 @@ If the context is not a new root, output a new `tracestate` with the
 same `r` value as the parent context.
 
 When sampled, in both cases, the context's p-value `p` is set to the
-value of `s+1` in the range [1, 63].  If the sampling probability is
+value of `s+1` in the range [1, 62].  If the sampling probability is
 zero (the special case where `s` is undefined), use `p=63` the
 specified value for zero probability.
 
