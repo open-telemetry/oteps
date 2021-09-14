@@ -652,18 +652,18 @@ supports only head sampling.
 
 #### Probability sampler
 
-The probability Sampler is a Sampler that knows immediately, for each
+A probability Sampler is a Sampler that knows immediately, for each
 of its decisions, the probability that the span had of being selected.
 
 Sampling probability is defined as a number less than or equal to 1
 and greater than 0 (i.e., `0 < probability <= 1`).  The case of 0
-probability is treated as a special case.
+probability is treated as a special, non-probabilistic case.
 
 #### Consistent probability sampler
 
 A consistent probability sampler is a Sampler that for a configured
 sampling probability will make the same decision as another sampler
-with the same or larger probability.  In OpenTelemetry, consistent
+with the same or greater probability.  In OpenTelemetry, consistent
 probability samplers are limited to power-of-two probabilities.
 
 Consistent probability sampling is defined in terms of a "p-value"
@@ -684,12 +684,12 @@ effectively uncountable.
 
 ### Non-probability sampler
 
-A Sampler that makes its decisions not based on chance, but instead
-uses arbitrary logic and internal state to make its decisions.
-Because OpenTelemetry specifies the use of consistent probability
-samplers, any sampler other than a parent-based sampler that does not
-meet all the requirements for consistent probability sampling is
-termed a non-probability sampler.
+A non-probability sampler is a Sampler that makes its decisions not 
+based on chance, but instead uses arbitrary logic and internal state 
+to make its decisions. Because OpenTelemetry specifies the use of 
+consistent probability samplers, any sampler other than a parent-based 
+sampler that does not meet all the requirements for consistent probability 
+sampling is termed a non-probability sampler.
 
 In practice, non-probability samplers usually derive their decision
 from temporal information, which makes them non-probabilistic due to 
@@ -760,8 +760,7 @@ select a span, zero adjusted count will be used.
 
 The use of zero adjusted count allows recording spans that an unbiased
 probability sampler did not select, allowing those spans to be
-received and counted at the backend without introducing statistica,
-bias.
+received at the backend without introducing statistical bias.
 
 #### Composition rules summary
 
