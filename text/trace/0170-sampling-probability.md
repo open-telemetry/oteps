@@ -691,16 +691,11 @@ consistent probability samplers, any sampler other than a parent-based
 sampler that does not meet all the requirements for consistent probability 
 sampling is termed a non-probability sampler.
 
-In practice, non-probability samplers usually derive their decision
-from temporal information, which makes them non-probabilistic due to 
-temporal bias.  A "leaky-bucket" rate limiter or a sampler that selects
-the first span per minute qualify as non-probabilistic samplers.
-
 #### Adjusted count
 
-Adjusted count is the effective number of spans that should be counted
-for each span included in the sample.  Adjusted count is a measure of
-representivity.  Span-to-metrics pipelines may be built by adding the
+Adjusted count is defined as a measure of representivity, the number
+of spans in the population that are represented by the individually
+sampled span.  Span-to-metrics pipelines may be built by adding the
 adjusted count of each sample span to a counter of matching spans,
 observing the duration of each sample span in a histogram adjusted
 count many times, and so on.
@@ -715,14 +710,47 @@ probability and non-probability samplers.
 
 #### Unbiased probability sampling
 
-The interpretation of adjusted count given above relies on it being
-calculated in an unbiased way.  It is outside the scope of this
-document to give this a rigorous definition.  Informally speaking, an
-unbiased probability samper must give equal consideration to identical
-spans and cannot make arbitrary decisions.  Unbiased probability samplers 
-should not keep internal state except as needed to maintain a provably 
-unbiased result.
+The statistical term "unbiased" is a requirement applied to the
+adjusted count of a span, which states that the expected value of the
+sum of adjusted counts across all exported spans MUST equal the true
+number of spans in the population.  That is, the statistical bias, a
+measure of the difference between an estimate and its true value, of
+adjusted count should equal zero.  This condition must be true for all
+subsets of the sample that are exported.
+
+It is easier to define probability sampling by what it is not.  Here
+are several samplers that should be categorized as non-probability
+samplers because they cannot record unbiased adjusted counts:
+
+- A traditional form of "leaky-bucket" sampler applies a rate limit to
+  the starting of new sampled traces.  When the configured limit is
+  not exceeded, all spans pass through with adjusted count 1.  When
+  the configured rate limit is exceeded, it is impossible to set
+  adjusted count without introducing bias because future arrivals are
+  not known.
+- A "every-N" sampler records spans on a regular interval, but instead
+  of making a probabilistic decision it makes an exact decision 
+  (e.g., every 10,000 spans).  This sampler knows the representivity
+  of the spans it samples, but the selection process is biased.
+- A "at least once per time period" sampler remembers the last time
+  each distinct span name exported a span.  When a span occurs after
+  more than the specified interval, it samples one (e.g., to ensure
+  that receivers know about these spans).  This sampler introduces
+  bias because spans that happen between the intervals do not receive
+  consideration.
 ```
+
+#### Distinguishing non-probabilistic from adaptive probability samplers
+
+It can 
+
+In practice, non-probability samplers usually derive their decision
+from temporal information, which makes them non-probabilistic because
+they introduce temporal bias.  W
+
+A "leaky-bucket" rate limiter or a sampler that selects the first span
+per minute qualify as non-probabilistic samplers.
+
 
 ### Proposed `Sampler` composition rules
 
