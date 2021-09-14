@@ -586,7 +586,7 @@ unset.  Thus, the 0 value shall mean unknown adjusted count.
 
 The OTEP 168 proposal for _propagating_ head sampling probability uses
 6 bits of information, with 62 ordinary values, one zero value, and a
-single unused value.
+single Unknown value.
 
 Here, we propose a biased encoding for head sampling probability equal
 to 1 plus the `P` value as proposed in OTEP 168.  The proposed span
@@ -617,10 +617,179 @@ stream of Span data with non-zero values in the `log_head_adjusted_count`
 field can approximately and accurately count Spans using adjusted
 counts.
 
-Non-probabilistic Samplers such as the [Leaky-bucket rate-limited
-sampler](https://github.com/open-telemetry/opentelemetry-specification/issues/1769)
-SHOULD set the `log_head_adjusted_count` field to zero to indicate an
-unknown adjusted count.
+### Span data model changes
+
+The OpenTelemetry trace data "model" is not currently specified in a
+stand-alone way, the way it has been done for logs and metrics.  This
+OTEP calls for the creation of a new `trace/datamodel.md` file to
+capture this sort of specification detail.
+
+Addition to the Span data model:
+
+```
+### Definitions Used in this Document
+
+#### Sampler
+
+A Sampler provides configurable logic, used by the SDK, for selecting
+which Spans are "recorded" and/or "sampled" in a tracing client
+library.  To "record" a span means to build a representation of it in
+the client's memory, which makes it eligible for being exported.  To
+"sample" a span implies setting the W3C `sampled` flag and recording
+the span for export.
+
+#### Parent-based sampling
+
+A Sampler that makes its decision to sample based on the W3C `sampled`
+flag is said to use parent-based sampling.
+
+#### Head sampling
+
+In a tracing context, Head sampling refers to the initial decision to
+sample a span or a trace, which determines the W3C `sampled` flag of
+the child context.  The OpenTelemetry tracing data model currently
+supports only head sampling.
+
+#### Probability sampler
+
+The probability Sampler is a Sampler that knows immediately, for each
+of its decisions, the probability that the span had of being selected.
+
+Sampling probability is defined as a number less than or equal to 1
+and greater than 0 (i.e., `0 < probability <= 1`).  The case of 0
+probability is treated as a special case.
+
+#### Consistent probability sampler
+
+A consistent probability sampler is a Sampler that for a configured
+sampling probability will make the same decision as another sampler
+with the same or larger probability.  In OpenTelemetry, consistent
+probability samplers are limited to power-of-two probabilities.
+
+Consistent probability sampling is defined in terms of a "p-value"
+and an "r-value", both of which are propagated via the context to assist 
+in making consistent sampling decisions.
+
+### Always-on sampler
+
+An always-on sampler is another name for a consistent probability
+sampler with probability equal to one.
+
+### Always-off sampler
+
+An always-off Sampler has the effect of disabling a span completely,
+effectively excluding it from the population.  This is not defined as
+a probability sampler with zero probability, because these spans are
+effectively uncountable.
+
+### Non-probability sampler
+
+A Sampler that makes its decisions not based on chance, but instead
+uses arbitrary logic and internal state to make its decisions.
+Because OpenTelemetry specifies the use of consistent probability
+samplers, any sampler other than a parent-based sampler that does not
+meet all the requirements for consistent probability sampling is
+termed a non-probability sampler.
+
+In practice, non-probability samplers usually derive their decision
+from temporal information, which makes them non-probabilistic due to 
+temporal bias.  A "leaky-bucket" rate limiter or a sampler that selects
+the first span per minute qualify as non-probabilistic samplers.
+
+#### Adjusted count
+
+Adjusted count is the effective number of spans that should be counted
+for each span included in the sample.  Adjusted count is a measure of
+representivity.  Span-to-metrics pipelines may be built by adding the
+adjusted count of each sample span to a counter of matching spans,
+observing the duration of each sample span in a histogram adjusted
+count many times, and so on.
+
+The adjusted count 1 means an one-to-one sampling was in effect.
+Adjusted counts greater than 1 indicate the use of a probability
+sampler.  Adjusted counts are unknown when using a non-probability
+sampler.
+
+Zero adjusted count is defined in a way to support composition of
+probability and non-probability samplers.
+
+#### Unbiased probability sampling
+
+The interpretation of adjusted count given above relies on it being
+calculated in an unbiased way.  It is outside the scope of this
+document to give this a rigorous definition.  Informally speaking, an
+unbiased probability samper must give equal consideration to identical
+spans and cannot make arbitrary decisions.  Unbiased probability samplers 
+should not keep internal state except as needed to maintain a provably 
+unbiased result.
+```
+
+### Proposed `Sampler` composition rules
+
+When combining multiple Samplers, the natural outcome is that a span
+will be recorded and sampled if any one of the Samplers says to record
+or sample the span.  To combine Samplers in a way that preserves
+adjusted count requires first classifying Samplers into one of the
+following categories:
+
+1. Parent-based (`ParentBased`)
+2. Known non-zero probability (`TraceIDRatio`, `AlwaysOn`)
+3. Non-probability based (`AlwaysOff`, all other Samplers)
+
+The Parent-based sampler always reduces into one of other two at
+runtime, based on whether the parent context includes known head
+probability or not.
+
+Here are the rules for combining Sampler decisions from each of these
+categories that may be used to construct composite samplers.
+
+#### Composing two consistent probability samplers
+
+When two consistent probability samplers are used, the Sampler with
+the larger probability by definition includes every span the smaller
+probability sampler would select.  The result is a consistent sampler
+with the minimum p-value.
+
+#### Composing a probability sampler and a non-probability sampler
+
+When a probability sampler is composed with a non-probability sampler,
+the effect is to change an unknown probability into a known
+probability.  When the probability sampler selects the span, its
+adjusted count will be used.  When the probability sampler does not
+select a span, zero adjusted count will be used.
+
+The use of zero adjusted count allows recording spans that an unbiased
+probability sampler did not select, allowing those spans to be
+received and counted at the backend without introducing statistica,
+bias.
+
+#### Composition rules summary
+
+To create a composite Sampler, first express the result of each
+Sampler in terms of the p-value and `sampled` flag.  Note that
+p-values fall into three categories:
+
+1. Unknown p-value (`p=0`) indicates unknown adjusted count
+2. Known non-zero p-value (in the range `[1,62]`) indicates known non-zero adjusted count
+3. Known zero p-value (`p=63`) indicates known zero adjusted count
+
+While non-probability samplers are always return `p=0` and may set
+`sampled=true` or `sampled=false`, a probability sampler is restricted
+to returning either `p∈[1,62]` with `sampled=true` or to returning
+`p=63` with `sampled=false`.  No individual sampler can return `p=63`
+with `sampled=true`, but this condition MAY result from composition of
+`p=63` and `p=0`.
+
+A composite sampler can be computed by starting with an initial state
+(`p=0`, `sampled=false`) and updating the composite result to the
+value in the table below, where columns are the input state and rows
+are the Sampler decision.
+
+| Composition input<br> \ <br>Sampler decision                                                                                        | Unknown adjusted count<br>(p<sub>0</sub>=0, sampled<sub>1</sub>∈{true,false})  | Known adjusted count<br>(p<sub>0</sub>∈[1,63], sampled<sub>1</sub>∈{true,false})                       |
+| --                                                                                                                             | --                                                                             | --                                                                                                     |
+| <b>Non-probability sampler<br>(p<sub>1</sub>=0, sampled<sub>1</sub>∈{true,false})</b>                                          | p=0, <br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>)           | p=p<sub>0</sub><br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>)                         |
+| <b>Probability sampler<br>(p<sub>1</sub>∈[1,62], sampled<sub>1</sub>=true) or<br>(p<sub>1</sub>=63, sampled<sub>1</sub>=false) | p=p<sub>1</sub><br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>) | p=min(p<sub>0</sub>, p<sub>1</sub>)<br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>)</b> |
+|                                                                                                                                |                                                                                |                                                                                                        |
 
 ### Proposed `Span` field documentation
 
