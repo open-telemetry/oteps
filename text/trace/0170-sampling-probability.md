@@ -807,7 +807,7 @@ A composite sampler can be computed by starting with an initial state
 value in the table below, where columns are the input state and rows
 are the Sampler decision.
 
-| Composition input<br> \ <br>Sampler decision                                                                                        | Unknown adjusted count<br>(p<sub>0</sub>=0, sampled<sub>1</sub>∈{true,false})  | Known adjusted count<br>(p<sub>0</sub>∈[1,63], sampled<sub>1</sub>∈{true,false})                       |
+| Composition input<br> \ <br>Sampler decision                                                                                   | Unknown adjusted count<br>(p<sub>0</sub>=0, sampled<sub>1</sub>∈{true,false})  | Known adjusted count<br>(p<sub>0</sub>∈[1,63], sampled<sub>1</sub>∈{true,false})                       |
 | --                                                                                                                             | --                                                                             | --                                                                                                     |
 | <b>Non-probability sampler<br>(p<sub>1</sub>=0, sampled<sub>1</sub>∈{true,false})</b>                                          | p=0, <br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>)           | p=p<sub>0</sub><br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>)                         |
 | <b>Probability sampler<br>(p<sub>1</sub>∈[1,62], sampled<sub>1</sub>=true) or<br>(p<sub>1</sub>=63, sampled<sub>1</sub>=false) | p=p<sub>1</sub><br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>) | p=min(p<sub>0</sub>, p<sub>1</sub>)<br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>)</b> |
