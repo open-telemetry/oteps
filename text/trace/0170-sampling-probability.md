@@ -638,6 +638,9 @@ the client's memory, which makes it eligible for being exported.  To
 "sample" a span implies setting the W3C `sampled` flag and recording
 the span for export.
 
+OpenTelemetry supports spans that are "recorded" and not "sampled"
+for "live" observability of spans (e.g., z-pages).
+
 #### Parent-based sampling
 
 A Sampler that makes its decision to sample based on the W3C `sampled`
@@ -706,17 +709,19 @@ sampler.  Adjusted counts are unknown when using a non-probability
 sampler.
 
 Zero adjusted count is defined in a way to support composition of
-probability and non-probability samplers.
+probability and non-probability samplers.  In effect, spans that are 
+"recorded" but not "sampled" have adjusted count of zero.
 
 #### Unbiased probability sampling
 
 The statistical term "unbiased" is a requirement applied to the
 adjusted count of a span, which states that the expected value of the
 sum of adjusted counts across all exported spans MUST equal the true
-number of spans in the population.  That is, the statistical bias, a
-measure of the difference between an estimate and its true value, of
-adjusted count should equal zero.  This condition must be true for all
-subsets of the sample that are exported.
+number of spans in the population.  Statistical bias, a measure of the
+difference between an estimate and its true value, of the estimated
+span count in the population should equal zero.  Moreover, this
+requirement must be true for all subsets of the span population for a 
+sampler to be considered an unbiased probability sampler.
 
 It is easier to define probability sampling by what it is not.  Here
 are several samplers that should be categorized as non-probability
@@ -738,19 +743,9 @@ samplers because they cannot record unbiased adjusted counts:
   that receivers know about these spans).  This sampler introduces
   bias because spans that happen between the intervals do not receive
   consideration.
+- The "always off" sampler is biased by definition. Since it exports
+  no spans, the sum of adjusted count is always zero.
 ```
-
-#### Distinguishing non-probabilistic from adaptive probability samplers
-
-It can 
-
-In practice, non-probability samplers usually derive their decision
-from temporal information, which makes them non-probabilistic because
-they introduce temporal bias.  W
-
-A "leaky-bucket" rate limiter or a sampler that selects the first span
-per minute qualify as non-probabilistic samplers.
-
 
 ### Proposed `Sampler` composition rules
 
