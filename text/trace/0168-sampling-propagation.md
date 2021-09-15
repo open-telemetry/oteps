@@ -18,7 +18,7 @@ A consistent trace sampling decision is one that can be carried out at
 any node in a trace, which supports collecting partial traces.
 OpenTelemetry specifies a built-in `TraceIDRatioBased` Sampler that
 aims to accomplish this goal but was left incomplete (see a
-[TODO](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#traceidratiobased) 
+[TODO](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#traceidratiobased)
 in the v1.0 Trace specification).
 
 We propose to propagate the necessary information alongside the [W3C
@@ -37,7 +37,7 @@ sampling probability:
 
 This proposal uses 6 bits of information for each of these and does
 not depend on built-in TraceID randomness, which is not sufficiently
-specified for probability sampling at this time.  This proposal closely 
+specified for probability sampling at this time.  This proposal closely
 follows [research by Otmar Ertl](https://arxiv.org/pdf/2107.07703.pdf).
 
 ### p-value
@@ -136,14 +136,14 @@ compute the number of leading zeros using hardware support:
 
 ```golang
 import (
-	"math/rand"
-	"math/bits"
+    "math/rand"
+    "math/bits"
 )
 
 func nextRValueLeading() int {
-	x := uint64(rand.Int63()) // 63 least-significant bits are random
-	y := x << 1 | 0x7         // 61 most-significant bits are random
-	return bits.LeadingZeros64(y)
+    x := uint64(rand.Int63()) // 63 least-significant bits are random
+    y := x << 1 | 0x7         // 61 most-significant bits are random
+    return bits.LeadingZeros64(y)
 }
 ```
 
@@ -151,18 +151,18 @@ Or we may compute the number of trailing zeros instead, for example:
 
 ```golang
 import (
-	"math/rand"
+    "math/rand"
 )
 
 func nextRValueTrailing() int {
-	x := uint64(rand.Int63())
-	for r := 0; r < 61; r++ {
-		if x & 0x1 == 0x1 {
-			return r
-		}
-		x = x >> 1
-	}
-	return 61
+    x := uint64(rand.Int63())
+    for r := 0; r < 61; r++ {
+        if x & 0x1 == 0x1 {
+            return r
+        }
+        x = x >> 1
+    }
+    return 61
 }
 ```
 
@@ -415,7 +415,7 @@ to have it implemented in multiple languages.
 Hashing is also computationally expensive. This proposal uses extra
 data to avoid the computational cost of hashing TraceIDs.
 
-### Restriction to power-of-two 
+### Restriction to power-of-two
 
 Restricting head sampling rates to powers of two does not limit tail
 Samplers from using arbitrary probabilities.  The companion [OTEP
@@ -438,7 +438,7 @@ propagate the `p` value when the context is not sampled, since
 `ParentBased` samplers will not change the decision.  Although one
 use-case was docmented in Google's early Dapper system (known as
 "inflationary sampling", see
-https://github.com/open-telemetry/oteps/blob/main/text/trace/0170-sampling-probability.md), the same effect can
+[OTEP 170](https://github.com/open-telemetry/oteps/blob/main/text/trace/0170-sampling-probability.md#dappers-inflationary-sampler)), the same effect can
 be achieved using a consistent sampling decision in this framework.
 
 ### Default behavior
