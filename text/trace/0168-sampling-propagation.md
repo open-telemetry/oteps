@@ -12,7 +12,7 @@ head trace sampling probability associated with a context in order to
 build span-to-metrics pipelines when the built-in `ParentBased`
 Sampler is used.  Further motivation for supporting span-to-metrics
 pipelines is presented in [OTEP
-170](https://github.com/open-telemetry/oteps/pull/170).
+170](https://github.com/open-telemetry/oteps/blob/main/text/trace/0170-sampling-probability.md).
 
 A consistent trace sampling decision is one that can be carried out at
 any node in a trace, which supports collecting partial traces.
@@ -55,7 +55,7 @@ with probability 0, which conveys an adjusted count of 0 for the
 associated context.
 
 When propagated, the "p-value" as it is known will be interpreted as
-shown in the folowing table.  The p-value for known sampling
+shown in the following table.  The p-value for known sampling
 probabilities is the negative base-2 logarithm of the probability,
 offset by +1 to so that the 0 p-value can be treated as unknown (for
 backwards compatibility):
@@ -74,7 +74,7 @@ backwards compatibility):
 | 63      | 0                | Maximum encoded value                                |
 
 [Described in OTEP
-170](https://github.com/open-telemetry/oteps/pull/170), the
+170](https://github.com/open-telemetry/oteps/blob/main/text/trace/0170-sampling-probability.md), the
 `ParentBased` sampler will use the incoming context's p-value as
 specified here to set the span's `log_head_adjusted_count` field.
 
@@ -419,11 +419,11 @@ data to avoid the computational cost of hashing TraceIDs.
 
 Restricting head sampling rates to powers of two does not limit tail
 Samplers from using arbitrary probabilities.  The companion [OTEP
-170](https://github.com/open-telemetry/oteps/pull/170) has discussed
+170](https://github.com/open-telemetry/oteps/blob/main/text/trace/0170-sampling-probability.md) has discussed
 the use of a `sampler.adjusted_count` attribute that would not be
 limited to power-of-two values.  Discussion about how to represent the
 effective adjusted count for tail-sampled Spans belongs in [OTEP
-170](https://github.com/open-telemetry/oteps/pull/170), not this OTEP.
+170](https://github.com/open-telemetry/oteps/blob/main/text/trace/0170-sampling-probability.md), not this OTEP.
 
 Restricting head sampling rates to powers of two does not limit
 Samplers from using arbitrary effective probabilities over a period of
@@ -438,7 +438,7 @@ propagate the `p` value when the context is not sampled, since
 `ParentBased` samplers will not change the decision.  Although one
 use-case was docmented in Google's early Dapper system (known as
 "inflationary sampling", see
-https://github.com/open-telemetry/oteps/pull/170), the same effect can
+https://github.com/open-telemetry/oteps/blob/main/text/trace/0170-sampling-probability.md), the same effect can
 be achieved using a consistent sampling decision in this framework.
 
 ### Default behavior
