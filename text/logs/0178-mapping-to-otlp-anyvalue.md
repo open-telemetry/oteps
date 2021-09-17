@@ -34,24 +34,22 @@ field using decimal representation.
 
 #### Enumerations
 
-Integer values which belong to a limited enumerated set (e.g. to a Java
+Values, which belong to a limited enumerated set (e.g. a Java
 [enum](https://docs.oracle.com/javase/tutorial/java/javaOO/enum.html)) SHOULD be
 converted to AnyValue's
-[int_value](https://github.com/open-telemetry/opentelemetry-proto/blob/38b5b9b6e5257c6500a843f7fdacf89dd95833e8/opentelemetry/proto/common/v1/common.proto#L33)
-field with the value representing enum's associated value when such associated
-value is naturally obtainable.
-
-Values of enumerations which are not associated with integer values (e.g.
-because the ordering of the enumeration is undefined) SHOULD be converted to
-AnyValue's
 [string_value](https://github.com/open-telemetry/opentelemetry-proto/blob/38b5b9b6e5257c6500a843f7fdacf89dd95833e8/opentelemetry/proto/common/v1/common.proto#L31)
-field with the value matching the symbolic name of the enumeration. If the
-symbolic name of the enumeration is not possible to obtain the implementation
-SHOULD map enumeration's value either to
+field with the value of the string set to the symbolic name of the enumeration.
+
+If the symbolic name of the enumeration is not possible to obtain the
+implementation SHOULD map enumeration's value to AnyValue's
 [int_value](https://github.com/open-telemetry/opentelemetry-proto/blob/38b5b9b6e5257c6500a843f7fdacf89dd95833e8/opentelemetry/proto/common/v1/common.proto#L33)
-or to
+field set equal to enum's ordinal number when such ordinal number is naturally
+obtainable.
+
+If the ordinal value is also not possible to obtain the enumeration SHOULD be
+converted to AnyValue's
 [bytes_value](https://github.com/open-telemetry/opentelemetry-proto/blob/38b5b9b6e5257c6500a843f7fdacf89dd95833e8/opentelemetry/proto/common/v1/common.proto#L37)
-in any manner it deems reasonable.
+field in any manner that the implementation deems reasonable.
 
 #### Floating Point Values
 
