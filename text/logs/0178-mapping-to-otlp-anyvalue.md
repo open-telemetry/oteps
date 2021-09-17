@@ -99,22 +99,42 @@ AnyValue's
 field. String Values and Byte Sequences are an exception from this rule (see
 above).
 
-#### Associative Arrays
+#### Associative Arrays With Unique Keys
 
-Values that represent an associative arrays with unique keys (also often known
+Values that represent associative arrays with unique keys (also often known
 as maps, dictionaries or key-value stores) SHOULD be converted to AnyValue's
 [kvlist_value](https://github.com/open-telemetry/opentelemetry-proto/blob/38b5b9b6e5257c6500a843f7fdacf89dd95833e8/opentelemetry/proto/common/v1/common.proto#L36)
 field.
 
 If the keys of the source array are not strings they MUST be converted to
 strings by any means available, often via a toString() or stringify functions
-available in programming languages, ensuring that the uniqueness of the key is
-preserved.
+available in programming languages. The conversion function MUST be chosen in a
+way that ensures that the resulting string keys are unique in the target array.
 
-The elements of the source array SHOULD be converted to AnyValue recursively.
+The value part of each element of the source array SHOULD be converted to
+AnyValue recursively.
 
-If the associative array may contain more than one value for a given key (i.e.
-it is a multimap) the resulting AnyValue's
+For example a JSON object `{"a": 123, "b": "def"}` SHOULD be converted to
+
+```
+AnyValue{
+    kvlist_value:KeyValueList{
+        values:[
+            KeyValue{key:"a",value:AnyValue{int_value:123}},
+            KeyValue{key:"b",value:AnyValue{string_value:"def"}},
+        ]
+    }
+}
+```
+
+#### Associative Arrays With Non-Unique Keys
+
+Values that represent an associative arrays with non-unique keys where multiple values may be associated with the same key (also sometimes known
+as multimaps, multidicts) SHOULD be converted to AnyValue's
+[kvlist_value](https://github.com/open-telemetry/opentelemetry-proto/blob/38b5b9b6e5257c6500a843f7fdacf89dd95833e8/opentelemetry/proto/common/v1/common.proto#L36)
+field.
+
+The resulting
 [kvlist_value](https://github.com/open-telemetry/opentelemetry-proto/blob/38b5b9b6e5257c6500a843f7fdacf89dd95833e8/opentelemetry/proto/common/v1/common.proto#L36)
 field MUST list each key only once and the value of each element of
 [kvlist_value](https://github.com/open-telemetry/opentelemetry-proto/blob/38b5b9b6e5257c6500a843f7fdacf89dd95833e8/opentelemetry/proto/common/v1/common.proto#L36)
@@ -123,6 +143,38 @@ field MUST be an array represented using AnyValue's
 field, each element of the
 [array_value](https://github.com/open-telemetry/opentelemetry-proto/blob/38b5b9b6e5257c6500a843f7fdacf89dd95833e8/opentelemetry/proto/common/v1/common.proto#L35)
 representing one value of source array associated with the given key.
+
+For example an associative array shown in the following table:
+
+|Key|Value|
+|---|---|
+|"abc"|123|
+|"def"|"foo"|
+|"def"|"bar"|
+
+SHOULD be converted to:
+
+```
+AnyValue{
+    kvlist_value:KeyValueList{
+        values:[
+            KeyValue{
+                key:"abc",
+                value:AnyValue{array_value:ArrayValue{values[
+                    AnyValue{int_value:123}
+                ]}}
+            },
+            KeyValue{
+                key:"def",
+                value:AnyValue{array_value:ArrayValue{values[
+                    AnyValue{string_value:"foo"},
+                    AnyValue{string_value:"bar"}
+                ]}}
+            },
+        ]
+    }
+}
+```
 
 ### Other Values
 
