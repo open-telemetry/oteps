@@ -71,8 +71,8 @@ we accelerate the development of the OpenTelemetry protocol while expanding its 
 
 Apache Arrow is a general-purpose in-memory columnar format with a fast serialization and deserialization support. All
 Arrow entities must be defined with a schema. For OpenTelemetry the following Arrow schemas are proposed to map the
-existing entities i.e. metrics, logs and traces. **By fixing these schemas we allow all the participants exporters,
-processors, and consumers to encode and decode efficiently these telemetry streams.** Nothing will prevent a processor
+existing entities i.e. metrics, logs and traces. **By fixing these schemas we allow all the collector components such as receivers,
+processors, and exporters to encode and decode efficiently these telemetry streams.** Nothing will prevent a processor
 supporting this protocol extension to filter, aggregate, project Arrow buffers. To do so, the processor will be able to
 leverage the processing capability of Apache Arrow to directly process in-situ and with minimum of memory copy the
 batches (some Arrow frameworks support SIMD accelerations and SQL data processing).
@@ -87,18 +87,20 @@ implementations (e.g. C++, Java, Rust) in order to get the most out of Arrow (re
 Null values support can be configured per field (third parameter in the field description). When enabled, a validity map
 mechanism is used.
 
->> Please read this documentation to get a complete description of the [Arrow Memory Layout](https://arrow.apache.org/docs/format/Columnar.html#format-columnar).
+> Please read this documentation to get a complete description of the [Arrow Memory Layout](https://arrow.apache.org/docs/format/Columnar.html#format-columnar).
+
+> Notation: For the next 3 sections, the schema definition uses the following notation to declare fields -> Field::new(name, type, nullable)
 
 #### OpenTelemetry metrics to Arrow mapping
 
 This Arrow schema describes the representation of univariate and **multivariate** time-series.
 
-Labels are mapped to a set of dedicated column scoped by the logical struct 'labels'. The list of labels can be easily
+Attributes are mapped to a set of dedicated column scoped by the logical struct 'attributes'. The list of attributes can be easily
 determined from the schema by any participants. Metrics follow the same organization and are scoped by the logical
 struct 'metrics'.
 
-Attributes and exemplars are encoded with a list of structs instead of a struct of fields (columns). This mapping is
-based on the assumption that the number of attributes or exemplars can vary greatly from one measurement point to another
+Exemplars are encoded with a list of structs instead of a struct of fields (columns). This mapping is
+based on the assumption that the number of exemplars can vary greatly from one measurement point to another
 for the same time-series. Arrow encodes this type representation with an offsets buffer and a child/data array.
 If this assumption is not true, another option will be to declare one column per attribute and exemplar with a validity
 bitmap enabled. **This should be validated by experimentation on realistic datasets.**
@@ -112,12 +114,12 @@ Schema::new(vec![
     Field::new("start_time_unix_nano", DataType::UInt64, false),
     Field::new("time_unix_nano", DataType::UInt64, false),
 
-    // Labels
+    // Attributes
     Field::new(
-            "labels",
+            "attributes",
             DataType::Struct(vec![
-                Field::new("label_1", DataType::Utf8, false),
-                Field::new("label_2", DataType::Utf8, false),
+                Field::new("attribute_1", DataType::Utf8, false),
+                Field::new("attribute_2", DataType::Utf8, false),
                 // ...
             ]),
             true,
@@ -135,18 +137,6 @@ Schema::new(vec![
         ]),
         false,
     ),
-
-    // Attributes
-    Field::new("attributes", DataType::List(
-        Box::new(Field::new(
-            "attribute",
-            DataType::Struct(vec![
-                Field::new("name", DataType::Utf8, false),
-                Field::new("value", DataType::Utf8, false),
-            ]),
-            true,
-        ))
-    ), true),
 
     // Exemplars
     Field::new("exemplars", DataType::List(
@@ -176,8 +166,8 @@ Schema::new(vec![
                 Field::new("time_unix_nano", DataType::UInt64, false),
                 // Could be Float64 or Int64
                 Field::new("value", DataType::Float64, false),
-                Field::new("span_id", DataType::Binary, false),
-                Field::new("trace_id", DataType::Binary, false),
+                Field::new("span_id", DataType::Binary, true),
+                Field::new("trace_id", DataType::Binary, true),
             ]),
             true,
         ))
@@ -189,15 +179,8 @@ Schema::new(vec![
 
 This Arrow schema describes the representation of logs.
 
-Labels are mapped to a set of dedicated column scoped by the logical struct 'labels'. The list of labels can be easily
-determined from the schema by any participants. Metrics follow the same organization and are scoped by the logical
-struct 'metrics'.
-
-Attributes with a list of structs instead of a struct of fields (columns). This mapping is based on the assumption that
-the number of attributes can vary greatly from one log entry to another for the same log stream. Arrow encodes this type
-representation with an offsets buffer and a child/data array. If this assumption is not true, another option will be to
-declare one column per attribute with a validity bitmap enabled. **This should be validated by experimentation on
-realistic datasets.**
+Attributes are mapped to a set of dedicated column scoped by the logical struct 'attributes'. The list of attributes can be easily
+determined from the schema by any participants. 
 
 For more details on the Arrow Memory Layout see this [document](https://arrow.apache.org/docs/format/Columnar.html#variable-size-binary-layout).
 
@@ -216,16 +199,15 @@ Schema::new(vec![
     Field::new("trace_id", DataType::Binary, true),
 
     // Attributes
-    Field::new("attributes", DataType::List(
-        Box::new(Field::new(
-            "attribute",
-            DataType::Struct(vec![
-                Field::new("name", DataType::Utf8, false),
-                Field::new("value", DataType::Utf8, false),
-            ]),
-            true,
-        ))
-    ), true),
+    Field::new(
+        "attributes",
+        DataType::Struct(vec![
+            Field::new("attribute_1", DataType::Utf8, false),
+            Field::new("attribute_2", DataType::Utf8, false),
+            // ...
+        ]),
+        true,
+    ),
 ])
 ```
 
@@ -233,9 +215,8 @@ Schema::new(vec![
 
 This Arrow schema describes the representation of traces.
 
-Labels are mapped to a set of dedicated column scoped by the logical struct 'labels'. The list of labels can be easily
-determined from the schema by any participants. Metrics follow the same organization and are scoped by the logical
-struct 'metrics'.
+Attributes are mapped to a set of dedicated column scoped by the logical struct 'attributes'. The list of attributes can be easily
+determined from the schema by any participants. 
 
 Attributes with a list of structs instead of a struct of fields (columns). This mapping is based on the assumption that
 the number of attributes can vary greatly from one log entry to another for the same log stream. Arrow encodes this type
@@ -262,16 +243,15 @@ Schema::new(vec![
     Field::new("kind", DataType::UInt8, false),
 
     // Attributes
-    Field::new("attributes", DataType::List(
-        Box::new(Field::new(
-            "attribute",
-            DataType::Struct(vec![
-                Field::new("name", DataType::Utf8, false),
-                Field::new("value", DataType::Utf8, false),
-            ]),
-            true,
-        ))
-    ), true),
+    Field::new(
+        "attributes",
+        DataType::Struct(vec![
+            Field::new("attribute_1", DataType::Utf8, false),
+            Field::new("attribute_2", DataType::Utf8, false),
+            // ...
+        ]),
+        true,
+    ),
 
     // Events
     Field::new("events", DataType::List(
