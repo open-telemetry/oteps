@@ -22,7 +22,7 @@ enhance the OpenTelemetry protocol when handling columnar encoding.
 its past values but also has some dependency on other variables. A 3 axis accelerometer reporting 3 metrics simultaneously;
 a mouse move that simultaneously reports the values of x and y, a meteorological weather station reporting temperature,
 cloud cover, dew point, humidity and wind speed; an http transaction chararterized by many interrelated metrics sharing
-the same labels are all common examples of multivariate time-series.
+the same attributes are all common examples of multivariate time-series.
 
 This [benchmark](https://github.com/lquerel/otel-multivariate-time-series/blob/main/README2.md) illustrates in detail
 the potential gain we can obtain for a multivariate time-series scenario. To represent different scenarios, this
@@ -34,11 +34,11 @@ Fundamentally metrics, logs and traces are all structured events occurring at a 
 specified time span. Creating an efficient and generic representation for events will benefit the entire OpenTelemetry
 eco-system.
 
-Currently all the OTEL entities are stored in "rows". A metric entity is a protobuf message containing timestamp, labels,
+Currently all the OTEL entities are stored in "rows". A metric entity is a protobuf message containing timestamp, attributes,
 metric value and few other attributes. A batch of metrics behave as a table with multiple rows or metric messages.
 
 Another way to represent the same data is to represent them in columns instead of rows, i.e. a column containing all the
-timestamp, a distinct column per label name, a column for the metric values, and so on. This columnar representation is
+timestamp, a distinct column per attribute name, a column for the metric values, and so on. This columnar representation is
 a proven approach to optimize the creation, size, and processing of data batches. The main benefits of a such approach are:
 
 * better data compression rate (group of similar data)
@@ -153,9 +153,9 @@ Schema::new(vec![
                         true,
                     ))
                 ), true),
-                Field::new("filtered_labels", DataType::List(
+                Field::new("filtered_attributes", DataType::List(
                     Box::new(Field::new(
-                        "label",
+                        "attribute",
                         DataType::Struct(vec![
                             Field::new("name", DataType::Utf8, false),
                             Field::new("value", DataType::Utf8, false),
