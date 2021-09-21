@@ -21,11 +21,12 @@ aims to accomplish this goal but was left incomplete (see a
 [TODO](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#traceidratiobased)
 in the v1.0 Trace specification).
 
-We propose to propagate the necessary information alongside the [W3C
-sampled flag](https://www.w3.org/TR/trace-context/#sampled-flag) using
-`tracestate` with an `otel` vendor tag, which will require
+We propose a Sampler option to propagate the necessary information
+alongside the [W3C sampled flag](https://www.w3.org/TR/trace-context/#sampled-flag) 
+using `tracestate` with an `ot` vendor tag, which will require
 (separately) [specifying how the OpenTelemetry project uses
-`tracestate` itself](https://github.com/open-telemetry/opentelemetry-specification/pull/1852).
+`tracestate`
+itself](https://github.com/open-telemetry/opentelemetry-specification/pull/1852).
 
 ## Explanation
 
@@ -35,10 +36,11 @@ sampling probability:
 1. p-value representing the head trace sampling probability.
 2. r-value representing the "randomness" as the source of consistent sampling decisions.
 
-This proposal uses 6 bits of information for each of these and does
-not depend on built-in TraceID randomness, which is not sufficiently
-specified for probability sampling at this time.  This proposal closely
-follows [research by Otmar Ertl](https://arxiv.org/pdf/2107.07703.pdf).
+This proposal uses 6 bits of information to propagate each of these
+and does not depend on built-in TraceID randomness, which is not
+sufficiently specified for probability sampling at this time.  This
+proposal closely follows [research by Otmar
+Ertl](https://arxiv.org/pdf/2107.07703.pdf).
 
 ### p-value
 
@@ -49,38 +51,39 @@ probabilities to 1/2, 1/4, 1/8, and so on.  We can compactly encode
 these probabilities as small integer values using the base-2 logarithm
 of the adjusted count.
 
-Using six bits of information we can convey unknown and known sampling
-rates as small as 2**-61.  The value 63 is reserved to mean sampling
-with probability 0, which conveys an adjusted count of 0 for the
-associated context.
+Using six bits of information we can convey known sampling rates as
+small as 2**-62.  The value 63 is reserved to mean sampling with
+probability 0, which conveys an adjusted count of 0 for the associated
+context.
 
 When propagated, the "p-value" as it is known will be interpreted as
 shown in the following table.  The p-value for known sampling
-probabilities is the negative base-2 logarithm of the probability,
-offset by +1 to so that the 0 p-value can be treated as unknown (for
-backwards compatibility):
+probabilities is the negative base-2 logarithm of the probability:
 
-| p-value | Head Probability | Note                                                 |
-| -----   | -----------      | ----                                                 |
-| 0       | Unknown          | Do not propagate `p=0`, instead omit from tracestate |
-| 1       | 1                |                                                      |
-| 2       | 1/2              |                                                      |
-| 3       | 1/4              |                                                      |
-| ...     | ...              |                                                      |
-| N       | 2**(-N+1)        | 1 in 2**(N-1)                                        |
-| ...     | ...              |                                                      |
-| 61      | 2**-60           |                                                      |
-| 62      | 2**-61           |                                                      |
-| 63      | 0                | Maximum encoded value                                |
+| p-value | Head Probability |
+| -----   | -----------      |
+| 0       | 1                |
+| 1       | 1/2              |
+| 2       | 1/4              |
+| ...     | ...              |
+| N       | 2**-N            |
+| ...     | ...              |
+| 61      | 2**-61           |
+| 62      | 2**-62           |
+| 63      | 0                |
 
-[Described in OTEP
-170](https://github.com/open-telemetry/oteps/blob/main/text/trace/0170-sampling-probability.md), the
-`ParentBased` sampler will use the incoming context's p-value as
-specified here to set the span's `log_head_adjusted_count` field.
+[As specified in OTEP 170 for the Trace data
+model](https://github.com/open-telemetry/oteps/blob/main/text/trace/0170-sampling-probability.md),
+head sampling probability can be stored in exported Span data to
+enable span-to-metrics pipelines to be built.  Because `tracestate` is
+already encoded in the OpenTelemetry Span, this proposal is requires
+no changes to the Span protocol.  Accepting this proposal means the
+p-value can be derived from `tracesstate` when the head sampling
+probability is known.
 
-The value `p=0` SHOULD NOT be propagated using `tracestate`
-explicitly, because the equivalent interpretation can be obtained by
-omitting `p`.
+An unknown value for `p` cannot be propagated using `tracestate`
+explicitly, simply omitting `p` conveys an unknown head sampling
+probability.
 
 ### r-value
 
@@ -110,25 +113,25 @@ significant two bits are zero.  In general, with exact probability
 this example scenario.
 
 The r-value specified here directly describes the number of leading
-zeros in a random 61-bit string, specified in a way that does not
+zeros in a random 62-bit string, specified in a way that does not
 require TraceID values to be constructed with random bits in specific
 positions or with hard requirements on their uniformity.  In
 mathematical terms, the r-value is described by a truncated geometric
 distribution, listed below:
 
-| `r` Value        | Probability of `r-value` | Implied sampling probabilities |
+| `r` value        | Probability of `r` value | Implied sampling probabilities |
 | ---------------- | ------------------------ | ----------------------         |
 | 0                | 1/2                      | 1                              |
 | 1                | 1/4                      | 1/2 and above                  |
 | 2                | 1/8                      | 1/4 and above                  |
 | 3                | 1/16                     | 1/8 and above                  |
 | ...              | ...                      | ...                            |
-| 0 <= `r` <= 60   | 1/(2**(-`r`-1))          | 2**-`r` and above              |
+| 0 <= r <= 61     | 1/(2**(-r-1))            | 2**(-r) and above              |
 | ...              | ...                      | ...                            |
-| 58               | 2**-59                   | 2**-58 and above               |
 | 59               | 2**-60                   | 2**-59 and above               |
 | 60               | 2**-61                   | 2**-60 and above               |
-| 61               | 2**-61                   | 2**-61 and above               |
+| 61               | 2**-62                   | 2**-61 and above               |
+| 62               | 2**-62                   | 2**-62 and above               |
 
 Such a random variable `r` can be generated using efficient
 instructions on modern computer architectures, for example we may
@@ -147,7 +150,8 @@ func nextRValueLeading() int {
 }
 ```
 
-Or we may compute the number of trailing zeros instead, for example:
+Or we may compute the number of trailing zeros instead, for example
+(not using special instructions):
 
 ```golang
 import (
@@ -179,7 +183,7 @@ probability p-value (`p`) will be propagated using two bytes of base16
 content for each of the two fields, as follows:
 
 ```
-tracestate: otel=p:PP;r:RR
+tracestate: ot=p:PP;r:RR
 ```
 
 where `PP` are two bytes of base16 p-value and `RR` are two bytes of
@@ -193,23 +197,30 @@ chosen because `traceparent` uses base16 encoding.
 
 ### Examples
 
-The following `tracestate` value:
+The following `tracestate` value is accompanied by `sampled=true`:
 
 ```
-tracestate: otel=r:0a;p:03
+tracestate: ot=r:0a;p:03
 ```
 
-translates to
+and translates to
 
 ```
-base16(p-value) = 03 // 1-in-4 head probability
+base16(p-value) = 03 // 1-in-8 head probability
 base16(r-value) = 0a // qualifies for 1-in-1024 or greater probability consistent sampling
 ```
 
-Any `TraceIDRatioBased` Sampler configured with probability 2**-10 or
-greater will enable sampling this trace, whereas any
-`TraceIDRatioBased` Sampler configured with probability 2**-11 or less
-will stop sampling this trace.
+A `ParentBased` Sampler will include `ot=r:0a;p:03` in the stored
+`TraceState` field, allowing consumers to count it as with an adjusted
+count of 8 spans.  The `sampled=true` flag remains set.
+
+A `TraceIDRatioBased` Sampler configured with probability 2**-10 or
+greater will enable `sampled=true` and convey a new head sampling
+probability via `tracestate: ot=r:0a;p:0a`. 
+
+A `TraceIDRatioBased` Sampler configured with probability 2**-11 or
+smaller will set `sampled=false` and remove `p` from the tracestate,
+setting `tracestate: ot=r:0a`.
 
 ## Internal details
 
@@ -236,32 +247,27 @@ If the context is not a new root, output a new `tracestate` with the
 same `r` value as the parent context.
 
 When sampled, in both cases, the context's p-value `p` is set to the
-value of `s+1` in the range [1, 62].  If the sampling probability is
+value of `s` in the range [0, 62].  If the sampling probability is
 zero (the special case where `s` is undefined), use `p=63` the
 specified value for zero probability.
 
-In both cases, set the sampled bit if the outgoing `p` minus one is
-less than or equal to the outgoing `r` (i.e., `p-1 <= r`).
+In both cases, set the sampled bit if the outgoing `p` is less than or
+equal to the outgoing `r` (i.e., `p <= r`).
 
 If the context is not a new root and the incoming context's r-value
 is not set, the implementation SHOULD notify the user of an error
 condition and follow the incoming context's `sampled` flag.
 
-The span's `log_head_adjusted_count` field is set to the outgoing `p`
-unless `r` is unknown, in which case it MUST be set to zero (unknown
-probability).
-
 ### Behavior of the `ParentBased` sampler
 
-The `ParentBased` sampler is modified by this proposal.  It honors
+The `ParentBased` sampler is unmodified by this proposal.  It honors
 the W3C `sampled` flag and copies the incoming `tracestate` keys to
-the child context.
+the child context.  If the incoming context has known head sampling
+probability, so does the Span.
 
-The span's `log_head_adjusted_count` field is set to the incoming
-p-value when both `p` and `r` are defined.  When `r` is not defined,
-the span's `log_head_adjusted_count` MUST be set to 0 indicating
-unknown probability, because the decision cannot be made consistently
-across the trace.
+The span's head probability is known when both `p` and `r` are defined
+are defined in the `ot` sub-key of `tracestate`.  When `r` or `p`
+areis not defined, the span's head sampling probability is unknown.
 
 ### Behavior of the `AlwaysOn` Sampler
 
@@ -279,19 +285,17 @@ The behavior of these tables can be verified by hand using a smaller
 example.  The following table shows how these equations work where
 `r`, `p`, and `s` are limited to 3 bits instead of 6 bits.
 
-Values of `p`, which have the same encoded value and interpretation as
-for the proposed `log_head_adjusted_count` field of OTEP 170, would be
-interpreted as follows:
+Values of `p` are interpreted as follows:
 
 | `p` value | Adjusted count |
 | -----     | -----          |
-| 0         | Unknown        |
-| 1         | 1              |
-| 2         | 2              |
-| 3         | 4              |
-| 4         | 8              |
-| 5         | 16             |
-| 6         | 32             |
+| 0         | 1              |
+| 1         | 2              |
+| 2         | 4              |
+| 3         | 8              |
+| 4         | 16             |
+| 5         | 32             |
+| 6         | 64             |
 | 7         | 0              |
 
 Note there are only 6 non-zero, non-unknown values for the adjusted
@@ -299,22 +303,24 @@ count. Thus there are six defined values of `r` and `s`.  The
 following table shows `r` and the corresponding selection probability,
 along with the calculated adjusted count for each `s`:
 
-| `r` value | probability of `r` | `s=0` | `s=1` | `s=2` | `s=3` | `s=4` | `s=5` |
-| --        | --                 | --    | --    | --    | --    | --    | --    |
-| 0         | 1/2                | 1     | 0     | 0     | 0     | 0     | 0     |
-| 1         | 1/4                | 1     | 2     | 0     | 0     | 0     | 0     |
-| 2         | 1/8                | 1     | 2     | 4     | 0     | 0     | 0     |
-| 3         | 1/16               | 1     | 2     | 4     | 8     | 0     | 0     |
-| 4         | 1/32               | 1     | 2     | 4     | 8     | 16    | 0     |
-| 5         | 1/32               | 1     | 2     | 4     | 8     | 16    | 32    |
+| `r` value | probability of `r` | `s=0` | `s=1` | `s=2` | `s=3` | `s=4` | `s=5` | `s=6` |
+| --        | --                 | --    | --    | --    | --    | --    | --    | --    |
+| 0         | 1/2                | 1     | 0     | 0     | 0     | 0     | 0     | 0     |
+| 1         | 1/4                | 1     | 2     | 0     | 0     | 0     | 0     | 0     |
+| 2         | 1/8                | 1     | 2     | 4     | 0     | 0     | 0     | 0     |
+| 3         | 1/16               | 1     | 2     | 4     | 8     | 0     | 0     | 0     |
+| 4         | 1/32               | 1     | 2     | 4     | 8     | 16    | 0     | 0     |
+| 5         | 1/64               | 1     | 2     | 4     | 8     | 16    | 32    | 0     |
+| 6         | 1/64               | 1     | 2     | 4     | 8     | 16    | 32    | 64    |
 
 Notice that the sum of `r` probability times adjusted count in each of
 the `s=*` columns equals 1.  For example, in the `s=4` column we have
-`0*1/2 + 0*1/4 + 0*1/8 + 0*1/16 + 16*1/32 + 16*1/32 = 16/32 + 16/32 =
-1`.  In the `s=2` column we have `0*1/2 + 0*1/4 + 4*1/8 + 4*1/16 +
-4*1/32 + 4*1/32 = 4/8 + 4/16 + 4/32 + 4/32 = 1/2 + 1/4 + 1/8 + 1/8 =
-1`.  We conclude that when `r` is chosen with the given probabilities,
-any choice of `s` produces one expected span.
+`0*1/2 + 0*1/4 + 0*1/8 + 0*1/16 + 16*1/32 + 16*1/64 + 16*1/64 =
+16/32 + 16/64 + 16/64 = 1`.  In the `s=2` column we have `0*1/2 +
+0*1/4 + 4*1/8 + 4*1/16 + 4*1/32 + 4*1/64 + 4*1/64 = 4/8 + 4/16 +
+4/32 + 4/64 + 4/64 = 1/2 + 1/4 + 1/8 + 1/16 + 1/16 = 1`.  We conclude
+that when `r` is chosen with the given probabilities, any choice of
+`s` produces one expected span.
 
 ## Invariant checking
 
@@ -325,11 +331,11 @@ respect to the incoming and outgoing values for `p`, `r`, and
 | Sampler                | Incoming `r` | Incoming `p` | Incoming `sampled` | Outgoing `r`               | Outgoing `p`               | Outgoing `sampled`         |
 | --                     | --           | --           | --                 | --                         | --                         | --                         |
 | Parent                 | unused       | expected     | respected          | checked and passed through | checked and passed through | checked and passed through |
-| TraceIDRatio(Non-Root) | used         | unused       | ignored            | checked and passed through | set to `s+1`               | set to `p-1 <= r`          |
-| TraceIDRatio(Root)     | n/a          | n/a          | n/a                | random variable            | set to `s+1`               | set to `p-1 <= r`          |
+| TraceIDRatio(Non-Root) | used         | unused       | ignored            | checked and passed through | set to `s`                 | set to `p <= r`          |
+| TraceIDRatio(Root)     | n/a          | n/a          | n/a                | random variable            | set to `s`                 | set to `p <= r`          |
 
-There are several cases where the resulting span's
-`log_head_adjusted_count` is unknown:
+There are several cases where the resulting span's head sampling
+probability is unknown:
 
 | Sampler                | Unknown condition |
 | --                     | --                |
@@ -344,30 +350,28 @@ The inputs are recognized as out-of-range as follows:
 | `p < 0`         | drop `p` from tracestate         |
 | `p > 63`        | drop `p` from tracestate         |
 | `r < 0`         | drop `r` and `p` from tracestate |
-| `r > 61`        | drop `r` and `p` from tracestate |
+| `r > 62`        | drop `r` and `p` from tracestate |
 
 There are cases where the combination of `p` and `r` and `sampled` are
 inconsistent with each other.  The `sampled` flag is equivalent to the
-expression `p - 1 <= r`.  When the invariant `sampled <=> p - 1 <= r`
-is violated, the `ParentBased` sampler MUST correct the propagated
-values as discussed below.
+expression `p <= r`.  When the invariant `sampled <=> p <= r` is
+violated, the `ParentBased` sampler MUST correct the propagated values
+as discussed below.
 
 The violation is always addressed by honoring the `sampled` flag and
-setting `log_head_adjusted_count` to either 0 (Unknown) or 63 (Zero).
+correcting `p` to either 63 (for zero adjusted count) or unset (for
+unknown adjusted count).
 
-If `sampled` is false and the invariant is bilated, drop `p` from the
-outgoing context to convey unknown head probability.  Set
-`log_head_adjusted_count` to 0.
+If `sampled` is false and the invariant is violated, drop `p` from the
+outgoing context to convey unknown head probability.
 
 The case where `sampled` is true with `p=63` indicating 0% probability
 may by regarded as a special case to allow zero adjusted count
 sampling, which permits non-probabilistic sampling to take place in
-the presence of probability sampling.  Set `log_head_adjusted_count`
-to 63.
+the presence of probability sampling.  Set `p` to 63.
 
-If `sampled` is true with `p<63`, drop `p` from the outgoing context
-to convey unknown head probability.  Set `log_head_adjusted_count` to
-0.
+If `sampled` is true with `p<63` (but `p>r`), drop `p` from the
+outgoing context to convey unknown head probability.
 
 ## Prototype
 
@@ -450,5 +454,8 @@ of `r` and the setting and propagating of `p` in the tracestate.  If
 opt-out, users would have to disable these features to turn them off.
 The cost and convenience of Sampling features depend on this choice.
 
-This author's recommendation is that these behaviors be opt-out, i.e.,
-on-by-default.  This decision should not block this OTEP.
+This author's recommendation is that these behaviors be opt-in at
+first in order to demonstrate their usefulness.  If it proves
+successful, an on-by-default approach could be proposed using a
+modified W3C trace context `traceparent`, as this would allow p-values
+to be propagated cheaply.
