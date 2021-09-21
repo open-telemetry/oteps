@@ -25,7 +25,13 @@
       - [`Parent` Sampler](#parent-sampler)
       - [`TraceIDRatio` Sampler](#traceidratio-sampler)
       - [Dapper's "Inflationary" Sampler](#dappers-inflationary-sampler)
-- [Proposed specification text](#proposed-specification-text)
+- [Proposed `Span` protocol](#proposed-span-protocol)
+  * [Span data model changes](#span-data-model-changes)
+  * [Proposed `Sampler` composition rules](#proposed-sampler-composition-rules)
+    + [Composing two consistent probability samplers](#composing-two-consistent-probability-samplers)
+    + [Composing a probability sampler and a non-probability sampler](#composing-a-probability-sampler-and-a-non-probability-sampler)
+    + [Composition rules summary](#composition-rules-summary)
+  * [Proposed `Sampler` interface changes](#proposed-sampler-interface-changes)
 - [Recommended reading](#recommended-reading)
 - [Acknowledgements](#acknowledgements)
 
@@ -567,7 +573,7 @@ trace with adjusted count `1/I`.
 ## Proposed `Span` protocol
 
 Earlier drafts of this document had proposed the use of Span
-attributes to convey a the combined effects of head- and tail-sampling
+attributes to convey the combined effects of head- and tail-sampling
 in the form of an (optional) adjusted count and (optional) sampler
 name.  The group did not reach agreement on whether and/or how to
 convey tail sampling.
@@ -580,49 +586,40 @@ The OTEP 168 proposal for propagation limits head sampling
 probabilities to powers of two, hence we are able to encode the
 corresponding adjusted count using a small non-negative integer.
 
-Interoperability with existing Propagators and Span data means
-recognizing Spans with unknown adjusted count when the new field is
-unset.  Thus, the 0 value shall mean unknown adjusted count.
+The OpenTelemetry Span protocol already includes the Span's
+`tracestate`, which allows consumers to calculate the adjusted count
+of the span by applying the rules specified that proposal to calcualte
+the head sampling probability.
 
-The OTEP 168 proposal for _propagating_ head sampling probability uses
-6 bits of information, with 62 ordinary values, one zero value, and a
-single Unknown value.
-
-Here, we propose a biased encoding for head sampling probability equal
-to 1 plus the `P` value as proposed in OTEP 168.  The proposed span
-field, a biased base-2 logarithm of the adjusted count, is named
-simply `log_head_adjusted_count` and still requires 6 bits of
-information.
+The OTEP 168 proposal for propagating head sampling probability uses 6
+bits of information, with 63 ordinary values and a special zero value.
+When `tracestate` is empty, the `ot` subkey cannnot be found, or the
+`p` value cannot be determined, the head sampling probability is
+considered unknown.
 
 | Value | Head Adjusted Count |
 | ----- | ---------------- |
-| 0 | _Unknown_ |
-| 1 | 1 |
-| 2 | 2 |
-| 3 | 4 |
-| 4 | 8 |
-| 5 | 16 |
-| 6 | 32 |
+| 0 | 1 |
+| 1 | 2 |
+| 2 | 4 |
+| 3 | 8 |
+| 4 | 16 |
 | ... | ... |
-| X | 2^(X-1) |
+| X | 2**X |
 | ... | ... |
-| 62 | 2^61 |
+| 62 | 2**62 |
 | 63 | 0 |
 
 Combined with the proposal for propagating head sampling probability
 in OTEP 168, the result is that Sampling can be enabled in an
-up-to-date system and all Spans, roots and children alike, will have a
-non-zero values in the `log_head_adjusted_count` field.  Consumers of a
-stream of Span data with non-zero values in the `log_head_adjusted_count`
-field can approximately and accurately count Spans using adjusted
-counts.
+up-to-date system and all Spans, roots and children alike, will have
+known adjusted count.  Consumers of a stream of Span data with the
+OTEP 168 `tracestate` value can approximately and accurately count
+Spans by their adjusted count.
 
 ### Span data model changes
 
-The OpenTelemetry trace data "model" is not currently specified in a
-stand-alone way, the way it has been done for logs and metrics.  This
-OTEP calls for the creation of a new `trace/datamodel.md` file to
-capture this sort of specification detail.
+TODO: See https://github.com/open-telemetry/opentelemetry-specification/issues/1932
 
 Addition to the Span data model:
 
@@ -791,50 +788,42 @@ To create a composite Sampler, first express the result of each
 Sampler in terms of the p-value and `sampled` flag.  Note that
 p-values fall into three categories:
 
-1. Unknown p-value (`p=0`) indicates unknown adjusted count
-2. Known non-zero p-value (in the range `[1,62]`) indicates known non-zero adjusted count
+1. Unknown p-value indicates unknown adjusted count
+2. Known non-zero p-value (in the range `[0,62]`) indicates known non-zero adjusted count
 3. Known zero p-value (`p=63`) indicates known zero adjusted count
 
-While non-probability samplers are always return `p=0` and may set
+While non-probability samplers always return unknown `p` and may set
 `sampled=true` or `sampled=false`, a probability sampler is restricted
-to returning either `p∈[1,62]` with `sampled=true` or to returning
+to returning either `p∈[0,62]` with `sampled=true` or to returning
 `p=63` with `sampled=false`.  No individual sampler can return `p=63`
 with `sampled=true`, but this condition MAY result from composition of
-`p=63` and `p=0`.
+`p=63` and unknown `p`.
 
-A composite sampler can be computed by starting with an initial state
-(`p=0`, `sampled=false`) and updating the composite result to the
-value in the table below, where columns are the input state and rows
-are the Sampler decision.
+A composite sampler can be computed using the table below, as follows.
+Although unknown `p` is never encoded in `tracestate`, for the purpose
+of composition we assign unknowns `p=64`, which is 1 beyond the range
+of the 6-bit that represent known p-values.  The assignment of `p=64`
+simplifies the formulas below .
 
-| Composition input<br> \ <br>Sampler decision                                                                                   | Unknown adjusted count<br>(p<sub>0</sub>=0, sampled<sub>1</sub>∈{true,false})  | Known adjusted count<br>(p<sub>0</sub>∈[1,63], sampled<sub>1</sub>∈{true,false})                       |
-| --                                                                                                                             | --                                                                             | --                                                                                                     |
-| <b>Non-probability sampler<br>(p<sub>1</sub>=0, sampled<sub>1</sub>∈{true,false})</b>                                          | p=0, <br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>)           | p=p<sub>0</sub><br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>)                         |
-| <b>Probability sampler<br>(p<sub>1</sub>∈[1,62], sampled<sub>1</sub>=true) or<br>(p<sub>1</sub>=63, sampled<sub>1</sub>=false) | p=p<sub>1</sub><br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>) | p=min(p<sub>0</sub>, p<sub>1</sub>)<br>sampled=logicalOr(sampled<sub>0</sub>, sampled<sub>1</sub>)</b> |
-|                                                                                                                                |                                                                                |                                                                                                        |
-
-### Proposed `Span` field documentation
-
-The following text will be added to the `Span` message in
-`opentelemetry/proto/trace/v1/trace.proto`:
+By folowing these simple rules, any numher of consistent probability
+samplers and non-probability samplers can be combined.  Starting with
+`p=64` representing unknown and `sampled=false`, update the composite
+p-value to the minimum value of the prior composite p-value and the
+individual sampler p-value.
 
 ```
-  // Log-head-adjusted count is the logarithm of adjusted count for
-  // this span as calculated at the head, offset by +1, with the
-  // following recognized values.
-  //
-  // 0: The zero value represents an UNKNOWN adjusted count.
-  //    Consumers of these Spans cannot cannot compute span metrics.
-  //
-  // 1: An adjusted count of 1.
-  //
-  // 2-62: Values 2 through 62 represent an adjusted count of 2^(Value-1)
-  //
-  // 63: Value 63 represents an adjusted count of zero.
-  //
-  // Values greater than 64 are unrecognized.
-  uint32 log_head_adjusted_count = <next_tag>;
+p<sub>out</sub> = min(p<sub>in</sub>, p<sub>sampler</sub)
+sampled<sub>out</sub> = logicalOR(sampled<sub>in</sub>, sampled<sub>sampler</sub)
 ```
+
+The composite sampler is always the logical-OR of the individual
+samplers.  For p-value, this has two effects:
+
+1. When combining two consistent probability samplers, the
+less-selective Sampler's adjusted count is taken.
+2. When combining a consistent probability sampler and a
+non-probability sampler, this has the effect of changing unknown
+adjusted count into known adjusted count.
 
 ### Proposed `Sampler` interface changes
 
@@ -842,17 +831,17 @@ The Trace SDK specification of the `SamplingResult` will be extended
 with a new field to be returned by all Samplers.
 
 ```
-- The sampling probability of the span is encoded as one plus the
-  inverse of head inclusion probability, known as "adjusted count",
-  which is the effective count of the Span for use in Span-to-Metrics
-  pipelines.  The value 0 is used to represent unknown adjusted count,
-  and the value 63 is used to represent known-zero adjusted count.
-  For values >0 and <63, the adjusted count of the Span is
-  2^(value-1), representing power-of-two probabilities between
-  1 and 2^-61.
+- The sampling probability of the span is encoded as the inverse of
+  head inclusion probability, known as "adjusted count", which is the
+  effective count of the Span for use in Span-to-Metrics pipelines.
+  The value 64 is used to represent unknown adjusted count, and the
+  value 63 is used to represent known-zero adjusted count.  For values
+  >=0 and <63, the adjusted count of the Span is 2**value,
+  representing power-of-two probabilities between 1 and 2**-62.
 
   The corresonding `SamplerResult` field SHOULD be named
-  `log_head_adjusted_count` to match the Span data model.
+  `log_head_adjusted_count` because it is the logarithm of the head
+  sampling probability's adjusted count value.
 ```
 
 See [OTEP 168](https://github.com/open-telemetry/oteps/pull/168) for
