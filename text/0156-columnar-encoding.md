@@ -106,6 +106,8 @@ bitmap enabled. **This should be validated by experimentation on realistic datas
 
 For more details on the Arrow Memory Layout see this [document](https://arrow.apache.org/docs/format/Columnar.html#variable-size-binary-layout).
 
+Note: in Arrow schemas, each field declaration is a triplet following this syntax `Field::new(name, type, semantically_nullable)`.
+
 ```rust
 // Multivariate time-series schema declaration
 Schema::new(vec![
