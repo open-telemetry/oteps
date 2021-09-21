@@ -831,13 +831,14 @@ The Trace SDK specification of the `SamplingResult` will be extended
 with a new field to be returned by all Samplers.
 
 ```
-- The sampling probability of the span is encoded as the inverse of
-  head inclusion probability, known as "adjusted count", which is the
-  effective count of the Span for use in Span-to-Metrics pipelines.
-  The value 64 is used to represent unknown adjusted count, and the
-  value 63 is used to represent known-zero adjusted count.  For values
-  >=0 and <63, the adjusted count of the Span is 2**value,
-  representing power-of-two probabilities between 1 and 2**-62.
+- The sampling probability of the span is encoded as the base-2
+  logarithm of inverse head inclusion probability, known as "adjusted
+  count", which is the effective count of the Span for use in
+  Span-to-Metrics pipelines.  The value 64 is used to represent
+  unknown adjusted count, and the value 63 is used to represent
+  known-zero adjusted count.  For values >=0 and <63, the adjusted
+  count of the Span is 2**value, representing power-of-two
+  probabilities between 1 and 2**-62.
 
   The corresonding `SamplerResult` field SHOULD be named
   `log_head_adjusted_count` because it is the logarithm of the head
@@ -845,7 +846,8 @@ with a new field to be returned by all Samplers.
 ```
 
 See [OTEP 168](https://github.com/open-telemetry/oteps/pull/168) for
-details on how each of the built-in Samplers is expected to behave.
+details on how each of the built-in Samplers is expected to set
+`tracestate` for conveying sampling probabilities.
 
 ## Recommended reading
 
