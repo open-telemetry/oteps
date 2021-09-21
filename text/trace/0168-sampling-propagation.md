@@ -431,8 +431,12 @@ effective adjusted count for tail-sampled Spans belongs in [OTEP
 
 Restricting head sampling rates to powers of two does not limit
 Samplers from using arbitrary effective probabilities over a period of
-time.  For example, choosing 1/2 sampling 3/4 of the time and 1/4
-sampling 1/4 of the time leads to an effective sampling rate of 7/16.
+time.  For example, choosing 1/2 sampling or 1/4 in proportion 3:1
+leads to an effective sampling rate
+
+```
+1/2 * 0.75 + 1/4 * 0.25 = 7/16
+```
 
 ### Propagating `p` when unsampled
 
