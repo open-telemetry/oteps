@@ -25,6 +25,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	histogram "github.com/open-telemetry/oteps/text/metrics/0149"
 )
 
 // main prints a table of constants for use in a lookup-table
@@ -159,7 +161,7 @@ var exponentialConstants = [%d]uint64{
 			value,
 			pos,
 			size,
-			math.Float64frombits((uint64(1023)<<52)+value),
+			math.Float64frombits((uint64(histogram.ExponentBias)<<histogram.MantissaWidth)+value),
 		)
 	}
 	fmt.Printf(`}
