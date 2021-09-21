@@ -88,7 +88,6 @@ Null values support can be configured per field (third parameter in the field de
 mechanism is used.
 
 > Please read this documentation to get a complete description of the [Arrow Memory Layout](https://arrow.apache.org/docs/format/Columnar.html#format-columnar).
-
 > Notation: For the next 3 sections, the schema definition uses the following notation to declare fields -> Field::new(name, type, nullable)
 
 #### OpenTelemetry metrics to Arrow mapping
@@ -180,7 +179,7 @@ Schema::new(vec![
 This Arrow schema describes the representation of logs.
 
 Attributes are mapped to a set of dedicated column scoped by the logical struct 'attributes'. The list of attributes can be easily
-determined from the schema by any participants. 
+determined from the schema by any participants.
 
 For more details on the Arrow Memory Layout see this [document](https://arrow.apache.org/docs/format/Columnar.html#variable-size-binary-layout).
 
@@ -216,7 +215,7 @@ Schema::new(vec![
 This Arrow schema describes the representation of traces.
 
 Attributes are mapped to a set of dedicated column scoped by the logical struct 'attributes'. The list of attributes can be easily
-determined from the schema by any participants. 
+determined from the schema by any participants.
 
 Attributes with a list of structs instead of a struct of fields (columns). This mapping is based on the assumption that
 the number of attributes can vary greatly from one log entry to another for the same log stream. Arrow encodes this type
