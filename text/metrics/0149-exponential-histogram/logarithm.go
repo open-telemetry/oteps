@@ -14,7 +14,9 @@
 
 package histogram
 
-import "math"
+import (
+	"math"
+)
 
 // LogarithmMapping is a prototype for OTEP 149.  The Go
 // implementation was copied from a Java prototypes during following
@@ -45,7 +47,7 @@ var _ Base2HistogramMapper = &LogarithmMapping{}
 func NewLogarithmMapping(scale int) *LogarithmMapping {
 	return &LogarithmMapping{
 		scale:       scale,
-		scaleFactor: scalb(math.Log2E, scale),
+		scaleFactor: Scalb(math.Log2E, scale),
 	}
 }
 
@@ -59,7 +61,7 @@ func (l *LogarithmMapping) LowerBoundary(index int64) float64 {
 	// = (2^(2^-scale))^index
 	// = 2^(2^-scale * index)
 	// = 2^(index * 2^-scale))
-	return math.Exp2(scalb(float64(index), -l.scale))
+	return math.Exp2(Scalb(float64(index), -l.scale))
 }
 
 func (l *LogarithmMapping) UpperBoundary(index int64) float64 {

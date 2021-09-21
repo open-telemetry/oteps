@@ -14,7 +14,9 @@
 
 package histogram
 
-import "math"
+import (
+	"math"
+)
 
 const (
 	// MantissaWidth is the size of an IEEE 754 double-precision
@@ -35,18 +37,26 @@ const (
 	// floating point exponent (as distinct from the Mantissa and
 	// sign.
 	ExponentMask = ((1 << ExponentWidth) - 1) << MantissaWidth
+
+	// SignMask selects the sign bit of an IEEE 754 floating point
+	// number.
+	SignMask = (1 << 63)
 )
 
 // java.lang.Math.scalb(float f, int scaleFactor) returns f x
 // 2**scaleFactor, rounded as if performed by a single correctly
 // rounded floating-point multiply to a member of the double value set.
-func scalb(f float64, sf int) float64 {
+func Scalb(f float64, sf int) float64 {
+	if f == 0 {
+		return 0
+	}
 	valueBits := math.Float64bits(f)
 
+	signBit := valueBits & SignMask
 	mantissa := MantissaOnes & valueBits
 
-	exponent := int64((ExponentMask & valueBits) >> MantissaWidth)
+	exponent := (int64(valueBits) & ExponentMask) >> MantissaWidth
 	exponent += int64(sf)
 
-	return math.Float64frombits(uint64(exponent<<MantissaWidth) | mantissa)
+	return math.Float64frombits(signBit | uint64(exponent<<MantissaWidth) | mantissa)
 }
