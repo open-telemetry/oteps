@@ -172,7 +172,7 @@ So following strategies should be supported:
 
 #### Trace API
 
-Proof of concept in Java: https://github.com/lmolkova/opentelemetry-java/pull/1
+[Proof of concept in Java](https://github.com/lmolkova/opentelemetry-java/pull/1)
 
 - introduces a new `SuppressedSpan` implementation. It's almost the same as `PropagatingSpan` (i.e. sampled-out), with the difference that `makeCurrent` is noop
   - `PropagatingSpan` can't be reused since sampling out usually assumes to sample out this and all following downstream spans. Sampled out span becomes current and causes side-effects (span.current().setAttribute()) not compatible with suppression.
@@ -183,7 +183,7 @@ Proof of concept in Java: https://github.com/lmolkova/opentelemetry-java/pull/1
 
 [Instrumentation API in Java implementation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation-api/src/main/java/io/opentelemetry/instrumentation/api/instrumenter/SpanKey.java) with suppression by type.
 
-## Trade-offs and mitigations
+## Trade-offs and mitigation
 
 Trace API change is needed to support native library instrumentations - taking dependency on unstable experimental instrumentation API (or common contrib code) is not a good option.
 
