@@ -11,14 +11,14 @@ This document describes approach for tracing instrumentation layers and suppress
 
 ### Spec changes proposal
 
-- Tracing Semantic Conventions: Each span MUST follow a single (besides general and potentially composite), convention, specific to the call it describes.
+- Tracing Semantic Conventions: Each span MUST follow a single (besides general and potentially composite), convention, specific to the call it describes. It MUST specify it when creating a span.
 - Tracing Semantic Conventions: Client libraries instrumentation MUST make context current to enable correlation with underlying layers of instrumentation
 - Trace API: Add `InstrumentationType` expandable enum with predefined values for known trace conventions (HTTP, RPC, DB, Messaging (see open questions)). *Type* is just a convention name.
 - Trace SDK: Add span creation option to set `InstrumentationType`
-  - During span creation, checks if span should be suppressed (there is another one for kind + type on the parent `Context`) and returns a *suppressed* span, which is
+  - During span creation, checks if span should be suppressed (if there is another one for kind + type on the parent `Context`) and if there is, returns a *suppressed* span, which is
     - non-recording
     - propagating (carries parent context)
-    - does not become current (i.e. `makeCurrent` call with it is noop)
+    - does not become current (i.e. `makeCurrent` call with it is no-op)
 - OTel SDK SHOULD allow suppression strategy configuration
   - suppress nested by kind (e.g. only one CLIENT allowed)
   - suppress nested by kind + convention it follows (only one HTTP CLIENT allowed, but outer DB -> nested HTTP is ok)
