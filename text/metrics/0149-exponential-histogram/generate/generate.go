@@ -80,6 +80,9 @@ func main() {
 	wg.Add(ncpu)
 
 	go func() {
+		// Since this can take a long time to run for large
+		// scales, print a progress report.  This assumes the
+		// job is not suspended...
 		t := time.NewTicker(time.Minute)
 		defer t.Stop()
 
