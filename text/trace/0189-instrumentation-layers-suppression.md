@@ -13,11 +13,11 @@ This document describes approach for tracing instrumentation layers and suppress
 
 - Tracing Semantic Conventions: Each span MUST follow a single (besides general and potentially composite), convention, specific to the call it describes.
 - Tracing Semantic Conventions: Client libraries instrumentation MUST make context current to enable correlation with underlying layers of instrumentation
-- Trace API: Add `InstrumentationType` expendable enum with predefined values for known trace conventions (HTTP, RPC< DB, Messaging(see open questions)). *Type* is just a convention name.
+- Trace API: Add `InstrumentationType` expandable enum with predefined values for known trace conventions (HTTP, RPC, DB, Messaging (see open questions)). *Type* is just a convention name.
 - Trace SDK: Add span creation option to set `InstrumentationType`
-  - During span creation, checks if span should be suppressed (already on the parent `Context`) and returns a *suppressed* span, which is
+  - During span creation, checks if span should be suppressed (there is another one for kind + type on the parent `Context`) and returns a *suppressed* span, which is
     - non-recording
-    - propagating (references parent context)
+    - propagating (carries parent context)
     - does not become current (i.e. `makeCurrent` call with it is noop)
 - OTel SDK SHOULD allow suppression strategy configuration
   - suppress nested by kind (e.g. only one CLIENT allowed)
@@ -65,7 +65,7 @@ At the same time, client library is rarely a thin client and may need its own in
 - connect traces to application code
 - provide extra context:
   - duration of composite operations
-  - overall result of all operation
+  - overall result of composite operation
   - any extra library-specific information not available on transport call span
 
 Both, client library 'logical' and transport 'physical' spans are useful. They also rarely can be combined together because they have 1:many relationship.
@@ -87,12 +87,13 @@ There are two HTTP client spans under DB call, they are children of DB client sp
 
 Duplication is a common issue in auto-instrumentation:
 
-- e.g. HTTP clients frequently are built on top of other HTTP clients, making multiple layers of HTTP spans
+- HTTP clients frequently are built on top of other HTTP clients, making multiple layers of HTTP spans.
+- Web frameworks have multiple layers, and auto-instrumentation is applied to many of them, causing duplicate instrumentation, depending on the app configuration.
 - Libraries may decide to add native instrumentation for common protocols like HTTP or gRPC:
   - to support legacy correlation protocols
-  - to make better decisions failures (e.g. 404, 409)
+  - to make better decisions on failures (e.g. 404, 409)
   - give better library-specific context
-  - support users that can't or don't want to use auto-instrumentation
+  - support users that can't use auto-instrumentation
 
 So what happens in reality without attempts to suppress duplicates:
 
@@ -104,19 +105,19 @@ So what happens in reality without attempts to suppress duplicates:
 
 #### Proposed solution
 
-Disallow multiple layers of the same instrumentation, i.e. above picture translates into:
+Suppress inner layers of the same instrumentation, i.e. above picture translates into:
 
 - HTTP SERVER span (middleware)
   - Controller INTERNAL span
     - HTTP CLIENT call - 1 (Google HTTP client)
 
-To do so, instrumentation:
+To do so, instrumentation declares convention (`InstrumentationType`) when starting a span and SDK:
 
-- checks if span with same kind + type is registered on context already
+- checks if span with same kind + type is present on context already
   - yes: backs off, never starting a span
-  - no: starts a span and registers it on the context
+  - no: starts a span and sets it on the context, e.g. by writing a span on the context under the key (where key is function of kind and type).
 
-Registration is done by writing a span on the context under the key. For this to work between different instrumentations (native and auto), the API to access spans must be in Trace API.
+For this to work between different instrumentations (native and auto), the API to set type must be in Trace API.
 
 ### Configuration
 
