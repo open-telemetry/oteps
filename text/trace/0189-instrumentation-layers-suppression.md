@@ -1,75 +1,61 @@
 # Instrumentation Layers and Suppression
 
-This document describes approach for tracing instrumentation layers, suppressing duplicate layers and unambiguously enriching spans.
+This document describes approach for tracing instrumentation layers and suppressing duplicate layers.
 
 ## Motivation
 
 - Provide clarity for instrumentation layers: e.g. DB calls on top of REST API
 - Give mechanism to suppress instrumentation layers for the same convention: e.g. multiple instrumented HTTP clients using each other.
-- Give mechanism to enrich specific spans unambiguously: e.g. HTTP server span with routing information
 
 ## Explanation
 
 ### Spec changes proposal
 
-- Tracing Semantic Conventions: Each span MUST follow a single (besides general) convention, specific to the call it describes.
-- Trace API: Add `SpanKey` API that
-  - checks if similar span already exists on the context (e.g. `SpanKey.HTTP_CLIENT.exists(context)`)
-  - gets span following specific convention from the context (e.g. `SpanKey.HTTP_CLIENT.fromContextOrNull(context)`).
-- Tracing Semantic Conventions: instrumentation MUST back off if span of same kind and following same contention is already exists on the context by using `SpanKey` API.
+- Tracing Semantic Conventions: Each span MUST follow a single (besides general and potentially composite), convention, specific to the call it describes.
 - Tracing Semantic Conventions: Client libraries instrumentation MUST make context current to enable correlation with underlying layers of instrumentation
+- Trace API: Add `InstrumentationType` expendable enum with predefined values for known trace conventions (HTTP, RPC< DB, Messaging(see open questions)). *Type* is just a convention name.
+- Trace SDK: Add span creation option to set `InstrumentationType`
+  - During span creation, checks if span should be suppressed (already on the parent `Context`) and returns a *suppressed* span, which is
+    - non-recording
+    - propagating (references parent context)
+    - does not become current (i.e. `makeCurrent` call with it is noop)
 - OTel SDK SHOULD allow suppression strategy configuration
   - suppress nested by kind (e.g. only one CLIENT allowed)
   - suppress nested by kind + convention it follows (only one HTTP CLIENT allowed, but outer DB -> nested HTTP is ok)
   - suppress none
 
-Note: some conventions may explicitly include others (e.g. [FaaS](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/faas.md) may include [HTTP](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md)), in this case for the purpose of this document, we assume span follows single convention. Instrumentation should only include explicitly mentioned sub-conventions (except general).
-[General](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/span-general.md) convention attributes are allowed on all spans when applicable.
-
-#### SpanKey API
-
-SpanKey allows to
-
-- read/write span to context
-- check if specific span is on the context
-- encapsulate different suppression strategies
-- define known SpanKey, shared between instrumentations (static singletons):  HTTP, RPC, DB, Messaging.
+Note: some conventions may explicitly include others (e.g. [FaaS](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/faas.md) may include [HTTP](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md)). For the purpose of this document, we assume span follows single convention and instrumentation MUST include explicitly mentioned sub-conventions (except general) only.
+[General](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/span-general.md) convention attributes are allowed on all spans when applicable, pure generic instrumentation are not suppressed.
 
 #### Suppression Example
 
-- HTTP Client 1:
-  - Check if HTTP CLIENT span exists on the context: `SpanKey.HTTP_CLIENT.exists(ctx)`
-  - No HTTP client span on the context:
-    - start span
-    - store span in context: `SpanKey.HTTP_CLIENT.storeInContext(ctx, span)`
-    - Make `ctx` current
-- Http Client 2:
-  - Checks if HTTP CLIENT span is already on the context: `SpanKey.HTTP_CLIENT.exists(Context.current())`
-  - HTTP client span is already there: do not instrument
+- Instrumentation - HTTP Client 1:
+  - starts span
+    - SDK checks if there is a span of the same kind + type on the parent context
+    - there is no similar span
+    - SDK returns new span
+  - stores it in the context (presumably current)
+    - SDK stores span in context behind `ContextKey` which is combination of kind and type (depending on configuration)
+- Instrumentation - HTTP Client 2 (in scope of span1):
+  - [Optional suggestion]: add API to check if span should be started (optimization for power-users)
+  - starts span
+    - SDK checks if there is a span of the same kind + type on the parent context
+    - there is one already
+    - SDK returns suppressed (non-recording, propagating span, it's also never becomes current).
+  - HTTP client continues instrumentation with suppressed span
+    - adds attributes: noop
+    - injects context: duplicate work, since parent context is already injected and suppressed span carries the same context
+    - makes suppressed span current: current is not modified, scope is noop
+- Instrumentation - TLS (imaginary, in scope of span2)
+  - works as if it's in scope of span1
+  - current is span1
+  - if explicit parent was used (span2), it carries span1 context
 
-Suppression logic is configurable and encapsulated in `SpanKey` - specific library instrumentation should not depend on configuration, e.g.:
+Suppression logic is configurable and encapsulated in span builder SDK implementation - specific library instrumentation should not depend on configuration, e.g.:
 
-- suppressing by kind only - context key does not distinguish conventions within kind
-  - `SpanKey.HTTP_CLIENT.exists` returns true if any CLIENT span  is on the context
-  - `SpanKey.HTTP_CLIENT.fromContextOrNull` returns CLIENT span
-  - `SpanKey.HTTP_CLIENT.storeInContext` stores span in CLIENT span context key
-- suppressing by kind + convention - context key is per convention and kind
-  - `SpanKey.HTTP_CLIENT.exists` returns true if HTTP CLIENT span is  on the context
-  - `SpanKey.HTTP_CLIENT.fromContextOrNull` returns HTTP CLIENT span
-  - `SpanKey.HTTP_CLIENT.storeInContext` stores span in CLIENT + convention span context key
+- suppressing by kind only - context key does not distinguish types within kind
+- suppressing by kind + type - context key is per type and kind
 - suppressing none
-  - `SpanKey.HTTP_CLIENT.exists` returns false ignoring context
-  - `SpanKey.HTTP_CLIENT.fromContextOrNull` returns innermost HTTP CLIENT span on the context
-  - `SpanKey.HTTP_CLIENT.storeInContext` stores span in CLIENT + convention span context key
-
-#### Enrichment Example
-
-- HTTP SERVER 1 - middleware/servlet
-  - HTTP INTERNAL 1 - controller
-    - User code that wants to add event/attribute/status to HTTP SERVER span
-    - some internal instrumentation logic that sets route info status and exception ot anything else available after controller span starts.
-  
-Assuming user code uses current context, it will get controller INTERNAL span. In order to enrich HTTP SERVER span, users may use `SpanKey.HTTP_SERVER.fromContextOrNull`.
 
 ## Internal details
 
@@ -126,17 +112,17 @@ Disallow multiple layers of the same instrumentation, i.e. above picture transla
 
 To do so, instrumentation:
 
-- checks if span with same kind + convention is registered on context already
+- checks if span with same kind + type is registered on context already
   - yes: backs off, never starting a span
   - no: starts a span and registers it on the context
 
 Registration is done by writing a span on the context under the key. For this to work between different instrumentations (native and auto), the API to access spans must be in Trace API.
 
-Same mechanism can be used by users/instrumentations to enrich spans, e.g. add route info to HTTP server span (current span is ambiguous)
-
 ### Configuration
 
-Suppression strategy should be configurable:
+Suppression strategy should be configurable on SDK side - instrumentation does not need to know about it.
+
+Configuration is needed since:
 
 - backends don't always support nested CLIENT spans (extra hints needed for Application Map to show outbound connection)
 - users may prefer to reduce verbosity and costs by suppressing spans of same kind
@@ -144,16 +130,61 @@ Suppression strategy should be configurable:
 So following strategies should be supported:
 
 - suppress all nested of same kind
-- suppress all nested of same kind + convention (default?)
+- suppress all nested of same kind + type (default?)
 - suppress none (mostly for debugging instrumentation code and internal observability)
+
+#### Suppression examples: kind and type
+
+- HTTP SERVER
+  - HTTP CLIENT - ok
+
+- HTTP SERVER
+  - HTTP SERVER - suppressed
+
+- HTTP SERVER
+  - MESSAGING CONSUMER - ok // open questions around receive/process
+
+- MESSAGING PRODUCER // open questions around receive/process
+  - HTTP CLIENT - ok
+
+- MESSAGING CLIENT
+  - HTTP CLIENT - ok
+
+#### Suppression examples: kind
+
+- HTTP SERVER
+  - HTTP CLIENT - ok
+
+- HTTP SERVER
+  - HTTP SERVER - suppressed
+
+- HTTP SERVER
+  - MESSAGING CONSUMER - ok
+
+- MESSAGING PRODUCER // open questions around client/producer uncertainty
+  - HTTP CLIENT - ok
+
+- MESSAGING CLIENT
+  - HTTP CLIENT - suppressed
 
 ### Implementation
 
-Here's [Instrumentation API in Java implementation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation-api/src/main/java/io/opentelemetry/instrumentation/api/instrumenter/SpanKey.java) with suppression by convention.
+#### Trace API
+
+Proof of concept in Java: https://github.com/lmolkova/opentelemetry-java/pull/1
+
+- introduces a new `SuppressedSpan` implementation. It's almost the same as `PropagatingSpan` (i.e. sampled-out), with the difference that `makeCurrent` is noop
+  - `PropagatingSpan` can't be reused since sampling out usually assumes to sample out this and all following downstream spans. Sampled out span becomes current and causes side-effects (span.current().setAttribute()) not compatible with suppression.
+- adds extendable `InstrumentationType` and `SpanBuilder.setType(InstrumentationType type)`
+- adds optional optimization `Tracer.shouldStartSpan(name, kind, type)`
+
+#### Instrumentation API
+
+[Instrumentation API in Java implementation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation-api/src/main/java/io/opentelemetry/instrumentation/api/instrumenter/SpanKey.java) with suppression by type.
 
 ## Trade-offs and mitigations
 
-Trace API change is needed to support native library instrumentations - taking dependency on unstable experimental instrumentation API (or common contrib code) is not a good option. Instrumentation API is a good temporary place until we can put it in Trace API, native instrumentation can use reflection to access `SpanKey` in instrumentation API.
+Trace API change is needed to support native library instrumentations - taking dependency on unstable experimental instrumentation API (or common contrib code) is not a good option.
 
 ## Prior art and alternatives
 
@@ -175,6 +206,16 @@ Discussions:
 
 ## Open questions
 
+- Should we suppress by direction (inbound/outbound) instead of kind? Suggestion: let's fix current messaging quirks that cause concern here
+  - Messaging CONSUMER spans (CONSUMER *receive* is a parent of CONSUMER *process* and seem to violate [kind definition](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#spankind))
+    - I'm going to drive changing it in messaging spec (*receive* is normal CLIENT span based on the )
+  - Messaging PRODUCER/CLIENT uncertainty: it's changing, see [Creation and publishing](https://github.com/open-telemetry/oteps/pull/173#discussion_r704737276)
+    - Proposal: They are two different things
+      - Creation is PRODUCER
+      - Publish is CLIENT
+
+- Should we have `Tracer.shouldStart(spanName, kind, type, ?)` or `SpanBuilder.shouldStart()` methods to optimize instrumentation. If it's not called, everything works, just not too efficient
+
 - Backends need hint to separate logical CLIENT spans from physical ones
-- Good default (suppress by kind or kind + convention)
+- Good default (suppress by kind or kind + type). Up to distro + user.
 - Should we have configuration option to never suppress anything
