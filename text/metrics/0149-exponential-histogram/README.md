@@ -2,7 +2,7 @@
 
 ## Logarithm histogram mapper
 
-The file `logarithm.go` demonsrates an implementation of the base-2
+The file `logarithm.go` demonstrates an implementation of the base-2
 exponential histogram based on the built-in logarithm function.
 
 ## LookupTable histogram mapper
