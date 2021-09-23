@@ -20,22 +20,23 @@ import (
 
 const (
 	// MantissaWidth is the size of an IEEE 754 double-precision
-	// floating-point Mantissa.
+	// floating-point mantissa.
 	MantissaWidth = 52
 	// ExponentWidth is the size of an IEEE 754 double-precision
 	// floating-point exponent.
 	ExponentWidth = 11
 
-	// MantissaOnes is MantissaWidth 1 bits
-	MantissaOnes = 1<<MantissaWidth - 1
+	// MantissaMask is the mask for the mantissa of an IEEE 754
+	// double-precision floating-point value.
+	MantissaMask = 1<<MantissaWidth - 1
 
 	// ExponentBias is the exponent bias specified for encoding
 	// the IEEE 754 double-precision floating point exponent.
 	ExponentBias = 1<<(ExponentWidth-1) - 1
 
 	// ExponentMask are set to 1 for the bits of an IEEE 754
-	// floating point exponent (as distinct from the Mantissa and
-	// sign.
+	// floating point exponent (as distinct from the mantissa and
+	// sign).
 	ExponentMask = ((1 << ExponentWidth) - 1) << MantissaWidth
 
 	// SignMask selects the sign bit of an IEEE 754 floating point
@@ -53,7 +54,7 @@ func Scalb(f float64, sf int) float64 {
 	valueBits := math.Float64bits(f)
 
 	signBit := valueBits & SignMask
-	mantissa := MantissaOnes & valueBits
+	mantissa := MantissaMask & valueBits
 
 	exponent := (int64(valueBits) & ExponentMask) >> MantissaWidth
 	exponent += int64(sf)

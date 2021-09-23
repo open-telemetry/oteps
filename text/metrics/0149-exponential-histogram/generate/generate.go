@@ -24,13 +24,27 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	histogram "github.com/open-telemetry/oteps/text/metrics/0149"
 )
 
+var startTime = time.Now()
+
+func runningTime() time.Duration {
+	var usage syscall.Rusage
+	err := syscall.Getrusage(syscall.RUSAGE_SELF, &usage)
+	if err != nil {
+		return time.Since(startTime)
+	}
+	return time.Duration(usage.Utime.Sec+usage.Stime.Sec) * time.Second
+}
+
 // main prints a table of constants for use in a lookup-table
 // implementation of the base2 exponential histogram of OTEP 149.
+//
+// Derived from https://github.com/dynatrace-oss/dynahist/commit/abc6ba2e5b49760247591f9597873d24e01c4374
 //
 // Note: this has exponential time complexity because the number of
 // math/big operations per entry in the table is O(2**scale).
@@ -44,7 +58,7 @@ func main() {
 	}
 
 	var (
-		// size is 2^scale
+		// size is 2**scale
 		size       = int64(1) << scale
 		thresholds = make([]uint64, size)
 
@@ -69,20 +83,18 @@ func main() {
 		}
 		return r
 	}
-	start := time.Now()
 
 	var finished int64
 	var wg sync.WaitGroup
 
-	// Round to a power of two larger than NumCPU
+	// Round to a power of two smaller than NumCPU
 	ncpu := 1 << (64 - bits.LeadingZeros64(uint64(runtime.NumCPU())))
 	percpu := len(thresholds) / ncpu
 	wg.Add(ncpu)
 
 	go func() {
 		// Since this can take a long time to run for large
-		// scales, print a progress report.  This assumes the
-		// job is not suspended...
+		// scales, print a progress report.
 		t := time.NewTicker(time.Minute)
 		defer t.Stop()
 
@@ -92,15 +104,15 @@ func main() {
 				if finished == 0 {
 					continue
 				}
-				elapsed := time.Since(start)
+				elapsed := time.Since(startTime)
+				cpu := runningTime()
 				count := atomic.LoadInt64(&finished)
 				os.Stderr.WriteString(fmt.Sprintf("%d @ %s: %.4f%% complete %s remaining...\n",
 					count,
 					elapsed.Round(time.Minute),
 					100*float64(count)/float64(size),
 					time.Duration(
-						float64(size)*float64(elapsed)/float64(count)-
-							float64(elapsed),
+						(float64(size)*float64(cpu)/float64(count)-float64(cpu))/float64(runtime.NumCPU()),
 					).Round(time.Minute),
 				))
 			}
@@ -114,40 +126,59 @@ func main() {
 				position := cpu*percpu + j
 
 				// whereas (position/size) in the range [0, 1),
-				//   x = 2^(position/size)
+				//   x = 2**(position/size)
 				// falls in the range [1, 2).  Equivalently,
-				// calculate 2^position, then square-root scale times.
+				// calculate 2**position, then square-root scale times.
 				x := pow2(position)
 				for i := 0; i < scale; i++ {
 					x = newf().Sqrt(x)
 				}
 
-				// Compute the integer value in the range [2^52, 2^53)
+				// Compute the integer value in the range [2**52, 2**53)
 				// which is the 52-bit significand of the IEEE float64
-				// as an uint64 value plus 2^52.
+				// as an uint64 value plus 2**52, alternatively the value
+				// x with range [1, 2) times 2**52.
 				scaled := newf().Mul(x, pow2(52))
-				ieeeNormalized := toInt64(scaled) // in the range [2^52, 2^53)
-
+				normed := toInt64(scaled) // in the range [2**52, 2**53)
 				compareTo, _ := pow2(52*int(size) + position).Int(nil)
 
-				large := ipow(ieeeNormalized, size)
+				for {
+					candidate := ipow(normed, size)
+					compare := candidate.Cmp(compareTo)
 
-				if large.Cmp(compareTo) < 0 {
-					ieeeNormalized = newi().Add(ieeeNormalized, onei)
+					if compare == 0 {
+						// perfect!
+						break
+					}
+
+					if compare < 0 {
+						normed = newi().Add(normed, onei)
+						// This happens frequently.
+						continue
+					}
+
+					// ensure that subtracting one
+					// produces a smaller comparision.
+					normedMinus := newi().Sub(normed, onei)
+					candidateMinus := ipow(normedMinus, size)
+					compareMinus := candidateMinus.Cmp(compareTo)
+
+					// If (normed-1)**size is greater than or equal to the
+					// inclusive lower bound
+					if compareMinus >= 0 {
+						// This happens rarely.  First discovered
+						// by running an earlier version of this
+						// program with scale=16.
+						fmt.Println("minus case @", position)
+						normed = normedMinus
+						continue
+					} else {
+						break
+					}
 				}
 
-				thresholds[position] = ieeeNormalized.Uint64() & ((uint64(1) << 52) - 1)
+				thresholds[position] = normed.Uint64() & ((uint64(1) << 52) - 1)
 
-				// Validate that this is the correct result by
-				// subtracting one, ensure that the value is less than
-				// compareTo.
-				sigLessOne := newi().Sub(ieeeNormalized, onei)
-
-				// If (ieeeNormalized-1)^size is greater than or equal to the
-				// inclusive lower bound
-				if ipow(sigLessOne, size).Cmp(compareTo) >= 0 {
-					panic("incorrect result")
-				}
 				atomic.AddInt64(&finished, 1)
 			}
 		}(cpu)
@@ -160,7 +191,7 @@ var exponentialConstants = [%d]uint64{
 `, size)
 
 	for pos, value := range thresholds {
-		fmt.Printf("\t0x%012x, // significand(2^(%d/%d) == %.016g)\n",
+		fmt.Printf("\t0x%012x, // 2**(%d/%d) == %.016g\n",
 			value,
 			pos,
 			size,

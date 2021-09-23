@@ -65,7 +65,7 @@ func NewLookupTableMapping(scale int) *LookupTableMapping {
 func calculateBoundaries(scale int) []uint64 {
 	size := 1 << scale
 
-	if len(exponentialConstants) < size {
+	if len(ExponentialConstants) < size {
 		// See the code in ./printer to precompute larger constant arrays.
 		panic("precomputed boundaries are not available")
 	}
@@ -73,10 +73,10 @@ func calculateBoundaries(scale int) []uint64 {
 	// Note: boundaries is two longer than size to ensure the
 	// `mantissa >= el.boundaries[i+1]` test below is correct.
 	boundaries := make([]uint64, size+2)
-	factor := len(exponentialConstants) / size
+	factor := len(ExponentialConstants) / size
 
 	for i := 0; i < size; i++ {
-		boundaries[i] = exponentialConstants[i*factor]
+		boundaries[i] = ExponentialConstants[i*factor]
 	}
 
 	boundaries[size] = 1 << MantissaWidth
@@ -109,7 +109,7 @@ func (lt *LookupTableMapping) MapToIndex(value float64) int64 {
 
 	// The last 52 bits (bits 0 through 51) of a double are the mantissa.
 	// Get these from the valueBits, which is a bit representation of the double value
-	mantissa := MantissaOnes & valueBits
+	mantissa := MantissaMask & valueBits
 
 	// The bits 52 through 63 are the exponent.
 	// extract the exponent from the bit representation of the double value.
@@ -159,7 +159,7 @@ func (lt *LookupTableMapping) LowerBoundary(index int64) float64 {
 		position += length
 		exponent -= 1
 	}
-	mantissa := lt.boundaries[position] & MantissaOnes
+	mantissa := lt.boundaries[position] & MantissaMask
 	expo := uint64((int64(exponent+ExponentBias) << MantissaWidth))
 	return math.Float64frombits(expo | mantissa)
 }
