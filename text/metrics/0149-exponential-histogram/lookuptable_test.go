@@ -16,6 +16,7 @@ package histogram_test
 
 import (
 	"math/big"
+	"math/rand"
 	"testing"
 
 	histogram "github.com/open-telemetry/oteps/text/metrics/0149"
@@ -56,7 +57,9 @@ func TestBoundariesAreExact(t *testing.T) {
 	input := histogram.ExponentialConstants
 	size := int64(len(input))
 
-	for position := 1; position < len(input); position++ {
+	// Validate 25 random entries.
+	for i := 0; i < 25; i++ {
+		position := rand.Intn(len(input))
 		// x is a 52-bit number representing the mantissa of
 		// the normalized floating point value in the range
 		// [1,2) that is the base-2 logarithm 2^(position/size).
@@ -69,11 +72,12 @@ func TestBoundariesAreExact(t *testing.T) {
 		// Test that the mantissa is unchanged:
 		assert.Equal(t, x, normed.Uint64()&histogram.MantissaMask)
 
-		// normed^size should be greater or equal to compareTo:
+		// normed^size should be greater or equal to the
+		// inclusive lower bound.  Test is (-1 < cmp())
 		assert.Less(t, -1, ipow(normed, size).Cmp(compareTo))
 
-		// If (normed-1)^size is greater than or equal to the
-		// inclusive lower bound
+		// (normed-1)^size should be less than the inclusive
+		// lower bound.  Test is (0 > tmp())
 		assert.Greater(t, 0, ipow(newi().Sub(normed, onei), size).Cmp(compareTo))
 	}
 }

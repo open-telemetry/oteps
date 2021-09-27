@@ -50,6 +50,9 @@ func runningTime() time.Duration {
 // math/big operations per entry in the table is O(2**scale).
 //
 // "generate 12" takes around 5 minutes of CPU time.
+//
+// See https://gist.github.com/jmacd/64031dc003410db6eb3ae04a1db286fd
+// for the table of scale=16 constants (this took 27 cpu-days).
 func main() {
 	scale, err := strconv.Atoi(os.Args[1])
 	if err != nil {
@@ -168,8 +171,7 @@ func main() {
 					if compareMinus >= 0 {
 						// This happens rarely.  First discovered
 						// by running an earlier version of this
-						// program with scale=16.
-						fmt.Println("minus case @", position)
+						// program with scale=16 at position @ 33311.
 						normed = normedMinus
 						continue
 					} else {
@@ -185,13 +187,18 @@ func main() {
 	}
 	wg.Wait()
 
-	fmt.Printf(`package histogram
+	fmt.Printf(`
+package histogram
 
-var exponentialConstants = [%d]uint64{
+// ExponentialConstants is a table of logarithms, exactly computed
+// with 52-bits of precision for use comparing with the significand
+// (i.e., mantissa) of an IEEE 754 double-width floating-point value.
+// See OpenTelemetry OTEP 149 for details on this histogram.
+var ExponentialConstants = [%d]uint64{
 `, size)
 
 	for pos, value := range thresholds {
-		fmt.Printf("\t0x%012x, // 2**(%d/%d) == %.016g\n",
+		fmt.Printf("\t0x%012x,  // 2**(%d/%d) == %.016g\n",
 			value,
 			pos,
 			size,
