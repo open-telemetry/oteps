@@ -406,7 +406,8 @@ as the number of leading zeros among those 61 random bits.
 However, this would require modifying the W3C traceparent specification,
 therefore we do not propose to use bits of the TraceID.
 
-[This issue has been filed with the W3C trace context group.](https://github.com/w3c/trace-context/issues/463)
+See [W3C
+trace context issue 467](https://github.com/w3c/trace-context/issues/467).
 
 ### Not using TraceID hashing
 
@@ -417,7 +418,7 @@ task to define and specify a good enough hashing function, much less
 to have it implemented in multiple languages.
 
 Hashing is also computationally expensive. This proposal uses extra
-data to avoid the computational cost of hashing TraceIDs.
+data to avoid the computational cost of hashing TraceIDs.  
 
 ### Restriction to power-of-two
 
@@ -464,3 +465,9 @@ first in order to demonstrate their usefulness.  If it proves
 successful, an on-by-default approach could be proposed using a
 modified W3C trace context `traceparent`, as this would allow p-values
 to be propagated cheaply.
+
+See [W3C issue trace context issue
+463](https://github.com/w3c/trace-context/issues/463) which is about
+propagating sampling probability in the `traceparent` header, which
+makes it cheap enough to have on-by-default.
+
