@@ -22,7 +22,7 @@ aims to accomplish this goal but was left incomplete (see a
 in the v1.0 Trace specification).
 
 We propose a Sampler option to propagate the necessary information
-alongside the [W3C sampled flag](https://www.w3.org/TR/trace-context/#sampled-flag) 
+alongside the [W3C sampled flag](https://www.w3.org/TR/trace-context/#sampled-flag)
 using `tracestate` with an `ot` vendor tag, which will require
 (separately) [specifying how the OpenTelemetry project uses
 `tracestate`
@@ -216,7 +216,7 @@ count of 8 spans.  The `sampled=true` flag remains set.
 
 A `TraceIDRatioBased` Sampler configured with probability 2**-10 or
 greater will enable `sampled=true` and convey a new head sampling
-probability via `tracestate: ot=r:0a;p:0a`. 
+probability via `tracestate: ot=r:0a;p:0a`.
 
 A `TraceIDRatioBased` Sampler configured with probability 2**-11 or
 smaller will set `sampled=false` and remove `p` from the tracestate,
@@ -418,7 +418,7 @@ task to define and specify a good enough hashing function, much less
 to have it implemented in multiple languages.
 
 Hashing is also computationally expensive. This proposal uses extra
-data to avoid the computational cost of hashing TraceIDs.  
+data to avoid the computational cost of hashing TraceIDs.
 
 ### Restriction to power-of-two
 
@@ -470,4 +470,3 @@ See [W3C issue trace context issue
 463](https://github.com/w3c/trace-context/issues/463) which is about
 propagating sampling probability in the `traceparent` header, which
 makes it cheap enough to have on-by-default.
-
