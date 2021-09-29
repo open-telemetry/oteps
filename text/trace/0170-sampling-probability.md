@@ -424,7 +424,7 @@ information about the parent trace sampling probability through the
 context.  Using the parent trace sampling probability, instead of the
 root, allows individual spans in a trace to control the sampling
 probability of their descendents in a sub-trace that use `ParentBased`
-sampler.  Such techniques are refered to as _parent trace sampling_
+sampler.  Such techniques are referred to as _parent trace sampling_
 techniques.
 
 Parent trace sampling probability may be thought of as the probability
@@ -592,7 +592,7 @@ the parent sampling probability.
 
 The OTEP 168 proposal for propagating parent sampling probability uses 6
 bits of information, with 63 ordinary values and a special zero value.
-When `tracestate` is empty, the `ot` subkey cannnot be found, or the
+When `tracestate` is empty, the `ot` subkey cannot be found, or the
 `p` value cannot be determined, the parent sampling probability is
 considered unknown.
 
@@ -816,7 +816,7 @@ of composition we assign unknowns `p=64`, which is 1 beyond the range
 of the 6-bit that represent known p-values.  The assignment of `p=64`
 simplifies the formulas below .
 
-By folowing these simple rules, any numher of consistent probability
+By following these simple rules, any numher of consistent probability
 samplers and non-probability samplers can be combined.  Starting with
 `p=64` representing unknown and `sampled=false`, update the composite
 p-value to the minimum value of the prior composite p-value and the
