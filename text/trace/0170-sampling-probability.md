@@ -357,15 +357,15 @@ Sampling techniques are always about lowering the cost of data
 collection and analysis, but in trace collection and analysis
 specifically, approaches can be categorized by whether they reduce
 Tracer overhead.  Tracer overhead is reduced by not recording spans
-for unsampled traces and requires making the sampling decision for a
-trace before all of its attributes are known.
+for unsampled traces and requires making the sampling decision at the
+time a new span context is created, sometimes before all of its
+attributes are known.
 
-Traces are expected to be complete, meaning that a tree or sub-tree of
-spans branching from a certain root are expected to be fully
-collected.  When sampling is applied to reduce Tracer overhead, there
-is generally an expectation that complete traces will still be
-produced.  Sampling techniques that lower Tracer overhead and produce
-complete traces are known as _Parent-based trace sampling_ techniques.
+Traces are said to be complete when the all spans that were part of
+the trace are collected.  When sampling is applied to reduce Tracer
+overhead, there is generally an expectation that complete traces will
+still be produced.  Sampling techniques that lower Tracer overhead and
+produce complete traces are known as _Head trace sampling_ techniques.
 
 The decision to produce and collect a sample trace has to be made when
 the root span starts, to avoid incomplete traces.  Then, assuming
@@ -415,12 +415,17 @@ non-root spans.  The cost of indexing and looking up the root span
 adjusted counts makes this analysis relatively expensive to perform in
 real time.
 
-#### Using parent trace probability to count all spans
+#### Using parent trace sampling probability to count all spans
 
 If the W3C `is-sampled` flag will be used to determine whether
 `RECORD_AND_SAMPLE` is returned in a Sampler, then in order to count
 sample spans without first locating the root span requires propagating
-the _parent trace sampling probability_ through the context.
+information about the parent trace sampling probability through the
+context.  Using the parent trace sampling probability, instead of the
+root, allows individual spans in a trace to control the sampling
+probability of their descendents in a sub-trace that use `ParentBased`
+sampler.  Such techniques are refered to as _parent trace sampling_
+techniques.
 
 Parent trace sampling probability may be thought of as the probability
 of causing a child span to be a sampled.  Propagators that maintain
