@@ -42,6 +42,23 @@ sufficiently specified for probability sampling at this time.  This
 proposal closely follows [research by Otmar
 Ertl](https://arxiv.org/pdf/2107.07703.pdf).
 
+### Adjusted count
+
+The concept of adjusted count is introduced in [OTEP
+170](./sampling_probability.md).  Briefly, adjusted count is defined
+in terms of the sampling probability, where:
+
+| Sampling probability | Adjusted count                     | Notes                                                                                                      |
+| --                   | --                                 | --                                                                                                         |
+| `probability` != 0   | `adjusted_count` = `1/probability` | For spans selected with non-zero probability, adjusted count is the inverse of their sampling probability. |
+| `probability` == 0   | `adjusted_count` = 0               | For spans that were not selected by a probability sampler, adjusted count is zero.                         |
+
+The term is used to convey the representivity of an item that was (or
+was not) selected by a probability sampler.  Items that are not
+selected by a probability sampler are logically assigned zero adjusted
+count, such that if they are recorded for any other reason they do not
+introduce bias in the estimated count of the total span population.
+
 ### p-value
 
 To limit the cost of this extension and for statistical reasons
