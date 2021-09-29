@@ -852,7 +852,7 @@ with a new field to be returned by all Samplers.
   probabilities between 1 and 2**-62.
 
   The corresonding `SamplerResult` field SHOULD be named
-  `log_parent_adjusted_count` because it carries the newly-created 
+  `log_adjusted_count` because it carries the newly-created 
   span and child context's adjusted count and is expressed as
   the logarithm of adjusted count for spans selected by a 
   probability Sampler. 
