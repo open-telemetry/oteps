@@ -21,13 +21,22 @@ and thus to ship and use stable instrumentation.
 
 ## Roadmap
 
-| Description | Done By     |
-|-------------|-------------|
-| This OTEP, consisting of scenarios and a proposed roadmap, is approved and merged. | 09/30/2021 |
-| [Stability guarantees](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#not-defined-semantic-conventions-stability) for semantic conventions are approved and merged. This is not strictly related to semantic conventions for messaging but is a prerequisite for stabilizing any semantic conventions. | 09/30/2021 |
-| An OTEP proposing a set of attributes and conventions covering the scenarios in this document is approved and merged. | 10/29/2021 |
-| Proposed specification changes are verified by prototypes for the scenarios and examples below. | 11/15/2021 |
-| The [specification for messaging semantic conventions for tracing](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md) are updated according to the OTEP mentioned above and are declared [stable](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#stable). | 11/30/2021 |
+1. This OTEP, consisting of scenarios and a proposed roadmap, is approved and
+   merged.
+2. [Stability guarantees](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#not-defined-semantic-conventions-stability)
+   for semantic conventions are approved and merged. This is not strictly related
+   to semantic conventions for messaging but is a prerequisite for stabilizing any
+   semantic conventions.
+3. OTEPs proposing a guidance for general instrumentation problems that also
+   pertain to messaging are approved and merged. Those general instrumentation
+   problems include retries and instrumentation layers.
+4. An OTEP proposing a set of attributes and conventions covering the scenarios
+   in this document is approved and merged.
+5. Proposed specification changes are verified by prototypes for the scenarios
+   and examples below.
+6. The [specification for messaging semantic conventions for tracing](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md)
+   are updated according to the OTEP mentioned above and are declared
+   [stable](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#stable).
 
 ## Terminology
 
@@ -95,8 +104,8 @@ Publish -> | INTERMEDIARY | -> Receive
 3. The consumer receives the message from an intermediary.
 4. The consumer processes the message.
 5. The consumer settles the message by notifying the intermediary that the
-   message was processed. In some cases, the message is settled before it is
-   processed, or it is settled automatically when it is received.
+   message was processed. In exceptional cases (fire-and-forget), the
+   settlement stage does not exist.
 
 The semantic conventions need to define how to handle failures and retries in
 all stages that interface with the intermediary: publish, receive and settle.
