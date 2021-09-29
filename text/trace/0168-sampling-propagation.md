@@ -256,20 +256,21 @@ explains how to work with a limited number of power-of-2 sampling rates.
 
 The Sampler MUST be configured with a power-of-two probability
 expressed as `2**-s` with s being an integer in the range [0, 62]
-except for the special case of zero probability.
+except for the special case of zero probability (in which case `p=63`
+is used).
 
 If the context is a new root, the initial `tracestate` must be created
 with randomness value `r`, as described above, in the range [0, 62].
 If the context is not a new root, output a new `tracestate` with the
 same `r` value as the parent context.
 
+In both cases, set the sampled bit if the outgoing `p` is less than or
+equal to the outgoing `r` (i.e., `p <= r`).
+
 When sampled, in both cases, the context's p-value `p` is set to the
 value of `s` in the range [0, 62].  If the sampling probability is
 zero (the special case where `s` is undefined), use `p=63` the
 specified value for zero probability.
-
-In both cases, set the sampled bit if the outgoing `p` is less than or
-equal to the outgoing `r` (i.e., `p <= r`).
 
 If the context is not a new root and the incoming context's r-value
 is not set, the implementation SHOULD notify the user of an error
