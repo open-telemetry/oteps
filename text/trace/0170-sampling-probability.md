@@ -587,7 +587,7 @@ corresponding adjusted count using a small non-negative integer.
 
 The OpenTelemetry Span protocol already includes the Span's
 `tracestate`, which allows consumers to calculate the adjusted count
-of the span by applying the rules specified that proposal to calcualte
+of the span by applying the rules specified that proposal to calculate
 the parent sampling probability.
 
 The OTEP 168 proposal for propagating parent sampling probability uses 6
@@ -618,8 +618,6 @@ Spans by their adjusted count.
 
 ### Span data model changes
 
-TODO: See https://github.com/open-telemetry/opentelemetry-specification/issues/1932
-
 Addition to the Span data model:
 
 ```
@@ -636,6 +634,15 @@ the span for export.
 
 OpenTelemetry supports spans that are "recorded" and not "sampled"
 for "live" observability of spans (e.g., z-pages).
+
+The Sampler interface and the built-in Samplers defined by OpenTelemetry 
+must be capable of deciding immediately whether to sample the child
+context.  The term "sampling" may be used in a more general sense.  
+For example, a reservoir sampling scheme limits the rate of sample items 
+selected over a period of time, but such a scheme necessarily defers its 
+decision making, thus "Sampling" may be applied anywhere on a collection 
+path whereas the "Sampler" API is restricted to logic that can immediately
+decide to sample a trace in side an OpenTelemetry SDK.
 
 #### Parent-based sampling
 
@@ -660,14 +667,19 @@ probability is treated as a special, non-probabilistic case.
 
 #### Consistent probability sampler
 
-A consistent probability sampler is a Sampler that for a configured
-sampling probability will make the same decision as another sampler
-with the same or greater probability.  In OpenTelemetry, consistent
-probability samplers are limited to power-of-two probabilities.
+A consistent probability sampler is a Sampler that supports independent
+sampling decisions at each span in a trace while maintaining that 
+traces will be complete with probability equal to the minimum sampling 
+probability across the trace.  Consistent probability sampling requires
+for a span with lesser sampling probability `probability<sub>1</sub>` 
+and a span with greater sampling probability `probability<sub>2</sub>` 
+if the lesser-probability span is sampled the greater-probability span 
+MUST also be sampled.
 
-Consistent probability sampling is defined in terms of a "p-value"
-and an "r-value", both of which are propagated via the context to assist 
-in making consistent sampling decisions.
+In OpenTelemetry, consistent probability samplers are limited to 
+power-of-two probabilities.  OpenTelemetry consistent probability sampling 
+is defined in terms of a "p-value" and an "r-value", both of which are 
+propagated via the context to assist in making consistent sampling decisions.
 
 ### Always-on sampler
 
@@ -831,7 +843,7 @@ with a new field to be returned by all Samplers.
 
 ```
 - The sampling probability of the span is encoded as the base-2
-  logarithm of inverse parent inclusion probability, known as "adjusted
+  logarithm of inverse parent sampling probability, known as "adjusted
   count", which is the effective count of the Span for use in
   Span-to-Metrics pipelines.  The value 64 is used to represent
   unknown adjusted count, and the value 63 is used to represent
@@ -840,8 +852,10 @@ with a new field to be returned by all Samplers.
   probabilities between 1 and 2**-62.
 
   The corresonding `SamplerResult` field SHOULD be named
-  `log_parent_adjusted_count` because it is the logarithm of the parent
-  sampling probability's adjusted count value.
+  `log_parent_adjusted_count` because it carries the newly-created 
+  span and child context's adjusted count and is expressed as
+  the logarithm of adjusted count for spans selected by a 
+  probability Sampler. 
 ```
 
 See [OTEP 168](https://github.com/open-telemetry/oteps/pull/168) for
