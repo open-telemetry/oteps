@@ -145,7 +145,7 @@ import (
 
 func nextRValueLeading() int {
     x := uint64(rand.Int63()) // 63 least-significant bits are random
-    y := x << 1 | 0x7         // 61 most-significant bits are random
+    y := x << 1 | 0x3         // 62 most-significant bits are random
     return bits.LeadingZeros64(y)
 }
 ```
@@ -160,13 +160,13 @@ import (
 
 func nextRValueTrailing() int {
     x := uint64(rand.Int63())
-    for r := 0; r < 61; r++ {
+    for r := 0; r < 62; r++ {
         if x & 0x1 == 0x1 {
             return r
         }
         x = x >> 1
     }
-    return 61
+    return 62
 }
 ```
 
@@ -238,11 +238,11 @@ explains how to work with a limited number of power-of-2 sampling rates.
 ### Behavior of the `TraceIDRatioBased` Sampler
 
 The Sampler MUST be configured with a power-of-two probability
-expressed as `2**-s` with s being an integer in the range [0, 61]
+expressed as `2**-s` with s being an integer in the range [0, 62]
 except for the special case of zero probability.
 
 If the context is a new root, the initial `tracestate` must be created
-with randomness value `r`, as described above, in the range [0, 61].
+with randomness value `r`, as described above, in the range [0, 62].
 If the context is not a new root, output a new `tracestate` with the
 same `r` value as the parent context.
 
@@ -266,8 +266,8 @@ the child context.  If the incoming context has known head sampling
 probability, so does the Span.
 
 The span's head probability is known when both `p` and `r` are defined
-are defined in the `ot` sub-key of `tracestate`.  When `r` or `p`
-areis not defined, the span's head sampling probability is unknown.
+in the `ot` sub-key of `tracestate`.  When `r` or `p` are not defined,
+the span's head sampling probability is unknown.
 
 ### Behavior of the `AlwaysOn` Sampler
 
@@ -296,31 +296,33 @@ Values of `p` are interpreted as follows:
 | 4         | 16             |
 | 5         | 32             |
 | 6         | 64             |
-| 7         | 0              |
+| 7         | 128            |
+| 8         | 0              |
 
-Note there are only 6 non-zero, non-unknown values for the adjusted
+Note there are only 7 non-zero, non-unknown values for the adjusted
 count. Thus there are six defined values of `r` and `s`.  The
 following table shows `r` and the corresponding selection probability,
 along with the calculated adjusted count for each `s`:
 
-| `r` value | probability of `r` | `s=0` | `s=1` | `s=2` | `s=3` | `s=4` | `s=5` | `s=6` |
-| --        | --                 | --    | --    | --    | --    | --    | --    | --    |
-| 0         | 1/2                | 1     | 0     | 0     | 0     | 0     | 0     | 0     |
-| 1         | 1/4                | 1     | 2     | 0     | 0     | 0     | 0     | 0     |
-| 2         | 1/8                | 1     | 2     | 4     | 0     | 0     | 0     | 0     |
-| 3         | 1/16               | 1     | 2     | 4     | 8     | 0     | 0     | 0     |
-| 4         | 1/32               | 1     | 2     | 4     | 8     | 16    | 0     | 0     |
-| 5         | 1/64               | 1     | 2     | 4     | 8     | 16    | 32    | 0     |
-| 6         | 1/64               | 1     | 2     | 4     | 8     | 16    | 32    | 64    |
+| `r` value | probability of `r` | `s=0` | `s=1` | `s=2` | `s=3` | `s=4` | `s=5` | `s=6` | `s=7` |
+| --        | --                 | --    | --    | --    | --    | --    | --    | --    | --    |
+| 0         | 1/2                | 1     | 0     | 0     | 0     | 0     | 0     | 0     | 0     |
+| 1         | 1/4                | 1     | 2     | 0     | 0     | 0     | 0     | 0     | 0     |
+| 2         | 1/8                | 1     | 2     | 4     | 0     | 0     | 0     | 0     | 0     |
+| 3         | 1/16               | 1     | 2     | 4     | 8     | 0     | 0     | 0     | 0     |
+| 4         | 1/32               | 1     | 2     | 4     | 8     | 16    | 0     | 0     | 0     |
+| 5         | 1/64               | 1     | 2     | 4     | 8     | 16    | 32    | 0     | 0     |
+| 6         | 1/128              | 1     | 2     | 4     | 8     | 16    | 32    | 64    | 0     |
+| 7         | 1/128              | 1     | 2     | 4     | 8     | 16    | 32    | 64    | 128   |
 
 Notice that the sum of `r` probability times adjusted count in each of
 the `s=*` columns equals 1.  For example, in the `s=4` column we have
-`0*1/2 + 0*1/4 + 0*1/8 + 0*1/16 + 16*1/32 + 16*1/64 + 16*1/64 =
-16/32 + 16/64 + 16/64 = 1`.  In the `s=2` column we have `0*1/2 +
-0*1/4 + 4*1/8 + 4*1/16 + 4*1/32 + 4*1/64 + 4*1/64 = 4/8 + 4/16 +
-4/32 + 4/64 + 4/64 = 1/2 + 1/4 + 1/8 + 1/16 + 1/16 = 1`.  We conclude
-that when `r` is chosen with the given probabilities, any choice of
-`s` produces one expected span.
+`0*1/2 + 0*1/4 + 0*1/8 + 0*1/16 + 16*1/32 + 16*1/64 + 16*1/128 +
+16/128 = 1/2 + 1/4 + 1/8 + 1/8 = 1`.  In the `s=2` column we have
+`0*1/2 + 0*1/4 + 4*1/8 + 4*1/16 + 4*1/32 + 4*1/64 + 4*1/128 + 4*1/128
+= 1/2 + 1/4 + 1/8 + 1/16 + 1/32 + 1/32 = 1`.  We conclude that when
+`r` is chosen with the given probabilities, any choice of `s` produces
+one expected span.
 
 ## Invariant checking
 
@@ -360,7 +362,7 @@ as discussed below.
 
 The violation is always addressed by honoring the `sampled` flag and
 correcting `p` to either 63 (for zero adjusted count) or unset (for
-unknown adjusted count).
+unknown parent sampling probability).
 
 If `sampled` is false and the invariant is violated, drop `p` from the
 outgoing context to convey unknown head probability.
@@ -399,9 +401,9 @@ way with respect to the bits of the TraceID.
 
 ### Not using TraceID randomness
 
-It would be possible, if TraceID were specified to have at least 61
+It would be possible, if TraceID were specified to have at least 62
 uniform random bits, to compute the randomness value described above
-as the number of leading zeros among those 61 random bits.
+as the number of leading zeros among those 62 random bits.
 
 However, this would require modifying the W3C traceparent specification,
 therefore we do not propose to use bits of the TraceID.
