@@ -20,8 +20,8 @@
     + [Multiply the adjusted count into the data](#multiply-the-adjusted-count-into-the-data)
   * [Trace Sampling](#trace-sampling)
     + [Counting child spans using root span adjusted counts](#counting-child-spans-using-root-span-adjusted-counts)
-    + [Using head trace probability to count all spans](#using-head-trace-probability-to-count-all-spans)
-    + [Head sampling for traces](#head-sampling-for-traces)
+    + [Using parent trace probability to count all spans](#using-parent-trace-probability-to-count-all-spans)
+    + [Parent sampling for traces](#parent-sampling-for-traces)
       - [`Parent` Sampler](#parent-sampler)
       - [`TraceIDRatio` Sampler](#traceidratio-sampler)
       - [Dapper's "Inflationary" Sampler](#dappers-inflationary-sampler)
@@ -80,7 +80,7 @@ details about the sampling configuration.
 The hypothetical `sampler.adjusted_count` attribute is used throughout
 these examples to demonstrate this concept, although the proposal
 below for OpenTelemetry `Span` messages introduces a dedicated field
-with specific interpretation for conveying head sampling probability.
+with specific interpretation for conveying parent sampling probability.
 
 ### Span sampling
 
@@ -365,7 +365,7 @@ spans branching from a certain root are expected to be fully
 collected.  When sampling is applied to reduce Tracer overhead, there
 is generally an expectation that complete traces will still be
 produced.  Sampling techniques that lower Tracer overhead and produce
-complete traces are known as _Head-based trace sampling_ techniques.
+complete traces are known as _Parent-based trace sampling_ techniques.
 
 The decision to produce and collect a sample trace has to be made when
 the root span starts, to avoid incomplete traces.  Then, assuming
@@ -415,14 +415,14 @@ non-root spans.  The cost of indexing and looking up the root span
 adjusted counts makes this analysis relatively expensive to perform in
 real time.
 
-#### Using head trace probability to count all spans
+#### Using parent trace probability to count all spans
 
 If the W3C `is-sampled` flag will be used to determine whether
 `RECORD_AND_SAMPLE` is returned in a Sampler, then in order to count
 sample spans without first locating the root span requires propagating
-the _head trace sampling probability_ through the context.
+the _parent trace sampling probability_ through the context.
 
-Head trace sampling probability may be thought of as the probability
+Parent trace sampling probability may be thought of as the probability
 of causing a child span to be a sampled.  Propagators that maintain
 this variable MUST obey the rules of conditional probability.  In this
 model, the adjusted count of each span depends on the adjusted count
@@ -431,16 +431,16 @@ counts of all sampled spans is expected to equal the population total
 number of spans.
 
 This applies to other forms of telemetry that happen (i.e., are
-caused) within a context carrying head trace sampling probability.
+caused) within a context carrying parent trace sampling probability.
 For example, we may record log events and metrics exemplars with
-adjusted counts equal to the inverse of the current head trace
+adjusted counts equal to the inverse of the current parent trace
 sampling probability when they are produced.
 
 This technique allows translating spans and logs to metrics without
 first locating their root span, a significant performance advantage
 compared with first collecting and indexing root spans.
 
-Several head sampling techniques are discussed in the following
+Several parent sampling techniques are discussed in the following
 sections and evaluated in terms of their ability to meet all of the
 following criteria:
 
@@ -448,7 +448,7 @@ following criteria:
 - Produces complete traces
 - Spans are countable.
 
-#### Head sampling for traces
+#### Parent sampling for traces
 
 Details about Sampler implementations that meet
 the requirements stated above.
@@ -463,7 +463,7 @@ requires propagating the sampling probability or adjusted count of
 the context in effect when starting child spans.  This is expanded
 upon in [OTEP 168 (WIP)](https://github.com/open-telemetry/oteps/pull/168).
 
-When propagating head sampling probability, spans recorded by the
+When propagating parent sampling probability, spans recorded by the
 `Parent` sampler could encode the adjusted count in the corresponding
 `SpanData` using a Span attribute named `sampler.adjusted_count`.
 
@@ -516,7 +516,7 @@ systems where a high-throughput service on occasion calls a
 low-throughput service.  Low-throughput services are meant to inflate
 their sampling probability.
 
-The use of this technique requires propagating the head inclusion
+The use of this technique requires propagating the parent inclusion
 probability (as discussed for the `Parent` sampler) of the incoming
 Context and whether it was sampled, in order to calculate the
 probability of starting to sample a new "sub-root" in the trace.
@@ -532,7 +532,7 @@ P(x)=P(x|y)*P(y)+P(x|not y)*P(not y)
 
 The variables are:
 
-- **`H`**: The head inclusion probability of the parent context that
+- **`H`**: The parent inclusion probability of the parent context that
   is in effect, independent of whether the parent context was sampled
 - **`I`**: The inflationary sampling probability for the span being
   started.
@@ -566,51 +566,45 @@ D = (I - H) / (1 - H)
 ```
 
 Now the Sampler makes a decision with probability `D`.  Whether the
-decision is true or false, propagate `I` as the new head inclusion
+decision is true or false, propagate `I` as the new parent inclusion
 probability.  If the decision is true, begin recording a sub-rooted
 trace with adjusted count `1/I`.
 
 ## Proposed `Span` protocol
 
-Earlier drafts of this document had proposed the use of Span
-attributes to convey the combined effects of head- and tail-sampling
-in the form of an (optional) adjusted count and (optional) sampler
-name.  The group did not reach agreement on whether and/or how to
-convey tail sampling.
-
-Following the proposal for propagating consistent head trace sampling
+Following the proposal for propagating consistent parent trace sampling
 probability developed in [OTEP
 168](https://github.com/open-telemetry/oteps/pull/168), this proposal
-is limited to adding a field to encode the head sampling probability.
-The OTEP 168 proposal for propagation limits head sampling
+is limited to adding a field to encode the parent sampling probability.
+The OTEP 168 proposal for propagation limits parent sampling
 probabilities to powers of two, hence we are able to encode the
 corresponding adjusted count using a small non-negative integer.
 
 The OpenTelemetry Span protocol already includes the Span's
 `tracestate`, which allows consumers to calculate the adjusted count
 of the span by applying the rules specified that proposal to calcualte
-the head sampling probability.
+the parent sampling probability.
 
-The OTEP 168 proposal for propagating head sampling probability uses 6
+The OTEP 168 proposal for propagating parent sampling probability uses 6
 bits of information, with 63 ordinary values and a special zero value.
 When `tracestate` is empty, the `ot` subkey cannnot be found, or the
-`p` value cannot be determined, the head sampling probability is
+`p` value cannot be determined, the parent sampling probability is
 considered unknown.
 
-| Value | Head Adjusted Count |
-| ----- | ---------------- |
-| 0 | 1 |
-| 1 | 2 |
-| 2 | 4 |
-| 3 | 8 |
-| 4 | 16 |
-| ... | ... |
-| X | 2**X |
-| ... | ... |
-| 62 | 2**62 |
-| 63 | 0 |
+| Value | Parent Adjusted Count |
+| ----- | ----------------      |
+| 0     | 1                     |
+| 1     | 2                     |
+| 2     | 4                     |
+| 3     | 8                     |
+| 4     | 16                    |
+| ...   | ...                   |
+| X     | 2**X                  |
+| ...   | ...                   |
+| 62    | 2**62                 |
+| 63    | 0                     |
 
-Combined with the proposal for propagating head sampling probability
+Combined with the proposal for propagating parent sampling probability
 in OTEP 168, the result is that Sampling can be enabled in an
 up-to-date system and all Spans, roots and children alike, will have
 known adjusted count.  Consumers of a stream of Span data with the
@@ -643,12 +637,12 @@ for "live" observability of spans (e.g., z-pages).
 A Sampler that makes its decision to sample based on the W3C `sampled`
 flag is said to use parent-based sampling.
 
-#### Head sampling
+#### Parent sampling
 
-In a tracing context, Head sampling refers to the initial decision to
+In a tracing context, Parent sampling refers to the initial decision to
 sample a span or a trace, which determines the W3C `sampled` flag of
 the child context.  The OpenTelemetry tracing data model currently
-supports only head sampling.
+supports only parent sampling.
 
 #### Probability sampler
 
@@ -757,7 +751,7 @@ following categories:
 3. Non-probability based (`AlwaysOff`, all other Samplers)
 
 The Parent-based sampler always reduces into one of other two at
-runtime, based on whether the parent context includes known head
+runtime, based on whether the parent context includes known parent
 probability or not.
 
 Here are the rules for combining Sampler decisions from each of these
@@ -832,7 +826,7 @@ with a new field to be returned by all Samplers.
 
 ```
 - The sampling probability of the span is encoded as the base-2
-  logarithm of inverse head inclusion probability, known as "adjusted
+  logarithm of inverse parent inclusion probability, known as "adjusted
   count", which is the effective count of the Span for use in
   Span-to-Metrics pipelines.  The value 64 is used to represent
   unknown adjusted count, and the value 63 is used to represent
@@ -841,7 +835,7 @@ with a new field to be returned by all Samplers.
   probabilities between 1 and 2**-62.
 
   The corresonding `SamplerResult` field SHOULD be named
-  `log_head_adjusted_count` because it is the logarithm of the head
+  `log_parent_adjusted_count` because it is the logarithm of the parent
   sampling probability's adjusted count value.
 ```
 
