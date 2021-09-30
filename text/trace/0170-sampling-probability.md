@@ -670,11 +670,10 @@ probability is treated as a special, non-probabilistic case.
 A consistent probability sampler is a Sampler that supports independent
 sampling decisions at each span in a trace while maintaining that 
 traces will be complete with probability equal to the minimum sampling 
-probability across the trace.  Consistent probability sampling requires
-for a span with lesser sampling probability `probability<sub>1</sub>` 
-and a span with greater sampling probability `probability<sub>2</sub>` 
-if the lesser-probability span is sampled the greater-probability span 
-MUST also be sampled.
+probability across the trace.  Consistent probability sampling requires that 
+for any span in a given trace, if a Sampler with lesser sampling probability 
+selects the span for sampling, then the span would also be selected by a
+Sampler configured with greater sampling probability.
 
 In OpenTelemetry, consistent probability samplers are limited to 
 power-of-two probabilities.  OpenTelemetry consistent probability sampling 
