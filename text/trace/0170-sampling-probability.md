@@ -20,7 +20,7 @@
     + [Multiply the adjusted count into the data](#multiply-the-adjusted-count-into-the-data)
   * [Trace Sampling](#trace-sampling)
     + [Counting child spans using root span adjusted counts](#counting-child-spans-using-root-span-adjusted-counts)
-    + [Using parent trace probability to count all spans](#using-parent-trace-probability-to-count-all-spans)
+    + [Using parent sampling probability to count all spans](#using-parent-sampling-probability-to-count-all-spans)
     + [Parent sampling for traces](#parent-sampling-for-traces)
       - [`Parent` Sampler](#parent-sampler)
       - [`TraceIDRatio` Sampler](#traceidratio-sampler)
@@ -415,19 +415,19 @@ non-root spans.  The cost of indexing and looking up the root span
 adjusted counts makes this analysis relatively expensive to perform in
 real time.
 
-#### Using parent trace sampling probability to count all spans
+#### Using parent sampling probability to count all spans
 
 If the W3C `is-sampled` flag will be used to determine whether
 `RECORD_AND_SAMPLE` is returned in a Sampler, then in order to count
 sample spans without first locating the root span requires propagating
-information about the parent trace sampling probability through the
-context.  Using the parent trace sampling probability, instead of the
+information about the parent sampling probability through the
+context.  Using the parent sampling probability, instead of the
 root, allows individual spans in a trace to control the sampling
 probability of their descendents in a sub-trace that use `ParentBased`
-sampler.  Such techniques are referred to as _parent trace sampling_
+sampler.  Such techniques are referred to as _parent sampling_
 techniques.
 
-Parent trace sampling probability may be thought of as the probability
+Parent sampling probability may be thought of as the probability
 of causing a child span to be a sampled.  Propagators that maintain
 this variable MUST obey the rules of conditional probability.  In this
 model, the adjusted count of each span depends on the adjusted count
@@ -436,10 +436,10 @@ counts of all sampled spans is expected to equal the population total
 number of spans.
 
 This applies to other forms of telemetry that happen (i.e., are
-caused) within a context carrying parent trace sampling probability.
-For example, we may record log events and metrics exemplars with
-adjusted counts equal to the inverse of the current parent trace
-sampling probability when they are produced.
+caused) within a context carrying parent sampling probability.  For
+example, we may record log events and metrics exemplars with adjusted
+counts equal to the inverse of the current parent sampling probability
+when they are produced.
 
 This technique allows translating spans and logs to metrics without
 first locating their root span, a significant performance advantage
@@ -577,7 +577,7 @@ trace with adjusted count `1/I`.
 
 ## Proposed `Span` protocol
 
-Following the proposal for propagating consistent parent trace sampling
+Following the proposal for propagating consistent parent sampling
 probability developed in [OTEP
 168](https://github.com/open-telemetry/oteps/pull/168), this proposal
 is limited to adding a field to encode the parent sampling probability.
