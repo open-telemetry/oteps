@@ -1,14 +1,14 @@
-# Propagate parent trace sampling probability
+# Propagate parent sampling probability
 
-Use the W3C trace context to convey consistent parent trace sampling probability.
+Use the W3C trace context to convey consistent parent sampling probability.
 
 ## Motivation
 
-The parent trace sampling probability is the probability associated with
+The parent sampling probability is the probability associated with
 the start of a trace context that was used to determine whether the
 W3C `sampled` flag is set, which determines whether child contexts
 will be sampled by a `ParentBased` Sampler.  It is useful to know the
-parent trace sampling probability associated with a context in order to
+parent sampling probability associated with a context in order to
 build span-to-metrics pipelines when the built-in `ParentBased`
 Sampler is used.  Further motivation for supporting span-to-metrics
 pipelines is presented in [OTEP
@@ -30,10 +30,9 @@ itself](https://github.com/open-telemetry/opentelemetry-specification/pull/1852)
 
 ## Explanation
 
-Two pieces of information are needed to convey consistent parent trace
-sampling probability:
+Two pieces of information are needed to convey consistent parent sampling probability:
 
-1. p-value representing the parent trace sampling probability.
+1. p-value representing the parent sampling probability.
 2. r-value representing the "randomness" as the source of consistent sampling decisions.
 
 This proposal uses 6 bits of information to propagate each of these
@@ -62,8 +61,8 @@ introduce bias in the estimated count of the total span population.
 ### p-value
 
 To limit the cost of this extension and for statistical reasons
-documented below, we propose to limit parent trace sampling probability
-to powers of two.  This limits the available parent trace sampling
+documented below, we propose to limit parent sampling probability
+to powers of two.  This limits the available parent sampling
 probabilities to 1/2, 1/4, 1/8, and so on.  We can compactly encode
 these probabilities as small integer values using the base-2 logarithm
 of the adjusted count.
@@ -104,7 +103,7 @@ probability.
 
 ### r-value
 
-With parent trace sampling probabilities limited to powers of two, the
+With parent sampling probabilities limited to powers of two, the
 amount of randomness needed per trace context is limited.  A
 consistent sampling decision is accomplished by propagating a specific
 random variable known as the r-value.
@@ -223,7 +222,7 @@ tracestate: ot=r:0a;p:03
 and translates to
 
 ```
-base16(p-value) = 03 // 1-in-8 parent probability
+base16(p-value) = 03 // 1-in-8 parent sampling probability
 base16(r-value) = 0a // qualifies for 1-in-1024 or greater probability consistent sampling
 ```
 
@@ -283,9 +282,9 @@ the W3C `sampled` flag and copies the incoming `tracestate` keys to
 the child context.  If the incoming context has known parent sampling
 probability, so does the Span.
 
-The span's parent probability is known when both `p` and `r` are defined
-in the `ot` sub-key of `tracestate`.  When `r` or `p` are not defined,
-the span's parent sampling probability is unknown.
+The span's parent sampling probability is known when both `p` and `r`
+are defined in the `ot` sub-key of `tracestate`.  When `r` or `p` are
+not defined, the span's parent sampling probability is unknown.
 
 ### Behavior of the `AlwaysOn` Sampler
 
@@ -314,33 +313,30 @@ Values of `p` are interpreted as follows:
 | 4         | 16             |
 | 5         | 32             |
 | 6         | 64             |
-| 7         | 128            |
-| 8         | 0              |
+| 7         | 0              |
 
-Note there are only 7 non-zero, non-unknown values for the adjusted
-count. Thus there are six defined values of `r` and `s`.  The
-following table shows `r` and the corresponding selection probability,
-along with the calculated adjusted count for each `s`:
+Note there are only 7 known non-zero values for the adjusted count
+ranging from 1 to 64. Thus there are six defined values of `r` and
+`s`.  The following table shows `r` and the corresponding selection
+probability, along with the calculated adjusted count for each `s`:
 
-| `r` value | probability of `r` | `s=0` | `s=1` | `s=2` | `s=3` | `s=4` | `s=5` | `s=6` | `s=7` |
-| --        | --                 | --    | --    | --    | --    | --    | --    | --    | --    |
-| 0         | 1/2                | 1     | 0     | 0     | 0     | 0     | 0     | 0     | 0     |
-| 1         | 1/4                | 1     | 2     | 0     | 0     | 0     | 0     | 0     | 0     |
-| 2         | 1/8                | 1     | 2     | 4     | 0     | 0     | 0     | 0     | 0     |
-| 3         | 1/16               | 1     | 2     | 4     | 8     | 0     | 0     | 0     | 0     |
-| 4         | 1/32               | 1     | 2     | 4     | 8     | 16    | 0     | 0     | 0     |
-| 5         | 1/64               | 1     | 2     | 4     | 8     | 16    | 32    | 0     | 0     |
-| 6         | 1/128              | 1     | 2     | 4     | 8     | 16    | 32    | 64    | 0     |
-| 7         | 1/128              | 1     | 2     | 4     | 8     | 16    | 32    | 64    | 128   |
+| `r` value | probability of `r` | `s=0` | `s=1` | `s=2` | `s=3` | `s=4` | `s=5` | `s=6` |
+| --        | --                 | --    | --    | --    | --    | --    | --    | --    |
+| 0         | 1/2                | 1     | 0     | 0     | 0     | 0     | 0     | 0     |
+| 1         | 1/4                | 1     | 2     | 0     | 0     | 0     | 0     | 0     |
+| 2         | 1/8                | 1     | 2     | 4     | 0     | 0     | 0     | 0     |
+| 3         | 1/16               | 1     | 2     | 4     | 8     | 0     | 0     | 0     |
+| 4         | 1/32               | 1     | 2     | 4     | 8     | 16    | 0     | 0     |
+| 5         | 1/64               | 1     | 2     | 4     | 8     | 16    | 32    | 0     |
+| 6         | 1/64               | 1     | 2     | 4     | 8     | 16    | 32    | 64    |
 
 Notice that the sum of `r` probability times adjusted count in each of
 the `s=*` columns equals 1.  For example, in the `s=4` column we have
-`0*1/2 + 0*1/4 + 0*1/8 + 0*1/16 + 16*1/32 + 16*1/64 + 16*1/128 +
-16/128 = 1/2 + 1/4 + 1/8 + 1/8 = 1`.  In the `s=2` column we have
-`0*1/2 + 0*1/4 + 4*1/8 + 4*1/16 + 4*1/32 + 4*1/64 + 4*1/128 + 4*1/128
-= 1/2 + 1/4 + 1/8 + 1/16 + 1/32 + 1/32 = 1`.  We conclude that when
-`r` is chosen with the given probabilities, any choice of `s` produces
-one expected span.
+`0*1/2 + 0*1/4 + 0*1/8 + 0*1/16 + 16*1/32 + 16*1/64 + 16*1/64 = 1/2 +
+1/4 + 1/4 = 1`.  In the `s=2` column we have `0*1/2 + 0*1/4 + 4*1/8 +
+4*1/16 + 4*1/32 + 4*1/64 + 4*1/64 = 1/2 + 1/4 + 1/8 + 1/16 + 1/16 = 1`.
+We conclude that when `r` is chosen with the given probabilities,
+any choice of `s` produces one expected span.
 
 ## Invariant checking
 
@@ -383,7 +379,7 @@ correcting `p` to either 63 (for zero adjusted count) or unset (for
 unknown parent sampling probability).
 
 If `sampled` is false and the invariant is violated, drop `p` from the
-outgoing context to convey unknown parent probability.
+outgoing context to convey unknown parent sampling probability.
 
 The case where `sampled` is true with `p=63` indicating 0% probability
 may by regarded as a special case to allow zero adjusted count
@@ -391,7 +387,7 @@ sampling, which permits non-probabilistic sampling to take place in
 the presence of probability sampling.  Set `p` to 63.
 
 If `sampled` is true with `p<63` (but `p>r`), drop `p` from the
-outgoing context to convey unknown parent probability.
+outgoing context to convey unknown parent sampling probability.
 
 ## Prototype
 
@@ -442,7 +438,7 @@ data to avoid the computational cost of hashing TraceIDs.
 
 ### Restriction to power-of-two
 
-Restricting parent sampling rates to powers of two does not limit tail
+Restricting parent sampling probabilities to powers of two does not limit tail
 Samplers from using arbitrary probabilities.  The companion [OTEP
 170](https://github.com/open-telemetry/oteps/blob/main/text/trace/0170-sampling-probability.md) has discussed
 the use of a `sampler.adjusted_count` attribute that would not be
@@ -450,7 +446,7 @@ limited to power-of-two values.  Discussion about how to represent the
 effective adjusted count for tail-sampled Spans belongs in [OTEP
 170](https://github.com/open-telemetry/oteps/blob/main/text/trace/0170-sampling-probability.md), not this OTEP.
 
-Restricting parent sampling rates to powers of two does not limit
+Restricting parent sampling probabilities to powers of two does not limit
 Samplers from using arbitrary effective probabilities over a period of
 time.  For example, a typical trace sampling rate of 5% (i.e., 1 in
 20) can be accomplished by choosing 1/16 sampling 60% of the time and
