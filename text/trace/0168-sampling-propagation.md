@@ -315,10 +315,11 @@ Values of `p` are interpreted as follows:
 | 6         | 64             |
 | 7         | 0              |
 
-Note there are only 7 known non-zero values for the adjusted count
-ranging from 1 to 64. Thus there are six defined values of `r` and
-`s`.  The following table shows `r` and the corresponding selection
-probability, along with the calculated adjusted count for each `s`:
+Note there are only seven known non-zero values for the adjusted count
+(`p`) ranging from 1 to 64. Thus there are seven defined values of `r`
+and `s`.  The following table shows `r` and the corresponding
+selection probability, along with the calculated adjusted count for
+each `s`:
 
 | `r` value | probability of `r` | `s=0` | `s=1` | `s=2` | `s=3` | `s=4` | `s=5` | `s=6` |
 | --        | --                 | --    | --    | --    | --    | --    | --    | --    |
