@@ -107,8 +107,11 @@ Publish -> | INTERMEDIARY | -> Receive
    message was processed. In exceptional cases (fire-and-forget), the
    settlement stage does not exist.
 
-The semantic conventions need to define how to handle failures and retries in
-all stages that interface with the intermediary: publish, receive and settle.
+The messaging semantic conventions need to define how to model those stages in
+traces, how to propagate context, and how to enrich traces with attributes.
+Failures and retries need to be handled in all stages that interface with the
+intermediary (publish, receive and settle) and will be covered by general
+instrumentation guidance.
 
 Based on this model, the following scenarios capture major requirements and
 can be used for prototyping, as examples, and as test cases.
@@ -118,7 +121,8 @@ can be used for prototyping, as examples, and as test cases.
 Individual settlement systems imply independent logical message flows. A single
 message is created and published in the same context, and it's delivered,
 consumed, and settled as a single entity. Each message needs to be settled
-individually.
+individually. Usually settlement information is stored by the intermediary, not
+by the consumer.
 
 Transport batching can be treated as a special case: messages can be
 transported together as an optimization, but are produced and consumed
@@ -140,7 +144,8 @@ individually.
 Messages are processed as a stream and settled to specific checkpoints. A
 checkpoint points to a position of the stream up to which messages were
 processed and settled. Messages cannot be settled individually, instead, the
-checkpoint needs to be forwarded.
+checkpoint needs to be forwarded. Usually the consumer is responsible for
+storing checkpointing information, not the intermediary.
 
 Checkpoint-based settlement systems are designed to efficiently receive and
 settle batches of messages. However, it is not possible to settle messages
@@ -188,6 +193,11 @@ set of traces that covers the complete path a message takes.
 Solving this problem requires a solution for sampling based on span links,
 which is not in scope for this OTEP.
 
+However, having a too high number of span links in a single trace or having too
+many traces linked together can make visualization and analysis of traces
+inefficient. This problem is not related to sampling and needs to be addressed
+by the semantic conventions.
+
 ### Instrumenting intermediaries
 
 Instrumenting intermediaries can be valuable for debugging configuration or
@@ -208,9 +218,10 @@ Messaging semantic conventions are not meant for instrumenting in-memory queues
 and channels but are intended for inter-application systems. In-memory queues
 and channels exist in many variations which can be very different from
 inter-application messaging systems, furthermore, requirements for the analysis
-and visualization of distributed traces are different. For those reasons, it
-makes sense to treat both concepts differently in the context of distributed
-tracing.
+and visualization of distributed traces are different. While the semantic
+conventions might be used to instrument in-memory queues or channels which
+mimic the architecture of inter-application messaging systems, generally
+supporting in-memory queues or channels is considered out of scope.
 
 ## Further reading
 
