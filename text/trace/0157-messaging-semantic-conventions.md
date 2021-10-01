@@ -28,7 +28,7 @@ and thus to ship and use stable instrumentation.
    for semantic conventions are approved and merged. This is not strictly related
    to semantic conventions for messaging but is a prerequisite for stabilizing any
    semantic conventions.
-3. OTEPs proposing a guidance for general instrumentation problems that also
+3. OTEPs proposing guidance for general instrumentation problems that also
    pertain to messaging are approved and merged. Those general instrumentation
    problems include retries and instrumentation layers.
 4. An OTEP proposing a set of attributes and conventions covering the scenarios
@@ -122,7 +122,7 @@ can be used for prototyping, as examples, and as test cases.
 Individual settlement systems imply independent logical message flows. A single
 message is created and published in the same context, and it's delivered,
 consumed, and settled as a single entity. Each message needs to be settled
-individually. Usually settlement information is stored by the intermediary, not
+individually. Usually, settlement information is stored by the intermediary, not
 by the consumer.
 
 Transport batching can be treated as a special case: messages can be
@@ -145,7 +145,7 @@ individually.
 Messages are processed as a stream and settled to specific checkpoints. A
 checkpoint points to a position of the stream up to which messages were
 processed and settled. Messages cannot be settled individually, instead, the
-checkpoint needs to be forwarded. Usually the consumer is responsible for
+checkpoint needs to be forwarded. Usually, the consumer is responsible for
 storing checkpointing information, not the intermediary.
 
 Checkpoint-based settlement systems are designed to efficiently receive and
@@ -195,7 +195,7 @@ Solving this problem requires a solution for sampling based on span links,
 which is not in scope for this OTEP.
 
 However, having a too high number of span links in a single trace or having too
-many traces linked together can make visualization and analysis of traces
+many traces linked together can make the visualization and analysis of traces
 inefficient. This problem is not related to sampling and needs to be addressed
 by the semantic conventions.
 
