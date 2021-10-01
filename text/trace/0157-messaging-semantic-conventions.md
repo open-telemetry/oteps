@@ -49,13 +49,13 @@ platforms and systems.
 
 ### Message
 
-A "message" is a transport wrapper for the transfer of information. The
-information is a combination of data and metadata.  Messages may be transferred
-directly between parties or via one or more intermediaries.  A message may
-carry annotations that are directed at intermediaries on the message path.
-Messages are uniquely identifiable.
+A "message" is a transport envelope for the transfer of information. The
+information is a combination of a payload and metadata.  Messages may be
+transferred directly between parties or via one or more intermediaries.  A
+message may carry annotations that are directed at intermediaries on the
+message path.  Messages are uniquely identifiable.
 
-In the strict sense, a _message_ is an item of data that is sent to a specific
+In the strict sense, a _message_ is a payload that is sent to a specific
 destination, whereas an _event_ is a signal emitted by a component upon
 reaching a given state. This document is agnostic of those differences and uses
 the term "message" in a wider sense to cover both concepts.
