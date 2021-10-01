@@ -9,10 +9,11 @@ end of 2021.
 
 ## Motivation
 
-Many observability scenarios involve messaging systems. For Distributed Tracing
-to be useful across the entire scenario, having good observability for
-messaging operations is critical. To achieve this, OpenTelemetry must provide
-stable conventions and guidelines for instrumenting messaging systems.
+Many observability scenarios involve messaging systems, event streaming, or
+event-driven architectures. For Distributed Tracing to be useful across the
+entire scenario, having good observability for messaging or eventing operations
+is critical. To achieve this, OpenTelemetry must provide stable conventions and
+guidelines for instrumenting those operations.
 
 Bringing the existing experimental semantic conventions for messaging to a
 stable state is a crucial step for users and instrumentation authors, as it
