@@ -44,7 +44,7 @@ Ertl](https://arxiv.org/pdf/2107.07703.pdf).
 ### Adjusted count
 
 The concept of adjusted count is introduced in [OTEP
-170](./sampling_probability.md).  Briefly, adjusted count is defined
+170](./0170-sampling_probability.md).  Briefly, adjusted count is defined
 in terms of the sampling probability, where:
 
 | Sampling probability | Adjusted count                     | Notes                                                                                                      |
