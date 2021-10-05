@@ -94,7 +94,7 @@ parent sampling probability can be stored in exported Span data to
 enable span-to-metrics pipelines to be built.  Because `tracestate` is
 already encoded in the OpenTelemetry Span, this proposal is requires
 no changes to the Span protocol.  Accepting this proposal means the
-p-value can be derived from `tracesstate` when the parent sampling
+p-value can be derived from `tracestate` when the parent sampling
 probability is known.
 
 An unknown value for `p` cannot be propagated using `tracestate`
