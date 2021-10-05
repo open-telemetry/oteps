@@ -29,6 +29,25 @@ and thus to ship and use stable instrumentation.
 | Proposed specification changes are verified by prototypes for the scenarios and examples below. | 11/15/2021 |
 | The [specification for HTTP semantic conventions for tracing](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md) is fully updated according to this OTEP and declared [stable](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#stable). | 11/30/2021 |
 
+## General concepts
+
+There are several general OpenTelemetry open questions exist today:
+
+* What does a config language look like for overriding certain defaults.
+  For example, what HTTP status codes count as errors?
+* How to handle additional levels of detail for spans, such as retries and
+  redirects?
+  Should it even be designed as levels of detail or as layers reflecting logical
+  or physical interactions/transactions.
+* What is the data model for links? What would a reasonable storage
+  implementation look like?
+
+Answering to these questions will most likely affect the way scenarios and
+open questions below will be addressed.
+
+> NOTE. This OTEP captures a scope for changes should be done to existing
+experimental semantic conventions for HTTP, but does not propose solutions.
+
 ## Scope: scenarios and open questions
 
 > NOTE. The scope defined here is subject for discussions and can be adjusted.
@@ -101,6 +120,13 @@ There is a lot of user feedback that they want it, but
   call and response reading and has event/log with body)
 * Reading/writing body may happen outside of HTTP client API (e.g. through
   network streams) – how users can track it too?
+
+### Security concerns
+
+Some attributes can contain potentially sensitive information. Most likely, by
+default web frameworks/http clients should not expose that.
+
+For example, `http.target` has a query string that may contain credentials.
 
 ### Not HTTP-specific, but needs to be explained/mentioned
 
