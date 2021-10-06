@@ -138,7 +138,14 @@ individually.
 
 #### Examples
 
-1. RabbitMQ: TODO
+1. The following configurations should be instrumented and tested for RabbitMQ
+   or a similar messaging system:
+
+   * 1 producer, 1 queue, 2 consumers
+   * 1 producer, fanout exchange to 2 queues, 2 consumers
+   * 2 producers, fanout exchange to 2 queues, 2 consumers
+
+   Each of the producers continuously produces messages.
 
 ### Checkpoint-based settlement
 
