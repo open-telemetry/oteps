@@ -224,15 +224,15 @@ handled separately and are not in scope for this OTEP.
 
 Asynchronous messaging passing in the wider sense is a communication method
 wherein the system puts a message in a queue or channel and does not require an
-immediate response to continue processing. This can range from a simple
-in-memory channel to a full-fledged messaging system.
+immediate response to continue processing. This can range from utilizing a
+simple queue implementation to a full-fledged messaging system.
 
 Messaging semantic conventions are intended for systems that fit into one of
 the [scenarios laid out in the previous section](#scenarios), which cover a
 significant part of asynchronous message passing applications. However, there
 are low-level patterns of asynchronous message passing that don't fit in any of
-those scenarios (e. g. in-memory channels). Those might be covered by a
-different set of semantic conventions in the future.
+those scenarios. Those might be covered by a different set of semantic
+conventions in the future.
 
 ## Further reading
 
