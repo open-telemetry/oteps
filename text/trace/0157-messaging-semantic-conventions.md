@@ -220,19 +220,23 @@ Messaging semantic conventions for tracing and for metrics overlap and should
 be as consistent as possible. However, semantic conventions for metrics will be
 handled separately and are not in scope for this OTEP.
 
-### In-memory queues or channels
+### Asynchronous messaging passing in the wider sense
 
-Messaging semantic conventions are not meant for instrumenting in-memory queues
-and channels but are intended for inter-application systems. In-memory queues
-and channels exist in many variations which can be very different from
-inter-application messaging systems, furthermore, requirements for the analysis
-and visualization of distributed traces are different. While the semantic
-conventions might be used to instrument in-memory queues or channels which
-mimic the architecture of inter-application messaging systems, generally
-supporting in-memory queues or channels is considered out of scope.
+Asynchronous messaging passing in the wider sense is a communication method
+wherein the system puts a message in a queue or channel and does not require an
+immediate response to continue processing. This can range from a simple
+in-memory channel to a full-fledged messaging system.
+
+Messaging semantic conventions are intended for systems that fit into one of
+the [scenarios laid out in the previous section](#scenarios), which cover a
+significant part of asynchronous message passing applications. However, there
+are low-level patterns of asynchronous message passing that don't fit in any of
+those scenarios (e. g. in-memory channels). Those might be covered by a
+different set of semantic conventions in the future.
 
 ## Further reading
 
 * [CloudEvents](https://github.com/cloudevents/spec/blob/v1.0.1/spec.md)
 * [Message-Driven (in contrast to Event-Driven)](https://www.reactivemanifesto.org/glossary#Message-Driven)
+* [Asynchronous message passing](https://en.wikipedia.org/wiki/Message_passing#Asynchronous_message_passing)
 * [Existing semantic conventions for messaging](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md)
