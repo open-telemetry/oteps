@@ -194,7 +194,7 @@ but not at probabilities 1-in-16 and smaller.
 
 ### Proposed `tracestate` syntax
 
-The consistent sampling r-value (`r`) and and parent sampling
+The consistent sampling r-value (`r`) and the parent sampling
 probability p-value (`p`) will be propagated using two bytes of base16
 content for each of the two fields, as follows:
 
