@@ -39,6 +39,9 @@ and thus to ship and use stable instrumentation.
    are updated according to the OTEP mentioned above and are declared
    [stable](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#stable).
 
+The steps in the roadmap don't necessarily need to happen in the given order,
+some steps can be worked on in parallel.
+
 ## Terminology
 
 To leverage existing standards, the terminology used in this document is based
@@ -50,10 +53,10 @@ platforms and systems.
 ### Message
 
 A "message" is a transport envelope for the transfer of information. The
-information is a combination of a payload and metadata.  Messages may be
-transferred directly between parties or via one or more intermediaries.  A
-message may carry annotations that are directed at intermediaries on the
-message path.  Messages are uniquely identifiable.
+information is a combination of a payload and metadata. Metadata can be
+directed at consumers or at intermediaries on the message path. Messages may be
+transferred directly between parties or via one or more intermediaries.
+Messages are uniquely identifiable.
 
 In the strict sense, a _message_ is a payload that is sent to a specific
 destination, whereas an _event_ is a signal emitted by a component upon
@@ -105,8 +108,8 @@ Publish -> | INTERMEDIARY | -> Receive
 3. The consumer receives the message from an intermediary.
 4. The consumer processes the message.
 5. The consumer settles the message by notifying the intermediary that the
-   message was processed. In exceptional cases (fire-and-forget), the
-   settlement stage does not exist.
+   message was processed. In some cases (fire-and-forget), the settlement stage
+   does not exist.
 
 The messaging semantic conventions need to define how to model those stages in
 traces, how to propagate context, and how to enrich traces with attributes.
@@ -129,6 +132,11 @@ Transport batching can be treated as a special case: messages can be
 transported together as an optimization, but are produced and consumed
 individually.
 
+As the diagram below shows, each message can be settled individually,
+regardless of the position of the message in the stream or queue. In contrast
+to checkpoint-based settlement, settlement information is related to individual
+messages and not to the overall message stream.
+
 ```
 +---------+ +---------+ +---------+ +---------+ +---------+ +---------+
 |Message A| |Message B| |Message C| |Message D| |Message E| |Message F|
@@ -149,7 +157,7 @@ individually.
 
 ### Checkpoint-based settlement
 
-Messages are processed as a stream and settled to specific checkpoints. A
+Messages are processed as a stream and settled by moving a checkpoint. A
 checkpoint points to a position of the stream up to which messages were
 processed and settled. Messages cannot be settled individually, instead, the
 checkpoint needs to be forwarded. Usually, the consumer is responsible for
@@ -160,6 +168,9 @@ settle batches of messages. However, it is not possible to settle messages
 independent of their position in the stream (e. g., if message B is located at
 a later position in the stream than message A, then message B cannot be settled
 without also settling message A).
+
+As the diagram below shows, messages cannot be settled individually. Instead,
+settlement information is related to the overall ordered message stream.
 
 ```
                                Checkpoint
@@ -212,7 +223,9 @@ Instrumenting intermediaries can be valuable for debugging configuration or
 performance issues, or for detecting specific intermediary failures.
 
 Stable semantic conventions for instrumenting intermediaries can be provided at
-a future point in time, but are not in scope for this OTEP.
+a future point in time, but are not in scope for this OTEP. The messaging
+semantic conventions this document refers to need to provide instrumentation
+that works well without the need to have intermediaries instrumented.
 
 ### Metrics
 
@@ -220,9 +233,9 @@ Messaging semantic conventions for tracing and for metrics overlap and should
 be as consistent as possible. However, semantic conventions for metrics will be
 handled separately and are not in scope for this OTEP.
 
-### Asynchronous messaging passing in the wider sense
+### Asynchronous message passing in the wider sense
 
-Asynchronous messaging passing in the wider sense is a communication method
+Asynchronous message passing in the wider sense is a communication method
 wherein the system puts a message in a queue or channel and does not require an
 immediate response to continue processing. This can range from utilizing a
 simple queue implementation to a full-fledged messaging system.
