@@ -54,9 +54,9 @@ platforms and systems.
 
 A "message" is a transport envelope for the transfer of information. The
 information is a combination of a payload and metadata. Metadata can be
-directed at consumers or at intermediaries on the message path. Messages may be
-transferred directly between parties or via one or more intermediaries.
-Messages are uniquely identifiable.
+directed at consumers or at intermediaries on the message path. Messages are
+transferred via one or more intermediaries.  Messages are uniquely
+identifiable.
 
 In the strict sense, a _message_ is a payload that is sent to a specific
 destination, whereas an _event_ is a signal emitted by a component upon
