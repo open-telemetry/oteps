@@ -244,8 +244,16 @@ Messaging semantic conventions are intended for systems that fit into one of
 the [scenarios laid out in the previous section](#scenarios), which cover a
 significant part of asynchronous message passing applications. However, there
 are low-level patterns of asynchronous message passing that don't fit in any of
-those scenarios. Those might be covered by a different set of semantic
-conventions in the future.
+those scenarios, e. g. channels in Go, or message passing in Erlang. Those
+might be covered by a different set of semantic conventions in the future.
+
+There also exists several frameworks for queuing and executing background jobs,
+often those frameworks utilize patterns of asynchronous message passing to
+queue jobs. Those frameworks might utilize messaging semantic conventions if
+they fit in any of the [scenarios laid out in the previous section](#scenarios),
+but otherwise targeting those various frameworks is not an explicit goal for
+those conventions. Those might be covered by [semantic conventions for "jobs"](https://github.com/open-telemetry/opentelemetry-specification/pull/1582)
+in the future.
 
 ## Further reading
 
