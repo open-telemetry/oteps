@@ -252,7 +252,7 @@ often those frameworks utilize patterns of asynchronous message passing to
 queue jobs. Those frameworks might utilize messaging semantic conventions if
 they fit in any of the [scenarios laid out in the previous section](#scenarios),
 but otherwise targeting those various frameworks is not an explicit goal for
-those conventions. Those might be covered by [semantic conventions for "jobs"](https://github.com/open-telemetry/opentelemetry-specification/pull/1582)
+this conventions. Those might be covered by [semantic conventions for "jobs"](https://github.com/open-telemetry/opentelemetry-specification/pull/1582)
 in the future.
 
 ## Further reading
