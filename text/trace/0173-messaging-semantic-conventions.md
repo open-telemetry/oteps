@@ -13,7 +13,9 @@ Many observability scenarios involve messaging systems, event streaming, or
 event-driven architectures. For Distributed Tracing to be useful across the
 entire scenario, having good observability for messaging or eventing operations
 is critical. To achieve this, OpenTelemetry must provide stable conventions and
-guidelines for instrumenting those operations.
+guidelines for instrumenting those operations. Popular messaging systems that
+should be supported include Kafka, RabbitMQ, Apache RocketMQ, Azure Event Hubs
+and Service Bus, Amazon SQS, SNS, and Kinesis.
 
 Bringing the existing experimental semantic conventions for messaging to a
 stable state is a crucial step for users and instrumentation authors, as it
@@ -44,8 +46,7 @@ some steps can be worked on in parallel.
 
 ## Terminology
 
-To leverage existing standards, the terminology used in this document is based
-on the [CloudEvents specification](https://github.com/cloudevents/spec/blob/v1.0.1/spec.md).
+The terminology used in this document is based on the [CloudEvents specification](https://github.com/cloudevents/spec/blob/v1.0.1/spec.md).
 CloudEvents is hosted by the CNCF and provides a specification for describing
 event data in common formats to provide interoperability across services,
 platforms and systems.
