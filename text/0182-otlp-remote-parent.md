@@ -9,12 +9,11 @@ For example, the Elastic APM solution highlights entry-point spans (Elastic APM 
 in its user interface.
 
 Currently, the only way entry-point spans can be identified is using (lack of) parent ID, and span kind. Relying on span kind can lead to invalid assumptions,
-particularly with relation to `CONSUMER` messaging spans. Using the example at
-https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#batch-receiving, `Span Recv1`
-should be the only entry point into `Process C`. If we assume `CONSUMER` spans are always entry-point spans, then this leads to `Span Proc1` and `Span Proc2`
-being incorrectly classified as entry-point spans. For messaging spans we might also take into account the `messaging.operation` attribute to tell these apart,
-however `messaging.operation` is not required; and this would not satisfy other scenarios such as actively polling a message queue, which would result in a
-`CONSUMER` span which has a non-remote parent span.
+particularly with relation to `CONSUMER` messaging spans. Using the [batch receiving example](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#batch-receiving)
+in the messaging semantic conventions, `Span Recv1` should be the only entry point into `Process C`. If we assume `CONSUMER` spans are always entry-point spans,
+then this leads to `Span Proc1` and `Span Proc2` being incorrectly classified as entry-point spans. For messaging spans we might also take into account the
+`messaging.operation` attribute to tell these apart, however `messaging.operation` is not required; and this would not satisfy other scenarios such as actively
+polling a message queue, which would result in a `CONSUMER` span which has a non-remote parent span.
 
 ## Explanation
 
@@ -56,11 +55,12 @@ Thus we can identify entry-point spans by lack of this field.
 The entry-point span ID would be captured when starting a span with a remote parent, and propagated through `SpanContext`. We would introduce a new `entry_span_id` field to
 the `Span` protobuf message definition, and set it in OTLP exporters.
 
-This was originally proposed in OpenCensus (https://github.com/census-instrumentation/opencensus-specs/issues/229) with no resolution.
+This was originally [proposed in OpenCensus](https://github.com/census-instrumentation/opencensus-specs/issues/229) with no resolution.
 
 The drawbacks of this alternative are:
- - `SpanContext` would need to be extended to include the entry-point span ID; SDKs would need to be updated to capture and propagate it
- - The additional protobuf field would be an additional 8 bytes, vs 1 byte for the boolean field
+
+- `SpanContext` would need to be extended to include the entry-point span ID; SDKs would need to be updated to capture and propagate it
+- The additional protobuf field would be an additional 8 bytes, vs 1 byte for the boolean field
 
 The main benefit of this approach is that it additionally enables backends to group spans by their process subgraph.
 
