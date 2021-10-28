@@ -43,4 +43,3 @@ install-markdown-lint:
 .PHONY: markdown-lint
 markdown-lint:
 	markdownlint -c .markdownlint.yaml '**/*.md'
-
