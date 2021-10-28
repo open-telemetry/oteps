@@ -24,13 +24,22 @@ experimental semantic conventions for HTTP, but does not propose solutions.
 
 ## Roadmap for v1.0
 
-| Description | Done By     |
-|-------------|-------------|
-| This OTEP, consisting of scenarios/open questions and a proposed roadmap, is approved and merged. | 11/30/2021 |
-| [Stability guarantees](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#not-defined-semantic-conventions-stability) for semantic conventions are approved and merged. This is not strictly related to semantic conventions for HTTP but is a prerequisite for stabilizing any semantic conventions. | 11/30/2021 |
-| Separate PRs covering the scenarios and open questions in this document are approved and merged. | 01/31/2022 |
-| Proposed specification changes are verified by prototypes for the scenarios and examples below. | 02/28/2022 |
-| The [specification for HTTP semantic conventions for tracing](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md) is fully updated according to this OTEP and declared [stable](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#stable). | 03/31/2022 |
+1. This OTEP, consisting of scenarios/open questions and a proposed roadmap, is
+   approved and merged.
+2. [Stability guarantees](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#not-defined-semantic-conventions-stability)
+   for semantic conventions are approved and merged. This is not strictly related
+   to semantic conventions for HTTP but is a prerequisite for stabilizing any
+   semantic conventions.
+3. Separate PRs addressing the scenarios and open questions listed in this
+   document are approved and merged.
+4. Proposed specification changes are verified by prototypes for the scenarios
+   and examples below.
+5. The [specification for HTTP semantic conventions for tracing](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md)
+   are updated according to this OTEP and are declared
+   [stable](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/versioning-and-stability.md#stable).
+
+The steps in the roadmap don't necessarily need to happen in the given order,
+some steps can be worked on in parallel.
 
 ## Scope for v1.0: scenarios and open questions
 
