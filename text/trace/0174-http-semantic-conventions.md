@@ -50,7 +50,7 @@ Scenarios and open questions mentioned below must be addressed via separate PRs.
 
 ### Error status defaults
 
-4xx responses are no longer create error status codes n case of
+4xx responses are no longer create error status codes in case of
 `SpanKind.SERVER`. It seems reasonable to define the same/similar behavior
 for `SpanKind.CLIENT`.
 
