@@ -48,6 +48,12 @@ some steps can be worked on in parallel.
 
 Scenarios and open questions mentioned below must be addressed via separate PRs.
 
+### Error status defaults
+
+4xx responses are no longer create error status codes n case of
+`SpanKind.SERVER`. It seems reasonable to define the same/similar behavior
+for `SpanKind.CLIENT`.
+
 ### Required attribute sets
 
 > At least one of the following sets of attributes is required:
@@ -79,16 +85,18 @@ too long. E.g., was 500/timeout from the final destination or a proxy?
 ### Security concerns
 
 Some attributes can contain potentially sensitive information. Most likely, by
-default web frameworks/http clients should not expose that.
+default web frameworks/http clients should not expose that. For v1.0 these
+attributes can be explicitly called out.
 
 For example, `http.target` has a query string that may contain credentials.
 
 ## Scope for vNext: scenarios and open questions
 
-### Error status
+### Error status configuration
 
-Per current spec 4xx must result in span with Error status. In many cases
-404/409 error criteria depends on the app though.
+In many cases 4xx error criteria depends on the app (e.g., for 404/409). As an
+end user, I might want to have an ability to override existing defaults and
+define what HTTP status codes count as errors.
 
 ### Optional attributes
 
