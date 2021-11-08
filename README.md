@@ -1,6 +1,6 @@
 # OpenTelemetry Enhancement Proposal (OTEP)
 
-[![Gitter chat][gitter-image]][gitter-url]
+[![Slack chat][slack-image]][slack-url]
 [![Build Status][circleci-image]][circleci-url]
 
 ## Evolving OpenTelemetry at the speed of Markdown
@@ -89,5 +89,5 @@ Our OTEP process borrows from the [Rust RFC](https://github.com/rust-lang/rfcs) 
 
 [circleci-image]: https://circleci.com/gh/open-telemetry/oteps.svg?style=svg
 [circleci-url]: https://circleci.com/gh/open-telemetry/oteps
-[gitter-image]: https://badges.gitter.im/open-telemetry/opentelemetry-specification.svg
-[gitter-url]: https://gitter.im/open-telemetry/opentelemetry-specification?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+[slack-image]: https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white
+[slack-url]: https://cloud-native.slack.com/archives/C01N7PP1THC
