@@ -61,10 +61,10 @@ We propose the following metrics be used to track uptime within OpenTelemetry:
 
 
 ### Uptime
-uptime is reported as a non-monotonic sum with the value of the number of seconds that the process has been up. This is written as a non-monotonic sum because users want to know the actual value of the number of seconds since the last restart to satisfy the use cases above. Montonic sums are not a good fit for these use cases because most metric backends tend to default cumulative sums to rate-calculations, and have overflow handling that is undesired for this use case.
+uptime is reported as a non-monotonic sum with the value of the number of seconds that the process has been up. This is written as a non-monotonic sum because users want to know the actual value of the number of seconds since the last restart to satisfy the use cases above. Montonic sums are not a good fit for these use cases because most metric backends tend to default cumulative monotonic sums to rate-calculations, and have overflow handling that is undesired for this use case.
 
-CUMULATIVE values report a total value that has accumulated over a time window; it is valid, for instance, to subtract the current value of a CUMULATIVE and restart the start timestamp to now. (OT's Prometheus receiver does this, for instance.)
-An intended use case of a cumulative counter is to produce a meaningful value when aggregating away labels using sum (this operation requires a delta alignment first). Such aggregations are not meaningful in the above use cases.
+Cumulative monotonic sums report a total value that has accumulated over a time window; it is valid, for instance, to subtract the current value of a cumulative sum and restart the start timestamp to now. (OpenTelemetry's Prometheus receiver does this, for instance.)
+An intended use case of a cumulative sum is to produce a meaningful value when aggregating away labels using sum (this operation requires a delta alignment first). Such aggregations are not meaningful in the above use cases.
 
 ### Health
 health is a GAUGE which a boolean value (or 0|1) which indicates if the process is available. This satisfies the “Alerting on current process health” use case above. Health often reflects more than just whether the process is alive; e.g. a process that is in the middle of (re)loading data might affirmatively report FALSE during that time. Because metric are sampled periodically, this metric isn’t well suited for use cases of rapidly changing value (i.e. it is likely to miss a restart).
