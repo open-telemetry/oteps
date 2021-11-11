@@ -10,7 +10,7 @@ Why should we make this change? What new value would it bring? What use cases do
 
 ## Explanation
 
-Users often want to monitor the health of their long-lived tasks. However, what they mean when they use the word "up" is overloaded. 
+Users often want to monitor the health of their long-lived tasks. However, what they mean when they use the word "up" is overloaded.
 
 ### Use Cases
 
@@ -59,20 +59,21 @@ We propose the following metrics be used to track uptime within OpenTelemetry:
 | *.health               | Availability flag.           | 1     | Asynchronous Gauge           |
 | *.restart_count        | Number of restarts.          | 1     | Asynchronous Counter         |
 
-
 ### Uptime
+
 uptime is reported as a gauge with the value of the number of seconds that the process has been up. This is written as a gauge because users want to know the actual value of the number of seconds since the last restart to satisfy the use cases above. Sums are not a good fit for these use cases because most metric backends tend to default cumulative monotonic sums to rate-calculations, and have overflow handling that is undesired for this use case.
 
 Sums report a total value that has accumulated over a time window; it is valid, for instance, to subtract the current value of a cumulative sum and restart the start timestamp to now. (OpenTelemetry's Prometheus receiver does this, for instance.)
 An intended use case of a sum is to produce a meaningful value when aggregating away labels using sum. Such aggregations are not meaningful in the above use cases.
 
 ### Health
+
 health is a GAUGE which a boolean value (or 0|1) which indicates if the process is available. This satisfies the “Alerting on current process health” use case above. Health often reflects more than just whether the process is alive; e.g. a process that is in the middle of (re)loading data might affirmatively report FALSE during that time. Because metric are sampled periodically, this metric isn’t well suited for use cases of rapidly changing value (i.e. it is likely to miss a restart).
 
 ### Restart Count
+
 restart_count is a monotonic sum of the number of times that a process has restarted. This metric should be generated from an external observer of the system.  The start timestamp of this metric is the start time of whatever process is observing restarts.
 A process *may* report its own restarts, but likely this would need to be done via a DELTA sum which is aggregated by some external observer.
-
 
 ## Trade-offs and mitigations
 
@@ -81,7 +82,6 @@ The biggest tradeoff here is defining `uptime` metrics as non-montonic sums vs. 
 ## Prior art and alternatives
 
 The biggest prior art in this space is Prometheus, which has some built-in uptime-like features:
-
 
 Prometheus defines some conventions around uptime tracking across its ecosystem:
 
@@ -94,7 +94,6 @@ There are obvious differences between the proposed `health` metric and `up` metr
 `uptime` lines up with prometheus, but we allow non-monotonic sums so external observers can report uptime on behalf of a process.
 
 `restart_count` lines up with what is done in kubestat metrics in the prometheus cosystem.
-
 
 ## Open questions
 
