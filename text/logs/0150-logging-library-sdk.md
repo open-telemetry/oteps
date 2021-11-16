@@ -91,7 +91,9 @@ Methods:
 
 See LogRecord
 [data model](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md)
-for the list of fields.
+for the list of fields. SDKs should restrict the
+[Body](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#field-body)
+field to a string value.
 
 Open Question: should LoggerName field be added to the data model to allow
 logging libraries to supply it? We have an
