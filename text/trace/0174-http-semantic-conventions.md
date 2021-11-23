@@ -68,14 +68,21 @@ have consistent story across instrumentations and languages. e.g. they'd need to
 write queries like
 `select * where (getPath(http.url) == "/a/b" || getPath(http.target) == "/a/b")`
 
+Related issue: [open-telemetry/opentelemetry-specification#2114](https://github.com/open-telemetry/opentelemetry-specification/issues/2114).
+
 ### Retries and redirects
 
-Each try/redirect/hedging request must have unique context to be traceable and
+Each try/redirect request must have unique context to be traceable and
 to unambiguously ask for support from downstream service, which implies span
 per call.
 
 Redirects: users may need observability into what server hop had an error/took
 too long. E.g., was 500/timeout from the final destination or a proxy?
+
+Related issues: [open-telemetry/opentelemetry-specification#1747](https://github.com/open-telemetry/opentelemetry-specification/issues/1747),
+[open-telemetry/opentelemetry-specification#729](https://github.com/open-telemetry/opentelemetry-specification/issues/729).
+
+PR addressing this scenario: [open-telemetry/opentelemetry-specification#2078](https://github.com/open-telemetry/opentelemetry-specification/pull/2078).
 
 ### Context propagation needs explanation
 
@@ -103,6 +110,8 @@ define what HTTP status codes count as errors.
 As a library owner, I don't understand the benefits of optional attributes:
 they create overhead, they don't seem to be generically useful (e.g. flavor),
 and are inconsistent across languages/libraries unless unified.
+
+Related issue: [open-telemetry/opentelemetry-specification#2114](https://github.com/open-telemetry/opentelemetry-specification/issues/2114).
 
 ### Sampling for noop case
 
@@ -138,6 +147,8 @@ There is a lot of user feedback that they want it, but
   call and response reading and has event/log with body)
 * Reading/writing body may happen outside of HTTP client API (e.g. through
   network streams) – how users can track it too?
+
+Related issue: [open-telemetry/opentelemetry-specification#1284](https://github.com/open-telemetry/opentelemetry-specification/issues/1284).
 
 ## Out of scope
 
