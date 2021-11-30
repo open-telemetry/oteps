@@ -72,9 +72,9 @@ Related issue: [open-telemetry/opentelemetry-specification#2114](https://github.
 
 ### Retries and redirects
 
-Each try/redirect request must have unique context to be traceable and
-to unambiguously ask for support from downstream service, which implies span
-per call.
+Should each try/redirect request have unique context to be traceable and
+to unambiguously ask for support from downstream service(which implies span per
+call)?
 
 Redirects: users may need observability into what server hop had an error/took
 too long. E.g., was 500/timeout from the final destination or a proxy?
@@ -84,10 +84,10 @@ Related issues: [open-telemetry/opentelemetry-specification#1747](https://github
 
 PR addressing this scenario: [open-telemetry/opentelemetry-specification#2078](https://github.com/open-telemetry/opentelemetry-specification/pull/2078).
 
-### Context propagation needs explanation
+### Context propagation
 
-* Reusing instances of client HTTP requests between tries (it’s likely, so clean
-  up context before making a call).
+How to propagate context between tries? Should it be cleaned up before making
+a call in case of reusing instances of client HTTP requests?
 
 ### Security concerns
 
@@ -115,9 +115,9 @@ Related issue: [open-telemetry/opentelemetry-specification#2114](https://github.
 
 ### Sampling for noop case
 
-To make it efficient for noop case, need a hint for instrumentation
-(e.g., `GlobalOTel.isEnabled()`) that SDK is present and configured before
-creating pre-sampling attributes.
+To make it efficient for noop case, it might be useful to have a hint for
+instrumentation (e.g., `GlobalOTel.isEnabled()`) that SDK is present and
+configured before creating pre-sampling attributes.
 
 ### Long-polling and streaming
 
