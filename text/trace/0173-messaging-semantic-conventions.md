@@ -15,7 +15,7 @@ entire scenario, having good observability for messaging or eventing operations
 is critical. To achieve this, OpenTelemetry must provide stable conventions and
 guidelines for instrumenting those operations. Popular messaging systems that
 should be supported include Kafka, RabbitMQ, Apache RocketMQ, Azure Event Hubs
-and Service Bus, Amazon SQS, SNS, and Kinesis.
+and Service Bus, Amazon SQS, SNS, Kinesis, and Oracle AQ/TEQ.
 
 Bringing the existing experimental semantic conventions for messaging to a
 stable state is a crucial step for users and instrumentation authors, as it
