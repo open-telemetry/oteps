@@ -64,6 +64,13 @@ The drawbacks of this alternative are:
 
 The main benefit of this approach is that it additionally enables backends to group spans by their process subgraph.
 
+### Alternative 2: introduce a semantic convention attribute to identify entry-point spans
+
+As an alternative to adding a new field to spans, a new semantic convention attribute could be added to only entry-point spans.
+
+This approach would avoid increasing the memory footprint of all spans, but would have a greater memory footprint for entry-point spans.
+The benefit of this approach would therefore depend on the ratio of entry-point to internal spans, and may even be more expensive.
+
 ## Open questions
 
 None.
