@@ -108,7 +108,7 @@ workflows:
 2. The _transport context layer_ allows correlating the producer and the
    consumer with an intermediary. If there is more than one intermediary,
    it allows correlating intermediaries among each other. The transport context
-   might be changed by intermediaries, according to intermediary instrumentations.
+   can be changed by intermediaries, according to intermediary instrumentations.
    Intermediaries that are not instrumented might simply drop the transport
    context.
 
