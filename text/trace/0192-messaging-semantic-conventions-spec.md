@@ -52,7 +52,7 @@ to the intermediary or consumer.
 #### Consumer
 
 A "consumer" receives the message and acts upon it. It uses the context and
-data to execute some logic, which might lead to the occurrence of new events.
+data to execute some logic, which might lead to the occurrence of new messages.
 
 The consumer receives, processes, and settles a message. "Receiving" is the
 process of obtaining a message from the intermediary, "processing" is the
