@@ -7,7 +7,7 @@ state.
 
 This OTEP is based on [OTEP 0173](0173-messaging-semantic-conventions.md),
 which defines basic terms and describes messaging scenarios that should be
-supported by the semantic conventions.
+supported by messaging semantic conventions.
 
 ## Motivation
 
@@ -34,7 +34,7 @@ platforms and systems.
 
 A "message" is a transport envelope for the transfer of information. The
 information is a combination of a payload and metadata. Metadata can be
-directed at consumers or at intermediaries on the message path. Messages are
+directed at consumers or intermediaries on the message path. Messages are
 transferred via one or more intermediaries.  Messages are uniquely
 identifiable.
 
@@ -47,7 +47,7 @@ the term "message" in a wider sense to cover both concepts.
 
 The "producer" is a specific instance, process or device that creates and
 publishes a message. "Publishing" is the process of sending a message or batch
-to the intermediary or consumer.
+to the intermediary.
 
 #### Consumer
 
@@ -61,8 +61,8 @@ process of notifying an intermediary that a message was processed successfully.
 
 #### Intermediary
 
-An "intermediary" receives a message to forward it to the next receiver, which
-might be another intermediary or a consumer.
+An "intermediary" receives a message for the purpose of forwarding it to the
+next receiver, which might be another intermediary or a consumer.
 
 ### Stages of producing and consuming messages
 
@@ -94,19 +94,20 @@ traces, how to propagate context, and how to enrich traces with attributes.
 
 ### Context propagation
 
-Two layers of context propagation are required for messaging workflows:
+Two layers of context propagation need to be distinguished for messaging
+workflows:
 
-1. The _creation context layer_ allows to correlate the producer and consumers of
-   a message, regardless of intermediary instrumentation. The creation context
-   is created by the producer and must be propagated to the consumers. It must not
-   be altered by intermediaries.
+1. The _creation context layer_ allows correlating the producer with the
+   consumers of a message, regardless of intermediary instrumentation. The
+   creation context is created by the producer and must be propagated to the
+   consumers. It must not be altered by intermediaries.
 
    This layer helps to model dependencies between producers and consumers,
    regardless of the underlying messaging transport mechanism and its
    instrumentation.
-2. The _transport context layer_ allows to correlate the producer and the
-   consumer with an intermediary. If there are more than one intermediaries,
-   it allows to correlate intermediaries among each other. The transport context
+2. The _transport context layer_ allows correlating the producer and the
+   consumer with an intermediary. If there is more than one intermediary,
+   it allows correlating intermediaries among each other. The transport context
    might be changed by intermediaries, according to intermediary instrumentations.
    Intermediaries that are not instrumented might simply drop the transport
    context.
@@ -120,7 +121,7 @@ intermediary MAY propagate a transport context to a consumer.
 
 ### Span structure, names, and attributes
 
-### System specific extensions
+### System-specific extensions
 
 ### Examples
 
