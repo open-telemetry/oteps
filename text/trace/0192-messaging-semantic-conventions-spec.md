@@ -14,7 +14,7 @@ supported by messaging semantic conventions.
 This OTEP serves as a foundation for a first stable version of [messaging semantic conventions for tracing](https://github.com/open-telemetry/opentelemetry-specification/blob/a1a8676a43dce6a4e447f65518aef8e98784306c/specification/trace/semantic_conventions/messaging.md).
 It aims to define clear, consistent, and extensible conventions, it also
 describes reasons and motivations that led to the formulation of those
-conventions. The conventions comprise areas such as context propagation, span
+conventions. The conventions comprise areas such as context propagation, trace
 structure, names, and attributes.
 
 After this OTEP is merged, the changes it proposes will be merged into the
@@ -57,7 +57,7 @@ data to execute some logic, which might lead to the occurrence of new messages.
 The consumer receives, processes, and settles a message. "Receiving" is the
 process of obtaining a message from the intermediary, "processing" is the
 process of acting on the information a message contains, "settling" is the
-process of notifying an intermediary that a message was processed successfully.
+process where intermediary and consumer agree on the state of the transfer.
 
 #### Intermediary
 
@@ -113,12 +113,12 @@ workflows:
 
    This layer helps to gain insights into details of the message transport.
 
-A producer MUST attach a creation context to each message. The creation context
-MUST be attached in a way so that it is not changed by intermediaries. A
+A producer SHOULD attach a creation context to each message. The creation context
+SHOULD be attached in a way so that it is not changed by intermediaries. A
 producer MAY propagate a transport context to an intermediary.  An
 intermediary MAY propagate a transport context to a consumer.
 
-### Span structure, names, and attributes
+### Trace structure, names, and attributes
 
 #### Consumer
 
