@@ -134,28 +134,28 @@ processing callbacks, which can then be instrumented by the libraries or SDKs).
 
 While it is possible to create "Process" spans and correlate those with
 consumer traces in certain cases, this is not something that can be generally
-required. Therefore, it is more feasible to require the creation of "Receive"
-spans to correlate producer with consumer traces. A "Receive" span must link
+required. Therefore, it is more feasible to require the creation of "Deliver"
+spans to correlate producer with consumer traces. A "Deliver" span must link
 to the "Create" spans of all messages that are handled by the respective
-"Receive" operation. Depending on the use case, "Receive" spans can correlate
+"Deliver" operation. Depending on the use case, "Deliver" spans can correlate
 with "Process" spans or other spans modelling processing operations.
 
-The operation modelled by the "Receive" span does not strictly refer to
+The operation modelled by the "Deliver" span does not strictly refer to
 receiving the message from intermediaries, but instead refers to the
 application receiving messages for processing. If messages are fetched from the
 intermediary and forwarded to the application in one go, the whole operation
-might be covered by a "Receive" span. However, clients might pre-fetch messages
+might be covered by a "Deliver" span. However, clients might pre-fetch messages
 from intermediaries and cache those messages, and only forward messages to the
 application at a later time. In this case, the operation of pre-fetching and
-caching should not be covered by the "Receive" span.
+caching should not be covered by the "Deliver" span.
 
-"Receive" spans SHOULD be created for all messages obtained by or passed to the
-application for processing. "Receive" spans MUST NOT be created for messages
+"Deliver" spans SHOULD be created for all messages obtained by or passed to the
+application for processing. "Deliver" spans MUST NOT be created for messages
 not forwarded to the application, but pre-fetched or cached by messaging
-libraries or SDKs. A single "Receive" span can account for a single message,
+libraries or SDKs. A single "Deliver" span can account for a single message,
 for multiple messages (in case messages are passed for processing as batches),
 or for no message at all (in it is signalled that no messages were received).
-For each message it accounts for, a "Receive" span SHOULD link to the "Create"
+For each message it accounts for, a "Deliver" span SHOULD link to the "Create"
 span for the message.
 
 ### System-specific extensions
