@@ -89,14 +89,6 @@ PR addressing this scenario: [open-telemetry/opentelemetry-specification#2078](h
 How to propagate context between tries? Should it be cleaned up before making
 a call in case of reusing instances of client HTTP requests?
 
-### Security concerns
-
-Some attributes can contain potentially sensitive information. Most likely, by
-default web frameworks/http clients should not expose that. For v1.0 these
-attributes can be explicitly called out.
-
-For example, `http.target` has a query string that may contain credentials.
-
 ## Scope for vNext: scenarios and open questions
 
 ### Error status configuration
@@ -112,6 +104,15 @@ they create overhead, they don't seem to be generically useful (e.g. flavor),
 and are inconsistent across languages/libraries unless unified.
 
 Related issue: [open-telemetry/opentelemetry-specification#2114](https://github.com/open-telemetry/opentelemetry-specification/issues/2114).
+
+### Security concerns
+
+Some attributes can contain potentially sensitive information. Most likely, by
+default web frameworks/http clients should not expose that. For example,
+`http.target` has a query string that may contain credentials.
+
+> NOTE. We didn’t omit security concerns from v1.0 on purpose, it’s just not
+  something we’ve fleshed out so far.
 
 ### Sampling for noop case
 
