@@ -105,4 +105,4 @@ Many kubernetes detectors currently use `HOSTNAME` environment variable, which d
 
 ## Future possibilities
 
-As a community, we could consider introducing an OpenTelemetry mutating admisison webhook. Similar to the [Istio admission webhook](https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/#automatic-sidecar-injection), it could potentially handle collector sidecar injection, downward API configuration, and exporter configuration (also through environment variables) in a central place.
+The [OpenTelemetry Operator](https://github.com/open-telemetry/opentelemetry-operator) already has a mutating admission controller, which handles automatic collector [sidecar injection](https://github.com/open-telemetry/opentelemetry-operator#sidecar-injection).  In the future, the OpenTelemetry Operator could be extended to support env var injection as well.
