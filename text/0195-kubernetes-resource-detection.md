@@ -82,10 +82,10 @@ SDK's should add a Kubernetes environment variable-based resource detector.  The
 
 | Environment Variable | Semantic Convention |
 | ---- | ---- |
-| K8s_POD_NAME | k8s.pod.name |
-| K8s_POD_UID | k8s.pod.uid |
-| K8s_NAMESPACE_NAME | k8s.namespace.name |
-| K8s_NODE_NAME | k8s.node.name |
+| K8S_POD_NAME | k8s.pod.name |
+| K8S_POD_UID | k8s.pod.uid |
+| K8S_NAMESPACE_NAME | k8s.namespace.name |
+| K8S_NODE_NAME | k8s.node.name |
 
 Detection of the above semantic conventions using environment variables should not be done inside vendor-specific (e.g. GKE-specific) resource detectors.
 
