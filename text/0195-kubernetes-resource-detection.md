@@ -99,6 +99,8 @@ Similar to `OTEL_RESOURCE_ATTRIBUTES`, we could require the proposed environment
 
 Many kubernetes detectors currently use `HOSTNAME` environment variable, which defaults to the Pod name. However, the `HOSTNAME` can be [modified in a few ways](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-hostname-and-subdomain-fields) in the pod spec. Kubernetes resource detectors may fall back to detecting the pod name using `HOSTNAME` if `K8S_POD_NAME` is not available, but this may cause user confusion in some cases.
 
+`HOSTNAME` is also [truncated to 64 characters](https://github.com/kubernetes/kubernetes/issues/4825) on some operating systems.
+
 ### Alternative: Using Dependent Environment Variables
 
 Kubernetes supports defining environment variables based on [dependent environment variables](https://kubernetes.io/docs/tasks/inject-data-application/define-interdependent-environment-variables/#define-an-environment-dependent-variable-for-a-container). We can use this to transform the environment variables discovered through the downward API into the `OTEL_RESOURCE_ATTRIBUTES` environment variable:
@@ -107,6 +109,11 @@ Kubernetes supports defining environment variables based on [dependent environme
 - name: OTEL_RESOURCE_ATTRIBUTES
   value: k8s.pod.name=$(K8S_POD_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.namespace.name=$(K8S_NAMESPACE_NAME),k8s.node.name=$(K8S_NODE_NAME)
 ```
+
+This approach has a few drawbacks:
+
+* `OTEL_RESOURCE_ATTRIBUTES` may need to include additional attibutes other than those used for kubernetes. This makes it harder to apply the same environment variables across all pods.
+* `OTEL_RESOURCE_ATTRIBUES` doesn't have a way to specify which version of the semantic conventions it should apply to.
 
 ## Future possibilities
 
