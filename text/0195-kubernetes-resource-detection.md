@@ -16,10 +16,10 @@ Method 3 is already implemented today as the `k8sattributesprocessor`, but requi
 
 Not all attributes in the [k8s semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/main/semantic_conventions/resource/k8s.yaml) are supported by the Kubernetes downward API.  The OpenTelemetry attributes that could be supported ([api reference](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#envvarsource-v1-core)) are:
 
-* `kubernetes.pod.name`
-* `kubernetes.pod.uid`
-* `kubernetes.namespace.name`
-* `kubernetes.node.name`
+* `k8s.pod.name`
+* `k8s.pod.uid`
+* `k8s.namespace.name`
+* `k8s.node.name`
 
 The current state of detecting downward-api-based resources differs, depending on where detection is being done:
 
@@ -82,10 +82,10 @@ SDK's should add a Kubernetes environment variable-based resource detector.  The
 
 | Environment Variable | Semantic Convention |
 | ---- | ---- |
-| KUBERNETES_POD_NAME | kubernetes.pod.name |
-| KUBERNETES_POD_UID | kubernetes.pod.uid |
-| KUBERNETES_NAMESPACE_NAME | kubernetes.namespace.name |
-| KUBERNETES_NODE_NAME | kubernetes.node.name |
+| K8s_POD_NAME | k8s.pod.name |
+| K8s_POD_UID | k8s.pod.uid |
+| K8s_NAMESPACE_NAME | k8s.namespace.name |
+| K8s_NODE_NAME | k8s.node.name |
 
 Detection of the above semantic conventions using environment variables should not be done inside vendor-specific (e.g. GKE-specific) resource detectors.
 
@@ -95,7 +95,7 @@ Detection of the above semantic conventions using environment variables should n
 
 Similar to `OTEL_RESOURCE_ATTRIBUTES`, we could require the proposed environment variables to always be detected.  While this would further improve the ease of use, [Resource semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/semantic_conventions/README.md) (including Kubernetes) are still experimental, and the [SDK environment variable specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/sdk-environment-variables.md#general-sdk-configuration) are stable. Additionally, Kubernetes is [explicitly called out](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/sdk.md#detecting-resource-information-from-the-environment) as a custom resource detector.
 
-### Alternative: Using HOSTNAME for kubernetes.pod.name
+### Alternative: Using HOSTNAME for k8s.pod.name
 
 Many kubernetes detectors currently use `HOSTNAME` environment variable, which defaults to the Pod name. However, the `HOSTNAME` can be [modified in a few ways](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-hostname-and-subdomain-fields) in the pod spec. Kubernetes resource detectors may fall back to detecting the pod name using `HOSTNAME` if `KUBERNETES_POD_NAME` is not available, but this may cause user confusion in some cases.
 
