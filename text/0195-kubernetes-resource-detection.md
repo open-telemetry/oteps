@@ -40,19 +40,19 @@ The snippet of environment variables added the pod spec would look like:
 
 ```yaml
 env:
-- name: KUBERNETES_POD_NAME
+- name: K8S_POD_NAME
    valueFrom:
      fieldRef:
        fieldPath: metadata.name
-- name: KUBERNETES_POD_UID
+- name: K8S_POD_UID
    valueFrom:
      fieldRef:
        fieldPath: metadata.uid
-- name: KUBERNETES_NAMESPACE_NAME
+- name: K8S_NAMESPACE_NAME
   valueFrom:
     fieldRef:
       fieldPath: metadata.namespace
-- name: KUBERNETES_NODE_NAME
+- name: K8S_NODE_NAME
    valueFrom:
      fieldRef:
        fieldPath: spec.nodeName
@@ -97,7 +97,16 @@ Similar to `OTEL_RESOURCE_ATTRIBUTES`, we could require the proposed environment
 
 ### Alternative: Using HOSTNAME for k8s.pod.name
 
-Many kubernetes detectors currently use `HOSTNAME` environment variable, which defaults to the Pod name. However, the `HOSTNAME` can be [modified in a few ways](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-hostname-and-subdomain-fields) in the pod spec. Kubernetes resource detectors may fall back to detecting the pod name using `HOSTNAME` if `KUBERNETES_POD_NAME` is not available, but this may cause user confusion in some cases.
+Many kubernetes detectors currently use `HOSTNAME` environment variable, which defaults to the Pod name. However, the `HOSTNAME` can be [modified in a few ways](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-hostname-and-subdomain-fields) in the pod spec. Kubernetes resource detectors may fall back to detecting the pod name using `HOSTNAME` if `K8S_POD_NAME` is not available, but this may cause user confusion in some cases.
+
+### Alternative: Using Dependent Environment Variables
+
+Kubernetes supports defining environment variables based on [dependent environment variables](https://kubernetes.io/docs/tasks/inject-data-application/define-interdependent-environment-variables/#define-an-environment-dependent-variable-for-a-container). We can use this to transform the environment variables discovered through the downward API into the `OTEL_RESOURCE_ATTRIBUTES` environment variable:
+
+```yaml
+- name: OTEL_RESOURCE_ATTRIBUTES
+  value: k8s.pod.name=$(K8S_POD_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.namespace.name=$(K8S_NAMESPACE_NAME),k8s.node.name=$(K8S_NODE_NAME)
+```
 
 ## Future possibilities
 
