@@ -2,7 +2,7 @@
 
 This OTEP proposes to standardize environment variables used to detect resources exposed through the [Kubernetes downward API](https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/) to provide a consistent experience on Kubernetes across languages and the collector.
 
-There is a mismatch between the format otel expects resources to be specified in for environment variables (a single, comma-deliniated list of key-value pairs in `OTEL_RESOURCE_ATTRIBUTES`), and the format Kubernetes exposes resource information in (one environment-variable for each attribute).  This makes correct resource detection in Kubernetes difficult, and the lack of specification has led to differing implementations across language SDKs and the collector.
+There is a mismatch between the format otel expects resources to be specified in for environment variables (a single, comma-deliniated list of key-value pairs in `OTEL_RESOURCE_ATTRIBUTES`), and the format Kubernetes exposes resource information in (one environment-variable for each attribute).  While it is possible to [use dependent environment variables](#alternative-using-dependent-environment-variables) to merge these resource attributes together into `OTEL_RESOURCE_ATTRIBUTES`, it lacks versioning, and is difficult to apply consistently to pods. The lack of specification has led to differing implementations across language SDKs and the collector.
 
 ## Background
 
