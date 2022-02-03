@@ -149,15 +149,6 @@ to the "Create" spans of all messages that are forwarded via the respective
 call. Depending on the use case, "Deliver" spans can correlate with "Process"
 spans or other spans modelling processing operations.
 
-The operation modelled by the "Deliver" span does not strictly refer to
-receiving the message from intermediaries, but instead refers to the
-application receiving messages for processing. If messages are fetched from the
-intermediary and forwarded to the application in one go, the whole operation
-might be covered by a "Deliver" span. However, clients might pre-fetch messages
-from intermediaries and cache those messages, and only forward messages to the
-application at a later time. In this case, the operation of pre-fetching and
-caching should not be covered by the "Deliver" span.
-
 > "Deliver" spans SHOULD be created for operations of passing messages to the
 > application, when the those operations are not initiated by the application
 > code.  A single "Deliver" span can account for a single message, for multiple
