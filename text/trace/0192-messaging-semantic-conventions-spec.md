@@ -103,17 +103,14 @@ OpenTelemetry requirements.
 A _creation context_ allows correlating the producer with the consumers of a
 message, regardless of intermediary instrumentation. The creation context is
 created by the producer and must be propagated to the consumers. It must not be
-altered by intermediaries.
+altered by intermediaries.  This context helps to model dependencies between
+producers and consumers, regardless of the underlying messaging transport
+mechanism and its instrumentation.
 
-This context helps to model dependencies between producers and consumers,
-regardless of the underlying messaging transport mechanism and its
-instrumentation.
-
-Several attempts exist to standardize the propagation of a creation context for
-different messaging protocols:
-* [AMQP](https://w3c.github.io/trace-context-amqp/)
-* [MQTT](https://w3c.github.io/trace-context-mqtt/)
-* [CloudEvents via HTTP](https://github.com/cloudevents/spec/blob/v1.0.1/extensions/distributed-tracing.md)
+Instrumentors will be required to instrument producer and consumer applications
+so that context is attached to messages and extraced from messages in a
+coordinated way. Future versions of these conventions might recommend context
+propagation according to certain industry standards.
 
 > A producer SHOULD attach a creation context to each message. The creation context
 > SHOULD be attached in a way so that it is not changed by intermediaries.
@@ -150,12 +147,8 @@ call. Depending on the use case, "Deliver" spans can correlate with "Process"
 spans or other spans modelling processing operations.
 
 > "Deliver" spans SHOULD be created for operations of passing messages to the
-> application, when the those operations are not initiated by the application
-> code.  A single "Deliver" span can account for a single message, for multiple
-> messages (in case messages are passed for processing as batches), or for no
-> message at all (if it is signalled that no messages were received).  For each
-> message it accounts for, a "Deliver" span SHOULD link to the "Create" span for
-> the message.
+> application, when those operations are not initiated by the application
+> code.
 
 ##### Instrumenting pull-based scenarios
 
@@ -170,11 +163,6 @@ spans or other spans modelling processing operations.
 
 > "Receive" spans SHOULD be created for operations of passing messages to the
 > application, when the those operations are initiated by the application code.
-> A single "Receive" span can account for a single message, for multiple messages
-> (in case messages are passed for processing as batches), or for no message at
-> all (if it is signalled that no messages were received).  For each message it
-> accounts for, a "Receive" span SHOULD link to the "Create" span for the
-> message.
 
 ##### General considerations
 
@@ -188,9 +176,21 @@ forward messages to the application at a later time. In this case, the
 operation of pre-fetching and caching should not be covered by the "Deliver" or
 "Receive" spans.
 
+Operations covered by "Deliver" or "Receive" can forward zero messages (e. g.
+to notify the application that no message is available for processing), one
+message, or multiple messages (a batch of messages). "Deliver" and "Receive"
+spans should link to the "Create" span of the messages forwarded, thus those
+spans can link to zero, one, or multiple "Create" spans.
+
 > "Deliver" or "Receive" spans MUST NOT be created for messages which are not
 > forwarded to the application, but are pre-fetched or cached by messaging
 > libraries or SDKs.
+>
+> A single "Deliver" or "Receive" span can account for a single message, for
+> multiple messages (in case messages are passed for processing as batches), or
+> for no message at all (if it is signalled that no messages were received).  For
+> each message it accounts for, the "Deliver" or "Receive" span SHOULD link to
+> the "Create" span for the message.
 
 ### System-specific extensions
 
@@ -198,7 +198,7 @@ operation of pre-fetching and caching should not be covered by the "Deliver" or
 
 ## Future possibilities
 
-### Context propagation
+### Transport context propagation
 
 One possibility to seamlessly integrate producer/consumer and intermediary
 instrumentation in a flexible and extensible way would be the introduction of a
@@ -224,3 +224,24 @@ This would keep the existing correlation between producers and consumer intact,
 while allowing intermediaries to use the transport context to correlate
 intermediary instrumentation with existing producer and consumer
 instrumentations.
+
+### Standards for context propagation
+
+Currently, instrumentors have to decide how to attach and extract context from
+messages in order to fulfill the [requirements for context propagation](#context-propagation).
+While preserving the freedom for instrumentor to choose how to propagate
+context, in the future these conventions should list recommended ways of how to
+propagate context using popular messaging protocols.
+
+Currently several attempts exist to standardize context propagation for different
+messaging protocols and scenarios:
+
+* [AMQP](https://w3c.github.io/trace-context-amqp/)
+* [MQTT](https://w3c.github.io/trace-context-mqtt/)
+* [CloudEvents via HTTP](https://github.com/cloudevents/spec/blob/v1.0.1/extensions/distributed-tracing.md)
+
+Those standards are in draft states and/or are not widely adopted yet. It is
+planned to drive those standards to a stable state and to make sure they cover
+requirements put forth by these semantic conventions. Finally, these semantic
+conventions should give a clear and stable recommendation for each protocol and
+scenario.
