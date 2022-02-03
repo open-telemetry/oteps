@@ -76,7 +76,7 @@ PRODUCER           .              ^
                    .              |
 Create             .           Process
   |                v              ^
-  v        +--------------+       |            
+  v        +--------------+       |
 Publish -> | INTERMEDIARY | -> Receive
            +--------------+
 ```
@@ -202,7 +202,7 @@ spans can link to zero, one, or multiple "Create" spans.
 
 One possibility to seamlessly integrate producer/consumer and intermediary
 instrumentation in a flexible and extensible way would be the introduction of a
-second transport context layer in addition to the creation context layer. 
+second transport context layer in addition to the creation context layer.
 
 1. The _creation context layer_ allows correlating the producer with the
    consumers of a message, regardless of intermediary instrumentation. The
