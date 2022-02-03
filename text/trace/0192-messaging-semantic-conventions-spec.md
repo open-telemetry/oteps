@@ -94,29 +94,29 @@ traces, how to propagate context, and how to enrich traces with attributes.
 
 ### Context propagation
 
-Two layers of context propagation need to be distinguished for messaging
-workflows:
+A message may pass many different components and layers in one or more
+intermediaries when it is propagated from the producer to the consumer. It
+cannot be assumed, and in many cases it is not even desired, that all those
+components and layers are instrumented and propagate context according to
+OpenTelemetry requirements.
 
-1. The _creation context layer_ allows correlating the producer with the
-   consumers of a message, regardless of intermediary instrumentation. The
-   creation context is created by the producer and must be propagated to the
-   consumers. It must not be altered by intermediaries.
+A _creation context_ allows correlating the producer with the consumers of a
+message, regardless of intermediary instrumentation. The creation context is
+created by the producer and must be propagated to the consumers. It must not be
+altered by intermediaries.
 
-   This layer helps to model dependencies between producers and consumers,
-   regardless of the underlying messaging transport mechanism and its
-   instrumentation.
-2. The _transport context layer_ allows correlating the producer and the
-   consumer with an intermediary. It also allows to correlate multiple
-   intermediaries among each other. The transport context can be changed by
-   intermediaries, according to intermediary instrumentations. Intermediaries
-   that are not instrumented might simply drop the transport context.
+This context helps to model dependencies between producers and consumers,
+regardless of the underlying messaging transport mechanism and its
+instrumentation.
 
-   This layer helps to gain insights into details of the message transport.
+Several attempts exist to standardize the propagation of a creation context for
+different messaging protocols:
+* [AMQP](https://w3c.github.io/trace-context-amqp/)
+* [MQTT](https://w3c.github.io/trace-context-mqtt/)
+* [CloudEvents via HTTP](https://github.com/cloudevents/spec/blob/v1.0.1/extensions/distributed-tracing.md)
 
-A producer SHOULD attach a creation context to each message. The creation context
-SHOULD be attached in a way so that it is not changed by intermediaries. A
-producer MAY propagate a transport context to an intermediary.  An
-intermediary MAY propagate a transport context to a consumer.
+> A producer SHOULD attach a creation context to each message. The creation context
+> SHOULD be attached in a way so that it is not changed by intermediaries.
 
 ### Trace structure, names, and attributes
 
@@ -135,10 +135,19 @@ processing callbacks, which can then be instrumented by the libraries or SDKs).
 While it is possible to create "Process" spans and correlate those with
 consumer traces in certain cases, this is not something that can be generally
 required. Therefore, it is more feasible to require the creation of "Deliver"
-spans to correlate producer with consumer traces. A "Deliver" span must link
-to the "Create" spans of all messages that are handled by the respective
-"Deliver" operation. Depending on the use case, "Deliver" spans can correlate
-with "Process" spans or other spans modelling processing operations.
+spans (for push-based APIs) or "Receive" spans (for pull-based APIs) to
+correlate producer with consumer traces.
+
+##### Instrumenting push-based scenarios
+
+In push-based consumer scenarios, the delivery of messages is not initiated by
+the application code. Instead, callbacks or handlers are registered and then
+called by messaging SDKs to forward messages to the application.
+
+A "Deliver" span covers the call of such a callback or handler, and should link
+to the "Create" spans of all messages that are forwarded via the respective
+call. Depending on the use case, "Deliver" spans can correlate with "Process"
+spans or other spans modelling processing operations.
 
 The operation modelled by the "Deliver" span does not strictly refer to
 receiving the message from intermediaries, but instead refers to the
@@ -149,17 +158,78 @@ from intermediaries and cache those messages, and only forward messages to the
 application at a later time. In this case, the operation of pre-fetching and
 caching should not be covered by the "Deliver" span.
 
-"Deliver" spans SHOULD be created for all messages obtained by or passed to the
-application for processing. "Deliver" spans MUST NOT be created for messages
-not forwarded to the application, but pre-fetched or cached by messaging
-libraries or SDKs. A single "Deliver" span can account for a single message,
-for multiple messages (in case messages are passed for processing as batches),
-or for no message at all (in it is signalled that no messages were received).
-For each message it accounts for, a "Deliver" span SHOULD link to the "Create"
-span for the message.
+> "Deliver" spans SHOULD be created for operations of passing messages to the
+> application, when the those operations are not initiated by the application
+> code.  A single "Deliver" span can account for a single message, for multiple
+> messages (in case messages are passed for processing as batches), or for no
+> message at all (if it is signalled that no messages were received).  For each
+> message it accounts for, a "Deliver" span SHOULD link to the "Create" span for
+> the message.
+
+##### Instrumenting pull-based scenarios
+
+In pull-based consumer scenarios, the delivery of messages is requested by the
+application code. This usually involves a blocking call, which returns zero or
+more messages on completion.
+
+A "Receive" span covers such calls, and should link
+to the "Create" spans of all messages that are forwarded via the respective
+call. Depending on the use case, "Receive" spans can correlate with "Process"
+spans or other spans modelling processing operations.
+
+> "Receive" spans SHOULD be created for operations of passing messages to the
+> application, when the those operations are initiated by the application code.
+> A single "Receive" span can account for a single message, for multiple messages
+> (in case messages are passed for processing as batches), or for no message at
+> all (if it is signalled that no messages were received).  For each message it
+> accounts for, a "Receive" span SHOULD link to the "Create" span for the
+> message.
+
+##### General considerations
+
+The operations modelled by "Deliver" or "Receive" spans do not strictly refer
+to receiving the message from intermediaries, but instead refer to the
+application receiving messages for processing. If messages are fetched from the
+intermediary and forwarded to the application in one go, the whole operation
+might be covered by a "Deliver" or "Receive" span. However, clients might
+pre-fetch messages from intermediaries and cache those messages, and only
+forward messages to the application at a later time. In this case, the
+operation of pre-fetching and caching should not be covered by the "Deliver" or
+"Receive" spans.
+
+> "Deliver" or "Receive" spans MUST NOT be created for messages which are not
+> forwarded to the application, but are pre-fetched or cached by messaging
+> libraries or SDKs.
 
 ### System-specific extensions
 
 ### Examples
 
 ## Future possibilities
+
+### Context propagation
+
+One possibility to seamlessly integrate producer/consumer and intermediary
+instrumentation in a flexible and extensible way would be the introduction of a
+second transport context layer in addition to the creation context layer. 
+
+1. The _creation context layer_ allows correlating the producer with the
+   consumers of a message, regardless of intermediary instrumentation. The
+   creation context is created by the producer and must be propagated to the
+   consumers. It must not be altered by intermediaries.
+
+   This layer helps to model dependencies between producers and consumers,
+   regardless of the underlying messaging transport mechanism and its
+   instrumentation.
+2. An additional _transport context layer_ allows correlating the producer and
+   the consumer with an intermediary. It also allows to correlate multiple
+   intermediaries among each other. The transport context can be changed by
+   intermediaries, according to intermediary instrumentations. Intermediaries that
+   are not instrumented might simply drop the transport context.
+
+   This layer helps to gain insights into details of the message transport.
+
+This would keep the existing correlation between producers and consumer intact,
+while allowing intermediaries to use the transport context to correlate
+intermediary instrumentation with existing producer and consumer
+instrumentations.
