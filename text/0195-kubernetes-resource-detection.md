@@ -141,7 +141,10 @@ env:
        fieldPath: spec.nodeName
 ```
 
-The primary drawback of this approach is that this method doesn't have a way to specify schema version it should apply to. This would conflict with the ability of [telemetry schemas](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md#solution-summary) to convert from older versions of semantic conventions to newer ones. If that issue is resolved, this would be preferable to the proposed solution.
+This approach has a few drawbacks:
+
+* This method doesn't have a way to specify schema version it should apply to. This would conflict with the ability of [telemetry schemas](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md#solution-summary) to convert from older versions of semantic conventions to newer ones.
+* Some resource attributes contain `_` characters. Converting `_` in environment variable names to `.` would not allow such attributes to be set.  For example, `CLOUD_AVAILABILITY_ZONE` would be converted to `cloud.availability.zone`, rather than the correct `cloud.availability_zone`.
 
 ## Future possibilities
 
