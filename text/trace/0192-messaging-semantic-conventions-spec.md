@@ -54,10 +54,12 @@ to the intermediary.
 A "consumer" receives the message and acts upon it. It uses the context and
 data to execute some logic, which might lead to the occurrence of new messages.
 
-The consumer receives, processes, and settles a message. "Receiving" is the
-process of obtaining a message from the intermediary, "processing" is the
-process of acting on the information a message contains, "settling" is the
-process where intermediary and consumer agree on the state of the transfer.
+The consumer receives, processes, and settles a message.
+
+* "Receiving" is the process of obtaining a message from the intermediary.
+* "Processing" is the process of acting on the information a message contains.
+* "Settling" is the process where intermediary and consumer agree on the state
+  of the transfer.
 
 #### Intermediary
 
