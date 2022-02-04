@@ -113,7 +113,35 @@ Kubernetes supports defining environment variables based on [dependent environme
 This approach has a few drawbacks:
 
 * `OTEL_RESOURCE_ATTRIBUTES` may need to include additional attibutes other than those used for kubernetes. This makes it harder to apply the same environment variables across all pods.
-* `OTEL_RESOURCE_ATTRIBUTES` doesn't have a way to specify which version of the semantic conventions it should apply to.
+* `OTEL_RESOURCE_ATTRIBUTES` doesn't have a way to specify the schema version it should apply to. This would conflict with the ability of [telemetry schemas](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md#solution-summary) to convert from older versions of semantic conventions to newer ones.
+
+### Alternative: Support multiple OTEL_RESOURCE_ATTRIBUTES_* variables
+
+Proposed in [open-telemetry/opentelemetry-specification#2135](https://github.com/open-telemetry/opentelemetry-specification/issues/2135), SDKs would detect all environment variables starting with `OTEL_RESOURCE_ATTRIBUTES_`, and would add these to the detected resource attributes. The `OTEL_RESOURCE_ATTRIBUTES` prefix is trimmed, letters are lower-cased, and `_` are replaced with `.`.  For example, `OTEL_RESOURCE_ATTRIBUTES_K8S_NODE_NAME=foo` would become `k8s.node.name=foo`.
+
+It would solve the Goals of this proposal by allowing the following to be used across all pods:
+
+```yaml
+env:
+- name: OTEL_RESOURCE_ATTRIBUTES_K8S_POD_NAME
+   valueFrom:
+     fieldRef:
+       fieldPath: metadata.name
+- name: OTEL_RESOURCE_ATTRIBUTES_K8S_POD_UID
+   valueFrom:
+     fieldRef:
+       fieldPath: metadata.uid
+- name: OTEL_RESOURCE_ATTRIBUTES_K8S_NAMESPACE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace
+- name: OTEL_RESOURCE_ATTRIBUTES_K8S_NODE_NAME
+   valueFrom:
+     fieldRef:
+       fieldPath: spec.nodeName
+```
+
+The primary drawback of this approach is that this method doesn't have a way to specify schema version it should apply to. This would conflict with the ability of [telemetry schemas](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md#solution-summary) to convert from older versions of semantic conventions to newer ones. If that issue is resolved, this would be preferable to the proposed solution.
 
 ## Future possibilities
 
