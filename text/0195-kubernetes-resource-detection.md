@@ -40,19 +40,19 @@ The snippet of environment variables added the pod spec would look like:
 
 ```yaml
 env:
-- name: K8S_POD_NAME
+- name: OTEL_K8S_POD_NAME
    valueFrom:
      fieldRef:
        fieldPath: metadata.name
-- name: K8S_POD_UID
+- name: OTEL_K8S_POD_UID
    valueFrom:
      fieldRef:
        fieldPath: metadata.uid
-- name: K8S_NAMESPACE_NAME
+- name: OTEL_K8S_NAMESPACE_NAME
   valueFrom:
     fieldRef:
       fieldPath: metadata.namespace
-- name: K8S_NODE_NAME
+- name: OTEL_K8S_NODE_NAME
    valueFrom:
      fieldRef:
        fieldPath: spec.nodeName
@@ -82,10 +82,10 @@ SDK's should add a Kubernetes environment variable-based resource detector.  The
 
 | Environment Variable | Semantic Convention |
 | ---- | ---- |
-| K8S_POD_NAME | k8s.pod.name |
-| K8S_POD_UID | k8s.pod.uid |
-| K8S_NAMESPACE_NAME | k8s.namespace.name |
-| K8S_NODE_NAME | k8s.node.name |
+| OTEL_K8S_POD_NAME | k8s.pod.name |
+| OTEL_K8S_POD_UID | k8s.pod.uid |
+| OTEL_K8S_NAMESPACE_NAME | k8s.namespace.name |
+| OTEL_K8S_NODE_NAME | k8s.node.name |
 
 Detection of the above semantic conventions using environment variables should not be done inside vendor-specific (e.g. GKE-specific) resource detectors.
 
@@ -97,7 +97,7 @@ Similar to `OTEL_RESOURCE_ATTRIBUTES`, we could require the proposed environment
 
 ### Alternative: Using HOSTNAME for k8s.pod.name
 
-Many kubernetes detectors currently use `HOSTNAME` environment variable, which defaults to the Pod name. However, the `HOSTNAME` can be [modified in a few ways](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-hostname-and-subdomain-fields) in the pod spec. Kubernetes resource detectors may fall back to detecting the pod name using `HOSTNAME` if `K8S_POD_NAME` is not available, but this may cause user confusion in some cases.
+Many kubernetes detectors currently use `HOSTNAME` environment variable, which defaults to the Pod name. However, the `HOSTNAME` can be [modified in a few ways](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-hostname-and-subdomain-fields) in the pod spec. Kubernetes resource detectors may fall back to detecting the pod name using `HOSTNAME` if `OTEL_K8S_POD_NAME` is not available, but this may cause user confusion in some cases.
 
 `HOSTNAME` is also [truncated to 64 characters](https://github.com/kubernetes/kubernetes/issues/4825) on some operating systems.
 
@@ -107,7 +107,7 @@ Kubernetes supports defining environment variables based on [dependent environme
 
 ```yaml
 - name: OTEL_RESOURCE_ATTRIBUTES
-  value: k8s.pod.name=$(K8S_POD_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.namespace.name=$(K8S_NAMESPACE_NAME),k8s.node.name=$(K8S_NODE_NAME)
+  value: k8s.pod.name=$(OTEL_K8S_POD_NAME),k8s.pod.uid=$(OTEL_K8S_POD_UID),k8s.namespace.name=$(OTEL_K8S_NAMESPACE_NAME),k8s.node.name=$(OTEL_K8S_NODE_NAME)
 ```
 
 This approach has a few drawbacks:
