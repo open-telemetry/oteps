@@ -113,7 +113,7 @@ Kubernetes supports defining environment variables based on [dependent environme
 This approach has a few drawbacks:
 
 * `OTEL_RESOURCE_ATTRIBUTES` may need to include additional attibutes other than those used for kubernetes. This makes it harder to apply the same environment variables across all pods.
-* `OTEL_RESOURCE_ATTRIBUES` doesn't have a way to specify which version of the semantic conventions it should apply to.
+* `OTEL_RESOURCE_ATTRIBUTES` doesn't have a way to specify which version of the semantic conventions it should apply to.
 
 ## Future possibilities
 
