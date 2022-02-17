@@ -176,6 +176,16 @@ AnyValue{
 }
 ```
 
+#### Sets
+
+Unordered collections of non-duplicate values (such as
+[Java Sets](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Set.html),
+[C++ sets](https://en.cppreference.com/w/cpp/container/set),
+[Python Sets](https://docs.python.org/3/tutorial/datastructures.html#sets)) SHOULD be
+converted to AnyValue's
+[array_value](https://github.com/open-telemetry/opentelemetry-proto/blob/38b5b9b6e5257c6500a843f7fdacf89dd95833e8/opentelemetry/proto/common/v1/common.proto#L35)
+field, where each element of the set becomes an element of the array.
+
 ### Other Values
 
 Any other values not listed above SHOULD be converted to AnyValue's
