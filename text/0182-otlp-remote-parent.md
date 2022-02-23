@@ -8,7 +8,7 @@ It is sometimes useful to post-process or visualise only entry-point spans: span
 For example, the Elastic APM solution highlights entry-point spans (Elastic APM refers to these as "transactions") and surfaces these as top-level operations
 in its user interface.
 
-Currently, the only way entry-point spans can be identified is using (lack of) parent ID, and span kind. Relying on span kind can lead to invalid assumptions,
+In a system where only one span is processed at the time, without building up a DAG of spans to identify the entry-span, the only way entry-point spans can be identified is using (lack of) parent ID, and span kind. Relying on span kind can lead to invalid assumptions,
 particularly with relation to `CONSUMER` messaging spans. Using the [batch receiving example](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#batch-receiving)
 in the messaging semantic conventions, `Span Recv1` should be the only entry point into `Process C`. If we assume `CONSUMER` spans are always entry-point spans,
 then this leads to `Span Proc1` and `Span Proc2` being incorrectly classified as entry-point spans. For messaging spans we might also take into account the
