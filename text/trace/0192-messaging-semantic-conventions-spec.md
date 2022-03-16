@@ -148,7 +148,7 @@ message. If no "Create" span exists for a message, the context of the related
 
 > "Publish" spans SHOULD be created for operations of providing messages for
 > sending or publishing to an intermediary. A single "Publish" span can account
-> for a single message, or for multiple messages (in case of providing 
+> for a single message, or for multiple messages (in case of providing
 > messages in batches). "Create" spans MAY be created. A single "Create" span
 > SHOULD account only for a single message.
 >
