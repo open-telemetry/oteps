@@ -238,58 +238,68 @@ spans can link to zero, one, or multiple "Create" spans.
 #### Single message producer, single message push-based consumer
 
 ```
-  +------------+                             +------------+
-  | Publish m1 |.............................| Deliver m1 |
+  PRODUCER                                   CONSUMER
+
+  +------------+         (link)              +------------+
+  | Publish m1 | . . . . . . . . . . . . . . | Deliver m1 |
   +------------+                             +------------+
 ```
 
 #### Batch message producer with "Create" spans, single message pull-based consumer
 
 ```
+  PRODUCER                                        CONSUMER
+
   +-------------------------+                     +------------+
-  | Publish                 |         ............| Receive m1 |
+  | Publish                 |         . . . . . . | Receive m1 |
   +-+-----------+-----------+         .           +------------+
-    | Create m1 |......................
+    | Create m1 | . . . . . . . . . . .
     +-----------+-----------+                     +------------+
-                | Create m2 |.....................| Receive m2 |
+                | Create m2 | . . . . . . . . . . | Receive m2 |
                 +-----------+                     +------------+
 ```
 
 #### Batch message producer, single message push-based consumer
 
 ```
+  PRODUCER                                CONSUMER
+
   +---------+                             +------------+
-  | Publish |.............................| Deliver m1 |
+  | Publish | . . . . . . . . . . . . . . | Deliver m1 |
   +---------+                             +------------+
         .                                 +------------+
-        ..................................| Deliver m2 |
+        . . . . . . . . . . . . . . . . . | Deliver m2 |
                                           +------------+
 ```
 
 #### Batch message producer with independent "Create" spans, single message pull-based consumer
 
 ```
+  PRODUCER                                      CONSUMER
+
   +-----------------------------------+
   | Ambient                           | 
   +-+-----------+---------------------+         +------------+
-    | Create m1 |...............................| Receive m1 |
+    | Create m1 | . . . . . . . . . . . . . . . | Receive m1 |
     +-----------+-----------+                   +------------+
-                | Create m2 |................
+                | Create m2 | . . . . . . . .
                 +-----------+---------+     .   +------------+
-                            | Publish |     ....| Receive m2 |
+                            | Publish |     . . | Receive m2 |
                             +---------+         +------------+
 ```
 
 #### Single message producers, batch push-based consumer with process spans
 
 ```
+  PRODUCER                         CONSUMER
+
   +------------+                     
-  | Publish m1 |.............................
-  +------------+                            . 
+  | Publish m1 | . . . . . . . . . . . . . . 
+  +------------+                           .  
                                    +---------------------------+
-                                ...| Deliver                   |
-  +------------+                .  +-+------------+------------+ 
-  | Publish m2 |.................    | Process m1 |
+                               . . | Deliver                   |
+  +------------+               .   +-+------------+------------+ 
+  | Publish m2 | . . . . . . . .     | Process m1 |
   +------------+                     +------------+------------+
                                                   | Process m2 |
                                                   +------------+
@@ -298,13 +308,15 @@ spans can link to zero, one, or multiple "Create" spans.
 #### Single message producers, batch pull-based consumer with process spans
 
 ```
+  PRODUCER                    CONSUMER
+
   +------------+                     
-  | Publish m1 |........      +-------------------------------------+
-  +------------+       .      | Ambient                             |
-                       .      +-+---------+-------------------------+
-                       .........| Receive |
-  +------------+           .    +---------+------------+
-  | Publish m2 |............              | Process m1 |
+  | Publish m1 |. . . .       +-------------------------------------+
+  +------------+      .       | Ambient                             |
+                      .       +-+---------+-------------------------+
+                      . . . . . | Receive |
+  +------------+          .     +---------+------------+
+  | Publish m2 |. . . . . .               | Process m1 |
   +------------+                          +------------+------------+
                                                        | Process m2 |
                                                        +------------+
