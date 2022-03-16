@@ -118,6 +118,44 @@ coordinated way. Future versions of these conventions might recommend [context p
 
 ### Trace structure, names, and attributes
 
+#### Producer
+
+Producers are responsible for attaching a creation context to a message.
+Subsequent consumers will use this context to link consumer traces to producer
+traces. Ideally, each message gets a unique and distinct creation context
+assigned. However, as a context must refer to a span this would require the
+creation of a distinct span for each message, which is not feasible in all
+scenarios. In certain batching scenarios where many messages are created and
+published in large batches, creating a span for each single message would
+obfuscate traces and is not desirable. Thus having a unique and distinct
+context per message is recommended, but not required.
+
+For each producer scenario, a "Publish" span needs to be created. This span
+measures the duration of the call or operation that provides messages for
+sending or publishing to an intermediary. This call or operation (and the
+related "Publish" span) can either refer to a single message or to a batch of
+multiple messages.
+
+It is recommended to create a "Create" span for each single message. "Create"
+spans can be created during the "Publish" operation as children of the
+"Publish" span. Alternatively, "Create" spans can be created independently of
+the "Publish" operation. In that case, SDKs may provide mechanisms to allow
+attaching independent contexts with messages.
+
+If a "Create" span exists for a message, its context must be attached to the
+message. If no "Create" span exists for a message, the context of the related
+"Publish" span must be attached to the message.
+
+> "Publish" spans SHOULD be created for operations of providing messages for
+> sending or publishing to an intermediary. A single "Publish" span can account
+> for a single message, or for multiple messages (in case of providing 
+> messages in batches). "Create" spans MAY be created. A single "Create" span
+> SHOULD account only for a single message.
+>
+> If a "Create" span exists for a message, its context SHOULD be attached to
+> the message. If no "Create" span exists, the context of the related "Publish"
+> span SHOULD be attached to the message.
+
 #### Consumer
 
 For many use cases, it is not possible to rely on the presence of "Process"
