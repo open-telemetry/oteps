@@ -126,17 +126,17 @@ traces. Ideally, each message gets a unique and distinct creation context
 assigned. However, as a context must refer to a span this would require the
 creation of a distinct span for each message, which is not feasible in all
 scenarios. In certain batching scenarios where many messages are created and
-published in large batches, creating a span for each single message would
+published in large batches, creating a span for every single message would
 obfuscate traces and is not desirable. Thus having a unique and distinct
 context per message is recommended, but not required.
 
 For each producer scenario, a "Publish" span needs to be created. This span
 measures the duration of the call or operation that provides messages for
 sending or publishing to an intermediary. This call or operation (and the
-related "Publish" span) can either refer to a single message or to a batch of
+related "Publish" span) can either refer to a single message or a batch of
 multiple messages.
 
-It is recommended to create a "Create" span for each single message. "Create"
+It is recommended to create a "Create" span for every single message. "Create"
 spans can be created during the "Publish" operation as children of the
 "Publish" span. Alternatively, "Create" spans can be created independently of
 the "Publish" operation. In that case, SDKs may provide mechanisms to allow
