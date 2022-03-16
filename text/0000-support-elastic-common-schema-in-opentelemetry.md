@@ -5,8 +5,16 @@ Collaborators: Alolita Sharma (OTEL GC, AWS), Cyrille Le Clerc (Elastic), Daniel
 
 ## Introduction
 
-This proposal is to add support for the Elastic Common Schema (ECS) in the OpenTelemetry specification and provide full interoperability for ECS in OpenTelemetry component implementations.
+This proposal is to add support for the Elastic Common Schema (ECS) in the OpenTelemetry specification and provide full interoperability for ECS in OpenTelemetry component implementations.  We propose to implement this support enriching OpenTelemetry Semantic Conventions with ECS fields. The goal is to merge ECS into Otel Semantic Conventions. 
 
+## Proposed process to merge ECS in OpenTelemetry Semantic Conventions
+
+We propose 3 steps to add support for ECS in OpenTelemetry Semantic Conventions:
+1. Validation of the principle of adding support for ECS in OpenTelemetry and validation that this support would be implemented merging ECS fields in OpenTelemetry Semantic Conventions,
+2. Validation of the methodology to merge these ECS fields. As there are 40+ ECS namespaces and as there will be few overlaps and maybe needs to evolve some ECS field names to match the vocabulary and conventions of Otel, we have in mind an iterative process tackling namespaces one after the other. We are also interested in clarifying how downstream schemas could be created; We have for example identified the value of having downstream schemas to specify persistence characteristics (see ECS string persistence types <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/text.html#match-only-text-field-type">match_only_text</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/keyword.html#keyword-field-type">keyword</a> <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/keyword.html#constant-keyword-field-type">constant_keyword</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/keyword.html#wildcard-field-type">wildcard</a>),
+3. Actual merge of ECS fields in Otel Semantic Conventions.
+
+Note that we didn't propose in this OTEP the mapping of all ECS fields because this is a substantial effort, we prefered to first validate the principle and, once consensus is reached, actually define the mapping. 
 
 ## Motivation
 
@@ -35,7 +43,6 @@ OpenTelemetry has the potential to grow exponentially if the data from these oth
 
 
 ## Background
-
 
 ### What is ECS?
 
@@ -125,7 +132,6 @@ Example of a Nginx Access Log entry structured with ECS
 
 ## Comparison between OpenTelemetry Semantic Conventions for logs and ECS
 
-
 ## Principles
 
 | Description | [OTel Logs and Event Record](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#log-and-event-record-definition) | [Elastic Common Schema (ECS)](https://www.elastic.co/guide/en/ecs/current/ecs-reference.html) |
@@ -147,9 +153,6 @@ Example of a Nginx Access Log entry structured with ECS
 | Objects | uint32, uint64… | <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/object.html">object</a> (JSON object), <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/flattened.html">flattened</a> (An entire JSON object as a single field value) | 
 | Structured Objects | No complex semantic data type specified for the moment (e.g. string is being used for ip addresses rather than having an "ip" data structure in Otel). <br/> Note that Otel supports arrays and nested objects. | <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/ip.html">ip</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/geo-point.html">geo_point</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/geo-shape.html">geo_shape</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/version.html">version</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/range.html">long_range</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/range.html">date_range</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/range.html">ip_range</a> | 
 | Binary data | Byte sequence | <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/binary.html">binary</a> | 
-
-
-
 
 ## Known Differences
 
@@ -230,12 +233,17 @@ As the markdown code of the tables is hard to read and maintain with very long l
   </tr>
 </table>
 
+## How would OpenTelemetry users practically use the new OpenTelemetry Semantic Conventions Attributes brought by ECS 
+
+### Example an OpenTelemetry Collector Receiver to collect the access logs of a web server
+
+The author of the "Otel Collector Access logs file receiver for web server XXX" would find in the Otel Semantic Convention specifications all the guidance to map the fields of the web server logs, not only the attributes that the Otel Semantic Conventions has specified today for [HTTP calls](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.9.0/specification/trace/semantic_conventions/http.md), but also attributes for the [User Agent](https://www.elastic.co/guide/en/ecs/current/ecs-user_agent.html) or the [Geo Data](https://www.elastic.co/guide/en/ecs/current/ecs-geo.html).
+This completeness of the mapping will help the author of the integration to produce OTel Log Message that will be compatible with access logs other web components (web servers, load balancers, L7 firewalls...) allowing turnkey integration with observability solutions and enabling richer correlations.
+
+## Alternatives / Discussion
 
 
-# Alternatives / Discussion
-
-
-## Prometheus Naming Conventions
+### Prometheus Naming Conventions
 
 Prometheus is a de facto standard for observability metrics and OpenTelemetry already provides full interoperability with the Prometheus ecosystem.
 
@@ -246,6 +254,6 @@ Note that one of the challenges with Prometheus metrics naming conventions is th
 Prometheus' conventions are restricted to the style of the name of the metrics (see [Metric and label naming | Prometheus](https://prometheus.io/docs/practices/naming/) ) but don't specify unified metric names.
 
 
-# Other areas that need to be addressed by OTEL (the project)
+## Other areas that need to be addressed by OTEL (the project)
 
 Some areas that need to be addressed in the long run as ECS is integrated into OTEL include defining the innovation process, providing maintainer rights to Elastic contributors who maintain ECS today, ensuring the OTEL specification incorporates the changes to accommodate ECS, and a process for handling breaking changes if any (the proposal [Define semantic conventions and instrumentation stability #2180](https://github.com/open-telemetry/opentelemetry-specification/pull/2180) should tackle this point). Also, migration of existing naming (e.g. Prometheus exporter) to standardized convention (see [Semantic Conventions for System Metrics](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/system-metrics.md) , [Semantic Conventions for OS Process Metrics](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md)).
