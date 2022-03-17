@@ -8,12 +8,40 @@ It is sometimes useful to post-process or visualise only entry-point spans: span
 For example, the Elastic APM solution highlights entry-point spans (Elastic APM refers to these as "transactions") and surfaces these as top-level operations
 in its user interface.
 
-In a system where only one span is processed at the time, without building up a DAG of spans to identify the entry-span, the only way entry-point spans can be identified is using (lack of) parent ID, and span kind. Relying on span kind can lead to invalid assumptions,
-particularly with relation to `CONSUMER` messaging spans. Using the [batch receiving example](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#batch-receiving)
-in the messaging semantic conventions, `Span Recv1` should be the only entry point into `Process C`. If we assume `CONSUMER` spans are always entry-point spans,
-then this leads to `Span Proc1` and `Span Proc2` being incorrectly classified as entry-point spans. For messaging spans we might also take into account the
-`messaging.operation` attribute to tell these apart, however `messaging.operation` is not required; and this would not satisfy other scenarios such as actively
-polling a message queue, which would result in a `CONSUMER` span which has a non-remote parent span.
+The goal is to identify the spans which represent a request that is entering a service, or originating within a service, without having to first assemble the
+complete distributed trace as a DAG (Directed Acyclic Graph). It is trivially possible to identify trace roots, but it is not possible to identify spans with
+remote parents.
+
+Here is a contrived example distributed trace, with a border added to the entry-point spans:
+
+```mermaid
+graph TD
+    subgraph comments_service
+    POST_comments(POST /comment)
+    POST_comments --> comments_send(comments send)
+    end
+
+    subgraph auth_service
+    POST_comments --> POST_auth(POST /auth)
+    POST_auth --> LDAP
+    end
+
+    subgraph user_details_service
+    POST_comments --> GET_user_details(GET /user_details)
+    GET_user_details --> SELECT_users(SELECT FROM users)
+    end
+
+    subgraph comments_inserter
+    comments_send --> comments_receive(comments receive)
+    comments_receive --> comments_process(comments process)
+    comments_process --> INSERT_comments(INSERT INTO comments)
+    end
+
+    style POST_comments stroke-width:4
+    style POST_auth stroke-width:4
+    style GET_user_details stroke-width:4
+    style comments_receive stroke-width:4
+```
 
 ## Explanation
 
