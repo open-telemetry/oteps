@@ -203,7 +203,7 @@ spans or other spans modelling processing operations.
 > "Receive" spans SHOULD be created for operations of passing messages to the
 > application, when the those operations are initiated by the application code.
 
-##### General considerations
+##### General considerations for both push-based and pull-based scenarios
 
 The operations modelled by "Deliver" or "Receive" spans do not strictly refer
 to receiving the message from intermediaries, but instead refer to the
@@ -231,6 +231,23 @@ spans can link to zero, one, or multiple "Create" spans.
 > each message it accounts for, the "Deliver" or "Receive" span SHOULD link to
 > the "Create" span for the message.
 
+##### Settlement
+
+Messages can be settled in a variety of different ways. In some cases, messages
+are not settled at all (fire-and-forget), in other cases settlement operations
+are triggered manually by the user, in callback scenarios settlement can be
+automatically triggered by messaging SDKs based on return values of callbacks.
+
+A "Settle" spans should be created for every settlement operation, no matter if
+the settlement operation was manually triggered by the user or automatically
+triggered by SDKs. SDKs will in some cases auto-settle messages in
+push-scenarios, when messages are delivered via callbacks. In this case it is
+recommended to create a parent span, so that a "Settle" span will be a sibling
+of the related "Deliver" span.
+
+> "Settle" spans SHOULD be created for every manually or automatically
+> triggered settlement operation.
+
 ### System-specific extensions
 
 ### Examples
@@ -243,6 +260,32 @@ spans can link to zero, one, or multiple "Create" spans.
   +------------+         (link)              +------------+
   | Publish m1 | . . . . . . . . . . . . . . | Deliver m1 |
   +------------+                             +------------+
+```
+
+#### Single message producer, single message push-based consumer with manual settlement
+
+```
+  PRODUCER                                   CONSUMER
+
+  +------------+                             +------------------+
+  | Publish m1 | . . . . . . . . . . . . . . | Deliver m1       |
+  +------------+                             +-----+-----------++
+                                                   | Settle m1 |
+                                                   +-----------+
+```
+
+#### Single message producer, single message push-based consumer with auto-settlement
+
+```
+  PRODUCER                                   CONSUMER
+
+                                           +--------------------------+
+                                           | Ambient                  |
+  +------------+                           +-+------------+-----------+
+  | Publish m1 | . . . . . . . . . . . . . . | Deliver m1 |
+  +------------+                             +------------+-----------+
+                                                          | Settle m1 |
+                                                          +-----------+
 ```
 
 #### Batch message producer with "Create" spans, single message pull-based consumer
@@ -278,7 +321,7 @@ spans can link to zero, one, or multiple "Create" spans.
   PRODUCER                                      CONSUMER
 
   +-----------------------------------+
-  | Ambient                           | 
+  | Ambient                           |
   +-+-----------+---------------------+         +------------+
     | Create m1 | . . . . . . . . . . . . . . . | Receive m1 |
     +-----------+-----------+                   +------------+
@@ -293,12 +336,12 @@ spans can link to zero, one, or multiple "Create" spans.
 ```
   PRODUCER                         CONSUMER
 
-  +------------+                     
-  | Publish m1 | . . . . . . . . . . . . . . 
-  +------------+                           .  
+  +------------+
+  | Publish m1 | . . . . . . . . . . . . . .
+  +------------+                           .
                                    +---------------------------+
                                . . | Deliver                   |
-  +------------+               .   +-+------------+------------+ 
+  +------------+               .   +-+------------+------------+
   | Publish m2 | . . . . . . . .     | Process m1 |
   +------------+                     +------------+------------+
                                                   | Process m2 |
@@ -310,7 +353,7 @@ spans can link to zero, one, or multiple "Create" spans.
 ```
   PRODUCER                    CONSUMER
 
-  +------------+                     
+  +------------+
   | Publish m1 |. . . .       +-------------------------------------+
   +------------+      .       | Ambient                             |
                       .       +-+---------+-------------------------+
@@ -320,6 +363,23 @@ spans can link to zero, one, or multiple "Create" spans.
   +------------+                          +------------+------------+
                                                        | Process m2 |
                                                        +------------+
+```
+
+#### Single message producers, batch pull-based consumer with manual settlement
+
+```
+  PRODUCER                    CONSUMER
+
+  +------------+
+  | Publish m1 |. . . .       +----------------------------------------+
+  +------------+      .       | Ambient                                |
+                      .       +-+---------+----------------------------+
+                      . . . . . | Receive |
+  +------------+          .     +---------+    +-----------+
+  | Publish m2 |. . . . . .                    | Settle m1 |
+  +------------+                               +-----------+-----------+
+                                                           | Settle m2 |
+                                                           +-----------+
 ```
 
 ## Future possibilities
