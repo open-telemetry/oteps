@@ -245,8 +245,18 @@ push-scenarios, when messages are delivered via callbacks. In this case it is
 recommended to create a parent span, so that a "Settle" span will be a sibling
 of the related "Deliver" span.
 
-> "Settle" spans SHOULD be created for every manually or automatically
-> triggered settlement operation.
+In cases where it is not feasible to create spans for settlement operations, an
+event should be created instead. Events could be added to "Deliver" spans or to
+ambient spans.
+
+"Settle" spans may link to "Create" spans of the messages that are settled,
+however, for some settlement scenarios this is not feasible or possible.
+
+> "Settle" spans or events SHOULD be created for every manually or automatically
+> triggered settlement operation. A single "Settle" span can account for a
+> single message or for multiple messages (in case messages are passed for
+> settling as batches). For each message it accounts for, the "Settle" span
+> MAY link to the "Create" span for the message.
 
 ### System-specific extensions
 
