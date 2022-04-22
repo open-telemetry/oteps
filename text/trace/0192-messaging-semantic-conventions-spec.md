@@ -322,7 +322,6 @@ linked traces without the need of additional semantic hints.
 
 #### Attributes
 
-
 ### System-specific extensions
 
 ### Examples
