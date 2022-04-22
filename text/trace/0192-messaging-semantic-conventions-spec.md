@@ -116,7 +116,7 @@ coordinated way. Future versions of these conventions might recommend [context p
 > A producer SHOULD attach a creation context to each message. The creation context
 > SHOULD be attached in a way so that it is not changed by intermediaries.
 
-### Trace structure, names, and attributes
+### Trace structure
 
 #### Producer
 
@@ -257,6 +257,71 @@ however, for some settlement scenarios this is not feasible or possible.
 > single message or for multiple messages (in case messages are passed for
 > settling as batches). For each message it accounts for, the "Settle" span
 > MAY link to the "Create" span for the message.
+
+### Span names, kinds, and attributes
+
+#### Span name
+
+The span name should be descriptive and make it clear, what operation a span
+describes. In the context of messaging systems, this means that a span should
+at the very least make clear that it refers to a messaging system, in addition
+it needs to make clear what particular [messaging operation](#operation-name)
+it refers to.
+
+Ideally, the span name also contains the destination name of the messages it
+refers to. However, a destination name should only be added to the span name
+when it is of low cardinality. This is usually the case when the destination
+name is a meaningful and manually configured name (like a manually configure
+queue or topic name), it is usually not the case if the destination name is an
+auto-generated identifier (like a conversation id or an auto-generated name for
+an anonymous destination).
+
+> The span name SHOULD consist of the name of the messaging system followed by
+> an [operation name](#operation-name). The destination name MAY be appended if
+> it is of low cardinality.
+
+##### Examples
+
+* `kafka publish shop.orders`
+* `rabbitmq receive print_jobs`
+* `AmazonSQS deliver`
+* `activemq settle`
+
+#### Operation name
+
+The following operations related to messages are covered by these semantic
+conventions:
+
+| Operation name | Description |
+|----------------|-------------|
+| `publish`      | One ore more messages are provided for publishing to an intermediary. |
+| `create`       | A message is created. |
+| `receive`      | One or more messages are requested by a consumer. |
+| `deliver`      | One or more message are passed to a consumer. |
+| `settle`       | One or more message are settled. |
+
+For further details about each of those operations refer, to the [section about trace structure](#trace-structure).
+
+#### Span kind
+
+[Span kinds](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#spankind)
+SHOULD be set according to the following table, based on the operation a span describes.
+
+| Operation name | Span kind|
+|----------------|-------------|
+| `publish`      | `PRODUCER`, if no `create` spans are present. `INTERNAL` otherwise. |
+| `create`       | `PRODUCER` |
+| `receive`      | `CONSUMER` |
+| `deliver`      | `CONSUMER` |
+| `settle`       | `INTERNAL` |
+
+Setting span kinds according to this table ensures, that span links between
+consumer and producers always go from a `PRODUCER` span on the producer side to
+a `CONSUMER` span on the consumer side. This allows analysis tools to interpret
+linked traces without the need of additional semantic hints.
+
+#### Attributes
+
 
 ### System-specific extensions
 
