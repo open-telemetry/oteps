@@ -110,7 +110,9 @@ specified repeatedly on the wire. It will be also cumbersome to require the call
 to always specify such attributes when creating a Span, Metric or a LogRecord as
 opposed to specifying them once when obtaining the Trace, Meter or LogEmitter.
 
-## Example Usage
+## Examples
+
+### Usage in Code
 
 The following is an example usage where LogEmitter is used to emit client-side
 log records (pseudocode follows):
@@ -122,6 +124,14 @@ logger = LogEmitterProvider.GetLogEmitter("mylibrary", "1.0.0", KeyValue("otel.c
 // somewhere later in the code
 logger.emit(LogRecord{Body:"click", Attributes:...})
 ```
+
+### LogRecord Multiplexing
+
+Here is an example usage where LogRecords are used to represent profiling data,
+client-side events and regular logs. The Scope attribute is used for multiplexing
+and routing the LogRecords:
+
+![LogRecord Multiplexing](img/0201-scope-multiplexing.png)
 
 ## Open questions
 
