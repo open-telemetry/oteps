@@ -38,6 +38,8 @@ The following is the summary of proposed changes:
 
 ### API Changes
 
+#### Tracer
+
 `Get a Tracer` API will be extended to add the following parameter:
 
 ```
@@ -45,21 +47,71 @@ The following is the summary of proposed changes:
   with emitted telemetry.
 ```
 
-`Get a Metter` API will be extended to add the following parameter:
+Since the attributes are optional this is a backwards compatible change.
+
+We will modify the following clause:
+
+```
+It is unspecified whether or under which conditions the same or different
+`Tracer` instances are returned from this functions.
+```
+
+and replace it by:
+
+```
+The implementation MUST NOT return the same `Tracer` when called repeatedly with
+different values of parameters.
+
+It is unspecified whether or under which conditions the same or different
+`Tracer` instances are returned from this functions when the same 
+(name,version,schema_url,attributes) parameters are used.
+```
+
+Since we are defining more precisely previously undefined behavior this is a
+backwards compatible change.
+
+#### Meter
+
+`Get a Meter` API will be extended to add the following parameter:
 
 ```
 - `attributes` (optional): Specifies the instrumentation scope attributes to associate
   with emitted telemetry.
 ```
 
+We will modify the following clause:
+
+```
+It is unspecified whether or under which conditions the same or different
+`Meter` instances are returned from this functions.
+```
+
+and replace it by:
+
+```
+The implementation MUST NOT return the same `Meter` when called repeatedly with
+different values of parameters.
+
+It is unspecified whether or under which conditions the same or different
+`Meter` instances are returned from this functions when the same 
+(name,version,schema_url,attributes) parameters are used.
+```
+
+#### LogEmitter
+
 `Get LogEmitter` SDK call will be altered to the following:
 
 ```
 Accepts the instrumentation scope name and optional version and attributes and
 returns a LogEmitter associated with the instrumentation scope.
-```
 
-Since the attributes are optional this is a backwards compatible change.
+The implementation MUST NOT return the same `LogEmitter` when called repeatedly with
+different values of parameters.
+
+It is unspecified whether or under which conditions the same or different
+`LogEmitter` instances are returned from this functions when the same
+(name,version,attributes) parameters are used.
+```
 
 ### OTLP Changes
 
