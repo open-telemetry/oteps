@@ -60,7 +60,8 @@ and replace it by:
 
 ```
 The implementation MUST NOT return the same `Tracer` when called repeatedly with
-different values of parameters.
+different values of parameters. The only exception to this rule is no-op `Tracer`, the
+implementation MAY return the same instance regardless of parameter values.
 
 It is unspecified whether or under which conditions the same or different
 `Tracer` instances are returned from this functions when the same 
@@ -90,7 +91,8 @@ and replace it by:
 
 ```
 The implementation MUST NOT return the same `Meter` when called repeatedly with
-different values of parameters.
+different values of parameters. The only exception to this rule is no-op `Meter`, the
+implementation MAY return the same instance regardless of parameter values.
 
 It is unspecified whether or under which conditions the same or different
 `Meter` instances are returned from this functions when the same 
@@ -106,7 +108,8 @@ Accepts the instrumentation scope name and optional version and attributes and
 returns a LogEmitter associated with the instrumentation scope.
 
 The implementation MUST NOT return the same `LogEmitter` when called repeatedly with
-different values of parameters.
+different values of parameters. The only exception to this rule is no-op `LogEmitter`, the
+implementation MAY return the same instance regardless of parameter values.
 
 It is unspecified whether or under which conditions the same or different
 `LogEmitter` instances are returned from this functions when the same
