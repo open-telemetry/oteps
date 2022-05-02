@@ -173,11 +173,17 @@ The following is an example usage where LogEmitter is used to emit client-side
 log records (pseudocode follows):
 
 ```
-// obtain a logger once, at startup.
-logger = LogEmitterProvider.GetLogEmitter("mylibrary", "1.0.0", KeyValue("otel.clientside", true))
+// Obtain loggers once, at startup.
+appLogger = LogEmitterProvider.GetLogEmitter("mylibrary", "1.0.0")
+loggerForUserEvents = LogEmitterProvider.GetLogEmitter("mylibrary", "1.0.0", KeyValue("otel.clientside", true))
 
-// somewhere later in the code
-logger.emit(LogRecord{Body:"click", Attributes:...})
+// Somewhere later in the code when the user clicks a UI element. This should
+// export telemetry with otel.clientside=true Scope attribute set.
+loggerForUserEvents.emit(LogRecord{Body:"click", Attributes:...})
+
+// Somewhere else in the code, not related to user interactions. This should
+// export telemetry without any Scope attributes.
+appLogger.emit(LogRecord{Body:"Error occurred while processing the file", Attributes:...})
 ```
 
 ### LogRecord Multiplexing
