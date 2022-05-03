@@ -1,6 +1,6 @@
 # Introduce Scope Attributes
 
-This OTEP adds attributes to the Scope.
+This OTEP adds attributes to the Scope of a telemetry emitter (e.g. Tracer, Meter, LogEmitter).
 
 ## Motivation
 
