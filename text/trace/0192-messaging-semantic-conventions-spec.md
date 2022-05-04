@@ -209,8 +209,8 @@ The operations modelled by "Deliver" or "Receive" spans do not strictly refer
 to receiving the message from intermediaries, but instead refer to the
 application receiving messages for processing. If messages are fetched from the
 intermediary and forwarded to the application in one go, the whole operation
-might be covered by a "Deliver" or "Receive" span. However, clients might
-pre-fetch messages from intermediaries and cache those messages, and only
+might be covered by a "Deliver" or "Receive" span. However, libraries or SDKs
+might pre-fetch messages from intermediaries and cache those messages, and only
 forward messages to the application at a later time. In this case, the
 operation of pre-fetching and caching should not be covered by the "Deliver" or
 "Receive" spans.
