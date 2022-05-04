@@ -9,6 +9,19 @@ This OTEP is based on [OTEP 0173](0173-messaging-semantic-conventions.md),
 which defines basic terms and describes messaging scenarios that should be
 supported by messaging semantic conventions.
 
+* [Motivation](#motivation)
+* [Proposed stable messaging semantic conventions for tracing](#proposed-stable-messaging-semantic-conventions-for-tracing)
+  - [Terminology](#terminology)
+  - [Stages of producing and consuming messages](#stages-of-producing-and-consuming-messages)
+  - [Context propagation](#context-propagation)
+  - [Trace structure](#trace-structure)
+  - [Span names, kinds, and attributes](#span-names-kinds-and-attributes)
+  - [System-specific extensions](#system-specific-extensions)
+  - [Examples](#examples)
+* [Future possibilities](#future-possibilities)
+  - [Transport context propagation](#transport-context-propagation)
+  - [Standards for context propagation](#standards-for-context-propagation)
+
 ## Motivation
 
 This OTEP serves as a foundation for a first stable version of [messaging semantic conventions for tracing](https://github.com/open-telemetry/opentelemetry-specification/blob/a1a8676a43dce6a4e447f65518aef8e98784306c/specification/trace/semantic_conventions/messaging.md).
