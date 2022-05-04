@@ -322,6 +322,20 @@ linked traces without the need of additional semantic hints.
 
 #### Attributes
 
+Attribute             | Type   | Required
+----------------------|--------|---------
+[`messaging.broker`](#messagingbroker) | string | Yes
+[`messaging.operation`](#messagingoperation) | string | Yes
+
+##### `messaging.broker`
+
+A string identifying the messaging broker or intermediary, e. g. `kafka`,
+`rabbitmq`, `rocketmq`, `AzureEventHubs`, or `AmazonSQS`.
+
+##### `messaging.operation`
+
+This attribute should be set to one of the [pre-defined operation names](#operation-names).
+
 ### System-specific extensions
 
 ### Examples
