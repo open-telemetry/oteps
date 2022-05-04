@@ -114,7 +114,7 @@ so that context is attached to messages and extraced from messages in a
 coordinated way. Future versions of these conventions might recommend [context propagation according to certain industry standards](#standards-for-context-propagation).
 
 > A producer SHOULD attach a creation context to each message. The creation context
-> SHOULD be attached in a way so that it is not changed by intermediaries.
+> SHOULD be attached in a way so that it is not possible to be changed by intermediaries.
 
 ### Trace structure
 
