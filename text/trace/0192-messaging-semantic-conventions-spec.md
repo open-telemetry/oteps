@@ -201,7 +201,7 @@ call. Depending on the use case, "Receive" spans can correlate with "Process"
 spans or other spans modelling processing operations.
 
 > "Receive" spans SHOULD be created for operations of passing messages to the
-> application, when the those operations are initiated by the application code.
+> application, when those operations are initiated by the application code.
 
 ##### General considerations for both push-based and pull-based scenarios
 
