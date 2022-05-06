@@ -112,7 +112,7 @@ Kubernetes supports defining environment variables based on [dependent environme
 
 This approach has a few drawbacks:
 
-* `OTEL_RESOURCE_ATTRIBUTES` may need to include additional attibutes other than those used for kubernetes. This makes it harder to apply the same environment variables across all pods.
+* `OTEL_RESOURCE_ATTRIBUTES` may need to include additional attibutes other than those used for kubernetes. This makes it harder to apply the same environment variables across all pods. It is also difficult to correctly merge several sets of otel environment variables together: open-telemetry/opentelemetry-specification#1982.
 * `OTEL_RESOURCE_ATTRIBUTES` doesn't have a way to specify the schema version it should apply to. This would conflict with the ability of [telemetry schemas](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md#solution-summary) to convert from older versions of semantic conventions to newer ones.
 
 ### Alternative: Support multiple OTEL_RESOURCE_ATTRIBUTES_* variables
