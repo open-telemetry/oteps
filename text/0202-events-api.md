@@ -14,7 +14,7 @@ Here are a few situations that require recording of Events, there will be more.
 * RUM events (Client-side instrumentation)
 * Recording kubernetes events
 * Recording eBPF events
-* Few other event systems described in example mappings in the data model.
+* Few other event systems described in [example mappings](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#appendix-a-example-mappings) in the data model.
 
 ## Can the current Log API interfaces be used for events?
 
@@ -24,7 +24,7 @@ Here are a few situations that require recording of Events, there will be more.
 * Swift on iOS has Logger interface that has methods corresponding to severity level too.
 2. The Log APIs do not have a standard way to pass event attributes. 
 * It may be possible to use the interpolation string args as the parameter to pass event attributes. However, the logging spec seems to map the human readable message (which is obtained after replacing the args in the interpolated string)  to the Body field of LogRecord. 
-* Log4j has an EventLogger interface that can be used to create structured messages with arbitrary key-value pairs, but log4j is not commonly used in Android apps as it is not officially supported on Android as per this Stack Overflow thread by one of log4j’s maintainers.
+* Log4j has an EventLogger interface that can be used to create structured messages with arbitrary key-value pairs, but log4j is not commonly used in Android apps as it is not officially supported on Android as per this [Stack Overflow thread](https://stackoverflow.com/questions/60398799/disable-log4j-jmx-on-android/60407849#60407849) by one of log4j’s maintainers.
 * In python, logging.LogRecord’s extra field is mapped to Otel LogRecord’s attributes but this field is a hidden field and not part of the public interface.
 3. The Log APIs have a message parameter which could map to the Body field of LogRecord. However, this is restricted to String messages and does not allow for a complex structure.
 
@@ -32,12 +32,12 @@ For the above reasons we can conclude that we will need a separate API for gener
 
 ## Should OpenTelemetry have an API for logs?
 
-There’s a general consensus in the Otel community that we should not have a full-fledged logging API unless there is a language that doesn't already have a plethora of logging libraries & APIs to choose from where it might make sense to define one. Further, we will not be able to have the rich set of configuration options that some popular logging frameworks provide so the logging API in Otel will only become yet another API.
+There’s a general consensus in the Otel community that we should not have a full-fledged logging API unless there is a language that doesn't already have a plethora of logging libraries & APIs to choose from where it might make sense to define one. Further, we will not be able to have the [rich set of configuration options](https://logging.apache.org/log4j/2.x/manual/configuration.html) that some popular logging frameworks provide so the logging API in Otel will only become yet another API.
 
 ## Events API Interface
 
 
-For reference, a prototype of the Events API in Java is here
+For reference, a prototype of the Events API in Java is [here](https://github.com/scheler/opentelemetry-java/pull/1/files)
 
 
 
