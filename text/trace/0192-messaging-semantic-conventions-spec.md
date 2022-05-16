@@ -339,6 +339,18 @@ Attribute             | Type   | Required
 ----------------------|--------|---------
 [`messaging.broker`](#messagingbroker) | string | Yes
 [`messaging.operation`](#messagingoperation) | string | Yes
+[`messaging.destination.name`](#messagingdestinationname) | string | For producer spans
+[`messaging.destination.template`](#messagingdestinationtemplate) | string | No
+[`messaging.destination.kind`](#messagingdestinationkind) | string | No
+[`messaging.destination.temporary`](#messagingdestinationtemporary) | string | No
+[`messaging.destination.anonymous`](#messagingdestinationanonymous) | string | No
+[`messaging.source.name`](#messagingsourcename) | string | For consumer spans
+[`messaging.source.template`](#messagingsourcetemplate) | string | No
+[`messaging.source.kind`](#messagingsourcekind) | string | No
+[`messaging.source.temporary`](#messagingsourcetemporary) | string | No
+[`messaging.source.anonymous`](#messagingsourceanonymous) | string | No
+[`messaging.protocol.name`](#messagingprotocolname) | string | No
+[`messaging.protocol.version`](#messagingprotocolversion) | string | No
 
 ##### `messaging.broker`
 
@@ -348,6 +360,88 @@ A string identifying the messaging broker or intermediary, e. g. `kafka`,
 ##### `messaging.operation`
 
 This attribute should be set to one of the [pre-defined operation names](#operation-names).
+
+##### `messaging.destination.name`
+
+The destination name defines name of the target of a message, as it is
+specified by the producer. There are different kinds of targets, varying
+between different message brokers, e. g. queues in RabbitMQ, or topics in
+Kafka.
+
+This attributes is required for producer spans modelling `publish` or `create`
+operations. It is optional for consumer spans. The name of the source a message
+is received from can be different from the name of the target a message is sent
+to. If this attribute is used on consumer spans, it should be set to the name
+of the target the message was initially published to by the producer.
+
+##### `messaging.destination.template`
+
+In some instances, message destination names are constructed from templates. An
+example would be a destination name involving a user name or product id.
+Although the destination name in this case is of high cardinality, the
+underlying template is of low cardinality and can be effectively used for
+grouping and searching spans.
+
+This attribute is optional, but recommended if the destination name is created
+based on such a template.
+
+##### `messaging.destination.kind`
+
+Different brokers have different concepts of message destinations, the most
+popular being queues and topics. One of the most important differences in
+destination kinds is how messages are settled: messages are settled
+individually in queues, whereas messages are settled based on checkpoints in
+topics. Individual brokers might specify additional destination kinds.
+
+##### `messaging.destination.temporary`
+
+If set to `true`, this flag denotes that the destination is a temporary
+destination and might not exist anymore after messages are processed.
+
+##### `messaging.destination.anonymous`
+
+If set to `true`, this flag denotes that the destination is an anonymous
+destination. Anonymous destinations are usually established just for a
+particular set of producers and consumer. Often such destinations are unnamed
+or have an auto-generated name.
+
+##### `messaging.source.name`
+
+The source name defines name of the source of a message, as it is
+specified by the consumer. There are different kinds of targets, varying
+between different message brokers, e. g. queues in RabbitMQ, or topics in
+Kafka.
+
+This attributes is required for consumer spans modelling `deliver`, `receive`,
+or `settle` operations. The name of the source a message is received from can
+be different from the name of the destination a message was sent to.
+
+##### `messaging.source.template`
+
+See [`messaging.destination.template`](#messagingdestinationtemplate).
+
+##### `messaging.source.kind`
+
+See [`messaging.destination.kind`](#messagingdestinationkind).
+
+##### `messaging.source.temporary`
+
+See [`messaging.destination.temporary`](#messagingdestinationtemporary).
+
+##### `messaging.source.anonymous`
+
+See [`messaging.destination.anonymous`](#messagingdestinationanonymous).
+
+##### `messaging.protocol.name`
+
+The name of the underlying protocol which is used to publish and receive
+messages. This should specify application layer protocols (e. g. AMQP, MQTT, or
+HTTP) and not transport or network layer protocols (e. g. TCP, UDP, IP).
+
+##### `messaging.protocol.version`
+
+The version of the protocol given in [`messagingprotocolname`](#messagingprotocolname),
+if applicable.
 
 ### System-specific extensions
 
