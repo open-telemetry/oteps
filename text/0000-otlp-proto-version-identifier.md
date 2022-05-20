@@ -1,5 +1,3 @@
-
-
 # Include OTLP proto version identifier in requests
 
 Adds OTLP request identifer to descrive the OTLP version used to create the binary or JSON payload.
