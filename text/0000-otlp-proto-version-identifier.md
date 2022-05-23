@@ -29,4 +29,5 @@ Currently released SDKs and collector versions will not include these identifier
 An alternative is to add the version information as a resource attribute within the request body. However, this requires the body to be decoded before the version can be identified and does not support an OTLP handler knowing the version before decoding so breaking changes in the payload vs handler proto definitions are not handled.
 
 ## Open questions
+
 ## Future possibilities
