@@ -111,82 +111,50 @@ A LogRecord representing exception event will look like this:
 The EventEmitter SHOULD additionally provide the following functions for convenience:
 * Create a new Event using Log Record data model.
 
-
-### Adding Trace Context to Events
-The Event being created may not always be related to the Span in progress even though it’s created in the same execution context. 
-
-In languages where Context is implicitly available (for eg., in Java), the API SHOULD not automatically inject the Context into the Event created. 
-
-In languages where Context is implicitly available (for eg., in Java), new Events MUST NOT get the Context injected into them by default. However, this functionality MAY BE offered separately.
-
-In languages where the Context must be provided explicitly, the end user must capture the Context and set it explicitly in the LogRecord.
-
-
 ### Usage
 
 ```java
-EventEmitterProvider eventEmitterProvider = SdkLogEmitterProvider.builder()
-              .addLogProcessor(BatchLogProcessor.builder(OtlpGrpcLogExporter.builder().
-             build()).build()).build();
+OpenTelemetry openTelemetry = OpenTelemetry.noop();
+EventEmitter eventEmitter = openTelemetry.getLogger("my-scope");
 
-OpenTelemetry openTelemetry = OpenTelemetrySdk.builder()
-    .setLogEmitterProvider(eventEmitterProvider)
-    .buildAndRegisterGlobal();
-
-EventEmitter eventEmitter = EventEmitterProvider.getEventEmitter("instrumentation-library-name", "1.0.0");
-
-// Using the builder interface
-eventEmitter.eventBuilder("network-changed").build().setAttribute("type", "wifi").emit();
+eventEmitter.logEvent("network-changed", 
+                 Attributes.builder().put("type", "wifi").build());
 eventEmitter.eventBuilder("page-navigated").build().setAttribute("url", "http://foo.com/bar#new").emit();
 
-// Using the convenience functions
-eventEmitter.logEvent(name, attributes);
 ```
 
 
 ### Usage in Client-side telemetry
-For client-side instrumentation, we will choose to not use the fields Severity Number and Severity Field, and only use Attributes instead. Severity is not commonly needed in RUM events, and if needed in future we could use an attribute for it.
+
 
 ```java
 public void addBrowserEvent(String name, Attributes attributes) {
-   eventEmitter.logEvent("browser." + name, attributes).emit();
+   EventEmitter eventEmitter = openTelemetry.getLogger("my-scope", "1.0", "browser");
+   eventEmitter.logEvent(name, attributes);
 }
 
 public void addMobileEvent(String name, Attributes attributes) {
-   eventEmitter.logEvent("mobile.” + name, attributes).emit();     
+   EventEmitter eventEmitter = openTelemetry.getLogger("my-scope", "1.0", "mobile");
+   eventEmitter.logEvent(name, attributes);
 }
 ```
 
 ### Usage in eBPF
 From the eBPF [demo](https://youtu.be/F1VTRqEC8Ng?t=233), it looks like they have chosen to put the Event data in the Body field of LogRecord instead of Attributes.  They might have to make the changes to move the event data to attributes to conform to this API specification.
 
-## Semantic Convention for event attribute
+## Semantic Convention for event attributes
+
+**type:** `event`
+
+**Description:** Event attributes.
+
 
 | Attribute  | Type | Description  | Examples  | Required |
 |---|---|---|---|---|
 | `event.name` | string | Name or type of the event. | `network-change`; `button-click`; `exception` | Yes |
-| `event.domain` | string | Domain or scope for the event. | `profiling`; `browser` | No |
+| `event.domain` | string | Domain or scope for the event. | `profiling`; `browser`, `db`, `k8s` | No |
 
-There are a few possible approaches - 
-
-1. One single attribute name: _otel.event.name_
-  * Pros
-    * No possibility of conflict with user provided attributes since the prefix is reserved for Otel use.
-    * Serves as one single attribute for event names across all domains/verticals.
-  * Cons
-    *  The otel namespace is typically used to express OpenTelemetry concepts not available in other formats. Event name is not an OpenTelemetry specific concept
-    * The value of this attribute MUST use a namespace to avoid confusion with using the same event name across different domains/verticals and that is hard to enforce in the API.
-2. Namespaced with the domain/vertical: _browser.event.name_, _mobile.event.name_, _db.event.name_, _k8s.event.name_
-  * Cons
-    * Requires longer API functions for recording events; instead of logEvent(eventName, attributes), we will need logEvent(eventNameattributeKey, eventNameAttributeValue, eventAttributes)
-    * Condition to check for distinguishing against logs is complex now; We should at least mandate the suffix “.event.name” for the attribute key but this is not typical in OpenTelemetry and will be hard to enforce in the API.
-
-3. Make the domain namespace a separate parameter in the logEvent function. The function signature will be: ```void logEvent(eventName, domainNamespace, eventAttributes)```. The two parameters will both go in their own attributes separately - _otel.event.name_, _otel.event.domain_
-  * Pros
-    * Addresses the concerns in the two approaches above.
-  * Cons
-    * We will be introducing domain as a first-class concept in OpenTelemetry, we will have to analyze the implications in other areas.
-    * LogRecord’s setters can still be used to create events not following these conventions for event name and domain.
+An `event.name` is supposed to be unique only in the context of an `event.domain`, so this allows for two events in different domains to have same `event.name`. No claim is made about the uniqueness of `event.name`s in the absence of `event.domain`.
 
 
 # Causality on Events
@@ -202,8 +170,9 @@ Span s1 = Trace.startSpan()
 s1.end()
 ```
 
-# Open questions
-2. How do we design the API to prevent automatic injection of (Span) Context in Events when not needed?
-  * In Android, the event listener handlers are called in the same thread they are setup from, so if a span is in progress in that thread when the handler is called then it may be needed to not have any span context in the event created in the handler.
-3. What are the implications on the Trace API to add events to a Span? Do we make it create LogRecord based Events? In this case, there will be 2 APIs to create events and another problem is that if Trace API is turned off to disable emitting of Spans, it will turn off events as well created using Trace API.
+## Comparing with Span Events
+
+* Span Events are events recorded within spans using Trace API. It is not possible to create independent Events using Trace API. The Events API must be used instead.
+* Span Events were added in the Trace spec when Logs spec was in early stages. Ideally, Events should only be recorded using LogRecords and correlated with Spans by adding Span Context in the LogRecords. However, since Trace API spec is stable Span Events MUST continue to be supported.
+* We may still add a configuration option to the `TracerProvider` to create LogRecords for the Span Events and associate them with the Span using Span Context in the LogRecords. Note that in this case, if a noop TracerProvider is used it will not produce LogRecords for Span Events.
 
