@@ -1,12 +1,12 @@
 # Introducing Events API
 
-
 In this OTEP we introduce an Events API that is based on the OpenTelemetry Log signal. In OpenTelemetry's perspective Log Records and Events are different names for the same concept - however, there is a subtle difference in how they are represented using the underlying data model that is described below. Although every language has APIs for logs, they are not all capable of creating events. We will describe why the existing Logging APIs are not sufficient for the purpose of creating events.  It will then be evident that we will need an API in OpenTelementry for creating events. 
 
 We have an option of adding API for both Logs and Events. However, there is a general consensus that we should not have an API in Otel for creating logs since each language already has multiple logging frameworks. Therefore we restrict the API specification below to Events and call it Events API. For logs, it is recommended that end-users continue to use existing Logging APIs and export the logs into OTLP using the  [appender API](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation-appender-api-internal/src/main/java/io/opentelemetry/instrumentation/api/appender/internal) and LogEmitter SDK. The Events API will offer a subset of the features of LogEmitter SDK and so it will be backed by LogEmitter SDK and the LogRecord data model.
 
 ## Subtle differences between Logs and Events
-In OpenTelemetry's perspective Log Records and Events are different names for the same concept. However, there are subtle differences in how they are represented in the underlying LogRecord data model. Logs have a mandatory severity level as a first-class parameter that events do not have, and events have a mandatory name that logs do not have. Further, logs typically have messages in string form and events have data in the form of key-value pairs. It is due to this that their API interface requirements are slightly different.
+
+In OpenTelemetry's perspective Logs and Events are different names for the same concept. However, there are subtle differences in how they are represented using the underlying LogRecord data model. Logs have a mandatory severity level as a first-class parameter that events do not have, and events have a mandatory name that logs do not have. Further, logs typically have messages in string form and events have data in the form of key-value pairs. It is due to this that their API interface requirements are slightly different.
 
 ## Who requires Events API
 
@@ -22,17 +22,17 @@ Here are a few situations that require recording of Events, there will be more.
 * In JavaScript for Web, the standard method of logging is to use console.log. Events can be created using [Event/CustomEvent](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) interfaces.However, there is no option to define custom destination for these logs and events. Logs go only to console and event listeners are attached to the DOM element that dispatches it.
 * In Android, android.util.Log has methods  Log.v(), Log.d(), Log.i(), Log.w(), and Log.e() to write logs. These methods correspond to the severity level.
 * Swift on iOS has Logger interface that has methods corresponding to severity level too.
-2. The Log APIs do not have a standard way to pass event attributes. 
+2. The current Log APIs do not have a standard way to pass event attributes. 
 * It may be possible to use the interpolation string args as the parameter to pass event attributes. However, the logging spec seems to map the human readable message (which is obtained after replacing the args in the interpolated string)  to the Body field of LogRecord. 
 * Log4j has an EventLogger interface that can be used to create structured messages with arbitrary key-value pairs, but log4j is not commonly used in Android apps as it is not officially supported on Android as per this [Stack Overflow thread](https://stackoverflow.com/questions/60398799/disable-log4j-jmx-on-android/60407849#60407849) by one of log4j’s maintainers.
-* In python, logging.LogRecord’s extra field is mapped to Otel LogRecord’s attributes but this field is a hidden field and not part of the public interface.
-3. The Log APIs have a message parameter which could map to the Body field of LogRecord. However, this is restricted to String messages and does not allow for a complex structure.
+* In Python, logging.LogRecord's extra field is mapped to Otel LogRecord's attributes but this field is a hidden field and not part of the public interface.
+3. The current Log APIs have a message parameter which could map to the Body field of LogRecord. However, this is restricted to String messages and does not allow for structured logs.
 
 For the above reasons we can conclude that we will need a separate API for generating Events API
 
 ## Should OpenTelemetry have an API for logs?
 
-There’s a general consensus in the Otel community that we should not have a full-fledged logging API unless there is a language that doesn't already have a plethora of logging libraries & APIs to choose from where it might make sense to define one. Further, we will not be able to have the [rich set of configuration options](https://logging.apache.org/log4j/2.x/manual/configuration.html) that some popular logging frameworks provide so the logging API in Otel will only become yet another API.
+There’s a general consensus in the Otel community that we should not have a full-fledged logging API unless there is a language that doesn't already have a plethora of logging libraries & APIs to choose from where it might make sense to define one. Further, we will not be able to have the [rich set of configuration options](https://logging.apache.org/log4j/2.x/manual/configuration.html) that some popular logging frameworks provide so the logging API in OTel will only become yet another API.
 
 ## Events API Interface
 
@@ -40,15 +40,16 @@ There’s a general consensus in the Otel community that we should not have a fu
 For reference, a prototype of the Events API in Java is [here](https://github.com/scheler/opentelemetry-java/pull/1/files)
 
 
-Client-side telemetry is one of the initial clients that will use the Events API and so the API will be made available in JavaScript, Java and Swift first to be able to use in the SDKs for Browser, Android and iOS.  It may also be added in Go since there is a kubernetes events receiver implemented in Collector based on Logs data-model.
+Client-side telemetry is one of the initial clients that will use the Events API and so the API will be made available in JavaScript, Java and Swift first to be able to use in the SDKs for Browser, Android and iOS.  It may also be added in Go since there is a Kubernetes events receiver implemented in Collector based on Logs data-model.
 
 
 The Events API consist of these main classes:
 
 * EventEmitterProvider is the entry point of the API. It provides access to EventEmitters..
-* EventEmitter  is the class responsible for creating events using Log records.
+* EventEmitter is the class responsible for creating events using Log records.
 
 ### EventEmitterProvider
+
 EventEmitter can be accessed with an EventEmitterProvider.
 
 In implementations of the API, the EventEmitterProvider is expected to be the stateful object that holds any configuration.
@@ -101,7 +102,7 @@ A LogRecord representing exception event will look like this:
    event.name: exception,
    exception.type:  OSError,
    exception.message: Division by Zero,
-   exception.stacktrace: “”,
+   exception.stacktrace: "",
    exception.escaped: false
  }
 }
