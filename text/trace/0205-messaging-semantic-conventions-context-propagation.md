@@ -30,7 +30,7 @@ which illustrate how producer and consumer spans can be correlated by
 parent/child relationships or links. All the examples assume that context
 information for a given message is propagated from the producer to the consumer.
 
-However, this is not a trivial assumption, and it is not easily accomodated by
+However, this is not a trivial assumption, and it is not easily accommodated by
 existing established context propagation mechanisms. Those mechanism propagate
 context on a per-request basis, whereas the messaging semantic conventions
 assume that context is propagated on a per-message basis. This means, that
