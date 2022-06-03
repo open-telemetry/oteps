@@ -1,6 +1,6 @@
 # Context propagation requirements for messaging semantic conventions
 
-The [existing messaging semantic conventions for tracing](https://github.com/open-telemetry/opentelemetry-specification/blob/a1a8676a43dce6a4e447f65518aef8e98784306c/specification/trace/semantic_conventions/messaging.md)
+The [existing messaging semantic conventions for tracing](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.11.0/specification/trace/semantic_conventions/messaging.md)
 implicitly impose certain requirements on context propagation mechanisms used.
 This document proposes a way to make these requirements explicit.
 
