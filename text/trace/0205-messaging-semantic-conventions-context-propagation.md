@@ -105,7 +105,7 @@ OpenTelemetry requirements.
 
 A _creation context_ allows correlating the producer with the consumer(s) of a
 message, regardless of intermediary instrumentation. The creation context is
-created by the producer and must be propagated to the consumers. It must not be
+created by the producer and must be propagated to the consumer(s). It must not be
 altered by intermediaries.  This context helps to model dependencies between
 producers and consumers, regardless of the underlying messaging transport
 mechanism and its instrumentation.
