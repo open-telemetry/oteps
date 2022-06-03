@@ -25,10 +25,11 @@ For terms used in this document, refer to [OTEP 173](#0173-messaging-semantic-co
 ## Motivation
 
 The current [messaging semantic conventions for tracing](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.11.0/specification/trace/semantic_conventions/messaging.md)
-provide a list of [examples](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.11.0/specification/trace/semantic_conventions/messaging.md#examples),
-which illustrate how producer and consumer spans can be correlated by
+provide a list of [examples](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.11.0/specification/trace/semantic_conventions/messaging.md#examples).
+Those examples illustrate how producer and consumer spans can be correlated by
 parent/child relationships or links. All the examples assume that context
-information for a given message is propagated from the producer to the consumer.
+information for a given message is propagated from the producer to the
+consumer.
 
 However, this is not a trivial assumption, and it is not easily accommodated by
 existing established context propagation mechanisms. Those mechanisms propagate
