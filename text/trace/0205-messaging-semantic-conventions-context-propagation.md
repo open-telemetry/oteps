@@ -35,7 +35,7 @@ existing established context propagation mechanisms. Those mechanisms propagate
 context on a per-request basis, whereas the messaging semantic conventions
 assume that context is propagated on a per-message basis. This means, that
 although several requests might be involved in the processing of a single
-message (publishing a message, fetching a message, probable multiple times by
+message (publishing a message, fetching a message, potentially multiple times by
 multiple consumers), it is assumed that all components have access to the same
 per-message context information that allows correlating all the stages of
 processing a message.
