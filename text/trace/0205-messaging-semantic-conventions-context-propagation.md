@@ -54,7 +54,7 @@ requirement explicit.
 
 Many intermediaries (message brokers) offer REST APIs for publishing and
 fetching messages. A producer can publish a message by sending an HTTP request
-to the intermediary, a consumer can pull a message by sending an HTTP request
+to the intermediary and a consumer can pull a message by sending an HTTP request
 to the intermediary:
 
 ```
