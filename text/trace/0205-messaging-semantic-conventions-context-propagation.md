@@ -46,7 +46,7 @@ requirement should be documented, as it is an important factor in deciding how
 to propagate context for message scenarios and how to standardize context
 propagation for existing message protocols._
 
-The additions proposed in this document are not breaking or invalidating any of
+The additions proposed in this document neither break nor invalidate any of
 the existing semantic conventions for messaging, but rather make an implicit
 requirement explicit.
 
