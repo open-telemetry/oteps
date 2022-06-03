@@ -123,12 +123,11 @@ SHOULD be attached in a way so that it is not possible to be changed by intermed
 
 ### Transport context propagation
 
-As illustrated in the [example](#example) above, a creation context can be
-attached to a message, while different contexts are propagated via HTTP requests
-publishing and fetching the message. When coming up with conventions and
-guidance for intermediary instrumentation, it will be beneficial to clearly
-outline those two layers of context propagation and build conventions for
-intermediary instrumentation on top of this outline:
+A creation context can be attached to a message, while different contexts are
+propagated with requests that publish and fetch a message. When coming up with
+conventions and guidance for intermediary instrumentation, it will be
+beneficial to clearly outline those two layers of context propagation and build
+conventions for intermediary instrumentation on top of this outline:
 
 1. The _creation context layer_ allows correlating the producer with the
    consumers of a message, regardless of intermediary instrumentation. The
