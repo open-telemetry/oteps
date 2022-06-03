@@ -153,11 +153,11 @@ instrumentations.
 
 ### Standards for context propagation
 
-Currently, instrumentors have to decide how to attach and extract context from
-messages to fulfil the [requirements for context propagation](#context-propagation).
-While preserving the freedom for instrumentors to choose how to propagate
-context, in the future these conventions should list recommended ways of how to
-propagate context using well-established messaging protocols.
+Currently, instrumentation authors have to decide how to attach and extract
+context from messages to fulfil the [requirements for context propagation](#context-propagation).
+While preserving the freedom for instrumentation authors to choose how to
+propagate context, in the future these conventions should list recommended ways
+of how to propagate context using well-established messaging protocols.
 
 Currently, several attempts exist to standardize context propagation for different
 messaging protocols and scenarios:
