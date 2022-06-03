@@ -103,7 +103,7 @@ cannot be assumed, and in many cases, it is not even desired, that all those
 components and layers are instrumented and propagate context according to
 OpenTelemetry requirements.
 
-A _creation context_ allows correlating the producer with the consumers of a
+A _creation context_ allows correlating the producer with the consumer(s) of a
 message, regardless of intermediary instrumentation. The creation context is
 created by the producer and must be propagated to the consumers. It must not be
 altered by intermediaries.  This context helps to model dependencies between
