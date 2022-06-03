@@ -43,7 +43,7 @@ processing a message.
 To achieve this desired outcome, a context needs to be attached to a message,
 and intermediaries must not alter the context attached to the message. _This
 requirement should be documented, as it is an important factor in deciding how
-to propagate context for message scenarios, and how to standardize context
+to propagate context for message scenarios and how to standardize context
 propagation for existing message protocols._
 
 The additions proposed in this document are not breaking or invalidating any of
