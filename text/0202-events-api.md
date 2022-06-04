@@ -1,6 +1,6 @@
 # Introducing Events API
 
-In this OTEP we introduce an Events API that is based on the OpenTelemetry Log signal. In OpenTelemetry's perspective Log Records and Events are different names for the same concept - however, there is a subtle difference in how they are represented using the underlying data model that is described below. Although every language has APIs for logs, they are not all capable of creating events. We will describe why the existing Logging APIs are not sufficient for the purpose of creating events.  It will then be evident that we will need an API in OpenTelementry for creating events. 
+In this OTEP we introduce an Events API that is based on the OpenTelemetry Log signal. In OpenTelemetry's perspective Log Records and Events are different names for the same concept - however, there is a subtle difference in how they are represented using the underlying data model that is described below. Although every language has APIs for logs, they are not all capable of creating events. We will describe why the existing Logging APIs are not sufficient for the purpose of creating events.  It will then be evident that we will need an API in OpenTelementry for creating events.
 
 We have an option of adding API for both Logs and Events. However, there is a general consensus that we should not have an API in Otel for creating logs since each language already has multiple logging frameworks. Therefore we restrict the API specification below to Events and call it Events API. For logs, it is recommended that end-users continue to use existing Logging APIs and export the logs into OTLP using the  [appender API](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation-appender-api-internal/src/main/java/io/opentelemetry/instrumentation/api/appender/internal) and LogEmitter SDK. The Events API will offer a subset of the features of LogEmitter SDK and so it will be backed by LogEmitter SDK and the LogRecord data model.
 
@@ -11,21 +11,26 @@ In OpenTelemetry's perspective Logs and Events are different names for the same 
 ## Who requires Events API
 
 Here are a few situations that require recording of Events, there will be more.
-* RUM events (Client-side instrumentation)
-* Recording kubernetes events
-* Recording eBPF events
-* Few other event systems described in [example mappings](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#appendix-a-example-mappings) in the data model.
+
+- RUM events (Client-side instrumentation)
+- Recording kubernetes events
+- Recording eBPF events
+- Few other event systems described in [example mappings](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#appendix-a-example-mappings) in the data model.
 
 ## Can the current Log API interfaces be used for events?
 
 1. The log level is fundamental to the Log APIs in almost all the languages; all the methods in the Log interface are named after the log level, and there is usually no generic method to submit a log entry without log level.
-* In JavaScript for Web, the standard method of logging is to use console.log. Events can be created using [Event/CustomEvent](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) interfaces.However, there is no option to define custom destination for these logs and events. Logs go only to console and event listeners are attached to the DOM element that dispatches it.
-* In Android, android.util.Log has methods  Log.v(), Log.d(), Log.i(), Log.w(), and Log.e() to write logs. These methods correspond to the severity level.
-* Swift on iOS has Logger interface that has methods corresponding to severity level too.
-2. The current Log APIs do not have a standard way to pass event attributes. 
-* It may be possible to use the interpolation string args as the parameter to pass event attributes. However, the logging spec seems to map the human readable message (which is obtained after replacing the args in the interpolated string)  to the Body field of LogRecord. 
-* Log4j has an EventLogger interface that can be used to create structured messages with arbitrary key-value pairs, but log4j is not commonly used in Android apps as it is not officially supported on Android as per this [Stack Overflow thread](https://stackoverflow.com/questions/60398799/disable-log4j-jmx-on-android/60407849#60407849) by one of log4j’s maintainers.
-* In Python, logging.LogRecord's extra field is mapped to Otel LogRecord's attributes but this field is a hidden field and not part of the public interface.
+
+- In JavaScript for Web, the standard method of logging is to use console.log. Events can be created using [Event/CustomEvent](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) interfaces.However, there is no option to define custom destination for these logs and events. Logs go only to console and event listeners are attached to the DOM element that dispatches it.
+- In Android, android.util.Log has methods  Log.v(), Log.d(), Log.i(), Log.w(), and Log.e() to write logs. These methods correspond to the severity level.
+- Swift on iOS has Logger interface that has methods corresponding to severity level too.
+
+2. The current Log APIs do not have a standard way to pass event attributes.
+
+- It may be possible to use the interpolation string args as the parameter to pass event attributes. However, the logging spec seems to map the human readable message (which is obtained after replacing the args in the interpolated string)  to the Body field of LogRecord.
+- Log4j has an EventLogger interface that can be used to create structured messages with arbitrary key-value pairs, but log4j is not commonly used in Android apps as it is not officially supported on Android as per this [Stack Overflow thread](https://stackoverflow.com/questions/60398799/disable-log4j-jmx-on-android/60407849#60407849) by one of log4j’s maintainers.
+- In Python, logging.LogRecord's extra field is mapped to Otel LogRecord's attributes but this field is a hidden field and not part of the public interface.
+
 3. The current Log APIs have a message parameter which could map to the Body field of LogRecord. However, this is restricted to String messages and does not allow for structured logs.
 
 For the above reasons we can conclude that we will need a separate API for generating Events API
@@ -36,12 +41,9 @@ There’s a general consensus in the Otel community that we should not have a fu
 
 ## Events API Interface
 
-
 For reference, a prototype of the Events API in Java is [here](https://github.com/scheler/opentelemetry-java/pull/1/files)
 
-
 Client-side telemetry is one of the initial clients that will use the Events API and so the API will be made available in JavaScript, Java and Swift first to be able to use in the SDKs for Browser, Android and iOS.  It may also be added in Go since there is a Kubernetes events receiver implemented in Collector based on Logs data-model.
-
 
 The Events API consist of these main classes:
 
@@ -59,17 +61,21 @@ Normally, the EventEmitterProvider is expected to be accessed from a central pla
 Notwithstanding any global EventEmitterProvider, some applications may want to or have to use multiple EventEmitterProvider instances, e.g. to have different configuration (like LogRecordProcessors) for each (and consequently for the EventEmitters obtained from them), or because it's easier with dependency injection frameworks. Thus, implementations of EventEmitterProvider SHOULD allow creating an arbitrary number of EventEmitter instances.
 
 #### EventEmitterProvider operations
+
 The EventEmitterProvider MUST provide the following functions:
 
 * Get an EventEmitter
 
 ##### Get an EventEmitter
+
 This API MUST accept the following parameters:
-* name (required): This name SHOULD uniquely identify the instrumentation scope, such as the instrumentation library (e.g. io.opentelemetry.contrib.mongodb), package, module or class name.  If an application or library has built-in OpenTelemetry instrumentation, both Instrumented library and Instrumentation library may refer to the same library. In that scenario, the name denotes a module name or component name within that library or application. In case an invalid name (null or empty string) is specified, a working EventEmitter implementation MUST be returned as a fallback rather than returning null or throwing an exception, its name property SHOULD be set to an empty string, and a message reporting that the specified value is invalid SHOULD be logged. A library implementing the OpenTelemetry API may also ignore this name and return a default instance for all calls, if it does not support "named" functionality (e.g. an implementation which is not even observability-related). A EventEmitterProvider could also return a no-op EventEmitter here if application owners configure the SDK to suppress telemetry produced by this library.
-* version (optional): Specifies the version of the instrumentation scope if the scope has a version (e.g. a library version). Example value: 1.0.0.
-* schema_url (optional): Specifies the Schema URL that should be recorded in the emitted telemetry
-* event_domain (optional): Specifies the domain for the events created, which should be added in the attribute `event.domain` in the instrumentation scope.
-* pass_context (optional): Specifies whether the Trace Context should automatically be passed on to the events created by the EventEmitter. This SHOULD be false by default.
+
+- name (required): This name SHOULD uniquely identify the instrumentation scope, such as the instrumentation library (e.g. io.opentelemetry.contrib.mongodb), package, module or class name.  If an application or library has built-in OpenTelemetry instrumentation, both Instrumented library and Instrumentation library may refer to the same library. In that scenario, the name denotes a module name or component name within that library or application. In case an invalid name (null or empty string) is specified, a working EventEmitter implementation MUST be returned as a fallback rather than returning null or throwing an exception, its name property SHOULD be set to an empty string, and a message reporting that the specified value is invalid SHOULD be logged. A library implementing the OpenTelemetry API may also ignore this name and return a default instance for all calls, if it does not support "named" functionality (e.g. an implementation which is not even observability-related). A EventEmitterProvider could also return a no-op EventEmitter here if application owners configure the SDK to suppress telemetry produced by this library.
+
+- version (optional): Specifies the version of the instrumentation scope if the scope has a version (e.g. a library version). Example value: 1.0.0.
+- schema_url (optional): Specifies the Schema URL that should be recorded in the emitted telemetry
+- event_domain (optional): Specifies the domain for the events created, which should be added in the attribute `event.domain` in the instrumentation scope.
+- pass_context (optional): Specifies whether the Trace Context should automatically be passed on to the events created by the EventEmitter. This SHOULD be false by default.
 
 It is unspecified whether or under which conditions the same or different EventEmitter instances are returned from this function.
 
@@ -80,21 +86,24 @@ Note: This could, for example, be implemented by storing any mutable configurati
 The effect of associating a Schema URL with a EventEmitter MUST be that the telemetry emitted using the EventEmitter will be associated with the Schema URL, provided that the emitted data format is capable of representing such association.
 
 ### EventEmitter
+
 The EventEmitter is responsible for creating Events.
 
 Note that EventEmitters should usually not be responsible for configuration. This should be the responsibility of the EventEmitterProvider instead.
 
 #### EventEmitter operations
+
 The EventEmitter MUST provide functions to:
 
-* Function named “logEvent” to create an Event with the provided event name and attributes. The event name provided should be inserted as an attribute with key “event.name”. It will override any attribute with the same key in the attributes passed.
-* Function named “recordException” to record an Exception as an Event. This is to facilitate recording an exception outside of a trace context for languages that already do not support recording an exception in a log message. This should work similar to [Record Exception](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#record-exception) in Trace API, with the following semantics
-  * This is a specialized variant of logEvent function, so for anything not specified here, the same requirements as for logEvent apply.
-  * The signature of the method is to be determined by each language and can be overloaded as appropriate. The method MUST record an exception as an Event with the conventions outlined in the exception semantic conventions document. The minimum required argument SHOULD be no more than only an exception object.
-  * If RecordException is provided, the method MUST accept an optional parameter to provide any additional event attributes (this SHOULD be done in the same way as for the AddEvent method). If attributes with the same name would be generated by the method already, the additional attributes take precedence.
-  * Note: RecordException may be seen as a variant of logEvent with additional exception-specific parameters and all other parameters being optional (because they have defaults from the [exception semantic convention](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md)).
+- Function named “logEvent” to create an Event with the provided event name and attributes. The event name provided should be inserted as an attribute with key “event.name”. It will override any attribute with the same key in the attributes passed.
+- Function named “recordException” to record an Exception as an Event. This is to facilitate recording an exception outside of a trace context for languages that already do not support recording an exception in a log message. This should work similar to [Record Exception](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#record-exception) in Trace API, with the following semantics
+  - This is a specialized variant of logEvent function, so for anything not specified here, the same requirements as for logEvent apply.
+  - The signature of the method is to be determined by each language and can be overloaded as appropriate. The method MUST record an exception as an Event with the conventions outlined in the exception semantic conventions document. The minimum required argument SHOULD be no more than only an exception object.
+  - If RecordException is provided, the method MUST accept an optional parameter to provide any additional event attributes (this SHOULD be done in the same way as for the AddEvent method). If attributes with the same name would be generated by the method already, the additional attributes take precedence.
+  - Note: RecordException may be seen as a variant of logEvent with additional exception-specific parameters and all other parameters being optional (because they have defaults from the [exception semantic convention](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md)).
 
 A LogRecord representing exception event will look like this:
+
 ```
 {
   time_unix_nano: 1653682410,
@@ -108,9 +117,9 @@ A LogRecord representing exception event will look like this:
 }
 ```
 
-
 The EventEmitter SHOULD additionally provide the following functions for convenience:
-* Create a new Event using Log Record data model.
+
+- Create a new Event using Log Record data model.
 
 ### Usage
 
@@ -124,9 +133,7 @@ eventEmitter.eventBuilder("page-navigated").build().setAttribute("url", "http://
 
 ```
 
-
 ### Usage in Client-side telemetry
-
 
 ```java
 public void addBrowserEvent(String name, Attributes attributes) {
@@ -141,6 +148,7 @@ public void addMobileEvent(String name, Attributes attributes) {
 ```
 
 ### Usage in eBPF
+
 From the eBPF [demo](https://youtu.be/F1VTRqEC8Ng?t=233), it looks like they have chosen to put the Event data in the Body field of LogRecord instead of Attributes.  They might have to make the changes to move the event data to attributes to conform to this API specification.
 
 ## Semantic Convention for event attributes
@@ -149,7 +157,6 @@ From the eBPF [demo](https://youtu.be/F1VTRqEC8Ng?t=233), it looks like they hav
 
 **Description:** Event attributes.
 
-
 | Attribute  | Type | Description  | Examples  | Required |
 |---|---|---|---|---|
 | `event.name` | string | Name or type of the event. | `network-change`; `button-click`; `exception` | Yes |
@@ -157,10 +164,9 @@ From the eBPF [demo](https://youtu.be/F1VTRqEC8Ng?t=233), it looks like they hav
 
 An `event.name` is supposed to be unique only in the context of an `event.domain`, so this allows for two events in different domains to have same `event.name`. No claim is made about the uniqueness of `event.name`s in the absence of `event.domain`.
 
+## Causality on Events
 
-# Causality on Events
-
-For creating causality between events we can create wrapper spans that are part of the same trace. However, note that the events themselves are represented using Logs and not as Span Events.
+For creating causality between events we can create wrapper spans that are part of the same trace. However, note that the events themselves are represented using LogRecords and not as Span Events.
 
 ```java
 Span s1 = Trace.startSpan()
@@ -173,7 +179,6 @@ s1.end()
 
 ## Comparing with Span Events
 
-* Span Events are events recorded within spans using Trace API. It is not possible to create independent Events using Trace API. The Events API must be used instead.
-* Span Events were added in the Trace spec when Logs spec was in early stages. Ideally, Events should only be recorded using LogRecords and correlated with Spans by adding Span Context in the LogRecords. However, since Trace API spec is stable Span Events MUST continue to be supported.
-* We may still add a configuration option to the `TracerProvider` to create LogRecords for the Span Events and associate them with the Span using Span Context in the LogRecords. Note that in this case, if a noop TracerProvider is used it will not produce LogRecords for Span Events.
-
+- Span Events are events recorded within spans using Trace API. It is not possible to create independent Events using Trace API. The Events API must be used instead.
+- Span Events were added in the Trace spec when Logs spec was in early stages. Ideally, Events should only be recorded using LogRecords and correlated with Spans by adding Span Context in the LogRecords. However, since Trace API spec is stable Span Events MUST continue to be supported.
+- We may add a configuration option to the `TracerProvider` to create LogRecords for the Span Events and associate them with the Span using Span Context in the LogRecords. Note that in this case, if a noop TracerProvider is used it will not produce LogRecords for the Span Events.
