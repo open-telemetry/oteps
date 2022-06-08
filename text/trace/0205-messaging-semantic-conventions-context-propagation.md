@@ -76,12 +76,17 @@ to the intermediary:
   +----------+
 ```
 
-In this scenario, it is not possible to correlate producer and consumer traces
-for a given message by using HTTP context propagation mechanisms and without
-special broker instrumentation. Both HTTP requests, the one that publishes and
-the one that pulls the message, originate from different traces. There is no
-way the context attached to the HTTP POST request publishing the message can be
-forwarded by the HTTP GET request fetching a message.
+Existing semantic conventions suppose that the consumer can use context
+information from the producer trace to create links or parent/child
+relationships between consumer and producer traces. For this to be possible,
+context information from the producer needs to be propagated to the consumer.
+In the example outlined above, the consumers sends an HTTP GET request to the
+intermediary to fetch a message, the message is returned as part of the
+response. Via this HTTP request, context information can be propagated from the
+consumer to the intermediary, but not from the intermediary to the consumer.
+The consumer can obtain the necessary producer context information only if it
+is propagated as part of the message itself, independent of HTTP context
+propagation.
 
 For correlating producer and consumer traces without special intermediary
 instrumentation it is thus necessary to attach a producer context to the
