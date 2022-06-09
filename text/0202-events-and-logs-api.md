@@ -1,8 +1,8 @@
 # Introducing Events and Logs API
 
-In this OTEP we introduce an Events and Logs API that is based on the OpenTelemetry Log signal. The Events here refer to the independent Events and not to be confused with Span Events which occur only in the context of a span. In OpenTelemetry's perspective Log Records and Events are different names for the same concept - however, there is a subtle difference in how they are represented using the underlying data model that is described below. Although every language has APIs for logs, they are not all capable of creating events. We will describe why the existing Logging APIs are not sufficient for the purpose of creating events.  It will then be evident that we will need an API in OpenTelementry for creating events.
+In this OTEP we introduce an Events and Logs API that is based on the OpenTelemetry Log signal. The Events here refer to the independent Events and not to be confused with Span Events which occur only in the context of a span. In OpenTelemetry's perspective Log Records and Events are different names for the same concept - however, there is a subtle difference in how they are represented using the underlying data model that is described below. We will describe why the existing Logging APIs are not sufficient for the purpose of creating events.  It will then be evident that we will need an API in OpenTelementry for creating events.
 
-We have an option of adding API for both Logs and Events. However, there is a general consensus that we should not have an API in Otel for creating logs since each language already has multiple logging frameworks. Therefore we restrict the API specification below to Events and call it Events API. For logs, it is recommended that end-users continue to use existing Logging APIs and export the logs into OTLP using the  [appender API](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation-appender-api-internal/src/main/java/io/opentelemetry/instrumentation/api/appender/internal) and LogEmitter SDK. The Events API will offer a subset of the features of LogEmitter SDK and so it will be backed by LogEmitter SDK and the LogRecord data model.
+The Logs part of the API is supposed to be used only by the Log Appenders and end-users must continue to use the logging APIs available in the languages.
 
 ## Subtle differences between Logs and Events
 
@@ -15,6 +15,7 @@ Here are a few situations that require recording of Events, there will be more.
 - RUM events (Client-side instrumentation)
 - Recording kubernetes events
 - Recording eBPF events
+- Collector Entity events [link](https://docs.google.com/document/d/1Tg18sIck3Nakxtd3TFFcIjrmRO_0GLMdHXylVqBQmJA/edit)
 - Few other event systems described in [example mappings](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#appendix-a-example-mappings) in the data model.
 
 ## Can the current Log API interfaces be used for events?
@@ -33,67 +34,68 @@ Here are a few situations that require recording of Events, there will be more.
 
 3. The current Log APIs have a message parameter which could map to the Body field of LogRecord. However, this is restricted to String messages and does not allow for structured logs.
 
-For the above reasons we can conclude that we will need a separate API for generating Events API
+For the above reasons we can conclude that we will need an API for generating Events API
 
 ## Should OpenTelemetry have an API for logs?
 
-There’s a general consensus in the Otel community that we should not have a full-fledged logging API unless there is a language that doesn't already have a plethora of logging libraries & APIs to choose from where it might make sense to define one. Further, we will not be able to have the [rich set of configuration options](https://logging.apache.org/log4j/2.x/manual/configuration.html) that some popular logging frameworks provide so the logging API in OTel will only become yet another API.
+A part of the OTel community thnks that we should not have a full-fledged logging API unless there is a language that doesn't already have a plethora of logging libraries & APIs to choose from where it might make sense to define one. Further, we will not be able to have the [rich set of configuration options](https://logging.apache.org/log4j/2.x/manual/configuration.html) that some popular logging frameworks provide so the logging API in OTel will only become yet another API. However, it was noted that the Log Appender API is very similar to the API for Events and so instead of having API for Events and API for Log Appenders separately it was agreed to have one API for Events and Logs, and that the API for Logs is targetted only to Log Appenders.
 
-## Events API Interface
+## Events and Logs API Interface
 
-For reference, a prototype of the Events API in Java is [here](https://github.com/scheler/opentelemetry-java/pull/1/files)
+For reference, a prototype of the Events and Logs API in Java is [here](https://github.com/scheler/opentelemetry-java/pull/1/files)
 
 Client-side telemetry is one of the initial clients that will use the Events API and so the API will be made available in JavaScript, Java and Swift first to be able to use in the SDKs for Browser, Android and iOS.  It may also be added in Go since there is a Kubernetes events receiver implemented in Collector based on Logs data-model.
 
-The Events API consist of these main classes:
+The Events and Logs API consist of these main classes:
 
-* EventEmitterProvider is the entry point of the API. It provides access to EventEmitters..
-* EventEmitter is the class responsible for creating events using Log records.
+* LoggerProvider is the entry point of the API. It provides access to Loggers.
+* Logger is the class responsible for creating events using Log records.
 
-### EventEmitterProvider
 
-EventEmitter can be accessed with an EventEmitterProvider.
+### LoggerProvider
 
-In implementations of the API, the EventEmitterProvider is expected to be the stateful object that holds any configuration.
+Logger can be accessed with an LoggerProvider.
 
-Normally, the EventEmitterProvider is expected to be accessed from a central place. Thus, the API SHOULD provide a way to set/register and access a global default EventEmitterProvider.
+In implementations of the API, the LoggerProvider is expected to be the stateful object that holds any configuration.
 
-Notwithstanding any global EventEmitterProvider, some applications may want to or have to use multiple EventEmitterProvider instances, e.g. to have different configuration (like LogRecordProcessors) for each (and consequently for the EventEmitters obtained from them), or because it's easier with dependency injection frameworks. Thus, implementations of EventEmitterProvider SHOULD allow creating an arbitrary number of EventEmitter instances.
+Normally, the LoggerProvider is expected to be accessed from a central place. Thus, the API SHOULD provide a way to set/register and access a global default LoggerProvider.
 
-#### EventEmitterProvider operations
+Notwithstanding any global LoggerProvider, some applications may want to or have to use multiple LoggerProvider instances, e.g. to have different configuration (like LogRecordProcessors) for each (and consequently for the Loggers obtained from them), or because it's easier with dependency injection frameworks. Thus, implementations of LoggerProvider SHOULD allow creating an arbitrary number of Logger instances.
 
-The EventEmitterProvider MUST provide the following functions:
+#### LoggerProvider operations
 
-* Get an EventEmitter
+The LoggerProvider MUST provide the following functions:
 
-##### Get an EventEmitter
+* Get an Logger
+
+##### Get an Logger
 
 This API MUST accept the following parameters:
 
-- name (required): This name SHOULD uniquely identify the instrumentation scope, such as the instrumentation library (e.g. io.opentelemetry.contrib.mongodb), package, module or class name.  If an application or library has built-in OpenTelemetry instrumentation, both Instrumented library and Instrumentation library may refer to the same library. In that scenario, the name denotes a module name or component name within that library or application. In case an invalid name (null or empty string) is specified, a working EventEmitter implementation MUST be returned as a fallback rather than returning null or throwing an exception, its name property SHOULD be set to an empty string, and a message reporting that the specified value is invalid SHOULD be logged. A library implementing the OpenTelemetry API may also ignore this name and return a default instance for all calls, if it does not support "named" functionality (e.g. an implementation which is not even observability-related). A EventEmitterProvider could also return a no-op EventEmitter here if application owners configure the SDK to suppress telemetry produced by this library.
+- name (required): This name SHOULD uniquely identify the instrumentation scope, such as the instrumentation library (e.g. io.opentelemetry.contrib.mongodb), package, module or class name.  If an application or library has built-in OpenTelemetry instrumentation, both Instrumented library and Instrumentation library may refer to the same library. In that scenario, the name denotes a module name or component name within that library or application. In case an invalid name (null or empty string) is specified, a working Logger implementation MUST be returned as a fallback rather than returning null or throwing an exception, its name property SHOULD be set to an empty string, and a message reporting that the specified value is invalid SHOULD be logged. A library implementing the OpenTelemetry API may also ignore this name and return a default instance for all calls, if it does not support "named" functionality (e.g. an implementation which is not even observability-related). A LoggerProvider could also return a no-op Logger here if application owners configure the SDK to suppress telemetry produced by this library.
 
 - version (optional): Specifies the version of the instrumentation scope if the scope has a version (e.g. a library version). Example value: 1.0.0.
 - schema_url (optional): Specifies the Schema URL that should be recorded in the emitted telemetry
 - event_domain (optional): Specifies the domain for the events created, which should be added in the attribute `event.domain` in the instrumentation scope.
-- pass_context (optional): Specifies whether the Trace Context should automatically be passed on to the events created by the EventEmitter. This SHOULD be false by default.
+- pass_context (optional): Specifies whether the Trace Context should automatically be passed on to the events and logs created by the Logger. This SHOULD be false by default.
 
-It is unspecified whether or under which conditions the same or different EventEmitter instances are returned from this function.
+It is unspecified whether or under which conditions the same or different Logger instances are returned from this function.
 
-Implementations MUST NOT require users to repeatedly obtain an EventEmitter again with the same name+version+schema_url+event_domain+pass_context to pick up configuration changes. This can be achieved either by allowing to work with an outdated configuration or by ensuring that new configuration applies also to previously returned EventEmitters.
+Implementations MUST NOT require users to repeatedly obtain an Logger again with the same name+version+schema_url+event_domain+pass_context to pick up configuration changes. This can be achieved either by allowing to work with an outdated configuration or by ensuring that new configuration applies also to previously returned Loggers.
 
-Note: This could, for example, be implemented by storing any mutable configuration in the EventEmitterProvider and having EventEmitter implementation objects have a reference to the EventEmitterProvider from which they were obtained. If configuration must be stored per-EventEmitter (such as disabling a certain EventEmitter), the EventEmitter could, for example, do a look-up with its name+version+schema_url in a map in the EventEmitterProvider, or the EventEmitterProvider could maintain a registry of all returned EventEmitters and actively update their configuration if it changes.
+Note: This could, for example, be implemented by storing any mutable configuration in the LoggerProvider and having Logger implementation objects have a reference to the LoggerProvider from which they were obtained. If configuration must be stored per-Logger (such as disabling a certain Logger), the Logger could, for example, do a look-up with its name+version+schema_url in a map in the LoggerProvider, or the LoggerProvider could maintain a registry of all returned Loggers and actively update their configuration if it changes.
 
-The effect of associating a Schema URL with a EventEmitter MUST be that the telemetry emitted using the EventEmitter will be associated with the Schema URL, provided that the emitted data format is capable of representing such association.
+The effect of associating a Schema URL with a Logger MUST be that the telemetry emitted using the Logger will be associated with the Schema URL, provided that the emitted data format is capable of representing such association.
 
-### EventEmitter
+### Logger
 
-The EventEmitter is responsible for creating Events.
+The Logger is responsible for creating Events and Logs.
 
-Note that EventEmitters should usually not be responsible for configuration. This should be the responsibility of the EventEmitterProvider instead.
+Note that Loggers should usually not be responsible for configuration. This should be the responsibility of the LoggerProvider instead.
 
-#### EventEmitter operations
+#### Logger operations
 
-The EventEmitter MUST provide functions to:
+The Logger MUST provide functions to:
 
 - Function named “logEvent” to create an Event with the provided event name and attributes. The event name provided should be inserted as an attribute with key “event.name”. It will override any attribute with the same key in the attributes passed.
 - Function named “recordException” to record an Exception as an Event. This is to facilitate recording an exception outside of a trace context for languages that already do not support recording an exception in a log message. This should work similar to [Record Exception](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#record-exception) in Trace API, with the following semantics
@@ -117,19 +119,27 @@ A LogRecord representing exception event may look like this:
 }
 ```
 
-The EventEmitter SHOULD additionally provide the following functions for convenience:
+The Logger SHOULD additionally provide the following functions for convenience:
 
 - Create a new Event using Log Record data model.
+- Create a new Log Record using LogRecord data model.
 
 ### Usage
 
 ```java
 OpenTelemetry openTelemetry = OpenTelemetry.noop();
-EventEmitter eventEmitter = openTelemetry.getLogger("my-scope");
+Logger logger = openTelemetry.getLogger("my-scope");
 
-eventEmitter.logEvent("network-changed", 
+// Using the convenience method to log an event directly
+logger.logEvent("network-changed", 
                  Attributes.builder().put("type", "wifi").build());
-eventEmitter.eventBuilder("page-navigated").build().setAttribute("url", "http://foo.com/bar#new").emit();
+
+// Using the event builder to log an event
+logger.eventBuilder("page-navigated").build().setAttribute("url", "http://foo.com/bar#new").emit();
+
+// Using the logRecord builder to log a record
+Logger logger = openTelemetry.getLogger("another-scope");
+logger.logRecordBuilder().build().setBody("I am a log message").emit();
 
 ```
 
@@ -137,13 +147,13 @@ eventEmitter.eventBuilder("page-navigated").build().setAttribute("url", "http://
 
 ```java
 public void addBrowserEvent(String name, Attributes attributes) {
-   EventEmitter eventEmitter = openTelemetry.getLogger("my-scope", "1.0", "browser");
-   eventEmitter.logEvent(name, attributes);
+   Logger logger = openTelemetry.getLogger("my-scope", "1.0", "browser");
+   logger.logEvent(name, attributes);
 }
 
 public void addMobileEvent(String name, Attributes attributes) {
-   EventEmitter eventEmitter = openTelemetry.getLogger("my-scope", "1.0", "mobile");
-   eventEmitter.logEvent(name, attributes);
+   Logger logger = openTelemetry.getLogger("my-scope", "1.0", "mobile");
+   logger.logEvent(name, attributes);
 }
 ```
 
