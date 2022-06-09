@@ -109,12 +109,12 @@ cannot be assumed, and in many cases, it is not even desired, that all those
 components and layers are instrumented and propagate context according to
 OpenTelemetry requirements.
 
-A _creation context_ allows correlating the producer with the consumer(s) of a
-message, regardless of intermediary instrumentation. The creation context is
-created by the producer and must be propagated to the consumer(s). It must not be
-altered by intermediaries.  This context helps to model dependencies between
-producers and consumers, regardless of the underlying messaging transport
-mechanism and its instrumentation.
+A _message creation context_ allows correlating the producer with the
+consumer(s) of a message, regardless of intermediary instrumentation. The
+message creation context is created by the producer and must be propagated to
+the consumer(s). It must not be altered by intermediaries.  This context helps
+to model dependencies between producers and consumers, regardless of the
+underlying messaging transport mechanism and its instrumentation.
 
 Instrumentors are required to instrument producer and consumer applications
 so that context is attached to messages and extracted from messages in a
@@ -122,20 +122,20 @@ coordinated way. Future versions of these conventions might recommend [context p
 
 ### Requirements
 
-A producer SHOULD attach a creation context to each message. The creation context
+A producer SHOULD attach a message creation context to each message. The message creation context
 SHOULD be attached in a way so that it is not possible to be changed by intermediaries.
 
 ## Future possibilities
 
 ### Transport context propagation
 
-A creation context can be attached to a message, while different contexts are
-propagated with requests that publish and fetch a message. When coming up with
-conventions and guidance for intermediary instrumentation, it will be
-beneficial to clearly outline those two layers of context propagation and build
-conventions for intermediary instrumentation on top of this outline:
+A message creation context can be attached to a message, while different
+contexts are propagated with requests that publish and fetch a message. When
+coming up with conventions and guidance for intermediary instrumentation, it
+will be beneficial to clearly outline those two layers of context propagation
+and build conventions for intermediary instrumentation on top of this outline:
 
-1. The _creation context layer_ allows correlating the producer with the
+1. The _message context layer_ allows correlating the producer with the
    consumers of a message, regardless of intermediary instrumentation. The
    creation context is created by the producer and must be propagated to the
    consumers. It must not be altered by intermediaries.
