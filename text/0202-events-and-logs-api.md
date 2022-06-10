@@ -175,6 +175,8 @@ From the eBPF [demo](https://youtu.be/F1VTRqEC8Ng?t=233), it looks like they hav
 
 An `event.name` is supposed to be unique only in the context of an `event.domain`, so this allows for two events in different domains to have same `event.name`. No claim is made about the uniqueness of `event.name`s in the absence of `event.domain`.
 
+Note that Scope attributes are equivalent to the attributes at Span and LogRecord level, so recording the attribute `event.domain` on the Scope is equivalent to recording it on Spans and LogRecords within the Scope.
+
 ## Causality on Events
 
 For creating causality between events we can create wrapper spans that are part of the same trace. However, note that the events themselves are represented using LogRecords and not as Span Events.
