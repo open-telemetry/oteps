@@ -120,10 +120,10 @@ A LogRecord representing exception event may look like this:
 }
 ```
 
-The Logger SHOULD additionally provide the following functions for convenience:
+The Logger SHOULD additionally provide the following functions:
 
-- Create a new Event using Log Record data model.
-- Create a new Log Record using LogRecord data model.
+- Create a new Event using `LogRecord` data model.
+- Create a new Log Record using `LogRecord` data model.
 
 ### Usage
 
