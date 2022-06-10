@@ -38,7 +38,7 @@ enforce-markdown-link-check:
 
 .PHONY: install-markdown-lint
 install-markdown-lint:
-	npm install -g markdownlint-cli
+	npm install -g markdownlint-cli@0.30.0
 
 .PHONY: markdown-lint
 markdown-lint:
