@@ -10,7 +10,6 @@ with a **generic columnar representation
 for metrics, logs and traces**. This extension significantly improves the efficiency of the protocol for specific
 scenarios such as [multivariate time-series](#multivariate-time-series), large batches of traces and logs.
 
-
 ## Table of contents
 
 * [Introduction](#introduction)
@@ -99,7 +98,6 @@ to use it. On the other side of the spectrum, sources and collectors generating 
 telemetry data will benefit from adopting this extension to optimize the resources involved in the transfer and
 processing of this data. This adoption can be done incrementally.**
 
-
 Before detailing the specifications of the OTLP Arrow protocol, the following two sections present: 1) a validation of
 the value of a columnar approach based on a set of benchmarks, 2) a discussion of the value of using Apache Arrow as a
 basis for columnar support in OTLP.
@@ -108,6 +106,7 @@ basis for columnar support in OTLP.
 
 A series of tests were conducted to compare compression ratios between OTLP and a columnar version of OTLP called OTLP
 Arrow. The two key results are:
+
 * For multivariate time series, OTLP Arrow is **4 times better in terms of bandwidth reduction while improving by
   3 the speed** of creation + serialization + compression + decompression + deserialization.
 * For logs and traces, OTLP Arrow is **2 times better in terms of bandwidth reduction** while having only a very slight
@@ -136,7 +135,6 @@ sections:
 > In conclusion, these benchmarks demonstrate the interest of integrating a column-oriented telemetry data protocol to
 > optimize bandwidth and processing speed in a batch processing context.
 
-
 ### Why Apache Arrow and How to Use It?
 
 [Apache Arrow](https://arrow.apache.org/) is a versatile columnar format for flat and hierarchical data, well
@@ -163,7 +161,6 @@ Many other design choices and trade-offs have been made, such as:
 
 For a more detailed presentation of the approach used, please refer to this section ["Parameter tuning and design optimization"](#appendix-c---parameter-tuning-and-design-optimization).
 
-
 ### Integration Strategy and Phasing
 
 This OTEP enhances the existing OTEL eco-system with an additional representation of telemetry data in columnar form to
@@ -171,7 +168,6 @@ better support certain scenarios (e.g. cost-effectiveness to transmit large batc
 data processing, data minimization). All existing components will continue to be compatible and operational.
 
 A two-phase integration is proposed to allow incremental benefits.
-
 
 #### Phase 1
 
@@ -209,7 +205,6 @@ Implementing an end-to-end column-oriented pipeline will provide many benefits s
 - **Reduce CPU and Memory usage**,
 - **Improve compression ratio end-to-end**,
 - **Access to the Apache Arrow ecosystem** (query engine, parquet support, ...).
-
 
 ## Protocol Details
 
@@ -356,7 +351,6 @@ The `record_batch` attribute is a binary representation of the Arrow RecordBatch
 > Protobuf
 > implementations (e.g. C++, Java, Rust) in order to get the most out of Arrow (relying on zero-copy ser/deser
 > framework).
-
 
 On the egress stream, a `BatchStatus` message is a collection of `StatusMessage`. A `StatusMessage` is composed of 5
 attributes. The protobuf definition is:
@@ -524,7 +518,6 @@ more complex hierarchy of objects. Two options were **considered** and **tested*
 
 The first option was chosen because it gives the best results (see section [Design optimization](#appendix-c---parameter-tuning-and-design-optimization).
 
-
 #### Metrics Payload
 
 The set of possible columns for a metric payload is summarized in the following table.
@@ -577,7 +570,6 @@ The set of possible columns for a metric payload is summarized in the following 
 | `span_id`                    | `binary`             | No       | Identifier of the span.                                                                       |
 | `trace_id`                   | `binary`             | No       | Identifier of the trace.                                                                      |
 | `flags`                      | `uint32`             | No       | Flags that apply to this specific data point.                                                 |
-
 
 A column of type `dynamic` means that the type of this column depends on the type of the OTLP attribute (see section
 [attribute representation](#labelattribute-representation) for more details).
@@ -831,7 +823,6 @@ We also considered using [ZST](https://zed.brimdata.io/docs/formats/zst/) from t
 technology. Although this format has interesting properties, this project has not yet reached a sufficient level of
 maturity comparable to Apache Arrow.
 
-
 ## Open Questions
 
 A SQL support for telemetry data processing remains an open question in the current Go collector. The main OTLP query
@@ -853,7 +844,6 @@ protocol (e.g. delta delta encoding for numerical columns)
 The columnar representation is more efficient for transporting large homogeneous batches. The support of a mixed approach
 combining automatically column-oriented and row-oriented batches would allow to cover all scenarios. The development of
 a strategy to automatically select the best data representation mode is an open question.
-
 
 ## Appendix A - Protocol Buffer Definitions
 
