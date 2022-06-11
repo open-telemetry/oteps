@@ -153,6 +153,7 @@ integration of the OpenTelemetry protocol while expanding its scope of applicati
 
 Adapting the OTLP data format to the Arrow world (see below) is only part of the problem this proposal aims to describe.
 Many other design choices and trade-offs have been made, such as:
+
 - the organization of the data (e.g. sorting) and the selection of the compression algorithm to optimize the compression ratio.
 - the way to serialize the Arrow data and the selection of the transfer mode (reply/reply vs. bi-dir stream).
 - optimization of many parameters introduced in the system.
@@ -213,6 +214,7 @@ column-oriented telemetry data. The second section presents the mapping between 
 Arrow counterpart.
 
 ### EventStream Service
+
 OTLP Arrow defines the columnar encoding of telemetry data and the gRPC-based protocol used to exchange data between
 the client and the server. OTLP Arrow is a bi-directional stream oriented protocol leveraging Apache Arrow for the
 encoding of the telemetry data.
@@ -355,7 +357,7 @@ The `record_batch` attribute is a binary representation of the Arrow RecordBatch
 On the egress stream, a `BatchStatus` message is a collection of `StatusMessage`. A `StatusMessage` is composed of 5
 attributes. The protobuf definition is:
 
-```protobuf 
+```protobuf
 message BatchStatus {
   repeated StatusMessage statuses = 1;
 }
@@ -548,7 +550,7 @@ The set of possible columns for a metric payload is summarized in the following 
 | `exp_histogram_[name]`       | `struct`             | No       | Structure regrouping the fields of the exponential histogram                                  |
 | __`count`                    | `int64`              | No       | A set of exponential histogram count metric values.                                           |
 | __`sum`                      | `float64`            | No       | A set of exponential histogram sum metric values.                                             |
-| __`scale `                   | `int32`              | No       | A set of exponential histogram scale metric values.                                           |
+| __`scale`                    | `int32`              | No       | A set of exponential histogram scale metric values.                                           |
 | __`zero_count`               | `uint64`             | No       | A set of exponential histogram zero count metric values.                                      |
 | __`positive_offset`          | `int32`              | No       | A set of exponential histogram positive offset values.                                        |
 | __`positive_bucket`          | `list uint64`        | No       | A set of exponential histogram positive bucket counts values.                                 |
@@ -558,7 +560,7 @@ The set of possible columns for a metric payload is summarized in the following 
 | __`count`                    | `int64`              | No       | A set of summary count metric values.                                                         |
 | __`sum`                      | `float64`            | No       | A set of summary sum metric values.                                                           |
 | __`quantiles`                | `list float64`       | No       | A set of summary quantiles metric values.                                                     |
-| __`values `                  | `list float64`       | No       | A set of summary quantile values metric values.                                               |
+| __`values`                   | `list float64`       | No       | A set of summary quantile values metric values.                                               |
 | `schema_url`                 | `string`             | No       | Schema url of the metrics.                                                                    |
 | `examplars`                  | `list struct`        | No       | Examplars a list of structs.                                                                  |
 | __`filtered_attributes`      | `struct`             | No       | Structure regrouping the fields of the examplar attributes                                    |
@@ -780,7 +782,6 @@ rates.
 ### Best Effort Delivery Guarantee
 
 TBD (phase 1)
-
 
 ## Risks and Mitigations
 
@@ -1125,19 +1126,18 @@ the protocol design for logs (the same approach has been applied for metrics). T
 
 * compression algorithm (Zlib, Zstd, and Lz4)
 * serialization mode
-    * normalized: resources, instrumentation libraries, metrics, logs, traces, events, and links are mapped in a
-      dedicated
-      RecordBatch. A set of primary and secondary keys are used to recreate the relationships between these different
-      entities.
-    * denormalized: resource, instrumentation library, event, and link fields are replicated for every metrics, logs,
-      and traces.
+  * normalized: resources, instrumentation libraries, metrics, logs, traces, events, and links are mapped in a
+  dedicated
+  RecordBatch. A set of primary and secondary keys are used to recreate the relationships between these different
+  entities.
+  * denormalized: resource, instrumentation library, event, and link fields are replicated for every metrics, logs,
+  and traces.
 * dictionary configuration
-    * min_row_count: The creation of a dictionary will be performed only on columns with more than `min_row_count`
-      elements.
-    * max_card: The creation of a dictionary will be performed only on columns with a cardinality lower than `max_card`.
-    * max_card_ratio: The creation of a dictionary will only be performed on columns with a ratio `card` / `size` <
-      = `max_card_ratio`.
-    * max_sorted: Maximum number of sorted dictionaries (based on cardinality/total_size and avg_data_lenght).
+  * min_row_count: The creation of a dictionary will be performed only on columns with more than `min_row_count`
+  elements.
+  * max_card: The creation of a dictionary will be performed only on columns with a cardinality lower than `max_card`.
+  * max_card_ratio: The creation of a dictionary will only be performed on columns with a ratio `card` / `size` <= `max_card_ratio`.
+  * max_sorted: Maximum number of sorted dictionaries (based on cardinality/total_size and avg_data_length).
 * batch_size: Size of the batch before serialization and compression.
 
 The following parallel coordinates chart represents the execution of 200 trials selected by Google AI Vizier in order to
