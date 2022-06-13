@@ -111,14 +111,16 @@ OpenTelemetry requirements.
 
 A _message creation context_ allows correlating the producer with the
 consumer(s) of a message, regardless of intermediary instrumentation. The
-message creation context is created by the producer and must be propagated to
-the consumer(s). It must not be altered by intermediaries.  This context helps
-to model dependencies between producers and consumers, regardless of the
+message creation context is created by the producer and should be propagated to
+the consumer(s). It should not be altered by intermediaries. This context
+helps to model dependencies between producers and consumers, regardless of the
 underlying messaging transport mechanism and its instrumentation.
 
 Instrumentors are required to instrument producer and consumer applications
 so that context is attached to messages and extracted from messages in a
 coordinated way. Future versions of these conventions might recommend [context propagation according to certain industry standards](#standards-for-context-propagation).
+If the message creation context cannot be attached to the message and
+propagated, consumer traces cannot be directly correlated to producer traces.
 
 ### Requirements
 
