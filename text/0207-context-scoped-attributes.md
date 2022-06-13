@@ -4,8 +4,6 @@ Add Context-scoped telemetry attributes which typically apply to all signals ass
 
 ## Motivation
 
-Why should we make this change? What new value would it bring? What use cases does it enable?
-
 This OTEP aims to address various related demands that have been brought up in the past, where the scope of resource attributes is too broad, but the scope of span attributes is too narrow. For example, this happens where there is a mismatch between the OpenTelemetry SDK’s (and thus TracerProvider’s, MeterProvider’s) process-wide initialization and the semantic scope of a (sub)service.
 
 A concrete example is posed in open issue [open-telemetry/opentelemetry-specification#335](https://github.com/open-telemetry/opentelemetry-specification/issues/335) “Consider adding a resource (semantic convention) to distinguish HTTP applications (http.app attribute)”.
@@ -17,7 +15,7 @@ The resource cannot be used, since there is only one that is shared between mult
 A span attribute on the root span could be used.
 However, logically, the app attribute would apply to all spans within the trace as it crosses the app server, as shown in the diagram below:
 
-[Diagram showing how two traces cross a single service, having a http.app attribute applied to all spans within that service of each trace](!img/../0000-context-scoped-attributes.md)
+[Diagram showing how two traces cross a single service, having a http.app attribute applied to all spans within that service of each trace](!img/../0207-context-scoped-attributes.md)
 
 This example shows two traces, with two "HTTP GET" root spans, one originating from service `frontend` and another from `user-verification-batchjob`.
 Each of these HTTP GET spans calls into a third service `my-teams-tomcat` which is a Java Tomcat application server.
