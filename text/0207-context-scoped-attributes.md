@@ -1,7 +1,6 @@
 # Context-scoped attributes
 
 Add Context-scoped telemetry attributes which typically apply to all signals associated with a trace as it crosses a single service.
-
 ## Motivation
 
 This OTEP aims to address various related demands that have been brought up in the past, where the scope of resource attributes is too broad, but the scope of span attributes is too narrow. For example, this happens where there is a mismatch between the OpenTelemetry SDK’s (and thus TracerProvider’s, MeterProvider’s) process-wide initialization and the semantic scope of a (sub)service.
@@ -243,4 +242,4 @@ None known at the moment (but see [Trade-offs and mitigations](#trade-offs-and-m
 
 ## Future possibilities
 
-With the changes implemented in this OTEP, we will hopefully be unblock some long-standing specification issues. See [Motivation](#motivation).
+With the changes implemented in this OTEP, we will hopefully unblock some long-standing specification issues. See [Motivation](#motivation).
