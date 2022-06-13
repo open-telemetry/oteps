@@ -15,7 +15,7 @@ The resource cannot be used, since there is only one that is shared between mult
 A span attribute on the root span could be used.
 However, logically, the app attribute would apply to all spans within the trace as it crosses the app server, as shown in the diagram below:
 
-[Diagram showing how two traces cross a single service, having a http.app attribute applied to all spans within that service of each trace](!img/../0207-context-scoped-attributes.md)
+![Diagram showing how two traces cross a single service, having a http.app attribute applied to all spans within that service of each trace](./img/0207-context-scoped-attributes.drawio.png)
 
 This example shows two traces, with two "HTTP GET" root spans, one originating from service `frontend` and another from `user-verification-batchjob`.
 Each of these HTTP GET spans calls into a third service `my-teams-tomcat` which is a Java Tomcat application server.
