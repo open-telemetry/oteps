@@ -60,12 +60,12 @@ This also explains the functional & API differences:
 Context-scoped attributes and the recently added [Scope attributes](https://github.com/open-telemetry/oteps/pull/201) have these commonalities:
 
 * Both have "scope" in the name
-* Both apply a set of telemetry attributes to to a set of telemetry items (those in their "scope")
+* Both apply a set of telemetry attributes to a set of telemetry items (those in their "scope")
 
 What is different is the scope. While Scope attributes apply to all items emitted by the same Tracer, Meter or LogEmitter (i.e., typically the same telemetry-implementing unit of code),
 the scope of Context-scoped attributes is determined at runtime by the Context.
 
-In practice, these scopes will [often be completely orthogonal](#scope-and-context), i.e., as the Context is "propagated" in-process through through a single
+In practice, these scopes will [often be completely orthogonal](#scope-and-context), i.e., as the Context is "propagated" in-process through a single
 service, there will often be exactly one span per Tracer (e.g., one span from the HTTP server instrumentation as the request arrives,
 and another one from a HTTP client instrumentation, as a downstream service is called)
 
