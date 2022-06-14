@@ -57,7 +57,7 @@ In implementations of the API, the LoggerProvider is expected to be the stateful
 
 Normally, the LoggerProvider is expected to be accessed from a central place. Thus, the API SHOULD provide a way to set/register and access a global default LoggerProvider.
 
-Notwithstanding any global LoggerProvider, some applications may want to or have to use multiple LoggerProvider instances, e.g. to have different configuration (like LogRecordProcessors) for each (and consequently for the Loggers obtained from them), or because it's easier with dependency injection frameworks. Thus, implementations of LoggerProvider SHOULD allow creating an arbitrary number of Logger instances.
+Notwithstanding any global LoggerProvider, some applications may want to or have to use multiple LoggerProvider instances, e.g. to have different configuration (like LogRecordProcessors) for each (and consequently for the Loggers obtained from them), or because it's easier with dependency injection frameworks. Thus, implementations of LoggerProvider SHOULD allow creating an arbitrary number of instances.
 
 #### LoggerProvider operations
 
