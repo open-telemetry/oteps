@@ -88,7 +88,7 @@ The effect of associating a Schema URL with a Logger MUST be that the telemetry 
 
 The Logger is responsible for creating Events and Logs.
 
-Note that Loggers should usually not be responsible for configuration. This should be the responsibility of the LoggerProvider instead.
+Note that Loggers should not be responsible for configuration. This should be the responsibility of the LoggerProvider instead.
 
 #### Logger operations
 
