@@ -170,7 +170,7 @@ Yet another alternative, that would also have implications for semantics, would 
 This would mean that every distinct set of Context-scoped attributes gets sent within a distinct ResourceSpans/ScopeSpans message, duplicating the resource and (emitter-)scope attributes that many times (a cross-product, if you will).
 This approach seems semantically interesting, but could lead to larger export messages, especially if we assume that very often there will only be one span of the same emitter-scope per Context-scope (e.g., you typically will only have one single Span produced by the HTTP server instrumentation as the trace crosses a single service).
 
-#### Alternative: Associating Context-scoped attributes with the span on end and setting attributes on parent Contexts
+### Alternative: Associating Context-scoped attributes with the span on end and setting attributes on parent Contexts
 
 This alternative seems to be a valid option which is just as easy to implement as the approach in the main context, but it feels a bit less natural.
 
@@ -218,7 +218,7 @@ If going for the [“Making context-scoped attributes semantically distinct from
 Other telemetry signals could still go through the active span to associate subtrace-scoped attributes.
 The (subtle?) difference would be that these attributes follow the trace tree instead of the context tree.
 
-#### Alternative: An implementation for traces on the Backend
+### Alternative: An implementation for traces on the Backend
 
 A receiver of trace data (and only trace data!) has information about the execution flow through the parent-child relationship of spans.
 It could use that to propagate/copy attributes from the parent span to children after receiving them.
