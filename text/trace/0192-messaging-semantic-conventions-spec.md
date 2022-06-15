@@ -337,7 +337,7 @@ linked traces without the need of additional semantic hints.
 
 Attribute             | Type   | Required
 ----------------------|--------|---------
-[`messaging.broker`](#messagingbroker) | string | Yes
+[`messaging.system`](#messagingsystem) | string | Yes
 [`messaging.operation`](#messagingoperation) | string | Yes
 [`messaging.destination.name`](#messagingdestinationname) | string | For producer spans
 [`messaging.destination.template`](#messagingdestinationtemplate) | string | No
@@ -349,13 +349,22 @@ Attribute             | Type   | Required
 [`messaging.source.kind`](#messagingsourcekind) | string | No
 [`messaging.source.temporary`](#messagingsourcetemporary) | string | No
 [`messaging.source.anonymous`](#messagingsourceanonymous) | string | No
-[`messaging.protocol.name`](#messagingprotocolname) | string | No
-[`messaging.protocol.version`](#messagingprotocolversion) | string | No
+[`net.app.protocol.name`](#netappprotocolname) | string | No
+[`net.app.protocol.version`](#netappprotocolversion) | string | No
+[`net.peer.ip`](#netpeerip) | string | No
+[`net.peer.name`](#netpeername) | string | No
 
-##### `messaging.broker`
+##### `messaging.system`
 
 A string identifying the messaging broker or intermediary, e. g. `kafka`,
 `rabbitmq`, `rocketmq`, `AzureEventHubs`, or `AmazonSQS`.
+
+If the messaging broker or intermediary are not known, this should be set to a
+value that best identifies the usage scenario. This could be the messaging
+library used (e. g. `jms`), or the protocol used (e. g. `amqp`).
+
+A list of recommended values will be provided independently of the messaging
+semantic conventions document.
 
 ##### `messaging.operation`
 
@@ -432,16 +441,39 @@ See [`messaging.destination.temporary`](#messagingdestinationtemporary).
 
 See [`messaging.destination.anonymous`](#messagingdestinationanonymous).
 
-##### `messaging.protocol.name`
+##### `net.app.protocol.name`
 
 The name of the underlying protocol which is used to publish and receive
 messages. This should specify application layer protocols (e. g. AMQP, MQTT, or
 HTTP) and not transport or network layer protocols (e. g. TCP, UDP, IP).
 
-##### `messaging.protocol.version`
+See [Network Transport Attributes](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/span-general.md#network-transport-attributes)
+for further details.
+
+##### `net.app.protocol.version`
 
 The version of the protocol given in [`messagingprotocolname`](#messagingprotocolname),
 if applicable.
+
+See [Network Transport Attributes](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/span-general.md#network-transport-attributes)
+for further details.
+
+##### `net.peer.ip`
+
+This should be the remote address (dotted decimal for IPv4 or [RFC5952](https://datatracker.ietf.org/doc/html/rfc5952)
+of the broker or intermediary this specific message is sent to or received
+from.
+
+See [Network Transport Attributes](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/span-general.md#network-transport-attributes)
+for further details.
+
+##### `net.peer.name`
+
+This should be the host name of the broker or intermediary this specific
+message is sent to or received from.
+
+See [Network Transport Attributes](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/span-general.md#network-transport-attributes)
+for further details.
 
 ### System-specific extensions
 
