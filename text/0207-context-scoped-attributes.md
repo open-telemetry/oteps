@@ -210,7 +210,7 @@ Should it be a no-op?
 
 Do note that with the `CreateContextScopedRoot` API, it would be possible to use this approach even independently of the tracing signal, just as the main OTEP.
 
-### Alternative: Associating attributes through indirectly through spans
+### Alternative: Associating attributes indirectly through spans
 
 This does not seem particularly useful, but the existence of this alternative should serve as a reminder that the trace structure might be different from the (child) context structure.
 
