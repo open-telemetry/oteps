@@ -148,8 +148,7 @@ and build conventions for intermediary instrumentation on top of this outline:
 2. An additional _transport context layer_ allows correlating the producer and
    the consumer with an intermediary. It also allows correlating multiple
    intermediaries among each other. The transport context can be changed by
-   intermediaries, according to intermediary instrumentations. Intermediaries that
-   are not instrumented might simply drop the transport context.
+   intermediaries, according to intermediary instrumentations.
 
    This layer helps to gain insights into details of the message transport.
 
