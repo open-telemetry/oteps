@@ -173,5 +173,6 @@ messaging protocols and scenarios:
 * [MQTT](https://w3c.github.io/trace-context-mqtt/)
 * [CloudEvents via HTTP](https://github.com/cloudevents/spec/blob/v1.0.1/extensions/distributed-tracing.md)
 
-Once the standards reach a stable state, these semantic conventions will give a
-clear and stable recommendation for each protocol and scenario.
+Once the standards reach a stable state and define how the message creation
+context and transport context are represented, these semantic conventions will
+give a clear and stable recommendation for each protocol and scenario.
