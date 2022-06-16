@@ -1,6 +1,6 @@
 # Introducing Events and Logs API
 
-In this OTEP we introduce an Events and Logs API that is based on the OpenTelemetry Log signal. The Events here refer to the independent Events and not to be confused with Span Events which occur only in the context of a span. In OpenTelemetry's perspective Log Records and Events are different names for the same concept - however, there is a subtle difference in how they are represented using the underlying data model that is described below. We will describe why the existing Logging APIs are not sufficient for the purpose of creating events.  It will then be evident that we will need an API in OpenTelementry for creating events.
+In this OTEP we introduce an Events and Logs API that is based on the OpenTelemetry Log signal. The Events here refer to the standalone Events and not to be confused with Span Events which occur only in the context of a span. In OpenTelemetry's perspective Log Records and Events are different names for the same concept - however, there is a subtle difference in how they are represented using the underlying data model that is described below. We will describe why the existing Logging APIs are not sufficient for the purpose of creating events.  It will then be evident that we will need an API in OpenTelementry for creating events.
 
 The Logs part of the API introduced here is supposed to be used only by the Log Appenders and end-users should continue to use the logging APIs available in the languages.
 
@@ -30,11 +30,11 @@ Here are a few situations that require recording of Events, there will be more.
   - In Python, logging.LogRecord's extra field is mapped to Otel LogRecord's attributes but this field is a hidden field and not part of the public interface.
 - The current Log APIs have a message parameter which could map to the Body field of LogRecord. However, this is restricted to String messages and does not allow for structured logs.
 
-For the above reasons we can conclude that we will need an API for generating Events API
+For the above reasons we can conclude that we will need an API for generating Events.
 
 ## Should OpenTelemetry have an API for logs?
 
-A part of the OTel community thnks that we should not have a full-fledged logging API unless there is a language that doesn't already have a plethora of logging libraries & APIs to choose from where it might make sense to define one. Further, we will not be able to have the [rich set of configuration options](https://logging.apache.org/log4j/2.x/manual/configuration.html) that some popular logging frameworks provide so the logging API in OTel will only become yet another API. However, it was noted that the Log Appender API is very similar to the API for Events and so instead of having API for Events and API for Log Appenders separately it was agreed to have one API for Events and Logs, and that the API for Logs is targeted only to Log Appenders.
+A part of the OTel community thinks that we should not have a full-fledged logging API unless there is a language that doesn't already have a plethora of logging libraries & APIs to choose from where it might make sense to define one. Further, we will not be able to have the [rich set of configuration options](https://logging.apache.org/log4j/2.x/manual/configuration.html) that some popular logging frameworks provide so the logging API in OTel will only become yet another API. However, it was noted that the Log Appender API is very similar to the API for Events and so instead of having API for Events and API for Log Appenders separately it was agreed to have one API for Events and Logs, and that the API for Logs is targeted only to Log Appenders.
 
 ## Events and Logs API Interface
 
@@ -46,6 +46,8 @@ The Events and Logs API consist of these main classes:
 
 * LoggerProvider is the entry point of the API. It provides access to Loggers.
 * Logger is the class responsible for creating events using Log records.
+
+LoggerProvider/Logger are analogous to TracerProvider/Tracer.
 
 ![Events and Logs API classes](img/0202-events-and-logs-api.png)
 
@@ -69,18 +71,21 @@ The LoggerProvider MUST provide the following functions:
 
 This API MUST accept the following parameters:
 
-- name (required): This name SHOULD uniquely identify the instrumentation scope, such as the instrumentation library (e.g. io.opentelemetry.contrib.mongodb), package, module or class name.  If an application or library has built-in OpenTelemetry instrumentation, both Instrumented library and Instrumentation library may refer to the same library. In that scenario, the name denotes a module name or component name within that library or application. In case an invalid name (null or empty string) is specified, a working Logger implementation MUST be returned as a fallback rather than returning null or throwing an exception, its name property SHOULD be set to an empty string, and a message reporting that the specified value is invalid SHOULD be logged. A library implementing the OpenTelemetry API may also ignore this name and return a default instance for all calls, if it does not support "named" functionality (e.g. an implementation which is not even observability-related). A LoggerProvider could also return a no-op Logger here if application owners configure the SDK to suppress telemetry produced by this library.
+- `name` (required): This name SHOULD uniquely identify the [instrumentation scope](../glossary.md#instrumentation-scope), such as the [instrumentation library](../glossary.md#instrumentation-library) (e.g. `io.opentelemetry.contrib.mongodb`), package, module or class name.  If an application or library has built-in OpenTelemetry instrumentation, both [Instrumented library](../glossary.md#instrumented-library) and [Instrumentation library](../glossary.md#instrumentation-library) may refer to the same library. In that scenario, the `name` denotes a module name or component name within that library or application. In case an invalid name (null or empty string) is specified, a working Logger implementation MUST be returned as a fallback rather than returning null or throwing an exception, its `name` property SHOULD be set to an empty string, and a message reporting that the specified value is invalid SHOULD be logged. A library implementing the OpenTelemetry API may also ignore this name and return a default instance for all calls, if it does not support "named" functionality (e.g. an implementation which is not even observability-related). A LoggerProvider could also return a no-op Logger here if application owners configure the SDK to suppress telemetry produced by this library.
 
-- version (optional): Specifies the version of the instrumentation scope if the scope has a version (e.g. a library version). Example value: 1.0.0.
-- schema_url (optional): Specifies the Schema URL that should be recorded in the emitted telemetry
-- event_domain (optional): Specifies the domain for the events created, which should be added in the attribute `event.domain` in the instrumentation scope.
-- include_trace_context (optional): Specifies whether the Trace Context should automatically be passed on to the events and logs created by the Logger. This SHOULD be false by default.
+- `version` (optional): Specifies the version of the instrumentation scope if the scope has a version (e.g. a library version). Example value: 1.0.0.
+- `schema_url` (optional): Specifies the Schema URL that should be recorded in the emitted telemetry
+- `event_domain` (optional): Specifies the domain for the events created, which should be added in the attribute `event.domain` in the instrumentation scope.
+- `include_trace_context` (optional): Specifies whether the Trace Context should automatically be passed on to the events and logs created by the Logger. This SHOULD be false by default.
+- `attributes` (optional): Specifies the instrumentation scope attributes to associate with emitted telemetry.
 
 It is unspecified whether or under which conditions the same or different Logger instances are returned from this function.
 
-Implementations MUST NOT require users to repeatedly obtain an Logger again with the same name+version+schema_url+event_domain+include_trace_context to pick up configuration changes. This can be achieved either by allowing to work with an outdated configuration or by ensuring that new configuration applies also to previously returned Loggers.
+Implementations MUST return different `Logger` instances when called repeatedly with different values of parameters. Note that always returning a new `Logger` instance is a valid implementation. The only exception to this rule is the no-op `Logger`: implementations MAY return the same instance regardless of parameter values.
 
-Note: This could, for example, be implemented by storing any mutable configuration in the LoggerProvider and having Logger implementation objects have a reference to the LoggerProvider from which they were obtained. If configuration must be stored per-Logger (such as disabling a certain Logger), the Logger could, for example, do a look-up with its name+version+schema_url+event_domain+include_trace_context in a map in the LoggerProvider, or the LoggerProvider could maintain a registry of all returned Loggers and actively update their configuration if it changes.
+Implementations MUST NOT require users to repeatedly obtain an Logger again with the same name+version+schema_url+event_domain+include_trace_context+attributes to pick up configuration changes. This can be achieved either by allowing to work with an outdated configuration or by ensuring that new configuration applies also to previously returned Loggers.
+
+Note: This could, for example, be implemented by storing any mutable configuration in the LoggerProvider and having Logger implementation objects have a reference to the LoggerProvider from which they were obtained. If configuration must be stored per-Logger (such as disabling a certain Logger), the Logger could, for example, do a look-up with its name+version+schema_url+event_domain+include_trace_context+attributes in a map in the LoggerProvider, or the LoggerProvider could maintain a registry of all returned Loggers and actively update their configuration if it changes.
 
 The effect of associating a Schema URL with a Logger MUST be that the telemetry emitted using the Logger will be associated with the Schema URL, provided that the emitted data format is capable of representing such association.
 
@@ -148,25 +153,12 @@ From the eBPF [demo](https://youtu.be/F1VTRqEC8Ng?t=233), it looks like they hav
 | `event.name` | string | Name or type of the event. | `network-change`; `button-click`; `exception` | Yes |
 | `event.domain` | string | Domain or scope for the event. | `profiling`; `browser`, `db`, `k8s` | No |
 
-An `event.name` is supposed to be unique only in the context of an `event.domain`, so this allows for two events in different domains to have same `event.name`. No claim is made about the uniqueness of `event.name`s in the absence of `event.domain`.
+An `event.name` is supposed to be unique only in the context of an `event.domain`, so this allows for two events in different domains to have same `event.name`, yet be unrelated events. No claim is made about the uniqueness of `event.name`s in the absence of `event.domain`.
 
 Note that Scope attributes are equivalent to the attributes at Span and LogRecord level, so recording the attribute `event.domain` on the Scope is equivalent to recording it on Spans and LogRecords within the Scope.
 
-## Causality on Events
-
-For creating causality between events we can create wrapper spans that are part of the same trace. However, note that the events themselves are represented using LogRecords and not as Span Events.
-
-```java
-Span s1 = Trace.startSpan()
-    addBrowserEvent(e1name, attributes)
-    Span s2 = Trace.startSpan()
-        addBrowserEvent(e2name, attributes)
-    s2.end()
-s1.end()
-```
-
 ## Comparing with Span Events
 
-- Span Events are events recorded within spans using Trace API. It is not possible to create independent Events using Trace API. The Events API must be used instead.
+- Span Events are events recorded within spans using Trace API. It is not possible to create standalone Events using Trace API. The Events API must be used instead.
 - Span Events were added in the Trace spec when Logs spec was in early stages. Ideally, Events should only be recorded using LogRecords and correlated with Spans by adding Span Context in the LogRecords. However, since Trace API spec is stable Span Events MUST continue to be supported.
 - We may add a configuration option to the `TracerProvider` to create LogRecords for the Span Events and associate them with the Span using Span Context in the LogRecords. Note that in this case, if a noop TracerProvider is used it will not produce LogRecords for the Span Events.
