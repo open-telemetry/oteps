@@ -13,10 +13,15 @@ Logs have a mandatory severity level as a first-class parameter that events do n
 Here are a few situations that require recording of Events, there will be more.
 
 - RUM events (Client-side instrumentation)
+  - Standalone events not associated with a span, such as errors, user interaction events and web vitals.
 - Recording kubernetes events
 - Recording eBPF events
 - Collector Entity events [link](https://docs.google.com/document/d/1Tg18sIck3Nakxtd3TFFcIjrmRO_0GLMdHXylVqBQmJA/edit)
 - Few other event systems described in [example mappings](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#appendix-a-example-mappings) in the data model.
+
+### Alternatives considered for modeling Events in Client-side instrumentation
+
+For client-side instrumentation, it was suggested initially that we use 0-duration spans to represent Events to get the benefit of Spans providing causality. For example, Splunk's RUM sdk for Android implements [Events using 0-duration span](https://github.com/signalfx/splunk-otel-android/blob/main/splunk-otel-android/src/main/java/com/splunk/rum/SplunkRum.java#L213). However, 0-duration spans are confusing and not consistent with the standalone Events in other domains which are represented using `LogRecord`s.  Hence, for consistency reasons it will be good to use `LogRecord`s for standalone Events everywhere. To address the requirement of modeling causality between Events, we can use wrapper spans linked to the `LogRecord`s. See the section on `Causality on Events` below.
 
 ## Can the current Log API interfaces be used for events?
 
@@ -156,6 +161,22 @@ From the eBPF [demo](https://youtu.be/F1VTRqEC8Ng?t=233), it looks like they hav
 An `event.name` is supposed to be unique only in the context of an `event.domain`, so this allows for two events in different domains to have same `event.name`, yet be unrelated events. No claim is made about the uniqueness of `event.name`s in the absence of `event.domain`.
 
 Note that Scope attributes are equivalent to the attributes at Span and LogRecord level, so recording the attribute `event.domain` on the Scope is equivalent to recording it on Spans and LogRecords within the Scope.
+
+## Causality on Events
+
+It is sometimes desired to indicate one event led to another. Since spans in a trace are better suited to represent causality, we can create wrapper spans to represent causality between events. Note that the events themselves are represented using LogRecords and not as Span Events.
+
+```java
+
+Logger logger = openTelemetry.getLogger("my-scope", "1.0", "mobile", /* include_trace_context */ true);
+
+Span span1 = tracer.spanBuilder(event1).startSpan();
+    logger.logEvent(event1, attributes)
+    Span span2 = tracer.spanBuilder(event2).startSpan();
+        logger.logEvent(event2, attributes)
+    span2.end()
+span1.end()
+```
 
 ## Comparing with Span Events
 
