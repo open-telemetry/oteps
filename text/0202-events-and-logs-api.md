@@ -10,10 +10,10 @@ Logs have a mandatory severity level as a first-class parameter that events do n
 
 ## Who requires Events API
 
-Here are a few situations that require recording of Events, there will be more.
+Here are a few situations that require recording of Events, there will be more.  Note that the Trace API provides capability to record Events but that is only when a span is in progress. We need a separate API for recording standalone Events.
 
 - RUM events (Client-side instrumentation)
-  - Standalone events not associated with a span, such as errors, user interaction events and web vitals.
+  - Standalone events that occur when there is no span in progress, such as errors, user interaction events and web vitals.
 - Recording kubernetes events
 - Recording eBPF events
 - Collector Entity events [link](https://docs.google.com/document/d/1Tg18sIck3Nakxtd3TFFcIjrmRO_0GLMdHXylVqBQmJA/edit)
@@ -130,6 +130,8 @@ logger.logRecordBuilder().build().setBody("I am a log message").emit();
 ```
 
 ### Usage in Client-side telemetry
+
+Some Events in a browser application occur when there is no span in progress, for example, errors, user interaction events and web-vitals. They can be recorded as standalone Events as follows.
 
 ```java
 public void addBrowserEvent(String name, Attributes attributes) {
