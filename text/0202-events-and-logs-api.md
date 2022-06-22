@@ -60,7 +60,7 @@ LoggerProvider/Logger are analogous to TracerProvider/Tracer.
 
 Logger can be accessed with an LoggerProvider.
 
-In implementations of the API, the LoggerProvider is expected to be the stateful object that holds any configuration.
+In implementations of the API, the LoggerProvider is expected to be the stateful object that holds any configuration. (Note: The SDK implementation of this is what we currently call the [LogEmitterProvider](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/logging-library-sdk.md#logemitterprovider))
 
 Normally, the LoggerProvider is expected to be accessed from a central place. Thus, the API SHOULD provide a way to set/register and access a global default LoggerProvider.
 
