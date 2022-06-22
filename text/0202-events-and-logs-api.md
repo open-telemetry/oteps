@@ -149,6 +149,8 @@ From the eBPF [demo](https://youtu.be/F1VTRqEC8Ng?t=233), it looks like they hav
 
 ## Semantic Convention for event attributes
 
+We introduce the concept of an event domain as a mechanism to avoid conflicts with event names.
+
 **type:** `event`
 
 **Description:** Event attributes.
