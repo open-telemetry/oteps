@@ -123,7 +123,7 @@ producers and consumers, regardless of the underlying messaging transport
 mechanism and its instrumentation.
 
 Instrumentors are required to instrument producer and consumer applications
-so that context is attached to messages and extraced from messages in a
+so that context is attached to messages and extracted from messages in a
 coordinated way. Future versions of these conventions might recommend [context propagation according to certain industry standards](#standards-for-context-propagation).
 
 > A producer SHOULD attach a creation context to each message. The creation context
