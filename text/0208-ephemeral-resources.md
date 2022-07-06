@@ -53,6 +53,44 @@ FreezePermanent is then called by the provider.
 
 Internally, providers hold a reference to the ResourceProvider, rather than a specific resource. When creating a signal, such as a span, metric, or log, GetResource() is called to obtain a reference to the correct resource to attach to the signal.
 
+## Example Usage
+
+```
+var resources = {“service.name” = “example-service”};
+
+// Example of a deny list validator
+var validator = NewDenyListValidator(PERMANENT_RESOURCE_KEYS);
+
+// Example of an allow list validator
+// this is useful for browser environments where loading a 
+// deny list would be too costly
+var validator = NewAllowListValidator([“session.id”]);
+
+// The ResourceProvider is initialized with
+// a dictionary of resources and a validator.
+var resourceProvider = NewResourceProvider(resources, validator);
+
+// The resourceProvider can be passed to resource detectors 
+// to populate additional permanent resources.
+DetectContainerResources(resourceProvider)
+
+// The TraceProvider now takes a ResourceProvider.
+// The TraceProvider calls Freeze on the ResourceProvider.
+// After this point, it is no longer possible to update or add
+// additional permanent resources.
+var traceProvider = NewTraceProvider(resourceProvider);
+
+// Ehenever the SessionManager starts a new session
+// it updates the ResourceProvider with a new session id.
+sessionManager.OnChange(
+  func(sessionID){
+    resourceProvider.SetAttribute(“session.id”, sessionID);
+  }
+);
+
+```
+
+
 ## Trade-offs and mitigations
 
 This change should be fully backwards compatible, with one potential exception: fingerprinting. It is possible that an analysis tool which accepts OTLP may identify individual services by creating an identifier by hashing all of the resource attributes. 
