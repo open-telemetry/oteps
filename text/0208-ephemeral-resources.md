@@ -55,15 +55,17 @@ Internally, providers hold a reference to the ResourceProvider, rather than a sp
 
 ## Example Usage
 
+Pseudocode example of a ResourceProvider in use. The resource provider is loaded with all available permanent resources, then passed to a TraceProvider. The ResourceProvider is also passed to a session manager, which updates an ephemeral resource in the background.
+
 ```
 var resources = {“service.name” = “example-service”};
 
-// Example of a deny list validator
+// Example of a deny list validator.
 var validator = NewDenyListValidator(PERMANENT_RESOURCE_KEYS);
 
-// Example of an allow list validator
-// this is useful for browser environments where loading a 
-// deny list would be too costly
+// Example of an allow list validator.
+// This is useful for browser environments
+// where loading a deny list would be too costly.
 var validator = NewAllowListValidator([“session.id”]);
 
 // The ResourceProvider is initialized with
@@ -80,7 +82,7 @@ DetectContainerResources(resourceProvider)
 // additional permanent resources.
 var traceProvider = NewTraceProvider(resourceProvider);
 
-// Ehenever the SessionManager starts a new session
+// Whenever the SessionManager starts a new session
 // it updates the ResourceProvider with a new session id.
 sessionManager.OnChange(
   func(sessionID){
@@ -90,6 +92,93 @@ sessionManager.OnChange(
 
 ```
 
+## Example Implementation
+
+Pseudocode examples for a possible Validator and ResourceProvider implementation. Attention is placed on making the ResourceProvider thread safe, without introducing any locking or synchronization overhead to `GetResource`, which is the only ResourceProvider method on the hot path for OpenTelemetry instrumentation.
+
+```
+
+// Example of a simple validator.
+class DenyListValidator{
+
+// Attribute keys can be stored in any
+// data structure with a fast implementation 
+// for detecting set membership.
+  Set denyList
+  
+  Validate(key){
+    if(this.denyList.Contains(key)){
+      return false;
+    }
+    return true;
+  }
+}
+
+// Example of a thread-safe ResourceProvider
+class ResourceProvider{
+  *Resource resource
+  Validator validator
+  bool isFrozen 
+  Lock lock
+  
+  GetResource(){
+    return this.resource;
+  }
+  
+  
+  SetAttribute(){
+    // All methods on a ResourceProvider which perform mutations
+    // must share a lock.
+    this.lock.Aquire();
+
+    // Only perform validation after the ResourceProvider
+    // has been frozen.
+    if(this.isFrozen && !this.validator.Validate(key)){
+      this.lock.Release();
+      return;
+    }
+
+    // Because Resource objects are immutable, it is safe to call
+    // SetAttribute without locking GetResource
+    var mergedResource = this.resource.SetAttribute(key, value);
+    
+    // Because ResourceProvider only stores a reference to
+    // a Resource, that reference can be replaced using an
+    // atomic swap operation. This approach allows GetResource
+    // to remain lock-free.
+    AtomicSwap(this.resource, mergedResource)
+
+    this.lock.Release();
+  }
+  
+  // MergeResource essentially has the same implementation as SetAttribute.
+  MergeResource(resource){
+    this.lock.Aquire();
+
+    if(this.isFrozen){
+      // Every key in the resource must be validated
+      foreach(resource, key, value){
+        if(!this.validator.Validate(key)){
+          this.lock.Release();
+          return;
+        }
+      }
+    }
+
+  
+    var mergedResource = this.resource.Merge(resource)
+    AtomicSwap(this.resource, mergedResource)
+
+    this.lock.Release();
+  }
+  
+  FreezePermanent(){
+    this.lock.Aquire();
+    this.isFrozen = true;
+    this.lock.Release();  
+  }
+}
+```
 
 ## Trade-offs and mitigations
 
