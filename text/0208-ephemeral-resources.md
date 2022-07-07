@@ -53,6 +53,30 @@ FreezePermanent is then called by the provider.
 
 Internally, providers hold a reference to the ResourceProvider, rather than a specific resource. When creating a signal, such as a span, metric, or log, GetResource() is called to obtain a reference to the correct resource to attach to the signal.
 
+## Trade-offs and mitigations
+
+This change should be fully backwards compatible, with one potential exception: fingerprinting. It is possible that an analysis tool which accepts OTLP may identify individual services by creating an identifier by hashing all of the resource attributes. 
+
+In this case, it is recommended that these systems modify their behavior, and choose a subset of permanent resources to use as a hash identifier.
+
+## Prior art and alternatives
+
+An alternative to ephemeral resources would be to create span, metrics, and log processors which attach these ephemeral attributes to every instance of every signal. This would not require a modification to the specification.
+
+There are two problems to this approach. One is that the duplication of attributes is very inefficient. This is a problem on clients, which have a limited newtwork bandwidth. This problem is compounded by a lack of support for gzip and other compression algorithms on the browser.
+
+The second problem is that it becomes difficult to distinguish between emphemeral resources and other types pf attributes. 
+
+## Open questions
+
+The primary open question is whether any common backends are hashing the resource to obtain a service identifier.
+
+## Future possibilities
+
+Ephemeral resource attributes will be critical feature for implementeting RUM/client instrumentation in OpennTelemetry. 
+
+Other application domains may discover that they have process-wide state which affects their performance or otherwise changes code execution, which would be valuable to record as an ephemeral resource. For example, applications may have a drain or shutdown phase which affects the behavior of the application. The ability to identify telemetry data which occurs during this phase may be valuable to some end users.
+
 ## Example Usage
 
 Pseudocode example of a ResourceProvider in use. The resource provider is loaded with all available permanent resources, then passed to a TraceProvider. The ResourceProvider is also passed to a session manager, which updates an ephemeral resource in the background.
@@ -179,27 +203,3 @@ class ResourceProvider{
   }
 }
 ```
-
-## Trade-offs and mitigations
-
-This change should be fully backwards compatible, with one potential exception: fingerprinting. It is possible that an analysis tool which accepts OTLP may identify individual services by creating an identifier by hashing all of the resource attributes. 
-
-In this case, it is recommended that these systems modify their behavior, and choose a subset of permanent resources to use as a hash identifier.
-
-## Prior art and alternatives
-
-An alternative to ephemeral resources would be to create span, metrics, and log processors which attach these ephemeral attributes to every instance of every signal. This would not require a modification to the specification.
-
-There are two problems to this approach. One is that the duplication of attributes is very inefficient. This is a problem on clients, which have a limited newtwork bandwidth. This problem is compounded by a lack of support for gzip and other compression algorithms on the browser.
-
-The second problem is that it becomes difficult to distinguish between emphemeral resources and other types pf attributes. 
-
-## Open questions
-
-The primary open question is whether any common backends are hashing the resource to obtain a service identifier.
-
-## Future possibilities
-
-Ephemeral resource attributes will be critical feature for implementeting RUM/client instrumentation in OpennTelemetry. 
-
-Other application domains may discover that they have process-wide state which affects their performance or otherwise changes code execution, which would be valuable to record as an ephemeral resource. For example, applications may have a drain or shutdown phase which affects the behavior of the application. The ability to identify telemetry data which occurs during this phase may be valuable to some end users.
