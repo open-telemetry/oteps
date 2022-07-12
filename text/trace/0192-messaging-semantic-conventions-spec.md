@@ -335,7 +335,7 @@ linked traces without the need of additional semantic hints.
 
 #### Attributes
 
-Attribute             | Type   | Required
+Attribute             | Type   | Requirement Level
 ----------------------|--------|---------
 [`messaging.system`](#messagingsystem) | string | Yes
 [`messaging.operation`](#messagingoperation) | string | Required
