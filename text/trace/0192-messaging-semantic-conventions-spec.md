@@ -258,9 +258,8 @@ push-scenarios, when messages are delivered via callbacks. In this case it is
 recommended to create a parent span, so that a "Settle" span will be a sibling
 of the related "Deliver" span.
 
-In cases where it is not feasible to create spans for settlement operations, an
-event should be created instead. Events could be added to "Deliver" spans or to
-ambient spans.
+Alternatively, an event can be created instead of a "Settle" span. Events could
+be added to "Deliver" spans or to ambient spans.
 
 "Settle" spans may link to "Create" spans of the messages that are settled,
 however, for some settlement scenarios this is not feasible or possible.
