@@ -338,7 +338,7 @@ linked traces without the need of additional semantic hints.
 Attribute             | Type   | Required
 ----------------------|--------|---------
 [`messaging.system`](#messagingsystem) | string | Yes
-[`messaging.operation`](#messagingoperation) | string | Yes
+[`messaging.operation`](#messagingoperation) | string | Required
 [`messaging.destination.name`](#messagingdestinationname) | string | For producer spans
 [`messaging.destination.template`](#messagingdestinationtemplate) | string | No
 [`messaging.destination.kind`](#messagingdestinationkind) | string | No
