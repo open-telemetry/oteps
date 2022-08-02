@@ -64,8 +64,9 @@ to the intermediary.
 
 #### Consumer
 
-A "consumer" receives the message and acts upon it. It uses the context and
-data to execute some logic, which might lead to the occurrence of new messages.
+A "consumer" receives a message or a batch of messages and acts upon it.
+It uses the message's data to execute some logic, which might
+lead to the occurrence of new messages.
 
 The consumer receives, processes, and settles a message.
 
@@ -415,9 +416,9 @@ or have an auto-generated name.
 
 ##### `messaging.source.name`
 
-The source name defines name of the source of a message, as it is
-specified by the consumer. There are different kinds of targets, varying
-between different message brokers, e. g. queues in RabbitMQ, or topics in
+The source name defines the name of the source of a message, as
+specified by the consumer. There are different kinds of sources, varying
+between message brokers, e. g. queues in RabbitMQ or topics in
 Kafka.
 
 This attributes is required for consumer spans modelling `deliver`, `receive`,
@@ -541,7 +542,7 @@ for further details.
                                           +------------+
 ```
 
-#### Batch message producer with independent "Create" spans, single message pull-based consumer
+#### Batch message producer with "Create" spans populated before publish, single message pull-based consumer
 
 ```
   PRODUCER                                      CONSUMER
