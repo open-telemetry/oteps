@@ -342,8 +342,8 @@ Attribute             | Type   | Requirement Level
 [`messaging.destination.name`](#messagingdestinationname) | string | For producer spans
 [`messaging.destination.template`](#messagingdestinationtemplate) | string | No
 [`messaging.destination.kind`](#messagingdestinationkind) | string | No
-[`messaging.destination.temporary`](#messagingdestinationtemporary) | string | No
-[`messaging.destination.anonymous`](#messagingdestinationanonymous) | string | No
+[`messaging.destination.temporary`](#messagingdestinationtemporary) | boolean | Recommended to be added and set to true if, and only if, the destination is temporary
+[`messaging.destination.anonymous`](#messagingdestinationanonymous) | boolean | Recommended to be added and set to true if, and only if, the destination is anonymous
 [`messaging.source.name`](#messagingsourcename) | string | For consumer spans
 [`messaging.source.template`](#messagingsourcetemplate) | string | No
 [`messaging.source.kind`](#messagingsourcekind) | string | No
