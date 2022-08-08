@@ -6,7 +6,7 @@ OpenTelemetry.
 ## Motivation
 
 While OpenTelemetry has a specification for an
-[OpenCensus trace bridge](https://github.com/open-telemetry/opentelemetry-specification/blob/87a5ed7f0d4c403e2b336f275ce3e7fd66a8041b/specification/compatibility/opencensus.md),
+[OpenCensus trace bridge](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.12.0/specification/compatibility/opencensus.md),
 it lacks a broader context on how such bridges should be used to perform a migration from
 OpenCensus to OpenTelemetry. Additionally, OpenTelemetry should provide guidance to libraries
 currently using OpenCensus on how to migrate instrumentation to OpenTelemetry.
