@@ -71,13 +71,13 @@ Starting with an application using entirely OpenCensus instrumention for traces 
 1. Migrate the exporters (SDK)
     1. Install the OpenTelemetry SDK, with an equivalent exporter
     2. Install equivalent OpenTelemetry resource detectors
-    3. Install OpenTelemetry propagators for OpenCensus' `TextFormat` and `BinaryPropogator` formats.
+    3. Install OpenTelemetry propagators for OpenCensus' `TextFormat` and `BinaryPropagator` formats.
     4. **breaking**: Install the metrics and trace bridges
     5. Remove initialization of OpenCensus exporters
 2. Migrate the instrumentation (API)
     1. **breaking**: For OpenCensus instrumentation packages, migrate to the OpenTelemetry equivalent.
     2. For external dependencies, wait for it to migrate to OpenTelemetry, and update the dependency.
-    3. For instrumentation which is part of the application, migrate it following the guidance below.
+    3. For instrumentation which is part of the application, migrate it following the "library" guidance below.
 3. Clean up: Remove the metrics and trace bridges
 
 ### Migrating Libraries using OC Instrumentation
