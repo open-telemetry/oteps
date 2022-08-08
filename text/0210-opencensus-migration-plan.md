@@ -49,12 +49,12 @@ Bridges:
 
 * MUST NOT require OpenCensus to depend on OpenTelemetry
 * MUST require few or no changes to OpenCensus
-* MUST convert OpenCensus semantic conventions to OpenTelemetry semantic conventions for metric and span names and attributes
+* MUST convert HTTP and gRPC OpenCensus semantic conventions to OpenTelemetry semantic conventions for metric and span names and attributes
 * are NOT REQUIRED to support the entire OpenCensus instrumentation API Surface.
 
 Trace Bridges:
 
-* MUST support context propagation between OpenCensus and OpenTelemetry instrumentation
+* MUST support context propagation between interleaved OpenCensus and OpenTelemetry instrumentation
 * MUST preseve span contents where an OpenTelemetry equivalent exists
 
 Metric Bridges (to be proposed separately):
@@ -101,10 +101,11 @@ instrumentation _or_ OpenTelemetry instrumentation.
 
 Starting with a library using OpenCensus Instrumentation:
 
-1. Add configuration allowing users to enable OpenTelemetry instrumentation and disable OpenCensus instrumentation.
-2. Add OpenTelemetry instrumentation gated by the configuration.
-3. After a notification period, switch to using OpenTelemetry instrumentation by default.
-4. After a deprecation period, remove the option to use OpenCensus instrumentation.
+1. Change unit tests to use the OC bridges, and use OpenTelemetry unit testing frameworks.
+2. Add configuration allowing users to enable OpenTelemetry instrumentation and disable OpenCensus instrumentation.
+3. Add OpenTelemetry instrumentation gated by the configuration, and tested using the same sets of unit tests.
+4. After a notification period, switch to using OpenTelemetry instrumentation by default.
+5. After a deprecation period, remove the option to use OpenCensus instrumentation.
 
 ## Trade-offs and mitigations
 
