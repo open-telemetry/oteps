@@ -46,30 +46,31 @@ Context-scoped attributes and [baggage](https://github.com/open-telemetry/opente
 * Both are "bags of attributes"
 * Both are propagated identically in-process (Baggage also lives on the Context).
 
-However, the use cases are very different: Baggage is meant to transport app-level data along the path of execution, while execution-scoped attributes are annotations for all telemetry in the program execution "below" this point.
+However, the use cases are very different: Baggage is meant to transport app-level data along the path of execution, while Context-scoped attributes are annotations for telemetry in the same execution path.
 
 This also explains the functional & API differences:
 
 * Most important point: Baggage is meant to be propagated; in fact, this is the main use case of baggage. While a propagator for Context-scoped attributes would be implementable, it would break the intended meaning by extending the scope of attributes to called services and would also raise many security concerns.
-* Baggage is both readable and writable for the application, while execution-scoped attributes, like all other telemetry attributes, are write-only.
+* Baggage is both readable and writable for the application, while Context-scoped attributes, like all other telemetry attributes, are write-only.
 * Baggage only supports string values.
-* Baggage is not available to telemetry exporters (although e.g., a SpanProcessor could be used to change that), while that's the whole purpose of execution-scoped attributes.
+* Baggage is not available to telemetry exporters (although e.g., a SpanProcessor could be used to change that), while that's the whole purpose of Context-scoped attributes.
 
-### Comparing Context-scoped attributes to Scope Attributes
+### Comparing Context-scoped attributes to Instrumentation Scope Attributes
 
-Context-scoped attributes and the recently added [Scope attributes](https://github.com/open-telemetry/oteps/pull/201) have these commonalities:
+Context-scoped attributes and the recently added [Instrumentation Scope attributes](https://github.com/open-telemetry/oteps/pull/201) have these commonalities:
 
 * Both have "scope" in the name
 * Both apply a set of telemetry attributes to a set of telemetry items (those in their "scope")
 
-What is different is the scope. While Scope attributes apply to all items emitted by the same Tracer, Meter or LogEmitter (i.e., typically the same telemetry-implementing unit of code),
+While Instrumentation Scope attributes apply to all items emitted by the same Tracer, Meter or LogEmitter (i.e., typically the same telemetry-implementing unit of code),
 the scope of Context-scoped attributes is determined at runtime by the Context.
+This also means that the values for instrumentation scope are usually defined at build time,
+while context-scoped attributes will most often have values determined at runtime.
 
-In practice, these scopes will [often be completely orthogonal](#scope-and-context), i.e., as the Context is "propagated" in-process through a single
+In practice, Instrumentation scope and Context scope will [often be completely orthogonal](#scope-and-context):
+When the Context is flows in-process through a single
 service, there will often be exactly one span per Tracer (e.g., one span from the HTTP server instrumentation as the request arrives,
 and another one from a HTTP client instrumentation, as a downstream service is called)
-
-I suggest calling Scope Attributes emitter scope attributes for better distinguishability.
 
 ## Internal details
 
@@ -166,9 +167,9 @@ This could become complex to implement in the exporter though, and generic compr
 
 <a name="scope-and-context"></a>
 
-Yet another alternative, that would also have implications for semantics, would be to merge Context-scoped attributes with the Resource of all associated telemetry items, or with the emitter scope (formerly instrumentation library info, currently only named “Scope”), instead of their own attributes.
-This would mean that every distinct set of Context-scoped attributes gets sent within a distinct ResourceSpans/ScopeSpans message, duplicating the resource and (emitter-)scope attributes that many times (a cross-product, if you will).
-This approach seems semantically interesting, but could lead to larger export messages, especially if we assume that very often there will only be one span of the same emitter-scope per Context-scope (e.g., you typically will only have one single Span produced by the HTTP server instrumentation as the trace crosses a single service).
+Yet another alternative, that would also have implications for semantics, would be to merge Context-scoped attributes with the Resource of all associated telemetry items, or with the instrumentaiton scope (formerly instrumentation library info), instead of their own attributes.
+This would mean that every distinct set of Context-scoped attributes gets sent within a distinct ResourceSpans/ScopeSpans message, duplicating the resource and instrumentation scope attributes that many times (a cross-product, if you will).
+This approach seems semantically interesting, but could lead to larger export messages, especially if we assume that very often there will only be one span of the same instrumentation-scope per Context-scope (e.g., you typically will only have one single Span produced by the HTTP server instrumentation as the trace crosses a single service).
 
 ### Alternative: Associating Context-scoped attributes with the span on end and setting attributes on parent Contexts
 
