@@ -39,6 +39,8 @@ The context-scoped attributes allows you to attach attributes to all telemetry s
 
 Context-scoped attributes should be thought of equivalent to adding the attribute directly to each single telemetry item it applies to.
 
+<a name="comp-baggage"></a>
+
 ### Comparing Context-scoped attributes to Baggage
 
 Context-scoped attributes and [baggage](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/baggage/api.md) have two major commonalities:
@@ -236,6 +238,33 @@ However, there are several problems/differences in what is possible:
 
 Additionally, Context-scoped attributes would have the advantage of being usable for metrics and logs as well.
 The backend could alternatively try to re-integrate attributes from matched spans, if it's a single backend for all signals, but this would probably become even more costly to implement.
+
+### Alternative: Implementing Context-scoped attributes on top of Baggage
+
+See also:
+
+* [Related GitHub discussion](https://github.com/open-telemetry/oteps/pull/207#pullrequestreview-1055913542)
+* Section [Comparing Context-scoped attributes to Baggage](#comp-baggage) above
+
+Instead of using a dedicated Context key and APIs, the Baggage APIs and implementation could be extended to
+support the use cases Context-scoped attributes are meant to solve. This would require:
+
+* Having metadata on the baggage entry to decide if it should be a "real baggage"
+  or a telemetry attribute. This would decide whether the baggage entry is added
+  to telemetry items, and whether it is (not) propagated. These could be separate
+  flags, potentially enabling more use cases.
+* Changing baggage entries to hold an [Attribute](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.12.0/specification/common/README.md#attribute) instead of a string as value.
+* Defining and implementing an association between baggage and telemetry items
+  (this point would be more or less the same as what is required for the proposed OTEP, e.g.
+  a span processor could be added that enumerates the baggage, filters for attributes).
+* Ideally, protecting baggage entries that are meant for telemetry-usage instead
+  of app-usage from being read back by the application.
+
+Using baggage as a vehicle for implementing Context-scoped attributes seems like a valid approach,
+the decision could be left up to the language. Whether this is sensible could depend, for exmample, on future
+features that baggage might gain anyway (for example, a flag to stop propagation might be useful
+for interoperation with OpenCensus), and on how much boilerplate code is required in the language for implementing
+a new API vs. extending an existing one.
 
 ## Open questions
 
