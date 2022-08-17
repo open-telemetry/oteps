@@ -46,6 +46,8 @@ Finally, like any standard convention, it's not much use if it's not documented.
 
 Namespacing attributes is a documented best practice for [some vendors](https://docs.honeycomb.io/getting-data-in/data-best-practices/#namespace-custom-fields). These practices emerged before OpenTelemetry, but are equally applicable to OpenTelemetry.
 
+This convention is also being used by the [OpenTelemetry Community Demo](https://github.com/open-telemetry/opentelemetry-demo/blob/main/src/checkoutservice/main.go#L265-L267).
+
 ## Open questions
 
 Should the prefix `app.` be used, or should it be something else?
