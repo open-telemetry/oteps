@@ -20,9 +20,9 @@ While existing OpenTelemetry signals fit all of these criteria, until recently n
 
 ## Making a well-rounded observability suite by adding profiling
 
-Currently Logs, Metrics, and Traces are widely accepted as the main “pillars” of observability, each providing a different set of data from which a user can query to answer questions about their system/application. However, to limit observability, arbitrarily, to three pillars does a disservice to main goal of observability.
+Currently Logs, Metrics, and Traces are widely accepted as the main “pillars” of observability, each providing a different set of data from which a user can query to answer questions about their system/application.
 
-Profiling data can help further this goal by answering certain questions about a system or application which logs, metrics, and traces are less equipped to answer. We aim to facilitate implementations capable of best-in-class support for collecting , processing, and transporting this profiling data.
+Profiling data can help further this goal by answering certain questions about a system or application which logs, metrics, and traces are less equipped to answer. We aim to facilitate implementations capable of best-in-class support for collecting, processing, and transporting this profiling data.
 
 Our goals for profiling align with those of OpenTelemetry as a whole:
 
@@ -63,8 +63,8 @@ We will design a profiling data model that will aim to represent the vast majori
 
 - Profile format should be as compact as possible
 - Profiling data should be transferred as efficiently as possible and the model should be lossless with intentional bias for enabling efficient marshaling, transcoding, and analysis
-- When needed, existing profiling formats should be able to be unambiguously mapped to the standardized data model (i.e. collapsed, pprof, JFR, etc.)
-- Providing minimal/terse data model components that show relationships between other telemetry components. For example, linking call stacks with spans
+- Profiling formats should be able to be unambiguously mapped to the standardized data model (i.e. collapsed, pprof, JFR, etc.)
+- Profiling formats should contain mechanisms for representing relationships between other telemetry components (i.e. linking call stacks with spans)
 
 ## Supporting Legacy profiling formats
 
@@ -90,7 +90,7 @@ We will have best-in-class support for profiles emitted in cloud native environm
 ## Profiling use cases
 
 - Understanding what code is responsible for consuming resources (i.e. CPU, Ram, disk, network)
-- Planning for resource alotment for a group of services running in production
+- Planning for resource allotment for a group of services running in production
 - Comparing profiles of different versions of code to understand how code has improved or degraded over time
 - Detecting frequently used and "dead" code in production
 - Breaking a trace span into code-level granularity to understand the performance for that particular unit
