@@ -1,6 +1,6 @@
 # Support Elastic Common Schema in OpenTelemetry
 
-Collaborators: Alolita Sharma (OTEL GC, AWS), Cyrille Le Clerc (Elastic), Daniel Khan (Elastic), Christian Beedgen (Sumo), Jonah Kowall (Logz.io), Tigran N. (Splunk)
+Collaborators: Alolita Sharma (OTEL GC, Apple), Cyrille Le Clerc (Elastic), Daniel Khan (Sentry), Christian Beedgen (Sumo), Jonah Kowall (Logz.io), Tigran N. (Splunk)
 
 
 ## Introduction
