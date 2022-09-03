@@ -90,9 +90,7 @@ engineering values:
 
 Profiles are particularly useful in the context of other signals. For example,
 having a profile for a particular “slow” span in a trace yields more actionable
-information than simply knowing that the span was slow. The nature of profiling
-also provides the potential for a more “hands-off” approach to adding it to code
-compared to manual instrumentation needed for other signals.
+information than simply knowing that the span was slow.
 
 OpenTelemetry will define how profiles will be correlated with logs, traces, and
 metrics and how this correlation information will be stored.
@@ -109,10 +107,10 @@ Correlation will work across 2 major dimensions:
 We will design a profiling data model that will aim to represent the vast
 majority of profiling data with the following goals in mind:
 
-- Profile format should be as compact as possible
+- Profiling formats should be as compact as possible
 - Profiling data should be transferred as efficiently as possible and the model
   should be lossless with intentional bias for enabling efficient marshaling,
-  transcoding, and analysis
+  transcoding (to and from other formats), and analysis
 - Profiling formats should be able to be unambiguously mapped to the
   standardized data model (i.e. collapsed, pprof, JFR, etc.)
 - Profiling formats should contain mechanisms for representing relationships
@@ -171,5 +169,5 @@ missions.
 - Comparing profiles of different versions of code to understand how code has
   improved or degraded over time
 - Detecting frequently used and "dead" code in production
-- Breaking a trace span into code-level granularity to understand the
-  performance for that particular unit
+- Breaking a trace span into code-level granularity (i.e. function call and line
+  of code) to understand the performance for that particular unit
