@@ -114,7 +114,7 @@ majority of profiling data with the following goals in mind:
 - Profiling formats should be able to be unambiguously mapped to the
   standardized data model (i.e. collapsed, pprof, JFR, etc.)
 - Profiling formats should contain mechanisms for representing relationships
-  between other telemetry components (i.e. linking call stacks with spans)
+  between other telemetry signals (i.e. linking call stacks with spans)
 
 ## Supporting Legacy profiling formats
 
