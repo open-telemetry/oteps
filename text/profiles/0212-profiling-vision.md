@@ -163,7 +163,7 @@ missions.
 
 ## Profiling use cases
 
-- Understanding what code is responsible for consuming resources (i.e. CPU, Ram,
+- Understanding what code is responsible for consuming resources (i.e. CPU, RAM,
   disk, network)
 - Planning for resource allotment for a group of services running in production
 - Comparing profiles of different versions of code to understand how code has
