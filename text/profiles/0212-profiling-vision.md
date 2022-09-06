@@ -50,7 +50,7 @@ for collecting, processing, and transporting this profiling data.
 Our goals for profiling align with those of OpenTelemetry as a whole:
 
 - **Profiling should be easy**: the nature of profiling offers fast
-  time-to-value by often being able to optionally drop in a  minimal amount of
+  time-to-value by often being able to optionally drop in a minimal amount of
   code and instantly have details about application resource utilization
 - **Profiling should be universal**: currently profiling is slightly different
   across different languages, but with a little effort  the representation of
