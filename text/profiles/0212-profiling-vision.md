@@ -53,7 +53,7 @@ Our goals for profiling align with those of OpenTelemetry as a whole:
   time-to-value by often being able to optionally drop in a minimal amount of
   code and instantly have details about application resource utilization
 - **Profiling should be universal**: currently profiling is slightly different
-  across different languages, but with a little effort  the representation of
+  across different languages, but with a little effort the representation of
   profiling data can be standardized in a way where not only are languages
   consistent, but profiling data itself is also consistent with the other
   observability signals as well
