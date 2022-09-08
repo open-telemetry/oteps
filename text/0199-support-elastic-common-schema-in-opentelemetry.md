@@ -26,7 +26,7 @@ In addition to the use case of structured logs, the maturity of ECS for SIEM (Se
 
 Another significant use case is providing first-class support for Kubernetes application logs, system logs as well as application introspection events. We would also like to see support for structured events (e.g. [k8seventsreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8seventsreceiver)) and using 'content-type' to identify event types.
 
-We'd like to see different categories of structured logs being well-supported in the [OTel Log Data Model](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md), presumably through [semantic conventions for log attributes](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#field-attributes). For example, NGINX access logs and Apache access logs should be processed the same way as structured logs. This would help in trace and metric correlation with such log data as well as it would help grow the ecosystem of curated UIs provided by observability backends and monitoring dashboards (e.g. one single HTTP Access log dashboard benefiting Apache HTTPD, Nginx, and HAProxy).
+We'd like to see different categories of structured logs being well-supported in the [OTel Log Data Model](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md), presumably through [semantic conventions for log attributes](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#field-attributes). For example, NGINX access logs and Apache access logs should be processed the same way as structured logs. This would help in trace and metric correlation with such log data as well as it would help grow the ecosystem of curated UIs provided by observability backends and monitoring dashboards (e.g. one single HTTP access log dashboard benefiting Apache httpd, Nginx, and HAProxy).
 
 
 ## Customer Motivation
@@ -126,7 +126,6 @@ Example of a Nginx Access Log entry structured with ECS
      "id": "04A12D9F-C409-5352-B238-99EA58CAC285",
      "architecture": "x86_64"
    }
-
 }
 ```
 
@@ -200,7 +199,7 @@ As the markdown code of the tables is hard to read and maintain with very long l
   <tr>
    <td><a href="https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#log-and-event-record-definition">SeverityText</a> (string)
    </td>
-   <td>l<a href="https://www.elastic.co/guide/en/ecs/current/ecs-log.html#field-log-syslog-severity-name">og.syslog.severity.name</a> (keyword), <a href="https://www.elastic.co/guide/en/ecs/current/ecs-log.html#field-log-level">log.level</a> (keyword)
+   <td><a href="https://www.elastic.co/guide/en/ecs/current/ecs-log.html#field-log-syslog-severity-name">log.syslog.severity.name</a> (keyword), <a href="https://www.elastic.co/guide/en/ecs/current/ecs-log.html#field-log-level">log.level</a> (keyword)
    </td>
    <td>
    </td>
@@ -223,9 +222,9 @@ As the markdown code of the tables is hard to read and maintain with very long l
   </tr>
   <tr>
    <td>process.cpu.load (not specified but collected by OTel Collector)
-<p>
+<br/>
 <a href="https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md">process.cpu.time</a> (async counter)
-<p>
+<br/>
 <a href="https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/system-metrics.md">system.cpu.utilization</a>   
    </td>
    <td><a href="https://www.elastic.co/guide/en/ecs/current/ecs-host.html#field-host-cpu-usage">host.cpu.usage</a> (scaled_float) with a slightly different measurement than what OTel metrics measure
