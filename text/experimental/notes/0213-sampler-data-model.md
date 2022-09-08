@@ -4,26 +4,26 @@ Define a generic, extensible data model for trace samplers.
 
 ## Motivation
 
-*Why should we make this change? What new value would it bring? What use cases does it enable?*
-
 Introducing the ["TraceState: Probability Sampling"](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.11.0/specification/trace/tracestate-probability-sampling.md) specification[^oteps] was the largest advancement in trace signal sampling since the SDK's `Sampler` interface. However, although that work lays a foundation for statistically valid sampling, OpenTelemetry's sampling "story" still has gaps. For one, support for SDK `Sampler`s adjusting behavior based on information received from a file or network socket—termed *remote sampling*—is poor. This and other shortfalls are described in the rest of this section.
 
-[^oteps]: And its OTEP ancestors, [168](https://github.com/open-telemetry/oteps/blob/aafcf0f4daaf027ef841197135edf2c1885afbba/text/trace/0168-sampling-propagation.md) and [170](https://github.com/open-telemetry/oteps/blob/aafcf0f4daaf027ef841197135edf2c1885afbba/text/trace/0170-sampling-probability.md).
+[^oteps]:And its OTEP ancestors, [168](https://github.com/open-telemetry/oteps/blob/aafcf0f4daaf027ef841197135edf2c1885afbba/text/trace/0168-sampling-propagation.md) and [170](https://github.com/open-telemetry/oteps/blob/aafcf0f4daaf027ef841197135edf2c1885afbba/text/trace/0170-sampling-probability.md).
 
 After surveying the landscape of sampler configurations today, this OTEP proposes a sampler configuration data model. Early warning: it's not straightforward to compare separate sampling technologies features because different technologies express similar ideas differently. The OpenTelemetry Collector's `tailsampling` config, Jaeger protocol's [sampling strategies](https://www.jaegertracing.io/docs/1.33/sampling/#file-sampling), AWS X-Ray's [SamplingRule](https://docs.aws.amazon.com//xray/latest/api/API_SamplingRule.html), and Honeycomb Refinery's [rule-based](https://docs.honeycomb.io/manage-data-volume/refinery/sampling-methods/#rule-based-sampling) appear distinct, but as we'll see their differences are relatively superficial. This OTEP will propose a sampler data model that can express all that these can, and more.
 
 ### Sampling objectives
 
 Collecting trace data is not free. Sampling trace data is a [multi-objective optimization problem](https://en.wikipedia.org/wiki/Multi-objective_optimization), trading off between objectives which can be mutually incompatible. In no particular order, the goals are:
-1. Collect as little data as possible.
-  1. Reduce or limit costs stemming from the construction and transmission of spans.
-  2. Analytics queries are faster when searching less data.
 
+1. Collect as little data as possible.
+   1. Reduce or limit costs stemming from the construction and transmission of spans.
+   2. Analytics queries are faster when searching less data.
 2. Respect limits of downstream storage systems.
-  1. Trace storage systems often have data ingest limits (e.g., GBs per second, spans per second, spans per calendar month). The costs of exceeding these limits can be either reduced reliability or increased hosting expenditures.
+   1. Trace storage systems often have data ingest limits (e.g., GBs per second, spans per second, spans per calendar month). The costs of exceeding these limits can be either reduced reliability or increased hosting expenditures.
 3. Keep sampling error for statistics of interest within an acceptable range.
-  1. "Statistics" can be anything from [RED metrics](https://www.weave.works/blog/the-red-method-key-metrics-for-microservices-architecture/) by service, to data used to answer richer questions like "Which dimensions of trace data are correlated with higher error rate?". You want to ensure that all inferences made from the data you *do* collect are valid.
-  2. Setting sampling error targets is akin to setting Service Level Objectives: just as one aspires to build *appropriately reliable* systems, so too one needs statistics which are *just accurate enough* to get valid insights from, but not so accurate that you excessively sacrifice goals #1 and #2.
+   1. "Statistics" can be anything from [RED metrics](https://www.weave.works/blog/the-red-method-key-metrics-for-microservices-architecture/) by service, to data used to answer richer questions like "Which dimensions of trace data are correlated with higher error rate?". You want to ensure that all inferences made from the data you *do* collect are valid.
+   2. Setting sampling error targets is akin to setting Service Level Objectives: just as one aspires to build *appropriately reliable* systems, so too one needs statistics which are *just accurate enough* to get valid insights from, but not so accurate that you excessively sacrifice goals #1 and #2.
+4. Ensure traces are complete.
+   1. "Complete" means that all of the spans belonging to the trace are collected. For more information, see ["Trace completeness"](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.12.0/specification/trace/tracestate-probability-sampling.md#trace-completeness) in the trace spec.
 
 Note: Although goals #1 and #2 can support each other, they are not redundant. Whereas #1 represents a weak constraint of "Prefer less data over more", #2 is a strong constraint: there are some limits on collection that *must not* be exceeded.
 
