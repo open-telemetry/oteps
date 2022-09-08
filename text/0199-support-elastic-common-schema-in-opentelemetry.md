@@ -238,8 +238,15 @@ As the markdown code of the tables is hard to read and maintain with very long l
 
 ### Example an OpenTelemetry Collector Receiver to collect the access logs of a web server
 
-The author of the "OTel Collector Access logs file receiver for web server XXX" would find in the OTel Semantic Convention specifications all the guidance to map the fields of the web server logs, not only the attributes that the OTel Semantic Conventions has specified today for [HTTP calls](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.9.0/specification/trace/semantic_conventions/http.md), but also attributes for the [User Agent](https://www.elastic.co/guide/en/ecs/current/ecs-user_agent.html) or the [Geo Data](https://www.elastic.co/guide/en/ecs/current/ecs-geo.html).
-This completeness of the mapping will help the author of the integration to produce OTel Log Message that will be compatible with access logs other web components (web servers, load balancers, L7 firewalls...) allowing turnkey integration with observability solutions and enabling richer correlations.
+The author of the "OTel Collector Access logs file receiver for web server XXX" would find in the OTel Semantic Convention specifications all 
+the guidance to map the fields of the web server logs, not only the attributes that the OTel Semantic Conventions has specified today for 
+[HTTP calls](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.9.0/specification/trace/semantic_conventions/http.md), 
+but also attributes for the [User Agent](https://www.elastic.co/guide/en/ecs/current/ecs-user_agent.html) 
+or the [Geo Data](https://www.elastic.co/guide/en/ecs/current/ecs-geo.html).
+
+This completeness of the mapping will help the author of the integration to produce OTel Log Message that will be compatible with access logs 
+of other web components (web servers, load balancers, L7 firewalls...) allowing turnkey integration with observability solutions 
+and enabling richer correlations.
 
 ## Alternatives / Discussion
 
@@ -257,4 +264,10 @@ Prometheus' conventions are restricted to the style of the name of the metrics (
 
 ## Other areas that need to be addressed by OTel (the project)
 
-Some areas that need to be addressed in the long run as ECS is integrated into OTel include defining the innovation process, providing maintainer rights to Elastic contributors who maintain ECS today, ensuring the OTel specification incorporates the changes to accommodate ECS, and a process for handling breaking changes if any (the proposal [Define semantic conventions and instrumentation stability #2180](https://github.com/open-telemetry/opentelemetry-specification/pull/2180) should tackle this point). Also, migration of existing naming (e.g. Prometheus exporter) to standardized convention (see [Semantic Conventions for System Metrics](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/system-metrics.md) , [Semantic Conventions for OS Process Metrics](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md)).
+Some areas that need to be addressed in the long run as ECS is integrated into OTel include defining the innovation process, 
+providing maintainer rights to Elastic contributors who maintain ECS today, ensuring the OTel specification incorporates the changes to 
+accommodate ECS, and a process for handling breaking changes if any (the proposal 
+[Define semantic conventions and instrumentation stability #2180](https://github.com/open-telemetry/opentelemetry-specification/pull/2180) 
+should tackle this point). Also, migration of existing naming (e.g. Prometheus exporter) to standardized convention (see 
+[Semantic Conventions for System Metrics](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/system-metrics.md) , 
+[Semantic Conventions for OS Process Metrics](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md)).
