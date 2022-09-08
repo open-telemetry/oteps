@@ -70,7 +70,7 @@ Adopting `JaegerRemoteSampling` can also add significant complexity to a system:
 
 In contrast to the SDKs, Collectors can have access to complete traces.[^tailscale] Two opentelemetry-collector-contrib components are relevant here.
 
-[^tailscale]: Care has to be taken to ensure that all spans in a given trace eventually reach the same Collector instance, but it is possible. See https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/4758 for a discussion of concerns.
+[^tailscale]:Care has to be taken to ensure that all spans in a given trace eventually reach the same Collector instance, but it is possible. See https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/4758 for a discussion of concerns.
 
 ##### probabilisticsampler processor
 
@@ -81,6 +81,7 @@ For our purposes, [probabilisticsampler](https://github.com/open-telemetry/opent
 [tailsampling](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/814c3a9e4a3d4d4f8bbba140fed0156616dfa765/processor/tailsamplingprocessor)'s configuration comprises an array of *policies*. For each trace, every policy is evaluated and their results combined in [a particular way](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/814c3a9e4a3d4d4f8bbba140fed0156616dfa765/processor/tailsamplingprocessor/processor.go#L254-L261) to determine whether to sample or drop the trace.
 
 The processor's most expressive policy is called `composite`. An instance of this policy is defined by a span per second limit and an array of child policies, each of which is given a token bucket with capacity equal to some portion of the span throughout limit. Rather than unconditionally evaluating all child policies (as the processor does with the top-level policies), `composite` does the following when evaluated:
+
 1. Evaluate child policies one by one until one decides to sample. If none does, don't sample.
 2. If the child policy who decided to sample has insufficient funds in its token bucket, don't sample.
 3. Otherwise, deduct from the child's bucket a number of tokens equal to the number of spans in the trace, and sample.
@@ -98,12 +99,13 @@ Some other projects deserve mention for their relative effectiveness at balancin
 #### AWS X-Ray
 
 At least two SDKs ([Java](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/1474dff9d906328169f40b428d1816e7f9c57985/aws-xray), [Go](https://github.com/open-telemetry/opentelemetry-go-contrib/tree/a47b4d31dd6ae604fe4cb41747979b5dd01adc65/samplers/aws/xray)) have contrib `Sampler` implementations that base their decisions on data received from [AWS X-Ray](https://github.com/awsdocs/aws-xray-developer-guide/blob/bbe425fbcefc3b8939b666100cfc0e23707e5c45/doc-source/xray-console-sampling.md#sampling-rule-options). Like Jaeger's `adaptive` remote sampling, X-Ray serves advisory sampling policies to clients. An X-Ray based sampling system behaves like so (on average):
+
 1. Define a *[rule](https://docs.aws.amazon.com/xray/latest/api/API_SamplingRule.html)* as a triple: a predicate over span attributes, a token bucket ([e.g.](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/42818333e243682bb50e510f4f91381016f61f71/aws-xray/src/main/java/io/opentelemetry/contrib/awsxray/SamplingRuleApplier.java#L272)), and a number in \[0, 1\] called the rule's *fixed rate.*
 2. Define the global sampling policy as an ordered collection of rules.
 3. Given a root span in need of a sampling decision,
-  1. Match the span to the first rule whose predicate it satisfies.
-  2. If the token bucket contains at least 1 token, deduct 1 token from the bucket and sample the span and its descendants.
-  3. Else, sample with probability equal to the matched rule's fixed rate.
+   1. Match the span to the first rule whose predicate it satisfies.
+   2. If the token bucket contains at least 1 token, deduct 1 token from the bucket and sample the span and its descendants.
+   3. Else, sample with probability equal to the matched rule's fixed rate.
 
 
 As the preceding family of policies is strictly more expressive than the class of Jaeger remote sampling policies, X-Ray can more effectively solve for goal #3 (minimize sampling error for a range of statistics). However—and also like Jaeger—X-ray supports limiting data creation rate exclusively in terms of traces per second. For trace stores who impose limits in other terms such as spans per second, X-Ray is ineffective at solving goal #2.
@@ -119,23 +121,26 @@ Check out [sampling types](https://docs.honeycomb.io/manage-data-volume/refinery
 Note: A detailed comparison of dynamic samplers is out of scope of this OTEP. The intention is only to establish that dynamic samplers exist, demand for them exists, and that they balance the goals.
 
 Shortcomings:
+
 - Like the jaeger-collector-based solutions, this adds new infra outside of the OpenTelemetry Collector.
 - Refinery supports receiving OTLP trace data but only exports via the Honeycomb Events API protocol.
 
 ### What does this have to do with sampler configurations?
 
 The one thing all these partial solutions have in common is that they all involve *configuration:* a means of specifying the parameters of their behavior. To build a full solution, a sensible place to start is the foundation: a configuration format that can support the use cases that all the aforementioned prior art has identified.
+
 - sampling only within a Collector (or cluster thereof)
 - sampling within SDKs, with policies obtained from a file or network socket
 
 See also:
+
 - https://github.com/open-telemetry/opentelemetry-specification/issues/2085: feature req for remote sampling
 - https://github.com/jaegertracing/jaeger/issues/425: Jaeger historical discussion of tail-based sampling.
 - [Discuss the possibility of deprecating the tail-based sampling processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/1797)
 
 
 
-Notes from 2022-07-28 SIG meeting:
+Notes:
 
 - TODO(Spencer): Look at https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/telemetryquerylanguage/tql and give feedback. Split out from transformprocessor.
   - Consider cross-platform support for consumption by head-based samplers
