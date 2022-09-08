@@ -14,7 +14,7 @@ We propose 3 steps to add support for ECS in OpenTelemetry Semantic Conventions:
 2. Validation of the methodology to merge these ECS fields. As there are 40+ ECS namespaces and as there will be few overlaps and maybe needs to evolve some ECS field names to match the vocabulary and conventions of OTel, we have in mind an iterative process tackling namespaces one after the other. We are also interested in clarifying how downstream schemas could be created; We have for example identified the value of having downstream schemas to specify persistence characteristics (see ECS string persistence types <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/text.html#match-only-text-field-type">match_only_text</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/keyword.html#keyword-field-type">keyword</a> <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/keyword.html#constant-keyword-field-type">constant_keyword</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/keyword.html#wildcard-field-type">wildcard</a>),
 3. Actual merge of ECS fields in OTel Semantic Conventions.
 
-Note that we didn't propose in this OTEP the mapping of all ECS fields because this is a substantial effort, we prefered to first validate the principle and, once consensus is reached, actually define the mapping. 
+Note that we didn't propose in this OTEP the mapping of all ECS fields because this is a substantial effort, we preferred to first validate the principle and, once consensus is reached, actually define the mapping. 
 
 ## Motivation
 
@@ -24,7 +24,7 @@ Adding the coverage of ECS to OTel would provide guidance to authors of OpenTele
 
 In addition to the use case of structured logs, the maturity of ECS for SIEM (Security Information and Event Management) is a great opportunity for OpenTelemetry to expand its scope to the security use cases.
 
-Another significant use case is providing first-class support for Kubernetes application logs, system logs as well as application introspection events. We would also like to see support for structured events (e.g. [k8seventsreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8seventsreceiver)) and using ‘content-type' to identify event types.
+Another significant use case is providing first-class support for Kubernetes application logs, system logs as well as application introspection events. We would also like to see support for structured events (e.g. [k8seventsreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8seventsreceiver)) and using 'content-type' to identify event types.
 
 We'd like to see different categories of structured logs being well-supported in the [OTel Log Data Model](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md), presumably through [semantic conventions for log attributes](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#field-attributes). For example, NGINX access logs and Apache access logs should be processed the same way as structured logs. This would help in trace and metric correlation with such log data as well as it would help grow the ecosystem of curated UIs provided by observability backends and monitoring dashboards (e.g. one single HTTP Access log dashboard benefiting Apache HTTPD, Nginx, and HAProxy).
 
