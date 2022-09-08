@@ -22,6 +22,7 @@ Collecting trace data is not free. Sampling trace data is a [multi-objective opt
 3. Keep sampling error for statistics of interest within an acceptable range.
    1. "Statistics" can be anything from [RED metrics](https://www.weave.works/blog/the-red-method-key-metrics-for-microservices-architecture/) by service, to data used to answer richer questions like "Which dimensions of trace data are correlated with higher error rate?". You want to ensure that all inferences made from the data you *do* collect are valid.
    2. Setting sampling error targets is akin to setting Service Level Objectives: just as one aspires to build *appropriately reliable* systems, so too one needs statistics which are *just accurate enough* to get valid insights from, but not so accurate that you excessively sacrifice goals #1 and #2.
+   3. An example consequence of this goal being unmet: metrics derived from the trace data become spiky and unfit for purpose.
 4. Ensure traces are complete.
    1. "Complete" means that all of the spans belonging to the trace are collected. For more information, see ["Trace completeness"](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.12.0/specification/trace/tracestate-probability-sampling.md#trace-completeness) in the trace spec.
 
