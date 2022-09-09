@@ -101,7 +101,7 @@ References:
 	- responsiveness: Configurable as `AdjustmentInterval`
 - limiting (`TotalThroughputSampler`):
 	- temporal resolution: Spans per second
-	- degree of limiting: Hard
+	- degree of limiting: Soft, if used correctly (# of strata is small; [src](https://github.com/honeycombio/dynsampler-go/blob/53d08de30228dea6c8b9fcba9fa0253a52de05a8/totalthroughput.go#L16-L19))
 	- horizontally scalable: No (limiting is per Refinery node)
 	- responsiveness: Configurable as `ClearFrequencySec`
 
