@@ -21,13 +21,14 @@ One implementation of (2) is to perform ***logarithmic balancing.*** Under this 
 Calculation details:
 - Traces with minimal frequency are sampled with probability 1. Others are sampled with probability less than 1.
 - For any pair of traces a and b with frequencies $f_a \geq f_b$, define $C = 1 + \log_{10}(f_a/f_b)$. Note that $C \geq 1$.
-- Pick p-values s.t. for any pair of traces, ratio of trace *expected throughputs* = C. E.g., 10:1 frequency => 2:1 throughput. In this example, reduce the p of the more frequent trace by a factor of $(f_a/f_b)/C$ = 5.
-- Could make the base of the logarithm in C's definition a configurable parameter: the ***squeeze factor,*** since it reduces the variance in trace throughputs (equivalently, strata throughputs, if assigning frequency scores as described above). E.g.,
-	- base-2: 10:1 frequency => 4.3:1 throughput
-	- base-10: 10:1 frequency => 2:1 throughput
-	- base-50: 10:1 frequency => 1.6:1 throughput
-	- base-∞: 10:1 frequency => 1:1 throughput
-		- All traces have throughput equal to that of the minimal-frequency traces
+- Pick p-values s.t. for any pair of traces, ratio of trace *expected throughputs* = C. For example, 10:1 frequency => 2:1 throughput. In this example, reduce the p of the more frequent trace by a factor of $(f_a/f_b)/C$ = 5.
+
+If there are use cases where "10:1 frequency => 2:1 throughput" is not quite right—say, more than 2x the data should be collected for the higher-frequency traces—then we could define a parameter: the ***doubling factor*** $D$, such that:
+
+- $D$ is the base of the logarithm in $C$'s definition.
+- Its meaning is indicated by the statements:
+  - Given traces with frequencyes $f_a$ and $f_b = D \times f_a$, trace B is twice as likely to be included in the sample than trace A.
+  - (If doing stratum-based scoring as described above) Given a stratum A with $D$ times as much volume as stratum B, twice as much "A" data will be collected than "B" data.
 
 ## Limiters
 A ***limiter*** is a sampler whose one job is to sample such that output throughputs are at or below some given threshold. For example,
@@ -38,6 +39,6 @@ Note that in addition to limiting traces per unit time, there are also use cases
 
 ## In practice
 Existing coarse-grained adaptive sampling implementations fuse together balancing and limiting into a single construct. They can, however, be equivalently described in terms of the preceding, decoupled components.
-- Jaeger `adaptive`: This attempts to sample all endpoints (pair of service and operation) at a per-endpoint target throughput. This is equivalent to partitioning traces along those two dimensions, running them through a base-∞ balancer, and finally through a per-stratum limiter with threshold equal to `--sampling.target-samples-per-second` many traces per second.
-- Honeycomb Refinery: Because Refinery nodes have no shared state, their limiting is not configured in terms of total cluster throughput, nor is it in terms of per-node throughput, but rather sampling probability; in `EMADynamicSampler` samplers the knob is called `GoalSampleRate`. This sampler performs a user-configured partitioning of input traces, scores those traces according to estimated relative frequency of their respective strata, computes a per-node target throughput using per-node strata sizes and `GoalSampleRate`, and then allocates shares of that target throughput to strata in proportion to the base-10 logarithm of each stratum's size. This is equivalent to running all traces through a base-10 logarithmic balancer, followed by a global limiter whose threshold is dynamically adjusting so that some desired percentage of the input traces are included in the sample.
+- Jaeger `adaptive`: This attempts to sample all endpoints (pair of service and operation) at a per-endpoint target throughput. This is equivalent to partitioning traces along those two dimensions, running them through a $D = \infin$ logarithmic balancer, and finally through a per-stratum limiter with threshold equal to `--sampling.target-samples-per-second` many traces per second.
+- Honeycomb Refinery: Because Refinery nodes have no shared state, their limiting is not configured in terms of total cluster throughput, nor is it in terms of per-node throughput, but rather sampling probability; in `EMADynamicSampler` samplers the knob is called `GoalSampleRate`. This sampler performs a user-configured partitioning of input traces, scores those traces according to estimated relative frequency of their respective strata, computes a per-node target throughput using per-node strata sizes and `GoalSampleRate`, and then allocates shares of that target throughput to strata in proportion to the base-10 logarithm of each stratum's size. This is equivalent to running all traces through a $D = 10$ logarithmic balancer, followed by a global limiter whose threshold is dynamically adjusting so that some desired percentage of the input traces are included in the sample.
 - AWS X-Ray: Not quite "coarse-grained" adaptive sampling, since its configuration requires individual target throughputs, and its rule semantics map each trace to exactly one target throughput.
