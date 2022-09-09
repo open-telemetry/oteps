@@ -20,15 +20,15 @@ One implementation of (2) is to perform ***logarithmic balancing.*** Under this 
 
 Calculation details:
 - Traces with minimal frequency are sampled with probability 1. Others are sampled with probability less than 1.
-- For any pair of traces a and b with frequencies $f_a \geq f_b$, define $C = 1 + \log_{10}(f_a/f_b)$. Note that $C \geq 1$.
-- Pick p-values s.t. for any pair of traces, ratio of trace *expected throughputs* = C. For example, 10:1 frequency => 2:1 throughput. In this example, reduce the p of the more frequent trace by a factor of $(f_a/f_b)/C$ = 5.
+- For any pair of traces A and B with frequencies $f_b \geq f_a$, define $C = 1 + \log_{10}(f_b/f_a)$. Note that $C \geq 1$.
+- Pick p-values s.t. for any pair of traces, ratio of trace *expected throughputs* = C. For example, 10:1 frequency => 2:1 throughput. In this example, reduce the p of the more frequent trace by a factor of $(f_b/f_a)/C$ = 5.
 
-If there are use cases where "10:1 frequency => 2:1 throughput" is not quite right—say, more than 2x the data should be collected for the higher-frequency traces—then we could define a parameter: the ***doubling factor*** $D$, such that:
+If there are use cases where "10:1 frequency => 2:1 throughput" is not quite right—say, more than 2x as much data should be collected for the higher-frequency traces—then we could define a parameter: the ***doubling factor*** $D$, such that:
 
 - $D$ is the base of the logarithm in $C$'s definition.
 - Its meaning is described by the statements:
   - Given traces with frequencies $f_a$ and $f_b = D \times f_a$, trace B is $D/2$ times less likely to be included in the sample than trace A.
-  - (If doing stratum-based scoring as described above) Given a stratum A with $D$ times as much volume as stratum B, twice as much "A" data will be collected than "B" data.
+  - (If doing stratum-based scoring as described above) Given a stratum B with $D$ times as much volume as stratum A, twice as much "B" data will be collected than "A" data.
 
 ## Limiters
 A ***limiter*** is a sampler whose one job is to sample such that output throughputs are at or below some given threshold. For example,
