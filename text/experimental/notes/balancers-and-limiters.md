@@ -26,7 +26,7 @@ Calculation details:
 If there are use cases where "10:1 frequency => 2:1 throughput" is not quite right—say, more than 2x as much data should be collected for the higher-frequency traces—then we could define a parameter: the ***doubling factor*** $D \geq 2$, such that:
 
 - $D$ is the base of the logarithm in $C$'s definition.
-- Note that when $D = \infin$, $C = 1$, meaning all classes of traces are collected with the same throughput. This produces a sample with maximum diversity, which can be good or bad depending on one's goals.
+- Note that when $D = \infty$, $C = 1$, meaning all classes of traces are collected with the same throughput. This produces a sample with maximum diversity, which can be good or bad depending on one's goals.
 - Its meaning is described by the statements:
   - Given traces with frequencies $f_a$ and $f_b = D \times f_a$, trace B is $D/2$ times less likely to be included in the sample than trace A.
   - (If doing stratum-based scoring as described above) Given a stratum B with $D$ times as much volume as stratum A, twice as much "B" data will be collected as "A" data.
@@ -40,6 +40,6 @@ Note that in addition to limiting traces per unit time, there are also use cases
 
 ## In practice
 Existing coarse-grained adaptive sampling implementations fuse together balancing and limiting into a single construct. They can, however, be equivalently described in terms of the preceding, decoupled components.
-- Jaeger `adaptive`: This attempts to sample all endpoints (pair of service and operation) at a per-endpoint target throughput. This is equivalent to partitioning traces along those two dimensions, running them through a $D = \infin$ logarithmic balancer, and finally through a per-stratum limiter with threshold equal to `--sampling.target-samples-per-second` many traces per second.
+- Jaeger `adaptive`: This attempts to sample all endpoints (pair of service and operation) at a per-endpoint target throughput. This is equivalent to partitioning traces along those two dimensions, running them through a $D = \infty$ logarithmic balancer, and finally through a per-stratum limiter with threshold equal to `--sampling.target-samples-per-second` many traces per second.
 - Honeycomb Refinery: Because Refinery nodes have no shared state, their limiting is not configured in terms of total cluster throughput, nor is it in terms of per-node throughput, but rather sampling probability; in `EMADynamicSampler` samplers the knob is called `GoalSampleRate`. This sampler performs a user-configured partitioning of input traces, scores those traces according to estimated relative frequency of their respective strata, computes a per-node target throughput using per-node strata sizes and `GoalSampleRate`, and then allocates shares of that target throughput to strata in proportion to the base-10 logarithm of each stratum's size. This is equivalent to running all traces through a $D = 10$ logarithmic balancer, followed by a global limiter whose threshold is dynamically adjusting so that some desired percentage of the input traces are included in the sample.
 - AWS X-Ray: Not quite "coarse-grained" adaptive sampling, since its configuration requires individual target throughputs, and its rule semantics map each trace to exactly one target throughput.
