@@ -25,7 +25,7 @@ Calculation details:
 - For any other trace with frequency $f$, define $C = 1 + \log_{10}(f/f_0)$. Note that $C \geq 1$.
 - Pick that trace's sampling probability such that the ratio of *expected throughputs* of traces with frequency $f$ and traces with frequency $f_0$ equals C. For example, 10:1 frequency => 2:1 throughput. In this example, reduce the sampling probability of the more frequent trace by a factor of $(f/f_0)/C$ = 5.
 
-If there are use cases where "10:1 frequency => 2:1 throughput" is not quite right—say, more than 2x as much data should be collected for the higher-frequency traces—then we could define a parameter: the ***doubling factor*** $D \geq 2$, such that:
+If there are use cases where "10:1 frequency => 2:1 throughput" is not quite right—say, more than 2x as much data should be collected for the higher-frequency traces—then we could define a parameter: the ***doubling point* $D \geq 2$, such that:
 
 - $D$ is the base of the logarithm in $C$'s definition.
 - Note that when $D = \infty$, $C = 1$, meaning all classes of traces are collected with the same throughput. This produces a sample with maximum diversity, which can be good or bad depending on one's goals.
