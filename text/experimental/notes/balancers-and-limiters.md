@@ -4,7 +4,7 @@ Consider two common goals in sampling:
 
 - Ensure that overall data collection doesn't exceed acceptable limits
 
-***Coarse-grained adaptive sampling*** is a technique where, given a *heterogeneous* stream of traces, the sampling probabilities of each trace are determined in order to promote the preceding goals. Existing implementations of coarse-grained adaptive sampling pursue these goals simultaneously using single constructs. It is possible, however, to address them independently. Decoupling these concerns may yield a simpler and more flexible conceptual foundation for sampling.
+***Coarse-grained adaptive sampling*** is a technique where, given a *heterogeneous* stream of traces, sampling probabilities are chosen on a trace-by-trace basis in order to promote the preceding goals. Existing implementations of coarse-grained adaptive sampling pursue these goals simultaneously using single constructs. It is possible, however, to address them independently. Decoupling these concerns may yield a simpler and more flexible conceptual foundation for sampling.
 
 ## Balancers
 Define a ***balancer*** to be a sampler that does the following: For each input trace,
@@ -21,7 +21,7 @@ One implementation of (2) is to perform ***logarithmic balancing.*** Under this 
 Calculation details:
 - Traces with minimal frequency are sampled with probability 1. Others are sampled with probability less than 1.
 - For any pair of traces A and B with frequencies $f_b \geq f_a$, define $C = 1 + \log_{10}(f_b/f_a)$. Note that $C \geq 1$.
-- Pick p-values s.t. for any pair of traces, ratio of trace *expected throughputs* = C. For example, 10:1 frequency => 2:1 throughput. In this example, reduce the p of the more frequent trace by a factor of $(f_b/f_a)/C$ = 5.
+- Pick p-values s.t. for any pair of traces, ratio of trace *expected throughputs* = C. For example, 10:1 frequency => 2:1 throughput. In this example, reduce the p of the more frequent trace (B) by a factor of $(f_b/f_a)/C$ = 5.
 
 If there are use cases where "10:1 frequency => 2:1 throughput" is not quite right—say, more than 2x as much data should be collected for the higher-frequency traces—then we could define a parameter: the ***doubling factor*** $D$, such that:
 
