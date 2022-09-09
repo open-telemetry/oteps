@@ -14,22 +14,33 @@ Define a ***balancer*** to be a sampler that does the following: For each input 
 One implementation of (1) is to partition input traces into strata, compute from historical data the relative frequency of each stratum among the input traces, and assign traces frequency scores equal to the relative frequency of the stratum to which they belong. For example, if a trace comes in and belongs to the "`route = /health`" stratum, and that stratum constitutes 10% of recent traces, then any trace belonging to that stratum has frequency score 0.1. This scoring algorithm will result in sampling higher-volume strata, pulling their throughput down to be closer to that of the minimal-volume stratum, reducing the [dynamic range](https://en.wikipedia.org/wiki/Dynamic_range) of strata throughputs.
 
 One implementation of (2) is to perform ***logarithmic balancing.*** Under this scheme, the frequency ratios and throughput ratios of a pair of spans are related in a certain way. By way of example,
+
 - 1:1 frequency => 1:1 throughput
 - 10:1 frequency => 2:1 throughput
 - 100:1 frequency => 3:1 throughput
+- $10^{n-1}$:1 frequency => $n$:1 throughput
 
 Calculation details:
-- Traces with minimal frequency are sampled with probability 1. Others are sampled with probability less than 1.
-- For any pair of traces A and B with frequencies $f_b \geq f_a$, define $C = 1 + \log_{10}(f_b/f_a)$. Note that $C \geq 1$.
-- Pick sampling probabilities s.t. for any pair of traces, ratio of trace *expected throughputs* = C. For example, 10:1 frequency => 2:1 throughput. In this example, reduce the sampling probability of the more frequent trace (B) by a factor of $(f_b/f_a)/C$ = 5.
+- Traces with minimal frequency $f_0$ are sampled with probability 1. Others are sampled with probability less than 1.
+- For any other trace with frequency $f$, define $C = 1 + \log_{10}(f/f_0)$. Note that $C \geq 1$.
+- Pick that trace's sampling probability such that the ratio of *expected throughputs* of traces with frequency $f$ and traces with frequency $f_0$ equals C. For example, 10:1 frequency => 2:1 throughput. In this example, reduce the sampling probability of the more frequent trace by a factor of $(f/f_0)/C$ = 5.
 
 If there are use cases where "10:1 frequency => 2:1 throughput" is not quite right—say, more than 2x as much data should be collected for the higher-frequency traces—then we could define a parameter: the ***doubling factor*** $D \geq 2$, such that:
 
 - $D$ is the base of the logarithm in $C$'s definition.
 - Note that when $D = \infty$, $C = 1$, meaning all classes of traces are collected with the same throughput. This produces a sample with maximum diversity, which can be good or bad depending on one's goals.
 - Its meaning is described by the statements:
-  - Given traces with frequencies $f_a$ and $f_b = D \times f_a$, trace B is $D/2$ times less likely to be included in the sample than trace A.
-  - (If doing stratum-based scoring as described above) Given a stratum B with $D$ times as much volume as stratum A, twice as much "B" data will be collected as "A" data.
+  - Given traces with frequencies $f_0$ and $f = D \times f_0$, the higher-frequency trace is $D/2$ times less likely to be included in the sample than the minimal-frequency trace.
+  - (If doing stratum-based scoring as described above) Given a stratum B with $D$ times as much volume as the minimal-volume stratum A, twice as much "B" data will be collected as "A" data.
+
+Another implementation of (2) could be ***slowed exponential balancing:***
+
+- 1:1 frequency => 1:1 throughput
+- 10:1 frequency => 2:1 throughput
+- 100:1 frequency => 4:1 throughput
+- $10^n$:1 frequency => $2^n$:1 throughput
+
+This is simpler to describe: rather than pegging all traces to $f_0$, there is a simple relation between *any pair* of traces: 10x-ing frequency leads to doubling throughput.
 
 ## Limiters
 A ***limiter*** is a sampler whose one job is to sample such that output throughputs are at or below some given threshold. For example,
