@@ -26,8 +26,8 @@ Calculation details:
 If there are use cases where "10:1 frequency => 2:1 throughput" is not quite right—say, more than 2x the data should be collected for the higher-frequency traces—then we could define a parameter: the ***doubling factor*** $D$, such that:
 
 - $D$ is the base of the logarithm in $C$'s definition.
-- Its meaning is indicated by the statements:
-  - Given traces with frequencyes $f_a$ and $f_b = D \times f_a$, trace B is twice as likely to be included in the sample than trace A.
+- Its meaning is described by the statements:
+  - Given traces with frequencies $f_a$ and $f_b = D \times f_a$, trace B is $D/2$ times less likely to be included in the sample than trace A.
   - (If doing stratum-based scoring as described above) Given a stratum A with $D$ times as much volume as stratum B, twice as much "A" data will be collected than "B" data.
 
 ## Limiters
