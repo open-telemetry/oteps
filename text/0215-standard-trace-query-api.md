@@ -34,12 +34,11 @@ TBD - Interface and capabilities definition
 
 ### Migration Period
 
-- Untill all vendors will implement such an API, it would be nice to have a single library (i.e. opentelemetry-backend) that will enable telemetry consumers to query any supported observability backend in a common format.
+- Until all vendors will implement such an API, it would be nice to have a single library (i.e. opentelemetry-backend) that will enable telemetry consumers to query any supported observability backend in a common format.
 - This means to create kind of proxy client for telemetry consumer that will abstract the details of specific implementations (Jaeger, Tempo, etc.) for easy change from one platform to another.
   This library should be deprecated by the time all vendors will implement the suggested standard API.
 
 - This can be nspired by this POC made by @lucasponce [https://github.com/lucasponce/jaeger-proto-client](https://github.com/lucasponce/jaeger-proto-client) that can plug any jaeger solution (jaeger/tempo) for consumers.
--
 
 ## Prior art and alternatives
 
