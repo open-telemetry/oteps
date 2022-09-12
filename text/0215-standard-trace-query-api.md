@@ -39,6 +39,7 @@ TBD - Interface and capabilities definition
   This library should be deprecated by the time all vendors will implement the suggested standard API.
 
 - This can be nspired by this POC made by @lucasponce [https://github.com/lucasponce/jaeger-proto-client](https://github.com/lucasponce/jaeger-proto-client) that can plug any jaeger solution (jaeger/tempo) for consumers.
+-
 
 ## Prior art and alternatives
 
