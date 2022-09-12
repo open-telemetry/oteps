@@ -24,7 +24,7 @@ _[1] Telemetry consumption platforms like Kiali consume telemetry sugnals (metr
 
 We can see this dependency on the diagram below (given some examples for existing open source platforms):
 
-![Downstream Telemetry Consumption Path](img/0000-telemetry-consumption-path.jpg)
+![Downstream Telemetry Consumption Path](img/0215-telemetry-consumption-path.jpg)
 
 ## Internal details
 
