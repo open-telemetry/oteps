@@ -25,8 +25,8 @@ _[1] Telemetry consumption platforms like Kiali consume telemetry signals and c
 This change will be an additional API and SDK where a specific set of common telemetry data query and search capabilities will be defined.
 Once a set of common query and search capabilities is defined, a technical specification describing the data exchange options between the telemetry backends and the consumers will be defined along with its delivery protocols.
 
-- This API could leverage the existing protbuf schema, in the case of a trace - the response object can be derived from the [trace definition](https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto)
-- The API route can complement the existing [OTLP exporter API](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/exporter.md)
+- This API could leverage the existing protbuf schema, in the case of a trace - the response object can be derived from OTel [Trace Definition](https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto)
+- The API route can complement the existing [OTLP Exporter API](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/exporter.md)
 
 ### Example of existing Traces Query API
 
@@ -78,9 +78,9 @@ Once a set of common query and search capabilities is defined, a technical speci
   }
   ```
 
-- Tempo Span Object is not supported (as for the time writing)
+- [Tempo Span Object](https://grafana.com/docs/tempo/latest/api_docs/) - Not supported as the time of writing
 
-From looking at those different and opinionated span objects we can immediately see the burden falls on the consumer side for trying to map these objects to a common one.
+From looking at these different, opinionated Span objects we can immediately see the burden falls on the consumer side for trying to map these objects to a common one.
 
 ## Trade-offs and mitigations
 
@@ -90,7 +90,8 @@ From looking at those different and opinionated span objects we can immediately 
 
 ## Prior art and alternatives
 
-- The proxy library mentioned above can be inspired by this POC made by @lucasponce [https://github.com/lucasponce/jaeger-proto-client](https://github.com/lucasponce/jaeger-proto-client) that can plug any jaeger solution (jaeger/tempo) for consumers.
+- The proxy library mentioned above can be inspired by this [POC](<(https://github.com/lucasponce/jaeger-proto-client)>) made by @lucasponce that can plug any jaeger solution (jaeger/tempo) for consumers.
+- [Tempo TraceQL](https://github.com/grafana/tempo/blob/main/docs/design-proposals/2022-04%20TraceQL%20Concepts.md), a language for selecting traces that Tempo will implement. This language is currently only focused on trace selection. This is an example for a specific implementation for querying syntax.
 
 ## Open questions
 
@@ -107,7 +108,3 @@ From looking at those different and opinionated span objects we can immediately 
 
 - Potentially extended not only for tracing but other signals (logs, metrics).
 - Probably a common set of features can be "standardized," and the OpenTelemetry group may foster a "standard client" for these needs.
-
-```
-
-```
