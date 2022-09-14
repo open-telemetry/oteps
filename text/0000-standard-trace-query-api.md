@@ -21,6 +21,7 @@ _[1] Telemetry consumption platforms like Kiali consume telemetry signals and c
 ## Internal details
 
 This change will be an additional API and SDK where a specific set of common telemetry data query and search capabilites will be defined.
+Once a set of common query and search capabilities is defined, a technical specification describing the data exchange options between the telemetry backends and the consumers will be defined along with its delivery protocols.
 
 - This API could leverage the existing protbuf schema, in the case of a trace - the response object can be derived from the [trace definition](https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto)
 - The API route can complement the existing [OTLP exporter API](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/exporter.md)
