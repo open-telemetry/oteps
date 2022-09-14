@@ -35,11 +35,11 @@ Once a set of common query and search capabilities is defined, a technical speci
 - [Tempo Search API (experimental)](https://grafana.com/docs/tempo/latest/api_docs/#query)
 - [Zipkin Trace Query API](https://zipkin.io/zipkin-api/#/default/get_traces)
 
-### Comparison Between Different Implementations of Span Response Object
+### Comparison Between Different Implementations of Response Object
 
 > **_NOTE:_** The objects below were simplified (comments and types were removed). Complete objects are linked.
 
-- [Zipkin Span Object](https://github.com/openzipkin/zipkin-api/blob/7692ca7be4dc3be9225db550d60c4d30e6e9ec59/zipkin-jsonv2.proto#L30)
+- [Zipkin Span and Trace Object](https://github.com/openzipkin/zipkin-api/blob/main/zipkin-jsonv2.proto#L30)
 
   ```protobuf
   message Span {
@@ -57,9 +57,14 @@ Once a set of common query and search capabilities is defined, a technical speci
     bool debug = 12;
     bool shared = 13;
   }
+
+  // Demonstration of a Trace object as described in the API referance
+  message Trace {
+    repeated Span = 1;
+  }
   ```
 
-- [Jaeger Span Object](https://github.com/jaegertracing/jaeger-idl/blob/main/proto/api_v2/model.proto)
+- [Jaeger Span and Trace Object](https://github.com/jaegertracing/jaeger-idl/blob/main/proto/api_v2/model.proto)
 
   ```protobuf
   message Span {
@@ -76,11 +81,21 @@ Once a set of common query and search capabilities is defined, a technical speci
     string process_id = 11;
     repeated string warnings = 12;
   }
+
+  message Trace {
+    message ProcessMapping {
+        string process_id = 1;
+        Process process = 2;
+    }
+    repeated Span spans = 1;
+    repeated ProcessMapping process_map = 2;
+    repeated string warnings = 3;
+  }
   ```
 
-- [Tempo Span Object](https://grafana.com/docs/tempo/latest/api_docs/) - Not supported as the time of writing
+- [Tempo Span Trace Object](https://grafana.com/docs/tempo/latest/api_docs/) - From [Tempo docs](https://grafana.com/docs/tempo/latest/api_docs/#query) it is not clear what is exactly the structure of a Trace, though we can see a [Go implementation of a proto definition](https://github.com/grafana/tempo/blob/main/pkg/tempopb/trace/v1/trace.pb.go#L307) (which its origin I can't find).
 
-From looking at these different, opinionated Span objects we can immediately see the burden falls on the consumer side for trying to map these objects to a common one.
+From looking at these different, opinionated Span objects we can immediately see that the burden falls on the consumer side for mapping these objects to a common one. In addition to a standard definition for a query request and response objects, we'll also have to specify what other API options are mandatory.
 
 ## Trade-offs and mitigations
 
