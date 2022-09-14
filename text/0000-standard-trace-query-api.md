@@ -1,4 +1,4 @@
-# Standardization for Telemetry Data Query API
+# Standard Telemetry Data Query API
 
 Vendor agnostic API definition to query telemetry data from observability backends.
 
