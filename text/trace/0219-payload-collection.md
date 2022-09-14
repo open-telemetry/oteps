@@ -327,7 +327,7 @@ We could also add more capabilities to OpenTelemetry to better support this kind
 
 ## Open questions
 
-**Skipping payload attributes decode**
+### Skipping payload attributes decode**
 
 Especially for large and complex payload attributes, decoding the OTLP data into
 memory objects could be expensive, while not necessary.
@@ -336,6 +336,6 @@ if could copy an encoded payload attribute buffer 'as-is' instead of decoding an
 
 We may explore methods for doing so, which could require using a custom Protobuf decoder.
 
-**Integrating with a future columnar OTLP encoding**
+### Integrating with a future columnar OTLP encoding**
 
 As the [proposal](https://github.com/open-telemetry/oteps/pull/171) for a columnar OTLP encoding is being progressed, we should define how payload attributes could be a part of that.
