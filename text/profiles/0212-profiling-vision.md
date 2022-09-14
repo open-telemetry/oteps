@@ -50,10 +50,10 @@ for collecting, processing, and transporting this profiling data.
 Our goals for profiling align with those of OpenTelemetry as a whole:
 
 - **Profiling should be easy**: the nature of profiling offers fast
-  time-to-value by often being able to optionally drop in a  minimal amount of
+  time-to-value by often being able to optionally drop in a minimal amount of
   code and instantly have details about application resource utilization
 - **Profiling should be universal**: currently profiling is slightly different
-  across different languages, but with a little effort  the representation of
+  across different languages, but with a little effort the representation of
   profiling data can be standardized in a way where not only are languages
   consistent, but profiling data itself is also consistent with the other
   observability signals as well
@@ -157,13 +157,15 @@ We will have best-in-class support for profiles emitted in cloud native
 environments (e.g. Kubernetes, serverless, etc), including legacy applications
 running in those environments. As we aim to achieve this goal we will center our
 efforts around making profiling applications resilient, manageable and
-observable.  This is in line with the Cloud Native Computing Foundation and OpenTelemetry missions and will thus allow
-us to further expand and leverage those communities to further the respective
-missions.
+observable.  This is in line with the Cloud Native Computing Foundation and
+OpenTelemetry missions and will thus allow us to further expand and leverage
+those communities to further the respective missions.
 
 ## Profiling use cases
 
-- Tracking resource utilization of an application over time to understand how code changes, hardware configuration changes, and ephemeral environmental issues influence performance
+- Tracking resource utilization of an application over time to understand how
+  code changes, hardware configuration changes, and ephemeral environmental
+  issues influence performance
 - Understanding what code is responsible for consuming resources (i.e. CPU, Ram,
   disk, network)
 - Planning for resource allotment for a group of services running in production
