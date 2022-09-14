@@ -16,7 +16,7 @@ This document and efforts thus far are motivated by:
 
 - This [long-standing issue](https://github.com/open-telemetry/oteps/issues/139)
   created in October 2020
-- A conversation about priorities at the in-person OTEL meeting at Kubecon EU
+- A conversation about priorities at the in-person OpenTelemetry meeting at Kubecon EU
   2022
 - Increasing community interest in profiling as an observability signal
   alongside logs, metrics, and traces
@@ -143,9 +143,9 @@ usage. The OpenTelemetry standardisation effort should take this into account
 and strive to produce a format that is usable by profilers of this nature
 without sacrificing their guarantees.
 
-Similar to other Otel signals, we target production environments. Thus, the
+Similar to other OpenTelemetry signals, we target production environments. Thus, the
 profiling signal must be implementable with low overhead and conforming to
-Otel-wide runtime overhead / intrusiveness and wire data size requirements.
+OpenTelemetry-wide runtime overhead / intrusiveness and wire data size requirements.
 
 ## Promoting Cloud-Native best practices with Profiling
 
@@ -157,7 +157,7 @@ We will have best-in-class support for profiles emitted in cloud native
 environments (e.g. Kubernetes, serverless, etc), including legacy applications
 running in those environments. As we aim to achieve this goal we will center our
 efforts around making profiling applications resilient, manageable and
-observable.  This is in line with the CNCF and OTEL missions and will thus allow
+observable.  This is in line with the Cloud Native Computing Foundation and OpenTelemetry missions and will thus allow
 us to further expand and leverage those communities to further the respective
 missions.
 
