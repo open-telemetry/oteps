@@ -104,7 +104,7 @@ From looking at these different, opinionated Span and Trace objects we can immed
 
 ### Standard API vs. Backend Proxy Library
 
-- In order to make the shift toward this standard more pleasant from the telemetry consumers side, while reducing the dependency on external platforms, a dedicated contrib repo with a proxy client that will abstract the details of specific implementations (Jaeger, Tempo, etc.) so that the user will be able to change from one observability backend to another while enabling telemetry consumers to query any supported observability backend in a common format.
+- In order to make the shift toward this standard more pleasant from the telemetry consumers side, while reducing the dependency on external platforms, a dedicated contrib repo should be created with a proxy client that will abstract the details of specific implementations (Jaeger, Tempo, etc.) so that the user will be able to switch one observability backend to another while enabling telemetry consumers to query any supported observability backend in a common format.
 
 ## Prior art and alternatives
 
@@ -113,13 +113,15 @@ From looking at these different, opinionated Span and Trace objects we can immed
 
 ## Open questions
 
-1. This initiative is not very well aligned with the current vision of OTel. See [https://opentelemetry.io/docs/](https://opentelemetry.io/docs/) where they say:
+1. This initiative may be out of the current scope and vision of OTel. See [https://opentelemetry.io/docs/](https://opentelemetry.io/docs/) where they say:
 
    > _OpenTelemetry, also known as OTel for short, is a vendor-neutral open-source Observability framework for instrumenting, generating, collecting, and exporting telemetry data such as traces, metrics, logs._
 
    - Does the OpenTelemetry organization is the right place for such an initiative? any other suggestions?
 
-2. One of the challenges we see is different vendors having different capabilities and APIs. For example, one vendor support searching by arbitrary attributes and aggregations between telemetry signals, etc. Probably some parts of the API should be mandatory, and some optional.
+2. One of the challenges we see is different vendors having different capabilities and APIs.
+   - For example, one vendor support searching by arbitrary attributes and another aggregations between telemetry signals.
+   - Probably some parts of the API should be mandatory, and some optional.
 3. We need to find more downstream telemetry consumers to validate this need (some other platforms/users/organizations).
 
 ## Future possibilities
