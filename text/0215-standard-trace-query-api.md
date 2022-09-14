@@ -28,7 +28,12 @@ We can see this dependency on the diagram below (given some examples for existin
 
 ## Internal details
 
-TBD - Interface and capabilities definition
+This change will be an additional API and SDK where a specific set of common trace query and search capabilites will be defined, we can start by examining the current leading CNCF observability backend, Jaeger, and continue from there.
+
+- One possible implementatio for such an interface response object defenition can be a set of proto files which can be derived from existing Trace and Span definitions.
+  - [Trace Proto](https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto)
+- Regarding the API route itself, this can be derived from the existing [OTLP exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/exporter.md)
+  - So instead of POST /v1/traces, one will use GET for the same route
 
 ## Trade-offs and mitigations
 
