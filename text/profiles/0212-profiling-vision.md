@@ -132,7 +132,7 @@ Profiling agents can be architected in a variety of differing ways, with
 reasonable trade offs made that may impact performance, completeness, accuracy
 and so on. Similarly, the manner in which such a profiler might produce or
 consume OpenTelemetry-compatible data could vary significantly. As such, in our
-standardization effort it is not feasible to be proscriptive on the matter of
+standardization effort it is not feasible to be prescriptive on the matter of
 resource usage for profilers.
 
 However, the output of OpenTelemetry's standardization effort must take into
