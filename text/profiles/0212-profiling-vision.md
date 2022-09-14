@@ -1,4 +1,4 @@
-# Propose OpenTelemetry Profiling Vision
+# Propose OpenTelemetry profiling vision
 
 The following are high-level items that define our long-term vision for
 Profiling support in the OpenTelemetry project that we aspire to achieve.
@@ -21,7 +21,7 @@ This document and efforts thus far are motivated by:
 - Increasing community interest in profiling as an observability signal
   alongside logs, metrics, and traces
 
-## How Profiling aligns with the OpenTelemetry vision
+## How profiling aligns with the OpenTelemetry vision
 
 The [OpenTelemetry
 vision](https://opentelemetry.io/mission/#vision-mdash-the-world-we-imagine-for-otel-end-users)
@@ -34,7 +34,7 @@ instrumentation that makes it possible._
 
 While existing OpenTelemetry signals fit all of these criteria, until recently
 no effort has been explicitly geared towards creating performant and consistent
-instrumentation of profiling data.
+instrumentation based upon profiling data.
 
 ## Making a well-rounded observability suite by adding profiling
 
@@ -61,7 +61,7 @@ Our goals for profiling align with those of OpenTelemetry as a whole:
   be able to send data to whichever vendor they like (or no vendor at all) and
   interoperate with other OSS projects
 
-## Current State of Profilers
+## Current state of profilers
 
 As it currently stands, the method for collecting profiles for an application
 and the format of the profiles collected varies greatly depending on several
@@ -86,7 +86,7 @@ engineering values:
   can change arbitrarily with no unified criteria for how to take end-users into
   account
 
-## Making Profiling Compatible with other Signals
+## Making profiling compatible with other signals
 
 Profiles are particularly useful in the context of other signals. For example,
 having a profile for a particular “slow” span in a trace yields more actionable
@@ -99,8 +99,8 @@ Correlation will work across 2 major dimensions:
 
 - To correlate telemetry emitted for the same request (also known as request or
   trace context correlation)
-- To correlate telemetry emitted from the same source (also known as Resource
-  Context Correlation)
+- To correlate telemetry emitted from the same source (also known as resource
+  context correlation)
 
 ## Standardize profiling data model for industry-wide sharing and reuse
 
@@ -116,7 +116,7 @@ majority of profiling data with the following goals in mind:
 - Profiling formats should contain mechanisms for representing relationships
   between other telemetry signals (i.e. linking call stacks with spans)
 
-## Supporting Legacy profiling formats
+## Supporting legacy profiling formats
 
 For existing profilers we will provide instructions on how these legacy formats
 can emit profiles in a manner that makes them compatible with OpenTelemetry’s
@@ -147,7 +147,7 @@ Similar to other OpenTelemetry signals, we target production environments. Thus,
 profiling signal must be implementable with low overhead and conforming to
 OpenTelemetry-wide runtime overhead / intrusiveness and wire data size requirements.
 
-## Promoting Cloud-Native best practices with Profiling
+## Promoting cloud-native best practices with profiling
 
 The CNCF’s mission states: _Cloud native technologies empower organizations to
 build and run scalable applications in modern, dynamic environments such as
@@ -163,6 +163,7 @@ missions.
 
 ## Profiling use cases
 
+- Tracking resource utilization of an application over time to understand how code changes, hardware configuration changes, and ephemeral environmental issues influence performance
 - Understanding what code is responsible for consuming resources (i.e. CPU, Ram,
   disk, network)
 - Planning for resource allotment for a group of services running in production
