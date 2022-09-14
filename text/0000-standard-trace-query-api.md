@@ -18,6 +18,8 @@ _[1] Telemetry consumption platforms like Kiali consume telemetry signals and c
 
   Unfortunately if you want to query traces for a specific platform you'd require some technical dependency on that platform (in the Kiali case, this one is the Jaeger API) which results in **vendor specific** solution.
 
+- This specification should prioritize traces api defenition as this is the most mature capability of OpenTelemetry and has a diverse backend platforms.
+
 ## Internal details
 
 This change will be an additional API and SDK where a specific set of common telemetry data query and search capabilites will be defined.
@@ -25,6 +27,60 @@ Once a set of common query and search capabilities is defined, a technical speci
 
 - This API could leverage the existing protbuf schema, in the case of a trace - the response object can be derived from the [trace definition](https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto)
 - The API route can complement the existing [OTLP exporter API](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/exporter.md)
+
+### Example of existing Traces Query API
+
+- [Jaeger Trace Query API Definition](https://github.com/jaegertracing/jaeger-idl/blob/main/proto/api_v2/query.proto)
+- [Tempo Trace Query API](https://grafana.com/docs/tempo/latest/api_docs/#query)
+- [Tempo Search API (experimental)](https://grafana.com/docs/tempo/latest/api_docs/#query)
+- [Zipkin Trace Query API](https://zipkin.io/zipkin-api/#/default/get_traces)
+
+### Comparison Between Different Implementations of Span Response Object
+
+> **_NOTE:_** The objects below were simplified (comments and types were removed)
+
+- [Zipkin Span Object](https://github.com/openzipkin/zipkin-api/blob/7692ca7be4dc3be9225db550d60c4d30e6e9ec59/zipkin-jsonv2.proto#L30)
+
+  ```json
+  message Span {
+    string trace_id = 1;
+    string parent_id = 2;
+    string id = 3;
+    string kind = 4;
+    string name = 5;
+    fixed64 timestamp = 6;
+    uint64 duration = 7;
+    Endpoint local_endpoint = 8;
+    Endpoint remote_endpoint = 9;
+    repeated Annotation annotations = 10;
+    map<string, string> tags = 11;
+    bool debug = 12;
+    bool shared = 13;
+  }
+  ```
+
+- [Jaeger Span Object](https://github.com/jaegertracing/jaeger-idl/blob/main/proto/api_v2/model.proto)
+
+  ````json
+  message Span {
+    bytes trace_id = 1;
+    bytes span_id = 2;
+    string operation_name = 3;
+    repeated SpanRef references = 4;
+    uint32 flags = 5;
+    google.protobuf.Timestamp start_time = 6;
+    google.protobuf.Duration duration = 7;
+    repeated KeyValue tags = 8;
+    repeated Log logs = 9;
+    Process process = 10;
+    string process_id = 11;
+    repeated string warnings = 12;
+  }```
+  ````
+
+- Tempo Span Object is not supported (as for the time writing)
+
+From looking at those different and opinionated span obects we can imidiatly see the gap created on the consumer side for trying to map these objects to a common one.
 
 ## Trade-offs and mitigations
 
@@ -49,3 +105,7 @@ Once a set of common query and search capabilities is defined, a technical speci
 
 - Potentially extended not only for tracing but other signals (logs, metrics).
 - Probably a common set of features can be "standardized," and the OpenTelemetry group may foster a "standard client" for these needs.
+
+```
+
+```
