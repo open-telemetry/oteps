@@ -6,13 +6,14 @@ Vendor agnostic API definition to query telemetry data (traces, logs and metrics
 
 - The Observability space is getting mature, more telemetry producers (cloud services, libraries, platforms, frameworks, etc.) align with the OTel standard to produce telemetry signals.
 
-  On the other side, telemetry consumer platforms (platforms that use telemetry signals to enrich and correlate existing events, i.e [Kiali](https://kiali.io/) [1] or any existing observability backends [2] which supports integration of different telemetry sources), need to implement multiple proxy services and APIs (for each observability backend integrated to their platform) to consume and process these telemetry data/signals.
+  On the other side, telemetry consumer platforms (platforms that use telemetry signals to enrich and correlate existing events.
 
-- Sooner than later, at the same rhythm that the adoption of OTel producers (instrument, collect and export) grows, the need for a standard backend to consume these telemetry signals will grow as well.
+### Some examples for Telemetry consumers:
 
-_[1] Telemetry consumption platforms like Kiali consume telemetry signals and configurations from different sources to correlate, combine and offer added value to their end user in the Service Mesh domain._
+- [Kiali](https://kiali.io/) consume telemetry signals and configurations from different sources to correlate, combine and offer added value to their end user in the Service Mesh domain.
+- Any existing observability backends like [Tempo](https://grafana.com/oss/tempo/), [Jaeger](https://www.jaegertracing.io/), [SigNoz](https://signoz.io/) and [Zipkin](https://zipkin.io/) which may support integration of different telemetry sources, which will need to implement multiple proxy services and APIs (for each observability backend integrated to their platform) to consume and process these telemetry data.
 
-_[2] Platforms like Grafana Tempo, Jaeger, SigNoz, Zipkin, etc._
+**Sooner than later, at the same rhythm that the adoption of OTel producers (instrument, collect and export) grows, the need for a standard backend to consume these telemetry signals will grow as well.**
 
 ## Explanation
 
@@ -39,7 +40,7 @@ Once a set of these capabilities will defined, a technical specification describ
 
 ### Comparison Between Different Implementations of Response Object
 
-> **_NOTE:_** The objects below were simplified (comments and types were removed). Complete objects are linked.
+> _The objects below were simplified (comments and types were removed). Complete objects are linked._
 
 - [Zipkin Span and Trace Objects](https://github.com/openzipkin/zipkin-api/blob/main/zipkin-jsonv2.proto#L30)
 
@@ -103,11 +104,11 @@ From looking at these different, opinionated Span and Trace objects we can immed
 
 ### Standard API vs. Backend Proxy Library
 
-- In order to make the shift toward this standard more pleasant from the telemetry consumers side, while reducing the dependency on external platforms, a dedicated contrib repo (i.e. opentelemetry-backend) can be created with a proxy client that will abstract the details of specific implementations (Jaeger, Tempo, etc.) so that the user will be able to change from one observability backend to another while enabling telemetry consumers to query any supported observability backend in a common format.
+- In order to make the shift toward this standard more pleasant from the telemetry consumers side, while reducing the dependency on external platforms, a dedicated contrib repo with a proxy client that will abstract the details of specific implementations (Jaeger, Tempo, etc.) so that the user will be able to change from one observability backend to another while enabling telemetry consumers to query any supported observability backend in a common format.
 
 ## Prior art and alternatives
 
-- The proxy library mentioned above can be inspired by this [POC](<(https://github.com/lucasponce/jaeger-proto-client)>) made by @lucasponce that can plug any Jaeger solution.
+- The proxy library mentioned above can be inspired by this [POC](https://github.com/lucasponce/jaeger-proto-client) made by @lucasponce that can plug any Jaeger solution.
 - [Tempo TraceQL](https://github.com/grafana/tempo/blob/main/docs/design-proposals/2022-04%20TraceQL%20Concepts.md), a language for selecting traces that Tempo will implement. This language is currently only focused on trace selection. This is an example for a specific implementation for querying syntax.
 
 ## Open questions
@@ -119,9 +120,9 @@ From looking at these different, opinionated Span and Trace objects we can immed
    - Does the OpenTelemetry organization is the right place for such an initiative? any other suggestions?
 
 2. One of the challenges we see is different vendors having different capabilities and APIs. For example, one vendor support searching by arbitrary attributes and aggregations between telemetry signals, etc. Probably some parts of the API should be mandatory, and some optional.
-3. We need to find more downstream telemetry consumers to validate this need (some other platforms/users/organizations) other then Kiali.
+3. We need to find more downstream telemetry consumers to validate this need (some other platforms/users/organizations).
 
 ## Future possibilities
 
-- Potentially extended not only for Traces but other signals (logs, metrics).
-- Probably a common set of features can be "standardized," and the OTel group may foster a "standard client" for these needs.
+- Define APIs that combine multiple telemetry signals.
+- Probably a common set of features can be "standardized," and the OTel group may foster a "standard backend" for these needs.
