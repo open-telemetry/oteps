@@ -41,7 +41,7 @@ Once a set of common query and search capabilities is defined, a technical speci
 
 - [Zipkin Span Object](https://github.com/openzipkin/zipkin-api/blob/7692ca7be4dc3be9225db550d60c4d30e6e9ec59/zipkin-jsonv2.proto#L30)
 
-  ```json
+  ```protobuf
   message Span {
     string trace_id = 1;
     string parent_id = 2;
@@ -61,7 +61,7 @@ Once a set of common query and search capabilities is defined, a technical speci
 
 - [Jaeger Span Object](https://github.com/jaegertracing/jaeger-idl/blob/main/proto/api_v2/model.proto)
 
-  ````json
+  ```protobuf
   message Span {
     bytes trace_id = 1;
     bytes span_id = 2;
@@ -75,8 +75,8 @@ Once a set of common query and search capabilities is defined, a technical speci
     Process process = 10;
     string process_id = 11;
     repeated string warnings = 12;
-  }```
-  ````
+  }
+  ```
 
 - Tempo Span Object is not supported (as for the time writing)
 
