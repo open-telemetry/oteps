@@ -9,6 +9,7 @@ functionality to trace API, and to OTLP. As we show in this proposal, adding suc
 the current APIs is limited and problematic.
 
 What do we mean by payload data? While it’s hard to precisely define, the general guidelines are:
+
 - It includes the content of a message, rather than metadata or headers
 - It includes information from the “data plane”, rather than the “control plane”
 
@@ -23,7 +24,7 @@ while other encodings are usually used to represent nested mappings, like JSON, 
 
 While collecting binary buffers may be useful in some cases, collecting decoded
 objects could be much more useful as processors and backends will be able to access internal
-fields in a standard and performant way. We also show other capabilities that could be 
+fields in a standard and performant way. We also show other capabilities that could be
 accomplished by using a standard encoding for payload data.
 
 ## Internal details
@@ -80,7 +81,8 @@ message ListValue {
 }
 ```
 
-Then, we define a payload attribute which also includes extra metadata regarding the encoding - 
+Then, we define a payload attribute which also includes extra metadata regarding the encoding -
+
 ```protobuf
 message PayloadAttribute {
     string key = 1;
@@ -94,6 +96,7 @@ message PayloadAttribute {
 ```
 
 And the payloads attributes are added to the Span message as -
+
 ```protobuf
 repeated PayloadAttributes payload_attributes = ...
 ```
@@ -179,9 +182,9 @@ There are a few capabilities we suggest to handle such cases:
 
 * **Configurable limits**: We should define which limits should be set for collected payload attributes.
 For example, we can limit the following (each should have a default value) -
-    * String, array, and map length
-    * Recursion depth
-    * Optional - Total size, derived by summing the size of all internal values
+  * String, array, and map length
+  * Recursion depth
+  * Optional - Total size, derived by summing the size of all internal values
 
 * **Automatic truncating**: We can support automated truncating of payloads breaching size limits.
 The challenge here is to truncate a too-large mapping value when other limits (of specific keys) are not breached.
@@ -191,8 +194,8 @@ the loss of most relevant data. This still requires more work to define.
 ### Handling sensitive data
 
 Payload data is likely to include sensitive information, such as credentials or PII.
-There are already some proposals on how to handle such data, like https://github.com/open-telemetry/oteps/pull/100 and
-https://github.com/open-telemetry/oteps/pull/187, which are very much related.
+There are already some proposals on how to handle such data, like <https://github.com/open-telemetry/oteps/pull/100> and
+<https://github.com/open-telemetry/oteps/pull/187>, which are very much related.
 A possible approach is to adopt changes based on this proposal for payload attributes only, hence not over-complicating
 mostly simple attributes.
 
@@ -203,10 +206,10 @@ Note that the separation itself of payload attributes from the rest is a logical
 be leveraged by processors and backends to apply custom logic. For example, OTel collector could support
 dropping such attributes, and backends could use different encryption strategies.
 
-For instrumentations that collect payloads, we propose using a "safe by default" strategy, as proposed in 
-https://github.com/open-telemetry/oteps/pull/100 as well - payloads should support a "normalization"
+For instrumentations that collect payloads, we propose using a "safe by default" strategy, as proposed in
+<https://github.com/open-telemetry/oteps/pull/100> as well - payloads should support a "normalization"
 which is safe to assume that removes any sensitive data (such as values in SQL statements).
-When not possible, payloads will be collected only if explicitly configured by the user. 
+When not possible, payloads will be collected only if explicitly configured by the user.
 
 ## Prior art
 
@@ -214,9 +217,10 @@ In Epsagon (now part of Cisco), we have already implemented payload collection i
 This capability was leveraged by many customers, including big companies that enabled it in production (and testing) environments.
 It was implemented in multiple runtimes (NodeJS, Python, Go, and others) and instrumentations (e.g. HTTP, AWS SDK, and many DB SDKs).
 
-In OpenTelemetry, there are existing requests for supporting payload collection - 
-* https://github.com/open-telemetry/opentelemetry-specification/issues/1062
-* https://github.com/open-telemetry/opentelemetry-specification/issues/376#issuecomment-1227501082
+In OpenTelemetry, there are existing requests for supporting payload collection -
+
+* <https://github.com/open-telemetry/opentelemetry-specification/issues/1062>
+* <https://github.com/open-telemetry/opentelemetry-specification/issues/376#issuecomment-1227501082>
 
 ## Alternatives
 
@@ -234,13 +238,13 @@ that it will introduce over-complexity where it is mostly not necessary for simp
 
 The major drawback of this alternative is that altering the data requires expensive deserialization and serialization.
 For example, this will be required by a simple processor that filters specific keys in a map.
-Also, it requires backends (and potentially processors) to unnecessarily attempt deserialization of every string attribute. 
+Also, it requires backends (and potentially processors) to unnecessarily attempt deserialization of every string attribute.
 
 ### Supporting nested map values in Span attributes
 
-There is an ongoing discussion for supporting nested map values in Spans API (see https://github.com/open-telemetry/opentelemetry-specification/issues/376), which will allow encoding JSON-like attributes similar to the current proposal.
+There is an ongoing discussion for supporting nested map values in Spans API (see <https://github.com/open-telemetry/opentelemetry-specification/issues/376>), which will allow encoding JSON-like attributes similar to the current proposal.
 
-This option will still lack the general advantages described, and also lacks `NULL` encoding for complete compatibility with JSON format. 
+This option will still lack the general advantages described, and also lacks `NULL` encoding for complete compatibility with JSON format.
 
 ### Flatteing nested JSON maps to multiple attributes
 
@@ -254,48 +258,49 @@ This way is problematic for various reasons:
   Also, especially in these cases, exploring the original nested structure is likely to be much easier for users.
 * Complex payload structures could be mapped to dozens of tags, which become inefficient to encode.
   For example, consider the following payload -
-    
+
     ```jsx
     {'main_key': {'sub_key0': 0, ... ,'sub_key99': 99}}
     ```
-    
+
     Which will be encoded into -
-    
+
     ```jsx
     {'main_key.sub_key0': 0, ..., 'main_key.sub_key99': 99}
     ```
-    
+
     The repetition of `'main_key'` negatively affects the performance for handling these attributes (processing, network & storage volumes, etc.)
-    
+
 - Flatting the attributes may lose some data from the original mapping, when original keys include dots or when arrays are used.
   Consider the examples -
-    
+
     ```jsx
     {
-    	'a': {
-    	    'b.c': 100
-    	},
-    	'd': [
-    	    {'x': 0, 'y': 10},
-    	    {'x': 1, 'y': 11}
-    	]
+     'a': {
+         'b.c': 100
+     },
+     'd': [
+         {'x': 0, 'y': 10},
+         {'x': 1, 'y': 11}
+     ]
     }
     and
     {
-    	'a': {'b': {'c': 100}},
-    	'd': {'x': [0, 1], 'y': [10, 11]},
+     'a': {'b': {'c': 100}},
+     'd': {'x': [0, 1], 'y': [10, 11]},
     }
     ```
-    
+
     Both will be encoded to the same attributes:
-    
+
     ```jsx
     {
-    	'a.b.c': 100,
-    	'd.x': [0, 1],
-    	'd.y': [10, 100]
+     'a.b.c': 100,
+     'd.x': [0, 1],
+     'd.y': [10, 100]
     }
     ```
+
   Though a more sophisticated flattening could be used here, it will make the attributes more complicated for the user to work with.
 
 ## Next steps
@@ -315,6 +320,7 @@ We propose that it will be configured as an ‘advanced’ feature that is not e
 This way, users will not be exposed to the possible risks, unless they explicitly configured payload collections in their application.
 
 We could also add more capabilities to OpenTelemetry to better support this kind of payload collection, such as -
+
 - Automated methods for limiting the amount of collected data
 - APIs for classifying sensitive data
 - Defined methods and tools for accessing IO buffers handled by instrumented code
