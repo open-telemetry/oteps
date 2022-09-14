@@ -141,7 +141,7 @@ performance. For example, they may operate in a whole-datacenter, always-on
 manner, and/or in environments where they must guarantee low CPU/RAM/network
 usage. The OpenTelemetry standardisation effort should take this into account
 and strive to produce a format that is usable by profilers of this nature
-without sacrificing their guarantees.
+without sacrificing their performance guarantees.
 
 Similar to other OpenTelemetry signals, we target production environments. Thus, the
 profiling signal must be implementable with low overhead and conforming to
