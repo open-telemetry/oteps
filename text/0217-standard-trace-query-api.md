@@ -8,7 +8,7 @@ Vendor agnostic API definition to query telemetry data (traces, logs and metrics
 
   On the other side, telemetry consumer platforms (platforms that use telemetry signals to enrich and correlate existing events.
 
-### Some examples for Telemetry consumers:
+### Some examples for Telemetry consumers
 
 - [Kiali](https://kiali.io/) consume telemetry signals and configurations from different sources to correlate, combine and offer added value to their end user in the Service Mesh domain.
 - Any existing observability backends like [Tempo](https://grafana.com/oss/tempo/), [Jaeger](https://www.jaegertracing.io/), [SigNoz](https://signoz.io/) and [Zipkin](https://zipkin.io/) which may support integration of different telemetry sources, which will need to implement multiple proxy services and APIs (for each observability backend integrated to their platform) to consume and process these telemetry data.
