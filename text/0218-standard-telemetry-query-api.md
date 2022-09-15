@@ -26,7 +26,7 @@ Vendor agnostic API definition to query telemetry data (traces, logs and metrics
 ## Internal details
 
 This change will be an additional API and SDK where a specific set of common Telemetry Data query and search capabilities will be defined.
-Once a set of these capabilities will defined, a technical specification describing the data exchange between the telemetry backends and the consumers will be defined along with its delivery protocols (gRPS/HTTP) and schema (Protbuf i.e).
+Once a set of these capabilities will defined, a technical specification describing the data exchange between the telemetry backends and the consumers will be defined along with its delivery protocols (gRPC/HTTP) and schema (Protbuf i.e).
 
 - This API could leverage the existing protbuf schema, in the case of a Trace - the response object can be derived from OTel [Trace Definition](https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto)
 - The API route can complement the existing [OTLP Exporter API](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/exporter.md)
