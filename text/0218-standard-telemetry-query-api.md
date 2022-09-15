@@ -31,7 +31,7 @@ Once a set of these capabilities will defined, a technical specification describ
 - This API could leverage the existing protbuf schema, in the case of a Trace - the response object can be derived from OTel [Trace Definition](https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto)
 - The API route can complement the existing [OTLP Exporter API](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/exporter.md)
 
-### Example of existing Trace Query APIs
+### Examples of existing Trace Query APIs
 
 - [Jaeger Trace Query API Definition](https://github.com/jaegertracing/jaeger-idl/blob/main/proto/api_v2/query.proto)
 - [Tempo Trace Query API](https://grafana.com/docs/tempo/latest/api_docs/#query)
