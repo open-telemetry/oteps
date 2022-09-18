@@ -21,6 +21,18 @@ This document and efforts thus far are motivated by:
 - Increasing community interest in profiling as an observability signal
   alongside logs, metrics, and traces
 
+## What is profiling
+
+While the terms "profile" and "profiling" can have slightly different meanings
+depending on the context,for the purposes of this OTEP we are defining the two
+terms as follows:
+
+- Profile: A collection of stack traces with some metric associated with each
+  stack trace, typically representing the number of times that stack trace was
+  encountered
+- Profiling: The process of collecting profiles from a running program,
+  application, or the system
+
 ## How profiling aligns with the OpenTelemetry vision
 
 The [OpenTelemetry
