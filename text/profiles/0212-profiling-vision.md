@@ -24,7 +24,7 @@ This document and efforts thus far are motivated by:
 ## What is profiling
 
 While the terms "profile" and "profiling" can have slightly different meanings
-depending on the context,for the purposes of this OTEP we are defining the two
+depending on the context, for the purposes of this OTEP we are defining the two
 terms as follows:
 
 - Profile: A collection of stack traces with some metric associated with each
