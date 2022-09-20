@@ -1,6 +1,7 @@
 # Context-scoped attributes
 
 Add Context-scoped telemetry attributes which typically apply to all signals associated with a trace as it crosses a single service.
+
 ## Motivation
 
 This OTEP aims to address various related demands that have been brought up in the past, where the scope of resource attributes is too broad, but the scope of span attributes is too narrow. For example, this happens where there is a mismatch between the OpenTelemetry SDK’s (and thus TracerProvider’s, MeterProvider’s) process-wide initialization and the semantic scope of a (sub)service.
@@ -35,9 +36,11 @@ This motivation analogously also applies to other signals (metrics, logs) which 
 
 ## Explanation
 
-The context-scoped attributes allows you to attach attributes to all telemetry signals emitted within a Context (or, following the usual rules of Context values, any child context thereof unless overridden).  Context-scoped attributes are normal attributes, which means you can use strings, integers, floating point numbers, booleans or arrays thereof, just like for span or resource attributes. Context-scoped attributes are associated with all telemetry signals emitted while the Context containing the Context-scoped attributes is active and are available to telemetry exporters. For spans, the context within which the span is started applies. Like other telemetry APIs, Context-scoped attributes are write-only for applications. You cannot query the currently set Context-scoped attributes, they are only available on the SDK level (e.g. to telemetry exporters, Samplers and SpanProcessors).
+The context-scoped attributes allows you to attach attributes to all telemetry signals emitted within a Context (or, following the usual rules of Context values, any child context thereof unless overridden). Context-scoped attributes are normal attributes, which means you can use strings, integers, floating point numbers, booleans or arrays thereof, just like for span or resource attributes. Context-scoped attributes are associated with all telemetry signals emitted while the Context containing the Context-scoped attributes is active and are available to telemetry exporters. For spans, the context within which the span is started applies. Like other telemetry APIs, Context-scoped attributes are write-only for applications. You cannot query the currently set Context-scoped attributes, they are only available on the SDK level (e.g. to telemetry exporters, Samplers and SpanProcessors).
 
 Context-scoped attributes should be thought of equivalent to adding the attribute directly to each single telemetry item it applies to.
+
+Context-scoped attributes MUST NOT be propagated cross-service, no context propagator should be implemented for them. This is because they are meant to annotate (a subset of) the spans of a single service (see also [the next section](#comp-baggage)).
 
 <a name="comp-baggage"></a>
 
