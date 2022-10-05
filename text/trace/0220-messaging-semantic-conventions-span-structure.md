@@ -52,7 +52,9 @@ end-to-end latency of processing a message. If intermediaries are not
 instrumented, this shouldn't impact the correlation of producer and consumer
 stages. If, on the other hand, intermediaries are instrumented, spans from
 intermediary instrumentation should seamlessly integrate with producer and
-consumer instrumentation.
+consumer instrumentation. This integration should not require any changes in
+producer or consumer instrumentation, and it should not cause any changes to
+the relationships of producer and consumer spans.
 
 This OTEP aims at proposing consistent guidelines for creating spans that model
 the stages of the messaging flow, and correlating those in a way so that the
@@ -466,8 +468,8 @@ flowchart LR;
   end
   subgraph INTERMEDIARY
   direction TB
-  EQ[Enqueue]
-  DQ[Dequeue]
+  EQ[       ]
+  DQ[       ]
   end
   subgraph CONSUMER
   direction TB
