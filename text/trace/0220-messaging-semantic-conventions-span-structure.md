@@ -154,9 +154,9 @@ the application code. Instead, callbacks or handlers are registered and then
 called by messaging SDKs to forward messages to the application.
 
 A "Deliver" span covers the call of such a callback or handler and should link
-to the "Create" spans of all messages that are forwarded via the respective
-call. Depending on the use case, "Deliver" spans can correlate with "Process"
-spans or other spans modelling processing operations.
+to the "Create" or "Publish" spans of all messages that are forwarded via the
+respective call. Depending on the use case, "Deliver" spans can correlate with
+"Process" spans or other spans modelling processing operations.
 
 #### Instrumenting pull-based scenarios
 
@@ -164,10 +164,10 @@ In pull-based consumer scenarios, the delivery of messages is requested by the
 application code. This usually involves a blocking call, which returns zero or
 more messages on completion.
 
-A "Receive" span covers such calls and should link to the "Create" spans of all
-messages that are forwarded via the respective call. Depending on the use case,
-"Receive" spans can correlate with "Process" spans or other spans modelling
-processing operations.
+A "Receive" span covers such calls and should link to the "Create" or "Publish"
+spans of all messages that are forwarded via the respective call. Depending on
+the use case, "Receive" spans can correlate with "Process" spans or other spans
+modelling processing operations.
 
 #### General considerations for both push-based and pull-based scenarios
 
@@ -184,8 +184,8 @@ operation of pre-fetching and caching should not be covered by the "Deliver" or
 Operations covered by "Deliver" or "Receive" can forward zero messages (e. g.
 to notify the application that no message is available for processing), one
 message, or multiple messages (a batch of messages). "Deliver" and "Receive"
-spans should link to the "Create" span of the messages forwarded, thus those
-spans can link to zero, one, or multiple "Create" spans.
+spans should link to the "Create" or "Publish" span of the messages forwarded,
+thus those spans can link to zero, one, or multiple "Create" spans.
 
 #### Settlement
 
@@ -279,7 +279,7 @@ A single "Deliver" or "Receive" span can account for a single message, for
 multiple messages (in case messages are passed for processing as batches), or
 for no message at all (if it is signalled that no messages were received).  For
 each message it accounts for, the "Deliver" or "Receive" span SHOULD link to
-the "Create" span for the message.
+the "Create" or "Publish" span for the message.
 
 #### Settlement spans
 
