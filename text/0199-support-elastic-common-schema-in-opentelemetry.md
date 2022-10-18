@@ -1,20 +1,34 @@
 # Support Elastic Common Schema in OpenTelemetry
 
-Collaborators: Alolita Sharma (OTel GC, Apple), Cyrille Le Clerc (Elastic), Christian Beedgen (Sumo), Jonah Kowall (Logz.io), Tigran N. (Splunk)
+Collaborators: Alolita Sharma (OTel GC, Apple), Cyrille Le Clerc (Elastic), Christian Beedgen (Sumo), Jonah Kowall (Logz.io), Tigran N. (Splunk), Jamie Hynds (Elastic), Martijn Laarman (Elastic), Alexander Wert (Elastic).
 
 ## Introduction
 
-This proposal is to add support for the Elastic Common Schema (ECS) in the OpenTelemetry specification and provide full interoperability for ECS in OpenTelemetry component implementations. We propose to implement this support by enriching OpenTelemetry Semantic Conventions with ECS fields. The goal is to merge ECS into OTel Semantic Conventions.
+This proposal is to add support for the Elastic Common Schema (ECS) in the OpenTelemetry specification and provide full interoperability for ECS in OpenTelemetry component implementations. We propose to implement this support by enriching OpenTelemetry Semantic Conventions with ECS fields through the donation of complete [ECS FieldSets](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html#ecs-fieldsets). The goal is to contribute ECS into OTel Semantic Conventions.
 
-## Proposed process to merge ECS in OpenTelemetry Semantic Conventions
+## Proposed process to contribute ECS to OpenTelemetry Semantic Conventions
 
-We propose 3 steps to add support for ECS in OpenTelemetry Semantic Conventions:
+This constitutes a contribution where both ECS and Opentelemetry will continue to maintain their own specification and governance bodies. This will minimize breaking changes in both ecosystems. Although existing separately, this OTEP establishes both specifications as extremely closely related specifications and would open up efforts to establish bidirectional synchronization processes. Concretely this would mean:
+* An open invitation to OpenTelemetry to participate and review ECS RFC’s
+* This could be facilitated through automated github review requests.
+* ECS’s RFC process would explicitly call contribution back to OpenTelemetry out as a necessary step.
+* Exploring open source community generated conversion tooling as needed.
 
-1. Validation of the principle of adding support for ECS in OpenTelemetry and validation that this support would be implemented by merging ECS fields in OpenTelemetry Semantic Conventions,
-2. Validation of the methodology to merge these ECS fields. As there are 40+ ECS namespaces and as there will be few overlaps and maybe needs to evolve some ECS field names to match the vocabulary and conventions of OTel, we have in mind an iterative process tackling namespaces one after the other. We are also interested in clarifying how downstream schemas could be created; We have for example identified the value of having downstream schemas to specify persistence characteristics (see ECS string persistence types <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/text.html#match-only-text-field-type">match_only_text</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/keyword.html#keyword-field-type">keyword</a> <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/keyword.html#constant-keyword-field-type">constant_keyword</a>, <a href="https://www.elastic.co/guide/en/elasticsearch/reference/master/keyword.html#wildcard-field-type">wildcard</a>),
-3. Actual merge of ECS fields in OTel Semantic Conventions.
+We propose the following steps to add initial support for ECS in OpenTelemetry Semantic Conventions:
 
-Note that we didn't propose in this OTEP the mapping of all ECS fields because this is a substantial effort, we preferred to first validate the principle and, once consensus is reached, actually define the mapping.
+1. Open issue to discuss prioritization of [ECS fieldsets](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html#ecs-fieldsets) contribution
+2. Open issue for each individual ECS fieldsets for discussion
+   * See this [Geo fieldset example issue](https://github.com/open-telemetry/opentelemetry-specification/issues/2834)
+3. Open draft PR’s to drive implementation (see [Geo example](https://github.com/open-telemetry/opentelemetry-specification/pull/2835))
+   * Identifying overlaps/breaking changes.
+   * Map ECS data types to OpenTelemetry data types.
+   * Identify high cardinality fields.
+   * Conflicts would be resolved by:
+     - Giving preference to existing OpenTelemetry Fields
+     - Unless a case can be made to update the Experimental OpenTelemetry fields.
+       Include 2-3 use cases of how these fieldsets are used today as part of the documentation.
+
+Acceptance of this OTEP registers the intent to kick off this process.
 
 ## Motivation
 
@@ -229,6 +243,10 @@ As the markdown code of the tables is hard to read and maintain with very long l
 </table>
 
 ## How would OpenTelemetry users practically use the new OpenTelemetry Semantic Conventions Attributes brought by ECS
+
+In most cases they would transparently upgrade to ECS. The main goal of this work is for producers of OpenTelemetry signals (collectors/exporters) to create rich uniform signals.
+
+The uniformity allows for easier correlation between signals originating from different producers. The richness ensures more options for Root Cause Analysis and reporting.
 
 ### Example an OpenTelemetry Collector Receiver to collect the access logs of a web server
 
