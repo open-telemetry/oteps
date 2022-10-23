@@ -66,14 +66,13 @@ message Value {
     // > ListValue: original number of items
     // > MapValue: original number of keys
     int64 original_length = 7;
-
-    // Set only for MapValue, in case some of the keys were dropped
-    repeated string dropped_keys = 8; 
 }
 
 message MapValue {
     // Note - we can consider using a repeated key-value for performance
     map<string, Value> fields = 1;
+    
+    repeated string dropped_keys = 2; 
 }
 
 message ListValue {
