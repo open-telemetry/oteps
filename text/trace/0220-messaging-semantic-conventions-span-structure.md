@@ -54,7 +54,10 @@ stages. If, on the other hand, intermediaries are instrumented, spans from
 intermediary instrumentation should seamlessly integrate with producer and
 consumer instrumentation. This integration should not require any changes in
 producer or consumer instrumentation, and it should not cause any changes to
-the relationships of producer and consumer spans.
+the relationships of producer and consumer spans. Furthermore, it should be
+possible to provide tracing instrumentation as an out-of-the-box experience
+from messaging SDKs, without requiring any additional custom instrumentation
+from the user.
 
 This OTEP aims at proposing consistent guidelines for creating spans that model
 the stages of the messaging flow, and correlating those in a way so that the
