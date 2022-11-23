@@ -204,8 +204,9 @@ of the related "Deliver" span.
 Alternatively, an event can be created instead of a "Settle" span. Events could
 be added to "Deliver" spans or to ambient spans.
 
-"Settle" spans may link to "Create" spans of the messages that are settled,
-however, for some settlement scenarios this is not feasible or possible.
+"Settle" spans may link to "Create" or "Publish" spans of the messages that are
+settled, however, for some settlement scenarios this is not feasible or
+possible.
 
 ## Proposed changes and additions to the messaging semantic conventions
 
@@ -287,7 +288,7 @@ the "Create" or "Publish" span for the message.
 triggered settlement operation. A single "Settle" span can account for a
 single message or for multiple messages (in case messages are passed for
 settling as batches). For each message it accounts for, the "Settle" span
-MAY link to the "Create" span for the message.
+MAY link to the "Create" or "Publish" span for the message.
 
 ## Examples
 
@@ -347,7 +348,7 @@ flowchart LR;
   subgraph CONSUMER
   direction TB
   RM1[Receive m1]
-  RM2[Receive m1]
+  RM2[Receive m2]
   end
   CM1-. link .->RM1;
   CM2-. link .->RM2;
@@ -364,7 +365,7 @@ flowchart LR;
   subgraph CONSUMER
   direction TB
   DM1[Deliver m1]
-  DM2[Deliver m1]
+  DM2[Deliver m2]
   end
   P-. link .->DM1;
   P-. link .->DM2;
@@ -383,7 +384,7 @@ flowchart LR;
   subgraph CONSUMER
   direction TB
   RM1[Receive m1]
-  RM2[Receive m1]
+  RM2[Receive m2]
   end
   CM1-. link .->RM1;
   CM2-. link .->RM2;
