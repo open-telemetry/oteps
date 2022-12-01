@@ -72,7 +72,7 @@ func (ts TailBasedSampler) Sample(spans trace.Spans) (export trace.Spans) {
   for _, s := range spans {
     if classification.Match(s.Classification(), classification.Ephermal) {
       export.Append(s)
-      // Always retain spans that contain ephermal attributes
+      // Always retain spans that contain ephemeral attributes
       continue
     }
     // Perform the existing sampling algorithm of choice
