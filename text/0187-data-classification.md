@@ -22,7 +22,7 @@ This approach can also be extended by vendors to enable more advanced features i
 
 ## Explanation
 
-A service that adopts using resource classifications allows the open telemetry exporters to route data, remove problematic attributes, or filter values being sent to downstream systems. Using classifications simplify the existing processes since it does not use a lookup table that needs to be maintained, regular expressions needing to be maintained, required user intervention of what is acceptable or not, or needing to validate the entire resource object thus meaning no performance impact.  
+A service that adopts using resource classifications allows the OpenTelemetry exporters to route data, remove problematic attributes, or filter values being sent to downstream systems. Using classifications simplify the existing processes since it does not use a lookup table that needs to be maintained, regular expressions needing to be maintained, required user intervention of what is acceptable or not, or needing to validate the entire resource object thus meaning no performance impact.  
 
 The following are examples of how a service owner or a on call engineer could adopt this change:
 
