@@ -320,4 +320,4 @@ Some ideas of future possibilities have been eluded to throughout the proposal, 
 - Classification based routing
   - An exporter can only with certain set of classifications
 
-Thinking more broadly, it would mean that Open Telemetry could easily extend to support analytical based telemetry on user interactions while adhering to data regulation or organisational policies.
+Thinking more broadly, it would mean that OpenTelemetry could easily extend to support analytical based telemetry on user interactions while adhering to data regulation or organisational policies.
