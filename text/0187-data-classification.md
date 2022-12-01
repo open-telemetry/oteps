@@ -70,7 +70,7 @@ Once classification have been added to the attribute keys, a tracing sampler can
 ```go
 func (ts TailBasedSampler) Sample(spans trace.Spans) (export trace.Spans) {
   for _, s := range spans {
-    if classification.Match(s.Classification(), classification.Ephermal) {
+    if classification.Match(s.Classification(), classification.Ephemeral) {
       export.Append(s)
       // Always retain spans that contain ephemeral attributes
       continue
