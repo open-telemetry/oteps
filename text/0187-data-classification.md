@@ -12,7 +12,7 @@ Having the ability to set data classification on resources means that:
 
 Known high cardinality attributes can be filtered out to reduce the cost of Observability suites.
 
-Attributes containing User Generated Content, Personal Data or sensitive data can be rerouted into a slower processing queue to redact, anonymise, or drop resource values.
+Attributes containing User Generated Content (UGC), Personal Data (PD) or sensitive data can be rerouted into a slower processing queue to redact, anonymise, or drop resource values.
 
 Associate resource telemetry to Service Level Objective / Service Level Indicator (SLO/SLI) so that observability systems can automatically identify data that should be alerted on.  
 
