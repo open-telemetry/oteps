@@ -185,7 +185,6 @@ A staring list can look like the following :
 | Sensitive Value                    | The value MAY contain information that requires sanitisation                                          | 1 << 2    | 0x0004                | 0000 0000 0000 0100  |
 | Personal Identifiable Information  | The value DOES contain Personal Identifiable Information                                              | 1 << 3    | 0x0008                | 0000 0000 0000 1000  |
 | User Generated Content             | The value DOES contain User Generated Content                                                         | 1 << 4    | 0x0010                | 0000 0000 0001 0000  |
-| Service Level Objective            | The value is used to track a service level objective                                                  | 1 << 5    | 0x0020                | 0000 0000 0010 0000  |
 
 In order to support the idea, the required code to be implemented is:
 
@@ -222,7 +221,7 @@ The SDK would need to add the following methods to the modified types (mentioned
 ```go
 func (t *T) AppendAttribute(attr Attribute) {
   t.attributes = append(t.attributes, attr)
-  t.Classification = Combine(t.Classification, attr.GetClassification()
+  t.Classification = Combine(t.Classification, attr.GetClassification())
 }
 
 func (t T) GetClassification() Hint {
