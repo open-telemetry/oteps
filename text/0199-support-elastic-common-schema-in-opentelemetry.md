@@ -1,6 +1,6 @@
 # Support Elastic Common Schema in OpenTelemetry
 
-Collaborators: Alolita Sharma (OTel GC, Apple), Cyrille Le Clerc (Elastic), Christian Beedgen (Sumo), Jonah Kowall (Logz.io), Tigran N. (Splunk), Jamie Hynds (Elastic), Martijn Laarman (Elastic), Alexander Wert (Elastic).
+Collaborators: Alexander Wert (Elastic), Jamie Hynds (Elastic), Alolita Sharma (OTel GC, Apple), Christian Beedgen (Sumo), Jonah Kowall (Logz.io), Tigran N. (Splunk), Jamie Hynds (Elastic) .
 
 ## Introduction
 
@@ -8,14 +8,9 @@ This proposal is to add support for the Elastic Common Schema (ECS) in the OpenT
 
 ## Proposed process to contribute ECS to OpenTelemetry Semantic Conventions
 
-This constitutes a contribution where both ECS and Opentelemetry will continue to maintain their own specification and governance bodies. This will minimize breaking changes in both ecosystems. Although existing separately, this OTEP establishes both specifications as extremely closely related specifications and would open up efforts to establish bidirectional synchronization processes. Concretely this would mean:
-* An open invitation to OpenTelemetry to participate and review ECS RFC’s
-* This could be facilitated through automated github review requests.
-* ECS’s RFC process would explicitly call contribution back to OpenTelemetry out as a necessary step.
-* Exploring open source community generated conversion tooling as needed.
+This constitutes a contribution of ECS fieldsets into OpenTelemetry Semantic Conventions whereby both ECS and Opentelemetry will continue to maintain their own specification and governance bodies. This will minimize breaking changes in both ecosystems. Although existing separately, this OTEP establishes both specifications as extremely closely related specifications.
 
-We propose the following steps to add initial support for ECS in OpenTelemetry Semantic Conventions:
-
+We propose to integrate the contribution of ECS into OpenTelemetry Semantic Conventions as part of a joint review process of existing Semantic Conventions:
 1. Open issue to discuss prioritization of [ECS fieldsets](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html#ecs-fieldsets) contribution
 2. Open issue for each individual ECS fieldsets for discussion
    * See this [Geo fieldset example issue](https://github.com/open-telemetry/opentelemetry-specification/issues/2834)
@@ -23,10 +18,23 @@ We propose the following steps to add initial support for ECS in OpenTelemetry S
    * Identifying overlaps/breaking changes.
    * Map ECS data types to OpenTelemetry data types.
    * Identify high cardinality fields.
-   * Conflicts would be resolved by:
-     - Giving preference to existing OpenTelemetry Fields
-     - Unless a case can be made to update the Experimental OpenTelemetry fields.
-       Include 2-3 use cases of how these fieldsets are used today as part of the documentation.
+   * Include 2-3 use cases of how these fieldsets are used today as part of the documentation
+
+### Dealing with conflicts
+There are fields or fieldsets that conflict between ECS and OpenTelemetry Semantic Conventions.
+In some cases it might be possible and reasonable to introduce breaking changes on ECS or OpenTelemetry Semantic Conventions to resolve the conflict.
+However, there will also be fields for which it will not be feasible to introduce breaking-changes, both on the ECS side and on the OpenTelemetry Semantic Conventions side.
+For these cases, we propose to introduce OpenTelemetry Collector Processors that would provide automated mapping between ECS-specific fields and OpenTelemetry Semantic Conventions atributes.
+
+### Schema evolution
+As described above, the contribution of ECS into OpenTelemetry Semantic Conventions will result in two highly aligned schemas, yet, both specifications will be separate.
+Once the initial contribution of ECS into OpenTelemetry Semantic Conventions is completed, an important goal is to maintain an aligned evolution process for both specifications to avoid drift over time.
+Therefore, we propose to establish and collaborate on a bidirectional synchronization processes. Concretely this would mean:
+* An open invitation to OpenTelemetry to participate and review ECS RFC’s
+* This could be facilitated through automated github review requests.
+* ECS’s RFC process would explicitly call contribution back to OpenTelemetry out as a necessary step.
+* Vice versa, new contributions to the OpenTelemetry Semantic Conventions will be reviewed and adopted by ECS.
+* Exploring open source community generated conversion tooling as needed.
 
 Acceptance of this OTEP registers the intent to kick off this process.
 
@@ -243,12 +251,14 @@ As the markdown code of the tables is hard to read and maintain with very long l
 </table>
 
 ## How would OpenTelemetry users practically use the new OpenTelemetry Semantic Conventions Attributes brought by ECS
+The concrete usage of ECS-enriched OpenTelemetry Semantic Conventions Attributes depends on the use case and the fiedset.
+In general, OpenTelemetry users would transparently upgrade to ECS and benefit from the alignment of attributes for new use cases.
+The main goal of this work is to enable producers of OpenTelemetry signals (collectors/exporters) to create enriched uniform signals for existing and new use cases.
+The uniformity allows for easier correlation between signals originating from different producers. The richness ensures more options for Root Cause Analysis, correlation and reporting.
 
-In most cases they would transparently upgrade to ECS. The main goal of this work is for producers of OpenTelemetry signals (collectors/exporters) to create rich uniform signals.
+While ECS covers many different use cases and scenarios, in the following, we outline two examples:
 
-The uniformity allows for easier correlation between signals originating from different producers. The richness ensures more options for Root Cause Analysis and reporting.
-
-### Example an OpenTelemetry Collector Receiver to collect the access logs of a web server
+### Example: OpenTelemetry Collector Receiver to collect the access logs of a web server
 
 The author of the "OTel Collector Access logs file receiver for web server XXX" would find in the OTel Semantic Convention specifications all
 the guidance to map the fields of the web server logs, not only the attributes that the OTel Semantic Conventions has specified today for
@@ -256,9 +266,13 @@ the guidance to map the fields of the web server logs, not only the attributes t
 but also attributes for the [User Agent](https://www.elastic.co/guide/en/ecs/current/ecs-user_agent.html)
 or the [Geo Data](https://www.elastic.co/guide/en/ecs/current/ecs-geo.html).
 
-This completeness of the mapping will help the author of the integration to produce OTel Log Message that will be compatible with access logs
+This completeness of the mapping will help the author of the integration to produce OTel Log messages that will be compatible with access logs
 of other web components (web servers, load balancers, L7 firewalls...) allowing turnkey integration with observability solutions
 and enabling richer correlations.
+
+### Other Examples
+- [Logs with sessions (VPN Logs, Network Access Sessions, RUM sessions, etc.)](https://github.com/elastic/ecs/blob/main/rfcs/text/0004-session.md#usage)
+- [Logs from systems processing files](https://www.elastic.co/guide/en/ecs/current/ecs-file.html)
 
 ## Alternatives / Discussion
 
