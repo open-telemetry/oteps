@@ -190,6 +190,13 @@ message, or multiple messages (a batch of messages). "Deliver" and "Receive"
 spans should link to the "Create" or "Publish" span of the messages forwarded,
 thus those spans can link to zero, one, or multiple "Create" spans.
 
+If the operation covered by "Deliver" or "Receive" forwards exactly one
+message, in addition to creating a link to the "Create" span, the "Create" span
+may also be used as a parent of the "Deliver" or "Receive" span. While this is
+not possible for all scenarios (e. g. when receiving a batch of messages, or
+when parenting "Deliver" or "Receive" spans to an ambient context), it can
+improve the user experience in some scenarios.
+
 #### Settlement
 
 Messages can be settled in a variety of different ways. In some cases, messages
@@ -283,7 +290,9 @@ A single "Deliver" or "Receive" span can account for a single message, for
 multiple messages (in case messages are passed for processing as batches), or
 for no message at all (if it is signalled that no messages were received).  For
 each message it accounts for, the "Deliver" or "Receive" span SHOULD link to
-the "Create" or "Publish" span for the message.
+the "Create" or "Publish" span for the message. In addition, if it is possible
+the "Create" or "Publish" span MAY be set as a parent of the "Deliver" or
+"Receive" span.
 
 #### Settlement spans
 
@@ -306,6 +315,18 @@ flowchart LR;
   DM1[Deliver m1]
   end
   PM1-. link .->DM1;
+```
+
+```mermaid
+flowchart LR;
+  subgraph PRODUCER
+  PM1[Publish m1]
+  end
+  subgraph CONSUMER
+  DM1[Deliver m1]
+  end
+  PM1-. link .->DM1;
+  PM1-->DM1;
 ```
 
 ### Single message producer, single message push-based consumer with manual settlement
@@ -372,6 +393,23 @@ flowchart LR;
   end
   P-. link .->DM1;
   P-. link .->DM2;
+```
+
+```mermaid
+flowchart LR;
+  subgraph PRODUCER
+  direction TB
+  P[Publish]
+  end
+  subgraph CONSUMER
+  direction TB
+  DM1[Deliver m1]
+  DM2[Deliver m2]
+  end
+  P-. link .->DM1;
+  P-. link .->DM2;
+  P-->DM1;
+  P-->DM2;
 ```
 
 ### Batch message producer with "Create" spans populated before publish, single message pull-based consumer
