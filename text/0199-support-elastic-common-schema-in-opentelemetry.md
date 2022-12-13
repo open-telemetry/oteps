@@ -76,7 +76,7 @@ ECS has the following guiding principles:
 
 * ECS favors human readability in order to enable broader adoption as many fields can be understood without having to read up their meaning in the reference,
 * ECS events include metadata to enable correlations across any dimension (host, data center, docker image, ip address...),
-  * ECS does not differentiate the metadata fields that are specific to each event of the event source and the metadata that is shared by a¬ll the events of the source in the way OTel does, which differentiates between Resource Attributes and Log/Span/Metrics Attributes,
+  * ECS does not differentiate the metadata fields that are specific to each event of the event source and the metadata that is shared by all the events of the source in the way OTel does, which differentiates between Resource Attributes and Log/Span/Metrics Attributes,
 * ECS groups fields in namespaces in order to:
   * Offer consistency and readability,
   * Enable reusability of namespaces in different contexts,
