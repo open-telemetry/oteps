@@ -246,8 +246,10 @@ This behavior is described in more details in the section [Best effort delivery 
 The protobuf definition of this service is:
 
 ```protobuf
-service EventsService {
-  rpc EventStream(stream BatchEvent) returns (stream BatchStatus) {}
+service ArrowStreamService {
+  // The ArrowStream endpoint is a bi-directional stream used to send batch of `BatchArrowRecords` from the exporter
+  // to the collector. The collector returns `BatchStatus` messages to acknowledge the `BatchArrowRecords` messages received.
+  rpc ArrowStream(stream BatchArrowRecords) returns (stream BatchStatus) {}
 }
 ```
 
@@ -257,20 +259,18 @@ A state will be maintained receiver side to keep track of the schemas and dictio
 The [Arrow IPC format](#arrow-ipc-format) has been
 designed to follow this pattern and also allows the dictionaries to be sent incrementally.
 
-A `BatchEvent` message is composed of 4 attributes. The protobuf definition is:
+A `BatchArrowRecords` message is composed of 3 attributes. The protobuf definition is:
 
 ```protobuf
-message BatchEvent {
-  // [mandatory]
+message BatchArrowRecords {
+  // [mandatory] Batch ID. Must be unique in the context of the stream.
   string batch_id = 1;
-  // [mandatory]
-  string sub_stream_id = 2;
-  // [mandatory]
-  repeated OtlpArrowPayload otlp_arrow_payloads = 3;
-  // [optional]
-  DeliveryType delivery_type = 4;
-  // [mandatory]
-  CompressionMethod compression = 5;  
+
+  // [mandatory] A collection of payloads containing the data of the batch.
+  repeated OtlpArrowPayload otlp_arrow_payloads = 2;
+
+  // [optional] Delivery type (BEST_EFFORT by default).
+  DeliveryType delivery_type = 3;
 }
 ```
 
@@ -279,17 +279,9 @@ uniquely
 identify the batch in the egress `BatchStatus` stream. See the [Batch Id generation](#batch-id-generation) section for
 more information on the implementation of this identifier.
 
-The `sub_stream_id` attribute is a unique identifier for a sub-stream of `BatchEvents` sharing the same schema inside
-the
-scope of the current stream. This id will be used receiver side to keep track of the schema and dictionaries for a
-specific
-type of events. See the [Substream Id generation](#substream-id-generation) section for more information on the
-implementation
-of this identifier.
-
 The `otlp_arrow_payloads` attribute is a list of `OtlpArrowPayload` messages. Each `OtlpArrowPayload` message represents
 a table of data encoded in a columnar format (metrics, logs, or traces). Although not used in the current version of
-this protocol, this attribute is an array to allow representing different types of entities with relations between them.
+this protocol, this attribute is an array to allow representing different types of entities.
 More details on the `OtlpArrowPayload` columns in the
 section [Mapping OTEL entities to Arrow records](#mapping-otel-entities-to-arrow-records).
 
@@ -305,24 +297,25 @@ enum DeliveryType {
 The delivery type `BEST_EFFORT` is the default value. This means that the sender expects the receiver to acknowledge
 receipt of a message and to do its best to pass the message on to the rest of the downstream chain.
 
-The `compression` attribute is a mandatory attribute that is used to define the compression algorithms for the different
-bytes buffer.
-
-```protobuf
-enum CompressionMethod {
-  NO_COMPRESSION = 0;
-  ZSTD = 1;
-}
-```
-
 More specifically, an `OtlpArrowPayload` protobuf message is defined as:
 
 ```protobuf
 message OtlpArrowPayload {
-  OtlpArrowPayloadType type = 1;
-  bytes schema = 2;
+  // [mandatory] A unique id assigned to a sub-stream of the batch sharing the same schema, and dictionaries.
+  string sub_stream_id = 1;
+
+  // [mandatory] Type of the OTLP Arrow payload.
+  OtlpArrowPayloadType type = 2;
+
+  // [optional] Serialized Arrow dictionaries
   repeated EncodedData dictionaries = 3;
-  EncodedData record_batch = 4;
+
+  // [mandatory] Serialized Arrow Record Batch
+  // For a description of the Arrow IPC format see: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
+  bytes record = 4;
+
+  // [mandatory]
+  CompressionMethod compression = 5;
 }
 
 enum OtlpArrowPayloadType {
@@ -335,19 +328,32 @@ message EncodedData {
   bytes ipc_message = 1;
   bytes arrow_data = 2;
 }
+
+enum CompressionMethod {
+  NO_COMPRESSION = 0;
+  ZSTD = 1;
+}
 ```
+
+The `sub_stream_id` attribute is a unique identifier for a sub-stream of `BatchArrowRecords` sharing the same schema inside
+the
+scope of the current stream. This id will be used receiver side to keep track of the schema and dictionaries for a
+specific
+type of Arrow Records. See the [Substream Id generation](#substream-id-generation) section for more information on the
+implementation
+of this identifier.
 
 The `OtlpArrowPayloadType` enum specifies the `type` of the payload.
 
-The `schema` attribute is a binary representation of the Arrow Schema specifying the columns of the 'record_batch'. This
-field is only filled in the first message of each sub-stream.
-
 The `dictionaries` attribute is a list of binary representations of [Arrow dictionaries](#arrow-dictionary). Several
 dictionaries can be defined in the case of an entity containing several text or binary columns. The dictionaries are
-filled in the first message of their corresponding sub-stream. When a dictionary is updated, it must be re-emitted in
-the corresponding message within the sub-stream.
+filled in the first message of their corresponding sub-stream. When a dictionary is updated, the delta dictionary will be
+emitted in the corresponding message within the sub-stream.
 
-The `record_batch` attribute is a binary representation of the Arrow RecordBatch.
+The `record` attribute is a binary representation of the Arrow RecordBatch.
+
+The `compression` attribute is a mandatory attribute that is used to define the compression algorithms for the different
+bytes buffer.
 
 > Note: By storing Arrow buffers in a protobuf field of type 'bytes' we can leverage the zero-copy capability of some
 > Protobuf
@@ -381,7 +387,7 @@ enum ErrorCode {
 }
 
 message RetryInfo {
-  google.protobuf.Duration retry_delay = 1;
+  int64 retry_delay = 1;
 }
 ```
 
@@ -853,34 +859,31 @@ Protobuf specification for an Arrow-based OpenTelemetry event.
 ```protobuf
 syntax = "proto3";
 
-package opentelemetry.proto.collector.events.v1;
+package opentelemetry.proto.collector.arrow.v1;
 
 option java_multiple_files = true;
-option java_package = "io.opentelemetry.proto.collector.events.v1";
-option java_outer_classname = "EventsServiceProto";
-option go_package = "github.com/open-telemetry/opentelemetry-proto/gen/go/collector/events/v1";
+option java_package = "io.opentelemetry.proto.collector.arrow.v1";
+option java_outer_classname = "ArrowServiceProto";
 
-service EventsService {
-  // The EventStream endpoint is a bi-directional stream used to send batch of events (`BatchEvent`) from the exporter
-  // to the collector. The collector returns `BatchStatus` messages to acknowledge the `BatchEvent` messages received.
-  rpc EventStream(stream BatchEvent) returns (stream BatchStatus) {}
+// Note the following is temporary
+option go_package = "github.com/f5/otel-arrow-adapter/api/collector/arrow/v1";
 
-  // Futures evolutions, e.g.: command_stream(stream ExporterMessage) return (stream CollectorMessage) {}
+service ArrowStreamService {
+  // The ArrowStream endpoint is a bi-directional stream used to send batch of `BatchArrowRecords` from the exporter
+  // to the collector. The collector returns `BatchStatus` messages to acknowledge the `BatchArrowRecords` messages received.
+  rpc ArrowStream(stream BatchArrowRecords) returns (stream BatchStatus) {}
 }
 
-// A message sent by an exporter to a collector containing a batch of events in the Apache Arrow columnar encoding.
-message BatchEvent {
+// A message sent by an exporter to a collector containing a batch of Arrow records.
+message BatchArrowRecords {
   // [mandatory] Batch ID. Must be unique in the context of the stream.
   string batch_id = 1;
 
-  // [mandatory] A unique id assigned to a sub-stream of the batch sharing the same schema, and dictionaries.
-  string sub_stream_id = 2;
-
   // [mandatory] A collection of payloads containing the data of the batch.
-  repeated OtlpArrowPayload otlp_arrow_payloads = 3;
+  repeated OtlpArrowPayload otlp_arrow_payloads = 2;
 
   // [optional] Delivery type (BEST_EFFORT by default).
-  DeliveryType delivery_type = 4;
+  DeliveryType delivery_type = 3;
 }
 
 // Enumeration of all the OTLP Arrow payload types currently supported by the OTLP Arrow protocol.
@@ -895,22 +898,19 @@ enum OtlpArrowPayloadType {
 
 // Represents a batch of OTLP Arrow entities.
 message OtlpArrowPayload {
-  // [mandatory] Type of the OTLP Arrow payload.
-  OtlpArrowPayloadType type = 1;
+  // [mandatory] A unique id assigned to a sub-stream of the batch sharing the same schema, and dictionaries.
+  string sub_stream_id = 1;
 
-  // [mandatory for the first message] Serialized Arrow Schema in IPC stream format representing the batch of events
-  // stored in record_batch. The definition of this schema follows a set of naming conventions and defines a set of
-  // mandatory and optional fields.
-  //
-  // For a description of the Arrow IPC format see: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
-  bytes schema = 2;
+  // [mandatory] Type of the OTLP Arrow payload.
+  OtlpArrowPayloadType type = 2;
 
   // [optional] Serialized Arrow dictionaries
   repeated EncodedData dictionaries = 3;
 
   // [mandatory] Serialized Arrow Record Batch
-  EncodedData record_batch = 4;
-  
+  // For a description of the Arrow IPC format see: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
+  bytes record = 4;
+
   // [mandatory]
   CompressionMethod compression = 5;
 }
@@ -962,7 +962,7 @@ enum ErrorCode {
 }
 
 message RetryInfo {
-  google.protobuf.Duration retry_delay = 1;
+  int64 retry_delay = 1;
 }
 ```
 
