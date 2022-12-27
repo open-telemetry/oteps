@@ -20,7 +20,7 @@ provides a better representation for [multivariate time-series](#multivariate-ti
 * [Protocol Details](#protocol-details)
   * [EventStream Service](#eventstream-service)
   * [Mapping OTEL Entities to Arrow Records](#mapping-otel-entities-to-arrow-records)
-    * [Label/Attribute Representation](#labelattribute-representation)
+    * [Attribute Representation](#attribute-representation)
     * [Metrics Payload](#metrics-payload)
     * [Logs Payload](#logs-payload)
     * [Spans Payload](#spans-payload)
@@ -418,8 +418,7 @@ via `error_message`.
 
 ### Mapping OTEL Entities to Arrow Records
 
-Schema-compatible OTEL entities are batched into Apache Arrow RecordBatch. By schema-compatible, we mean a group of
-OTEL entities that all share the same exact field set (i.e. name, type, and metadata). An Apache Arrow RecordBatch is
+OTEL entities are batched into Apache Arrow RecordBatch. An Apache Arrow RecordBatch is
 a combination of three things: a schema, a collection of structured data encoded in a columnar format, and a set of
 optional dictionaries. A dictionary is an efficient way to encode string (or binary) columns that have low cardinality.
 When used in the context of the Arrow IPC format, once the schema and dictionaries have been defined they can be omitted
@@ -430,10 +429,7 @@ An Apache Arrow schema can define columns of different [types](https://arrow.apa
 and with or without nullability property. For more details on the Arrow Memory Layout see this
 [document](https://arrow.apache.org/docs/format/Columnar.html).
 
-All OTEL entities sharing the same set of columns are represented by a single Apache Arrow schema in order
-to reduce the data sparsity per batch. The tuples (column name, column type, column metadata) are sorted
-lexicographically
-and then combined to form a unique schema id used to identify schema-compatible OTEL entities.
+A specific and well-defined Arrow Schema is used for each OTEL entity type (metrics, logs, traces).
 
 The current metric model can be summarized by this UML diagram:
 
@@ -441,22 +437,18 @@ The current metric model can be summarized by this UML diagram:
 
 The leaf nodes (in green in this diagram) are where the data are actually defined as list of attributes and metrics.
 Basically the relationship between the metric and resource nodes is a many-to-one relationship. Similarly, the
-relationship between the metric and instrumentation library nodes is also a many-to-one relationship.
+relationship between the metric and instrumentation scope nodes is also a many-to-one relationship.
 
 Several approaches have been explored to transform this row-oriented representation into a column-oriented
 representation (see the section [Design optimization](#appendix-c---parameter-tuning-and-design-optimization)).
-The selected approach consists in flattening these three groups of fields (resource, instrumentation library and
-metrics) into a single entity.
-Although this representation does not seem optimal, it is in fact very efficient for a columnar representation in
-conjunction
-with dictionaries and a suitable compression algorithm (see the [benchmark](#appendix-b---performance-benchmarks)
-section
-for more information on this part). The following diagram illustrates this transformation for the metrics.
+The selected approach is to use nested lists of structures to represent the general hierarchy and to use sparse unions
+to represent the highly dynamic attributes of the different levels. As the [benchmarks](#appendix-b---performance-benchmarks)
+show, this representation offers a good compromise between speed and compression ratio.
 
-![RecordBatch internal](img/0156_RecordBatch.png)
-
-As the [benchmarks](#appendix-b---performance-benchmarks) show, this representation offers a good compromise between
-speed and compression ratio.
+Note: Historically this specification used a representation that flattened these three groups of fields (i.e. resource,
+instrumentation scope, and metrics) into a single entity. Although efficient when compressed, this representation had
+the drawback, on real production data, of significantly duplicating the first levels of the hierarchy implying a higher
+CPU and memory consumption during the batch construction phase.
 
 More specifically for the metrics, it is possible to perform an additional transformation to significantly increase the
 compression
@@ -466,8 +458,7 @@ nevertheless more common than one might think. The CPU and Memory system metrics
 time-series.
 
 `system.memory.usage` is currently separated into several univariate time-series, the attribute `state` is used to
-qualify
-each metric.
+qualify each metric.
 
 * state = used
 * state = free
@@ -477,11 +468,14 @@ each metric.
 For each of these states, the metrics share the same attributes, timestamp, ... Taken individually, these metrics don't
 make much sense. Knowing the free memory without knowing the used memory or the total memory is not very informative.
 
-OTLP Arrow proposes to support multivariate time-series natively in order to eliminate these duplications. This
-transformation can be done automatically with a configuration defining the column(s) similar to the state column in the
-previous example.
-
-To take full advantage of this columnar representation, OTLP Arrow sorts a subset of the text or binary columns to
+OTLP Arrow proposes to support multivariate time series in two different ways depending on the context of use:
+* For standard OTLP streams containing univariate metrics that follow a model equivalent to that used by `system.memory.usage`,
+an automatic deduplication of data point attributes is performed. These shared data point attributes are moved to the 
+definition of the metric itself.
+* For native Arrow OTLP streams issued by client SDKs supporting multivariant metrics declaration, a more optimal native
+representation is used.
+ 
+To take full advantage of this columnar representation, OTLP Arrow can optionally sort a subset of the text or binary columns to
 optimize the locality of identical data, thus increasing the compression ratio. More details on this aspect in the
 [Parameter tuning and Design optimization section](#appendix-c---parameter-tuning-and-design-optimization).
 
@@ -500,31 +494,34 @@ attribute-to-column mapping because the concept of attribute is common to all pa
 to `OtlpArrowPayload` has been designed to be reversible in order to be able to implement an OTLP Arrow -> OTLP
 receiver.
 
-#### Label/Attribute Representation
+#### Attribute Representation
 
-Labels are really just a key-value pair of strings. So their mapping to Arrow columns is therefore simple. Every label
-is mapped to an `utf-8` column with name `[label.key]`. These columns are grouped in a `labels` column of type struct.
+Most attributes are simply key-value pairs with values having a primitive data type (i.e. int64, double, bool, string,
+bytes). The representation of these attributes is done using a map (arrow data type) having for key a string (i.e. the
+name of the attribute), and for value a sparse union of all the possible primitive data types. To support more complex 
+cases (supposedly rare), a specific variant is added to the sparse union. This variant named `cbor` contains a binary
+representation of complex attribute values in the form of a cbor encoding. This choice of representation defines a single
+Arrow schema that is known in advance and independent of the OTLP stream. This trade-off implements a simple and efficient
+mapping for the vast majority of cases and switches to CBOR encoding for more complex minority cases.
 
-Attributes are more complex to represent. Similar to labels, attribute columns are grouped in an `attributes` column of
-type struct. However, OTLP attribute types can be much more complex than a simple string. Therefore, the column type
-depends on the type of the `AnyValue` described in Protobuf. In most cases, the translation is simple and follow the table below:
+A more structured approach has been studied and implemented based on Arrow lists, maps and structs. Although slightly
+more efficient in terms of compression rate, this approach requires a much higher level of complexity. The number of
+Arrow schemas to be dynamically generated depends directly on the telemetry flows. It has been observed that on real
+production data, the number of different schemas to be maintained can be in the order of several hundred due to the
+high variability of the nature of the attributes within the OTLP entities.
 
-| OTEL data type | Arrow data type |
-|----------------|-----------------|
-| `int64`        | `int64`         |
-| `double`       | `float64`       |
-| `bool`         | `bool`          |
-| `string`       | `utf8`          |
-| `bytes`        | `binary`        |
-
-However, `ArrayValue` and `KeyValueList` are more complex `AnyValue` to represent because they are used to represent a
-more complex hierarchy of objects. Two options were **considered** and **tested**:
-
-* `ArrayValue` is translated to an `Arrow List`, and `KeyValueList` is translated to an `Arrow Struct` making the final
-  representation highly structured.
-* `ArrayValue` and `KeyValueList` are serialized to a normalized JSON string and then stored as a `utf8` column.
-
-The first option was chosen because it gives the best results (see section [Design optimization](#appendix-c---parameter-tuning-and-design-optimization).
+```yaml
+# Attributes Arrow Schema (declaration used in other schemas)
+attributes: &attributes                                 # arrow type = map
+  - key: string | string_dictionary
+    value:                                              # arrow type = sparse union
+        str: string | string_dictionary 
+        i64: int64
+        f64: float64
+        bool: bool 
+        binary: binary | binary_dictionary
+        cbor: binary | binary_dictionary                # cbor encoded complex attribute values
+```
 
 #### Metrics Payload
 
