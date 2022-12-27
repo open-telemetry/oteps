@@ -6,8 +6,8 @@
 
 **Abstract**: This OTEP extends, in a compatible way,
 the [OpenTelemetry protocol (OTEP 0035)](https://github.com/open-telemetry/oteps/blob/main/text/0035-opentelemetry-protocol.md)
-with a **generic columnar representation for metrics, logs and traces**. This extension significantly improves the 
-efficiency of the protocol for scenarios involving the transmission of large batches of metrics, logs, traces, and also 
+with a **generic columnar representation for metrics, logs and traces**. This extension significantly improves the
+efficiency of the protocol for scenarios involving the transmission of large batches of metrics, logs, traces, and also
 provides a better representation for [multivariate time-series](#multivariate-time-series).
 
 ## Table of contents
