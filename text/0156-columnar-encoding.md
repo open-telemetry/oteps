@@ -2,13 +2,13 @@
 
 **Author**: Laurent Querel, F5 Inc.
 
-**Keywords**: OTLP, Arrow, Columnar Storage Format, Bandwidth Reduction, Multivariate Time-series, Logs, Traces.
+**Keywords**: OTLP, Arrow Columnar Format, Bandwidth Reduction, Multivariate Time-series, Logs, Traces.
 
 **Abstract**: This OTEP extends, in a compatible way,
 the [OpenTelemetry protocol (OTEP 0035)](https://github.com/open-telemetry/oteps/blob/main/text/0035-opentelemetry-protocol.md)
-with a **generic columnar representation
-for metrics, logs and traces**. This extension significantly improves the efficiency of the protocol for specific
-scenarios such as [multivariate time-series](#multivariate-time-series), large batches of traces and logs.
+with a **generic columnar representation for metrics, logs and traces**. This extension significantly improves the 
+efficiency of the protocol for scenarios involving the transmission of large batches of metrics, logs, traces, and also 
+provides a better representation for [multivariate time-series](#multivariate-time-series).
 
 ## Table of contents
 
@@ -154,8 +154,8 @@ integration of the OpenTelemetry protocol while expanding its scope of applicati
 Adapting the OTLP data format to the Arrow world (see below) is only part of the problem this proposal aims to describe.
 Many other design choices and trade-offs have been made, such as:
 
-- the organization of the data (e.g. sorting) and the selection of the compression algorithm to optimize the compression ratio.
-- the way to serialize the Arrow data and the selection of the transfer mode (reply/reply vs. bi-dir stream).
+- the organization of the data (i.e. schema) and the selection of the compression algorithm to optimize the compression ratio.
+- the way to serialize the Arrow data, the metadata, the dictionaries, and the selection of the transfer mode (reply/reply vs. bi-dir stream).
 - optimization of many parameters introduced in the system.
 
 ![In-memory Apache Arrow RecordBatch](img/0156_OTEL%20-%20HowToUseArrow.png)
@@ -213,7 +213,7 @@ The protocol specifications are composed of two parts. The first section describ
 column-oriented telemetry data. The second section presents the mapping between the OTLP entities and their Apache
 Arrow counterpart.
 
-### EventStream Service
+### ArrowStreamService Service
 
 OTLP Arrow defines the columnar encoding of telemetry data and the gRPC-based protocol used to exchange data between
 the client and the server. OTLP Arrow is a bi-directional stream oriented protocol leveraging Apache Arrow for the
@@ -221,15 +221,15 @@ encoding of the telemetry data.
 
 OTLP and OTLP Arrow protocols can be used together and can use the same TCP port. To do so, in addition to the 3
 existing
-services (`MetricsService`, `LogsService` and `TraceService`), we introduce the service `EventsService`
-(see [this protobuf specification](#appendix-a---protocol-buffer-definitions) for more details) exposing a single API endpoint named `EventStream`.
-This endpoint is based on a bidirectional streaming protocol. The ingress side is a `BatchEvents` stream encoding a
-batch of events into a set of Apache Arrow buffers (more specifically [Arrow IPC format](#arrow-ipc-format)). The egress
-side is a `BatchStatus` stream reporting asynchronously the status of each `BatchEvents` previously sent.
+services (`MetricsService`, `LogsService` and `TraceService`), we introduce the service `ArrowStreamService`
+(see [this protobuf specification](#appendix-a---protocol-buffer-definitions) for more details) exposing a single API endpoint named `ArrowStream`.
+This endpoint is based on a bidirectional streaming protocol. The ingress side is a `BatchArrowRecords` stream encoding a
+batch of Apache Arrow buffers (more specifically [Arrow IPC format](#arrow-ipc-format)). The egress
+side is a `BatchStatus` stream reporting asynchronously the status of each `BatchArrowRecords` previously sent.
 
-After establishing the underlying transport the client starts sending telemetry data using the `EventStream` request.
+After establishing the underlying transport the client starts sending telemetry data using the `ArrowStream` request.
 The
-client continuously sends `BatchEvent`'s messages over the opened stream to the server and expects to receive
+client continuously sends `BatchArrowRecords`'s messages over the opened stream to the server and expects to receive
 continuously
 `BatchStatus`'s messages from the server as illustrated by the following sequence diagram:
 
