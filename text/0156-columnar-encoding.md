@@ -765,74 +765,85 @@ resource_metrics:
 
 Although simpler, a logs 'OtlpArrowPayload' takes a similar approach.
 
-| Column name                  | Column type | Required | Description                                                                                                     |
-|------------------------------|-------------|----------|-----------------------------------------------------------------------------------------------------------------|
-| `resource`                   | `struct`    | No       | Structure regrouping the fields of the resource                                                                 |
-| __`attributes`               | `struct`    | No       | Structure regrouping the fields of the resource attributes                                                      |
-| ____`[key]`                  | `dynamic`   | No       | A set of attributes, see [attribute section](#labelattribute-representation) for more details                   |
-| __`dropped_attributes_count` | `uint32`    | No       | The number of resource dropped attributes.                                                                      |
-| __`schema_url`               | `string`    | No       | Schema url.                                                                                                     |
-| `instrumentation_library`    | `struct`    | No       | Structure regrouping the fields of the instrumentation library                                                  |
-| __`name`                     | `string`    | No       | Name of the instrumentation library                                                                             |
-| __`version`                  | `string`    | No       | Version of the instrumentation library                                                                          |
-| `time_unix_nano`             | `uint64`    | Yes      | The time when the event occurred.                                                                               |
-| `severity_number`            | `uint8`     | Yes      | The severity number.                                                                                            |
-| `severity_text`              | `string`    | No       | The severity test.                                                                                              |
-| `name`                       | `string`    | No       | Short event identifier that does not contain varying parts.                                                     |
-| `body`                       | `dynamic`   | No       | The body of the log record (see below for more details).                                                        |
-| `attributes`                 | `struct`    | No       | Structure regrouping the fields of the attributes                                                               |
-| __`[key]`                    | `dynamic`   | No       | A set of attributes, see [attribute section](#labelattribute-representation) for more details                   |
-| `dropped_attributes_count`   | `uint64`    | No       | The number of dropped attributes.                                                                               |
-| `flags`                      | `uint32`    | No       | Flags, a bit field. 8 least significant bits are the trace flags as defined in W3C Trace Context specification. |
-| `trace_id`                   | `binary`    | No       | Identifier of the trace.                                                                                        |
-| `span_id`                    | `binary`    | No       | Identifier of the span.                                                                                         |
+```yaml
+resource_logs: 
+  - resource: 
+      attributes: *attributes
+      dropped_attributes_count: uint32
+    schema_url: string | string_dictionary 
+    scope_logs: 
+      - scope:
+          name: string | string_dictionary 
+          version: string | string_dictionary 
+          attributes: *attributes
+          dropped_attributes_count: uint32
+        schema_url: string | string_dictionary 
+        logs: 
+          - time_unix_nano: uint64 
+            observed_time_unix_nano: uint64 
+            trace_id: 16_bytes_binary | 16_bytes_binary_dictionary 
+            span_id: 8_bytes_binary | 8_bytes_binary_dictionary
+            severity_number: int32 
+            severity_text: string | string_dictionary 
+            body:                                           # arrow type: sparse union
+              str: string | string_dictionary 
+              i64: int64 
+              f64: float64 
+              bool: bool 
+              binary: binary | binary_dictionary
+              cbor: binary_dictionary | binary              # cbor encoded complex body value
+            attributes: *attributes
+            dropped_attributes_count: uint32 
+            flags: uint32
+```
 
-The type of the column `body` depends on the OTLP type and follows the same transformation rules used in the [attributes](#labelattribute-representation).
+The type of the column `body` depends on the OTLP type and follows the same transformation rules used in the [attributes](#attribute-representation).
 
 #### Spans Payload
 
-The set of possible columns for a span payload is summarized in the following table.
+The set of possible columns for a span payload is summarized in the following yaml description.
 
-| Column name                  | Column type      | Required | Description                                                                                   |
-|------------------------------|------------------|----------|-----------------------------------------------------------------------------------------------|
-| `resource`                   | `struct`         | No       | Structure regrouping the fields of the resource                                               |
-| __`attributes`               | `struct`         | No       | Structure regrouping the fields of the resource attributes                                    |
-| ____`[key]`                  | `dynamic`        | No       | A set of attributes, see [attribute section](#labelattribute-representation) for more details |
-| __`dropped_attributes_count` | `uint32`         | No       | The number of resource dropped attributes.                                                    |
-| __`schema_url`               | `string`         | No       | Schema url.                                                                                   |
-| `instrumentation_library`    | `struct`         | No       | Structure regrouping the fields of the instrumentation library                                |
-| __`name`                     | `string`         | No       | Name of the instrumentation library                                                           |
-| __`version`                  | `string`         | No       | Version of the instrumentation library                                                        |
-| `trace_id`                   | `binary`         | Yes      | Identifier of the trace.                                                                      |
-| `span_id`                    | `binary`         | Yes      | Identifier of the span.                                                                       |
-| `trace_state`                | `string`         | No       | trace state.                                                                                  |
-| `parent_span_id`             | `string`         | No       | Parent span id.                                                                               |
-| `name`                       | `string`         | No       | A description of the span's operation.                                                        |
-| `kind`                       | `uint8`          | Yes      | Distinguishes between spans generated in a particular context.                                |
-| `start_time_unix_nano`       | `uint64`         | Yes      | The start time of the span.                                                                   |
-| `end_time_unix_nano`         | `uint64`         | Yes      | The end time of the span.                                                                     |
-| `attributes`                 | `struct`         | No       | Structure regrouping the fields of the attributes                                             |
-| __`[key]`                    | `dynamic`        | No       | A set of attributes, see [attribute section](#labelattribute-representation) for more details |
-| `dropped_attributes_count`   | `uint64`         | No       | The number of dropped attributes.                                                             |
-| `events`                     | `list of struct` | No       | List of events                                                                                |
-| __`time_unix_nano`           | `uint64`         | Yes      | The time the event occurred                                                                   |
-| __`name`                     | `string`         | Yes      | The name of the event.                                                                        |
-| __`attributes`               | `struct`         | No       | Structure regrouping the fields of the event attributes                                       |
-| ____`[key]`                  | `dynamic`        | No       | A set of attributes, see [label section](#labelattribute-representation) for more details.    |
-| __`dropped_attributes_count` | `uint64`         | No       | The number of dropper attributes.                                                             |
-| `dropped_events_count`       | `uint64`         | No       | The number of dropped events.                                                                 |
-| `links`                      | `list of struct` | No       | List of links                                                                                 |
-| __`trace_id`                 | `binary`         | Yes      | A unique identifier of a trace that this linked span is part of.                              |
-| __`span_id`                  | `binary`         | Yes      | A unique identifier for the linked span.                                                      |
-| __`trace_state`              | `string`         | Yes      | The trace_state associated with the link.                                                     |
-| __`attributes`               | `struct`         | No       | Structure regrouping the fields of the event attributes                                       |
-| ____`[key]`                  | `dynamic`        | No       | A set of attributes, see [label section](#labelattribute-representation) for more details.    |
-| __`dropped_attributes_count` | `uint64`         | No       | The number of dropped attributes.                                                             |
-| `dropped_links_count`        | `uint64`         | No       | The number of dropped links.                                                                  |
-| `status`                     | `struct`         | No       | The status of the span.                                                                       |
-| __`deprecated_code`          | `uint8`          | No       | The deprecated status code.                                                                   |
-| __`message`                  | `string`         | No       | The status message.                                                                           |
-| __`code`                     | `uint8`          | No       | The status code.                                                                              |
+```yaml
+resource_spans:
+  - resource: 
+      attributes: *attributes
+      dropped_attributes_count: uint32
+    schema_url: string | string_dictionary 
+    scope_spans: 
+      - scope: 
+          name: string | string_dictionary 
+          version: string | string_dictionary 
+          attributes: *attributes
+          dropped_attributes_count: uint32
+        schema_url: string | string_dictionary 
+        spans:
+          - start_time_unix_nano: uint64                                  # required 
+            end_time_unix_nano: uint64                                    # required
+            trace_id: 16_bytes_binary | 16_bytes_binary_dictionary        # required
+            span_id: 8_bytes_binary | 8_bytes_binary_dictionary           # required
+            trace_state: string | string_dictionary 
+            parent_span_id: 8_bytes_binary | 8_bytes_binary_dictionary 
+            name: string | string_dictionary                              # required
+            kind: int32 
+            attributes: *attributes
+            dropped_attributes_count: uint32 
+            events: 
+              - time_unix_nano: uint64 
+                name: string | string_dictionary 
+                attributes: *attributes
+                dropped_attributes_count: uint32
+            dropped_events_count: uint32 
+            links: 
+              - trace_id: 16_bytes_binary | 16_bytes_binary_dictionary 
+                span_id: 8_bytes_binary | 8_bytes_binary_dictionary
+                trace_state: string | string_dictionary 
+                attributes: *attributes
+                dropped_attributes_count: uint32 
+            dropped_links_count: uint32
+            status: 
+              code: int32 
+              status_message: string | string_dictionary
+```
 
 ## Implementation Recommendations
 
