@@ -15,7 +15,6 @@ the protobuf spec, and implements the OTLP Arrow Encoder/Decoder (main contribut
 An [experimental OTEL Collector](https://github.com/open-telemetry/experimental-arrow-collector) has been implemented to
 expose the new gRPC endpoint and to provide OTLP Arrow support via the previous library (main contributor [Joshua MacDonald](https://github.com/jmacd)).
 
-
 ## Table of contents
 
 * [Introduction](#introduction)
@@ -469,8 +468,9 @@ For each of these states, the metrics share the same attributes, timestamp, ... 
 make much sense. Knowing the free memory without knowing the used memory or the total memory is not very informative.
 
 OTLP Arrow proposes to support multivariate time series in two different ways depending on the context of use:
+
 * For standard OTLP streams containing univariate metrics that follow a model equivalent to that used by `system.memory.usage`,
-an automatic deduplication of data point attributes is performed. These shared data point attributes are moved to the 
+an automatic deduplication of data point attributes is performed. These shared data point attributes are moved to the
 definition of the metric itself.
 * For native Arrow OTLP streams issued by client SDKs supporting multivariant metrics declaration, a more optimal native
 representation is used.
@@ -668,7 +668,6 @@ resource_metrics:
 `Gauge`, `Sum`, `Histogram`, `Exponential Histogram`, and `Summary` are represented as Arrow Sparse Union of structs.
 Additional variants can be added in the future.
 
-
 The Arrow Schema for the native multivariate metrics is the following:
 
 ```yaml
@@ -759,7 +758,6 @@ resource_metrics:
                   max: float64
                   aggregation_temporality: int32
 ```
-
 
 #### Logs Payload
 
@@ -1283,7 +1281,7 @@ smaller than an OTLP message with the same content.
 
 No benchmark has been conducted for traces due to lack of a dataset containing traces with links and events.
 
-Please feel free to share a dataset with such characteristics to complete this document. 
+Please feel free to share a dataset with such characteristics to complete this document.
 
 Please check this [open issue](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/13626) for more
 details on a solution to facilitate data sharing.
@@ -1336,7 +1334,6 @@ From this analysis, we can conclude that for the tested data, the best parameter
 * max_card_ratio -> 0.22
 * max_sorted -> 13 sorted dictionaries
 * batch size -> 50K logs
-
 
 ## Glossary
 
