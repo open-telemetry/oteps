@@ -513,92 +513,253 @@ high variability of the nature of the attributes within the OTLP entities.
 ```yaml
 # Attributes Arrow Schema (declaration used in other schemas)
 attributes: &attributes                                 # arrow type = map
-  - key: string | string_dictionary
+  - key: string_dictionary | string
     value:                                              # arrow type = sparse union
-        str: string | string_dictionary 
-        i64: int64
-        f64: float64
-        bool: bool 
-        binary: binary | binary_dictionary
-        cbor: binary | binary_dictionary                # cbor encoded complex attribute values
+      str: string_dictionary | string 
+      i64: int64
+      f64: float64
+      bool: bool 
+      binary: binary_dictionary | binary
+      cbor: binary_dictionary | binary                  # cbor encoded complex attribute values
 ```
+
+> **Arrow Schema Representation**: As there is no standard textual representation of schema arrows, we use a relatively simple YAML representation. The
+name of the Arrow columns are represented as a YAML key. The value of the YAML key represents the Arrow data type.
+Complex types are specified as comments (e.g. arrow map, sparse union). The notation `string_dictionary | string` or
+`binary_dictionary | binary` represents columns which are by default of dictionary type (string or binary) and which
+can evolve dynamically in non-dictionary form when the cardinality of the corresponding column exceeds a certain
+threshold (usually 2^16). YAML alias and anchor are used to avoid duplication of the same schema definition.
 
 #### Metrics Payload
 
-The set of possible columns for a metric payload is summarized in the following table.
+We start by defining the Arrow Schema of the `exemplar` concept because it is used for several types of metrics. 
 
-| Column name                  | Column type          | Required | Description                                                                                   |
-|------------------------------|----------------------|----------|-----------------------------------------------------------------------------------------------|
-| `resource`                   | `struct`             | No       | Structure regrouping the fields of the resource                                               |
-| __`attributes`               | `struct`             | No       | Structure regrouping the fields of the resource attributes                                    |
-| ____`[key]`                  | `dynamic`            | No       | A set of attributes, see [attribute section](#labelattribute-representation) for more details |
-| __`dropped_attributes_count` | `uint32`             | No       | The number of resource dropped attributes.                                                    |
-| __`schema_url`               | `string`             | No       | Schema url.                                                                                   |
-| `instrumentation_library`    | `struct`             | No       | Structure regrouping the fields of the instrumentation library                                |
-| __`name`                     | `string`             | No       | Name of the instrumentation library                                                           |
-| __`version`                  | `string`             | No       | Version of the instrumentation library                                                        |
-| `start_time_unix_nano`       | `uint64`             | No       | The start time for points with cumulative and delta AggregationTemporality                    |
-| `time_unix_nano`             | `uint64`             | Yes      | The moment corresponding to when the data point's aggregate value was captured.               |
-| `labels`                     | `struct`             | No       | Structure regrouping the fields of the labels                                                 |
-| __`[key]`                    | `string`             | No       | A set of labels, see [label section](#labelattribute-representation) for more details         |
-| `attributes`                 | `struct`             | No       | Structure regrouping the fields of the attributes                                             |
-| __`[key]`                    | `dynamic`            | No       | A set of attributes, see [attribute section](#labelattribute-representation) for more details |
-| `gauge_[name]`               | `int64` or `float64` | No       | A set of gauge metric values.                                                                 |
-| `sum_[name]`                 | `int64` or `float64` | No       | A set of sum metric values.                                                                   |
-| `histogram_[name]`           | `struct`             | No       | Structure regrouping the fields of the histogram                                              |
-| __`count`                    | `int64`              | No       | A set of histogram count metric values.                                                       |
-| __`sum`                      | `float64`            | No       | A set of histogram sum metric values.                                                         |
-| __`bucket_counts`            | `list int64`         | No       | A set of histogram bucket counts metric values.                                               |
-| __`explicit_bounds`          | `list float64`       | No       | A set of histogram explicit bounds metric values.                                             |
-| `exp_histogram_[name]`       | `struct`             | No       | Structure regrouping the fields of the exponential histogram                                  |
-| __`count`                    | `int64`              | No       | A set of exponential histogram count metric values.                                           |
-| __`sum`                      | `float64`            | No       | A set of exponential histogram sum metric values.                                             |
-| __`scale`                    | `int32`              | No       | A set of exponential histogram scale metric values.                                           |
-| __`zero_count`               | `uint64`             | No       | A set of exponential histogram zero count metric values.                                      |
-| __`positive_offset`          | `int32`              | No       | A set of exponential histogram positive offset values.                                        |
-| __`positive_bucket`          | `list uint64`        | No       | A set of exponential histogram positive bucket counts values.                                 |
-| __`negative_offset`          | `int32`              | No       | A set of exponential histogram negative offset values.                                        |
-| __`negative_bucket_counts`   | `list uint64`        | No       | A set of exponential histogram negative bucket counts values.                                 |
-| `summary_[name]`             | `struct`             | No       | Structure regrouping the fields of the summary                                                |
-| __`count`                    | `int64`              | No       | A set of summary count metric values.                                                         |
-| __`sum`                      | `float64`            | No       | A set of summary sum metric values.                                                           |
-| __`quantiles`                | `list float64`       | No       | A set of summary quantiles metric values.                                                     |
-| __`values`                   | `list float64`       | No       | A set of summary quantile values metric values.                                               |
-| `schema_url`                 | `string`             | No       | Schema url of the metrics.                                                                    |
-| `examplars`                  | `list struct`        | No       | Examplars a list of structs.                                                                  |
-| __`filtered_attributes`      | `struct`             | No       | Structure regrouping the fields of the examplar attributes                                    |
-| ____`[key]`                  | `dynamic`            | No       | A set of attributes, see [attribute section](#labelattribute-representation) for more details |
-| __`filtered_labels`          | `struct`             | No       | Structure regrouping the fields of the examplar labels                                        |
-| ____`[key]`                  | `string`             | No       | A set of labels, see [label section](#labelattribute-representation) for more details         |
-| `time_unix_nano`             | `uint64`             | Yes      | The moment corresponding to when the examplar data point's aggregate value was captured.      |
-| `value`                      | `int64` or `float64` | No       | The value of the measurement.                                                                 |
-| `span_id`                    | `binary`             | No       | Identifier of the span.                                                                       |
-| `trace_id`                   | `binary`             | No       | Identifier of the trace.                                                                      |
-| `flags`                      | `uint32`             | No       | Flags that apply to this specific data point.                                                 |
+```yaml
+# Exemplar Arrow Schema (declaration used in other schemas)
+exemplars: &exemplars
+- attributes: *attributes       # YAML alias to the attributes schema defined previously
+  time_unix_nano: uint64
+  value:                        # arrow type = dense union
+    i64: int64
+    f64: float64
+  span_id: 8_bytes_binary_dictionary | 8_bytes_binary
+  trace_id: 16_bytes_binary_dictionary | 16_bytes_binary
+```
 
-A column of type `dynamic` means that the type of this column depends on the type of the OTLP attribute (see section
-[attribute representation](#labelattribute-representation) for more details).
+`span_id` and `trace_id` are represented as binary dictionaries by default but can evolve to non-dictionary form when
+their cardinality exceeds a certain threshold (usually 2^16).
 
-`Gauge`, `Sum`, `Histogram`, `Exponential Histogram`, and `Summary` are represented with a family of columns prefixed
-with
-the metric kind (i.e. gauge_, sum_, ...), the property (count_, sum_, scale_, ...) and followed by the metric name.
+The Arrow Schema for the univariate metrics is the following:
 
-`Examplars` are represented as a JSON string. **The assumptions are that their use is rare and that the need to process
-them at the collector level is low.**
+```yaml
+resource_metrics:
+    - resource: 
+        attributes: *attributes
+        dropped_attributes_count: uint32 
+      schema_url: string | string_dictionary
+      scope_metrics: 
+        - scope: 
+            name: string | string_dictionary 
+            version: string | string_dictionary 
+            attributes: *attributes
+            dropped_attributes_count: uint32
+          schema_url: string | string_dictionary
+          # This section represents the standard OTLP metrics as defined in OTEL v1 
+          # specifications.
+          #
+          # Named univariate metrics as their representation allow to represent each
+          # metric as independent measurement with their own specific timestamps and
+          # attributes.
+          #
+          # Shared attributes and timestamps are optional and only used for optimization
+          # purposes.
+          univariate_metrics:                             
+            - name: string | string_dictionary            # required
+              description: string | string_dictionary
+              unit: string | string_dictionary 
+              shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
+              shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
+              shared_time_unix_nano: uint64               # required if not defined in data points
+              data:                                       # arrow type = sparse union
+                - gauge: 
+                    shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
+                    shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
+                    shared_time_unix_nano: uint64               # required if not defined in data points
+                    data_points: 
+                      - attributes: *attributes
+                        start_time_unix_nano: uint64
+                        time_unix_nano: uint64            # required if not defined as a shared field in the metric
+                        value:                            # arrow type = dense union
+                          i64: int64 
+                          f64: float64 
+                        exemplars: *exemplars
+                        flags: uint32
+                  sum:
+                    shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
+                    shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
+                    shared_time_unix_nano: uint64               # required if not defined in data points
+                    data_points: 
+                      - attributes: *attributes
+                        start_time_unix_nano: uint64
+                        time_unix_nano: uint64            # required
+                        value:                            # arrow type = dense union
+                          i64: int64
+                          f64: float64
+                        exemplars: *exemplars
+                        flags: uint32
+                    aggregation_temporality: int32
+                    is_monotonic: bool
+                  summary:
+                    shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
+                    shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
+                    shared_time_unix_nano: uint64               # required if not defined in data points
+                    data_points: 
+                      - attributes: *attributes
+                        start_time_unix_nano: uint64
+                        time_unix_nano: uint64            # required
+                        count: uint64
+                        sum: float64
+                        quantile: 
+                          - quantile: float64
+                            value: float64
+                        flags: uint32
+                  histogram:
+                    shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
+                    shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
+                    shared_time_unix_nano: uint64               # required if not defined in data points
+                    data_points:
+                      - attributes: *attributes
+                        start_time_unix_nano: uint64
+                        time_unix_nano: uint64
+                        count: uint64
+                        sum: float64
+                        bucket_counts: []uint64
+                        explicit_bounds: []float64
+                        min: float64
+                        max: float64
+                        exemplars: *exemplars
+                        flags: uint32
+                    aggregation_temporality: int32
+                  exp_histogram:
+                    shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
+                    shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
+                    shared_time_unix_nano: uint64               # required if not defined in data points
+                    data_points:
+                      - attributes: *attributes
+                        start_time_unix_nano: uint64
+                        time_unix_nano: uint64
+                        count: uint64
+                        sum: float64
+                        scale: int32
+                        zero_count: uint64
+                        positive:
+                          offset: int32
+                          bucket_counts: []uint64
+                        negative:
+                          offset: int32
+                          bucket_counts: []uint64
+                        min: float64
+                        max: float64
+                        exemplars: *exemplars
+                        flags: uint32
+                    aggregation_temporality: int32
+```
 
-The attributes `description` and `unit` are attached as metadata to the corresponding column metric. This will get rid
-of metadata duplication observed in the existing protocol.
+`Gauge`, `Sum`, `Histogram`, `Exponential Histogram`, and `Summary` are represented as Arrow Sparse Union of structs.
+Additional variants can be added in the future.
 
-The attributes `aggregation_temporality` and `is_monotonic` are attached as metadata to the corresponding column
-metric (for sum, histogram, and exponential histogram).
 
-Multivariate metrics can easily be represented as multiple metrics columns sharing the same `start_time_unix_nano`,
-and `time_unix_nano`, attributes, ... The name of each multi-variate metric must be unique in the scope of the
-corresponding metric type (gauge, sum, histogram, exp_histogram, summary).
+The Arrow Schema for the native multivariate metrics is the following:
 
-> Open question: `aggregation_temporality` and `is_monotonic` are in this proposal represented as column metadata, but
-> they could also be represented as 2 distinct columns if needed. Feedback from the community on this choice will be
-> appreciated.
+```yaml
+resource_metrics:
+    - resource: 
+        attributes: *attributes
+        dropped_attributes_count: uint32 
+      schema_url: string | string_dictionary
+      scope_metrics: 
+        - scope: 
+            name: string | string_dictionary 
+            version: string | string_dictionary 
+            attributes: *attributes
+            dropped_attributes_count: uint32
+          schema_url: string | string_dictionary
+          # Native support of multivariate metrics (not yet implemented)
+          #
+          # Multivariate metrics are related metrics sharing the same context, i.e. the same
+          # attributes and timestamps.
+          #
+          # Each metrics is defined by a name, a set of data points, and optionally a description
+          # and a unit.
+          multivariate_metrics:                       
+            attributes: *attributes                   # All multivariate metrics shared the same attributes
+            start_time_unix_nano: uint64              # All multivariate metrics shared the same timestamps
+            time_unix_nano: uint64                    # required
+            metrics:                                     # arrow type = sparse union
+              - gauge:
+                  name: string | string_dictionary            # required
+                  description: string | string_dictionary
+                  unit: string | string_dictionary 
+                  value:                                    # arrow type = dense union
+                    i64: int64 
+                    f64: float64
+                  exemplars: *exemplars
+                  flags: uint32  
+                sum:
+                  name: string | string_dictionary            # required
+                  description: string | string_dictionary
+                  unit: string | string_dictionary
+                  value:                                    # arrow type = dense union
+                    i64: int64
+                    f64: float64
+                  exemplars: *exemplars
+                  flags: uint32
+                  aggregation_temporality: int32
+                  is_monotonic: bool
+                summary:
+                  name: string | string_dictionary            # required
+                  description: string | string_dictionary
+                  unit: string | string_dictionary
+                  count: uint64 
+                  sum: float64
+                  quantile: 
+                    - quantile: float64
+                      value: float64
+                  flags: uint32
+                histogram:
+                  name: string | string_dictionary            # required
+                  description: string | string_dictionary
+                  unit: string | string_dictionary
+                  count: uint64
+                  sum: float64
+                  bucket_counts: []uint64
+                  explicit_bounds: []float64
+                  exemplars: *exemplars
+                  flags: uint32
+                  min: float64
+                  max: float64
+                  aggregation_temporality: int32
+                exp_histogram:
+                  name: string | string_dictionary            # required
+                  description: string | string_dictionary
+                  unit: string | string_dictionary
+                  count: uint64
+                  sum: float64
+                  scale: int32
+                  zero_count: uint64
+                  positive:
+                    offset: int32
+                    bucket_counts: []uint64
+                  negative:
+                    offset: int32
+                    bucket_counts: []uint64
+                  exemplars: *exemplars
+                  flags: uint32
+                  min: float64
+                  max: float64
+                  aggregation_temporality: int32
+```
+
 
 #### Logs Payload
 
