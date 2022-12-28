@@ -474,7 +474,7 @@ an automatic deduplication of data point attributes is performed. These shared d
 definition of the metric itself.
 * For native Arrow OTLP streams issued by client SDKs supporting multivariant metrics declaration, a more optimal native
 representation is used.
- 
+
 To take full advantage of this columnar representation, OTLP Arrow can optionally sort a subset of the text or binary columns to
 optimize the locality of identical data, thus increasing the compression ratio. More details on this aspect in the
 [Parameter tuning and Design optimization section](#appendix-c---parameter-tuning-and-design-optimization).
@@ -498,7 +498,7 @@ receiver.
 
 Most attributes are simply key-value pairs with values having a primitive data type (i.e. int64, double, bool, string,
 bytes). The representation of these attributes is done using a map (arrow data type) having for key a string (i.e. the
-name of the attribute), and for value a sparse union of all the possible primitive data types. To support more complex 
+name of the attribute), and for value a sparse union of all the possible primitive data types. To support more complex
 cases (supposedly rare), a specific variant is added to the sparse union. This variant named `cbor` contains a binary
 representation of complex attribute values in the form of a cbor encoding. This choice of representation defines a single
 Arrow schema that is known in advance and independent of the OTLP stream. This trade-off implements a simple and efficient
@@ -532,7 +532,7 @@ threshold (usually 2^16). YAML alias and anchor are used to avoid duplication of
 
 #### Metrics Payload
 
-We start by defining the Arrow Schema of the `exemplar` concept because it is used for several types of metrics. 
+We start by defining the Arrow Schema of the `exemplar` concept because it is used for several types of metrics.
 
 ```yaml
 # Exemplar Arrow Schema (declaration used in other schemas)
