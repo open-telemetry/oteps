@@ -10,11 +10,10 @@ with a **generic columnar representation for metrics, logs and traces**. This ex
 efficiency of the protocol for scenarios involving the transmission of large batches of metrics, logs, traces, and also
 provides a better representation for [multivariate time-series](#multivariate-time-series).
 
-** Reference implementation**:
-* [Go library](https://github.com/f5/otel-arrow-adapter) specifying the protobuf spec, and the OTLP Arrow
-Encoder/Decoder (main contributor [Laurent Querel](https://github.com/lquerel)).
-* [Experimental OTEL Collector](https://github.com/open-telemetry/experimental-arrow-collector) exposing the new gRPC
-endpoint and providing OTLP Arrow support via the library listed above (main contributor [Joshua MacDonald](https://github.com/jmacd)).
+**Reference implementation**: The [OTEL Arrow Adapter](https://github.com/f5/otel-arrow-adapter) Go library specifies
+the protobuf spec, and implements the OTLP Arrow Encoder/Decoder (main contributor [Laurent Querel](https://github.com/lquerel)).
+An [experimental OTEL Collector](https://github.com/open-telemetry/experimental-arrow-collector) has been implemented to
+expose the new gRPC endpoint and to provide OTLP Arrow support via the previous library (main contributor [Joshua MacDonald](https://github.com/jmacd)).
 
 
 ## Table of contents
