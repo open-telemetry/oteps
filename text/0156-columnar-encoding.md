@@ -1144,8 +1144,7 @@ message RetryInfo {
 ## Appendix B - Performance Benchmarks
 
 This section compares the performance of the OTLP protocol with the OTLP Arrow extension for sending batches of
-telemetry
-data. The main metrics compared are:
+telemetry data. The main metrics compared are:
 
 - The size of the batches once compressed to evaluate the bandwidth gain.
 - The time spent to create, serialize, compress, decompress, and deserialize the event batches to evaluate the gain in
@@ -1284,7 +1283,10 @@ smaller than an OTLP message with the same content.
 
 No benchmark has been conducted for traces due to lack of a dataset containing traces with links and events.
 
-Please feel free to share a dataset with such characteristics to complete this document.
+Please feel free to share a dataset with such characteristics to complete this document. 
+
+Please check this [open issue](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/13626) for more
+details on a solution to facilitate data sharing.
 
 ## Appendix C - Parameter Tuning and Design Optimization
 
