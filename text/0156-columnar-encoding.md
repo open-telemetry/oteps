@@ -854,11 +854,11 @@ implementation recommendations (phase 1):
 
 * OTLP Receiver: Listen on a single TCP port for both OTLP and OTLP Arrow. The goal is to make the support of this
   protocol extension
-  transparent and automatic. This can be achieved by adding the `EventsService` to the same gRPC listener. A
+  transparent and automatic. This can be achieved by adding the `ArrowStreamService` to the same gRPC listener. A
   configuration
   parameter could be added to the OTLP receiver to disable this default behavior to support specific uses.
-* OTLP Exporter: By default the OTLP exporter should initiate a connection to the `EventsService` endpoint of the target
-  receiver. If this connection fails because the `EventsService` is not implemented by the target, the exporter
+* OTLP Exporter: By default the OTLP exporter should initiate a connection to the `ArrowStreamService` endpoint of the target
+  receiver. If this connection fails because the `ArrowStreamService` is not implemented by the target, the exporter
   must automatically fall back on the behavior of the classic OTLP protocol. A configuration parameter could be added to
   disable this default behavior.
 
@@ -867,22 +867,22 @@ ecosystem.
 
 ### Batch ID Generation
 
-The `batch_id` attribute is used by the message delivery mechanism. Each `BatchEvent` issued must be associated with a
-unique `batch_id`. Uniqueness must be ensured in the scope of the stream opened by the call to the `EventsService`.
+The `batch_id` attribute is used by the message delivery mechanism. Each `BatchArrowRecords` issued must be associated with a
+unique `batch_id`. Uniqueness must be ensured in the scope of the stream opened by the call to the `ArrowStreamService`.
 This `batch_id` will be used in the `BatchStatus` object to acknowledge receipt and processing of the corresponding
 batch.
 A simple numeric counter can be used to implement this batch_id, the goal being to use the most concise id possible.
 
 ### Substream ID Generation
 
-The `sub_stream_id` attribute is used to identify a sub-stream of `BatchEvent` that share the same characteristics.
+The `sub_stream_id` attribute is used to identify a sub-stream of `BatchArrowRecords` that share the same characteristics.
 The life cycle of a substream is as follows:
 
-* In addition to the data, the first `BatchEvent` will contain its schema and an optional set of dictionaries.
-  A `sub_stream_id` is created and associated to this `BatchEvent`.
-* The following `BatchEvents` sharing the same characteristics then refer to the `sub_stream_id` to avoid the
+* In addition to the data, the first `BatchArrowRecords` will contain its schema and an optional set of dictionaries.
+  A `sub_stream_id` is created and associated to this `BatchArrowRecords`.
+* The following `BatchArrowRecords` sharing the same characteristics then refer to the `sub_stream_id` to avoid the
   retransmission of the schema and the dictionaries. Concerning the dictionaries, it is however possible to transmit an
-  updated version with this mechanism.
+  updated version with this mechanism (i.e. delta dictionaries).
 
 Multiple approaches are possible to create this `sub_stream_id` depending on the producer and the way the telemetry data
 is generated. Depending on the context, certain approaches are more appropriate:
@@ -896,8 +896,8 @@ is generated. Depending on the context, certain approaches are more appropriate:
 
 ### Schema ID Generation
 
-Within the collector, batching, filtering, exporting, ... operations require to group the `BatchEvent` having a
-compatible schema. A synthetic identifier (or `schema_id`) must be computed for each `BatchEvent` to perform this
+Within the collector, batching, filtering, exporting, ... operations require to group the `BatchArrowRecords` having a
+compatible schema. A synthetic identifier (or `schema_id`) must be computed for each `BatchArrowRecords` to perform this
 grouping.
 
 Since batch events come from multiple and uncontrolled sources, it is not possible to generalize the use of
@@ -961,7 +961,8 @@ TBD (phase 1)
 ## Risks and Mitigations
 
 An authentication mechanism is highly recommended to protect against malicious traffic. Without authentication, an OTLP
-receiver can be attacked in multiple ways ranging from DoS, traffic amplification to sending sensitive data.
+receiver can be attacked in multiple ways ranging from DoS, traffic amplification to sending sensitive data. This
+specification reuses the authentication mechanisms already in place in the collector.
 
 ## Trade-offs and Mitigations
 
@@ -998,6 +999,11 @@ prototype and its comparison with [Apache Arrow](https://arrow.apache.org/) diss
 We also considered using [ZST](https://zed.brimdata.io/docs/formats/zst/) from the Zed project as a columnar coding
 technology. Although this format has interesting properties, this project has not yet reached a sufficient level of
 maturity comparable to Apache Arrow.
+
+Finally, we also considered the use of Parquet records encapsulated in protobuf messages (similar to the approach described
+in this document). Although a Parquet representation offers some additional encoding modes that can improve the compression
+ratio, Parquet is not designed as an in-memory format optimized for online data processing. Apache Arrow is optimized for
+this type of scenario and offers the best trade-off of compression ratio, processing speed, and serialization/deserialization speed.
 
 ## Open Questions
 
