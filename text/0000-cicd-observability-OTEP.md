@@ -15,7 +15,7 @@ Lack of CI/CD observability results in unnecessarily long Lead Time for Changes,
 
 CI/CD tools today emit various telemetry data, whether logs, metrics or trace data to report on the release pipeline state. But they do not follow any particular standard, specification, or semantic conventions. This makes it hard to use observability tools for monitoring these pipelines. Some of these tools provide some observability visualization and analytics capabilities out of the box, but in addition to the tight coupling the offered capabilities are oftentime not enough, especially when one wishes to monitor aggregated information across different tools and different stages of the release process.
 
-Some tools have started adopting OpenTelemetry, which is an important step in creating standardization. A good example is [Jenkins](https://github.com/jenkinsci/jenkins), a popular CI OSS project, which offers an [Jenkins OpenTelemetry plugin](https://plugins.jenkins.io/opentelemetry/) for emitting telemetry data in order to:
+Some tools have started adopting OpenTelemetry, which is an important step in creating standardization. A good example is [Jenkins](https://github.com/jenkinsci/jenkins), a popular CI OSS project, which offers the [Jenkins OpenTelemetry plugin](https://plugins.jenkins.io/opentelemetry/) for emitting telemetry data in order to:
 1. Visualize jobs and pipelines executions as distributed traces
 2. Visualize Jenkins and pipeline health indicators
 3. Troubleshoot Jenkins performances with distributed tracing of HTTPs requests
@@ -30,7 +30,7 @@ For some examples of potential resulting observability visualization over popula
 
 ## Internal details
 
-OpenTelemetry specification should be enhanced to cover semantics relevant to pipelines, such as the branch, build, step (ID, duration, status), commit SHA (or other UUID), run (type, status, duration). In addition, distribution execution mechanism also introduces various entities, such as nodes, queues, jobs and executors (using the Jenkins terms, other tools having respective equivalents, which the specification should abstract with the semantic convention).
+OpenTelemetry specification should be enhanced to cover semantics relevant to pipelines, such as the branch, build, step (ID, duration, status), commit SHA (or other UUID), run (type, status, duration). In addition, distributed execution mechanism also introduces various entities in need of monitoring, such as nodes, queues, jobs and executors (using the Jenkins terms, other tools having respective equivalents, which the specification should abstract with the semantic convention).
 
 The CDF (Continuous Delivery Foundation) has the Events Special Interest Group ([SIG Events](https://github.com/cdfoundation/sig-events)) which explores standardizing on CI/CD event to facilitate interoperability (it is a work-stream within the CDF SIG Interoperability.). The group is working on [CDEvents](https://cdevents.dev/), a standardized event protocol that caters for technology agnostic machine-to-machine communication in CI/CD systems. I will be advised to evaluate alignment between the standards.
 
@@ -49,14 +49,14 @@ Today’s tools already emit some telemetry, which can be visualized by the tool
 ## Open questions
 
 Open questions include:
-Which entity model should be supported to best represent CI/CD domain and pipelines?
-What are the common CI/CD workflows we aim to support? 
-What are the primary tools that should be supported with instrumentation in order to gain critical mass on CI/CD coverage?
-Is CDEvents a good fit of a specification to integrate with? what is the aligmment, overlap and gaps? and if so, how to establish the cross-foundation and cross-group collaboration in an effective manner?
-How can we bring the existing ecosystem players, both open source and others, to form a concensus and leverage existing knowledge and experience?
-Which receivers are needed beyond OTLP to support the use cases and workflows?
-Which exporters are needed to support common backends?
-Which processors are needed to support the defined workflows?
+- Which entity model should be supported to best represent CI/CD domain and pipelines?
+- What are the common CI/CD workflows we aim to support? 
+- What are the primary tools that should be supported with instrumentation in order to gain critical mass on CI/CD coverage?
+- Is CDEvents a good fit of a specification to integrate with? what is the aligmment, overlap and gaps? and if so, how to establish the cross-foundation and cross-group collaboration in an effective manner?
+- How can we bring the existing ecosystem players, both open source and others, to form a concensus and leverage existing knowledge and experience?
+- Which receivers are needed beyond OTLP to support the use cases and workflows?
+- Which exporters are needed to support common backends?
+- Which processors are needed to support the defined workflows?
 
 ## Future possibilities
 
