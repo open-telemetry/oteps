@@ -5,7 +5,7 @@ OpenTelemetry project can serve Continuous Integration & Continuous Delivery (CI
 ## Motivation
 
 OpenTelemetry is already known for DevOps use cases around monitoring production systems and reducing mean time to identification and resolution/recovery (MTTI/MTTR).
-However, the project can also bring value for pre-production DevOps use cases, by enabling monitoring of the Continuous Integration & Continuous Delivery (CI/CD) pipelines. CI/CD observability helps to reduce the Lead Time for Changes, which is a crucial metric measuring how much time it takes a commit to get into production.
+However, the project can also bring value for pre-production DevOps use cases, by enabling monitoring of the Continuous Integration & Continuous Delivery (CI/CD) pipelines. CI/CD observability helps to reduce the Lead Time for Changes, which is another crucial [DORA metric](https://horovits.medium.com/improving-devops-performance-with-dora-metrics-918b9604f8e2) measuring how much time it takes a commit to get into production.
  
 This enhancement will broaden the target audience of the project also to Release Engineering teams, and will unleash a whole new value proposition of OpenTelemetry in the software release process, in close collaboration and integration with the CI/CD ecosystem, specifications and tooling.
 
