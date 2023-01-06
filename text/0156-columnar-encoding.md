@@ -520,7 +520,7 @@ attributes: &attributes                                 # arrow type = map
       f64: float64
       bool: bool 
       binary: binary_dictionary | binary
-      cbor: binary_dictionary | binary                  # cbor encoded complex attribute values
+      cbor: binary                                      # cbor encoded complex attribute values
 ```
 
 > **Arrow Schema Representation**: As there is no standard textual representation of schema arrows, we use a relatively simple YAML representation. The
@@ -538,16 +538,16 @@ We start by defining the Arrow Schema of the `exemplar` concept because it is us
 # Exemplar Arrow Schema (declaration used in other schemas)
 exemplars: &exemplars
 - attributes: *attributes       # YAML alias to the attributes schema defined previously
-  time_unix_nano: uint64
+  time_unix_nano: timestamp     # arrow type = timestamp (time unit nanoseconds)
   value:                        # arrow type = dense union
     i64: int64
     f64: float64
-  span_id: 8_bytes_binary_dictionary | 8_bytes_binary
-  trace_id: 16_bytes_binary_dictionary | 16_bytes_binary
+  span_id: 8_bytes_binary_dictionary | 8_bytes_binary       # arrow fixed size binary array
+  trace_id: 16_bytes_binary_dictionary | 16_bytes_binary    # arrow fixed size binary array
 ```
 
-`span_id` and `trace_id` are represented as binary dictionaries by default but can evolve to non-dictionary form when
-their cardinality exceeds a certain threshold (usually 2^16).
+`span_id` and `trace_id` are represented as fixed size binary dictionaries by default but can evolve to non-dictionary
+form when their cardinality exceeds a certain threshold (usually 2^16).
 
 The Arrow Schema for the univariate metrics is the following:
 
@@ -573,64 +573,52 @@ resource_metrics:
           #
           # Shared attributes and timestamps are optional and only used for optimization
           # purposes.
-          univariate_metrics:                             
-            - name: string | string_dictionary            # required
+          univariate_metrics:                               # arrow type = list                            
+            - name: string | string_dictionary              # required, arrow type = struct
               description: string | string_dictionary
               unit: string | string_dictionary 
-              shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
-              shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
-              shared_time_unix_nano: uint64               # required if not defined in data points
-              data:                                       # arrow type = sparse union
-                - gauge: 
-                    shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
-                    shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
-                    shared_time_unix_nano: uint64               # required if not defined in data points
+              shared_attributes: *attributes                # attributes inherited by data points if not defined locally 
+              shared_start_time_unix_nano: timestamp        # start time inherited by data points if not defined locally
+              shared_time_unix_nano: timestamp              # required if not defined in data points
+              data:                                         # arrow type = sparse union
+                gauge:                                      # arrow type = struct 
                     data_points: 
                       - attributes: *attributes
-                        start_time_unix_nano: uint64
-                        time_unix_nano: uint64            # required if not defined as a shared field in the metric
-                        value:                            # arrow type = dense union
+                        start_time_unix_nano: timestamp     # arrow type = timestamp (time unit nanoseconds)
+                        time_unix_nano: timestamp           # required if not defined as a shared field in the metric
+                        value:                              # arrow type = dense union
                           i64: int64 
                           f64: float64 
                         exemplars: *exemplars
                         flags: uint32
-                  sum:
-                    shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
-                    shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
-                    shared_time_unix_nano: uint64               # required if not defined in data points
+                sum:                                        # arrow type = struct
                     data_points: 
                       - attributes: *attributes
-                        start_time_unix_nano: uint64
-                        time_unix_nano: uint64            # required
-                        value:                            # arrow type = dense union
+                        start_time_unix_nano: timestamp   
+                        time_unix_nano: timestamp           # required
+                        value:                              # arrow type = dense union
                           i64: int64
                           f64: float64
                         exemplars: *exemplars
                         flags: uint32
                     aggregation_temporality: int32
                     is_monotonic: bool
-                  summary:
-                    shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
-                    shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
-                    shared_time_unix_nano: uint64               # required if not defined in data points
+                summary:                                    # arrow type = struct
                     data_points: 
                       - attributes: *attributes
-                        start_time_unix_nano: uint64
-                        time_unix_nano: uint64            # required
+                        start_time_unix_nano: timestamp
+                        time_unix_nano: timestamp           # required
                         count: uint64
                         sum: float64
                         quantile: 
                           - quantile: float64
                             value: float64
                         flags: uint32
-                  histogram:
-                    shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
-                    shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
-                    shared_time_unix_nano: uint64               # required if not defined in data points
+                histogram:                                  # arrow type = struct
                     data_points:
                       - attributes: *attributes
-                        start_time_unix_nano: uint64
-                        time_unix_nano: uint64
+                        start_time_unix_nano: timestamp
+                        time_unix_nano: timestamp
                         count: uint64
                         sum: float64
                         bucket_counts: []uint64
@@ -640,14 +628,11 @@ resource_metrics:
                         exemplars: *exemplars
                         flags: uint32
                     aggregation_temporality: int32
-                  exp_histogram:
-                    shared_attributes: *attributes              # attributes inherited by data points if not defined locally 
-                    shared_start_time_unix_nano: uint64         # start time inherited by data points if not defined locally
-                    shared_time_unix_nano: uint64               # required if not defined in data points
+                exp_histogram:                              # arrow type = struct
                     data_points:
                       - attributes: *attributes
-                        start_time_unix_nano: uint64
-                        time_unix_nano: uint64
+                        start_time_unix_nano: timestamp
+                        time_unix_nano: timestamp
                         count: uint64
                         sum: float64
                         scale: int32
@@ -691,12 +676,12 @@ resource_metrics:
           # Each metrics is defined by a name, a set of data points, and optionally a description
           # and a unit.
           multivariate_metrics:                       
-            attributes: *attributes                   # All multivariate metrics shared the same attributes
-            start_time_unix_nano: uint64              # All multivariate metrics shared the same timestamps
-            time_unix_nano: uint64                    # required
-            metrics:                                     # arrow type = sparse union
-              - gauge:
-                  name: string | string_dictionary            # required
+            attributes: *attributes                         # All multivariate metrics shared the same attributes
+            start_time_unix_nano: timestamp                 # All multivariate metrics shared the same timestamps
+            time_unix_nano: timestamp                       # required
+            metrics:                                        # arrow type = list of sparse union
+              - gauge:                                      # arrow type = struct
+                  name: string | string_dictionary          # required
                   description: string | string_dictionary
                   unit: string | string_dictionary 
                   value:                                    # arrow type = dense union
@@ -704,8 +689,8 @@ resource_metrics:
                     f64: float64
                   exemplars: *exemplars
                   flags: uint32  
-                sum:
-                  name: string | string_dictionary            # required
+                sum:                                        # arrow type = struct
+                  name: string | string_dictionary          # required
                   description: string | string_dictionary
                   unit: string | string_dictionary
                   value:                                    # arrow type = dense union
@@ -715,8 +700,8 @@ resource_metrics:
                   flags: uint32
                   aggregation_temporality: int32
                   is_monotonic: bool
-                summary:
-                  name: string | string_dictionary            # required
+                summary:                                    # arrow type = struct
+                  name: string | string_dictionary          # required
                   description: string | string_dictionary
                   unit: string | string_dictionary
                   count: uint64 
@@ -725,8 +710,8 @@ resource_metrics:
                     - quantile: float64
                       value: float64
                   flags: uint32
-                histogram:
-                  name: string | string_dictionary            # required
+                histogram:                                  # arrow type = struct
+                  name: string | string_dictionary          # required
                   description: string | string_dictionary
                   unit: string | string_dictionary
                   count: uint64
@@ -738,8 +723,8 @@ resource_metrics:
                   min: float64
                   max: float64
                   aggregation_temporality: int32
-                exp_histogram:
-                  name: string | string_dictionary            # required
+                exp_histogram:                              # arrow type = struct
+                  name: string | string_dictionary          # required
                   description: string | string_dictionary
                   unit: string | string_dictionary
                   count: uint64
@@ -777,19 +762,19 @@ resource_logs:
           dropped_attributes_count: uint32
         schema_url: string | string_dictionary 
         logs: 
-          - time_unix_nano: uint64 
-            observed_time_unix_nano: uint64 
-            trace_id: 16_bytes_binary | 16_bytes_binary_dictionary 
-            span_id: 8_bytes_binary | 8_bytes_binary_dictionary
+          - time_unix_nano: timestamp 
+            observed_time_unix_nano: timestamp 
+            trace_id: 16_bytes_binary | 16_bytes_binary_dictionary  # arrow fixed size binary array
+            span_id: 8_bytes_binary | 8_bytes_binary_dictionary     # arrow fixed size binary array
             severity_number: int32 
             severity_text: string | string_dictionary 
-            body:                                           # arrow type: sparse union
+            body:                                                   # arrow type: sparse union
               str: string | string_dictionary 
               i64: int64 
               f64: float64 
               bool: bool 
               binary: binary | binary_dictionary
-              cbor: binary_dictionary | binary              # cbor encoded complex body value
+              cbor: binary                                          # cbor encoded complex body value
             attributes: *attributes
             dropped_attributes_count: uint32 
             flags: uint32
@@ -814,26 +799,26 @@ resource_spans:
           attributes: *attributes
           dropped_attributes_count: uint32
         schema_url: string | string_dictionary 
-        spans:
-          - start_time_unix_nano: uint64                                  # required 
-            end_time_unix_nano: uint64                                    # required
-            trace_id: 16_bytes_binary | 16_bytes_binary_dictionary        # required
-            span_id: 8_bytes_binary | 8_bytes_binary_dictionary           # required
+        spans:                                                            # arrow type = list of struct
+          - start_time_unix_nano: timestamp                               # required 
+            end_time_unix_nano: timestamp                                 # required
+            trace_id: 16_bytes_binary | 16_bytes_binary_dictionary        # required, arrow fixed size binary array
+            span_id: 8_bytes_binary | 8_bytes_binary_dictionary           # required, arrow fixed size binary array
             trace_state: string | string_dictionary 
-            parent_span_id: 8_bytes_binary | 8_bytes_binary_dictionary 
+            parent_span_id: 8_bytes_binary | 8_bytes_binary_dictionary    # arrow fixed size binary array
             name: string | string_dictionary                              # required
             kind: int32 
             attributes: *attributes
             dropped_attributes_count: uint32 
             events: 
-              - time_unix_nano: uint64 
+              - time_unix_nano: timestamp 
                 name: string | string_dictionary 
                 attributes: *attributes
                 dropped_attributes_count: uint32
             dropped_events_count: uint32 
             links: 
-              - trace_id: 16_bytes_binary | 16_bytes_binary_dictionary 
-                span_id: 8_bytes_binary | 8_bytes_binary_dictionary
+              - trace_id: 16_bytes_binary | 16_bytes_binary_dictionary    # arrow fixed size binary array
+                span_id: 8_bytes_binary | 8_bytes_binary_dictionary       # arrow fixed size binary array
                 trace_state: string | string_dictionary 
                 attributes: *attributes
                 dropped_attributes_count: uint32 
