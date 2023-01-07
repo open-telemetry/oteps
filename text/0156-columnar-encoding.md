@@ -494,12 +494,13 @@ attribute-to-column mapping because the concept of attribute is common to all pa
 to `OtlpArrowPayload` has been designed to be reversible in order to be able to implement an OTLP Arrow -> OTLP
 receiver.
 
-> **Explanation on the Arrow Schema representation**: As there is no standard textual representation of schema arrows, we use a relatively simple YAML representation. The
-name of the Arrow columns are represented as a YAML key. The value of the YAML key represents the Arrow data type.
-Complex types are specified as comments (e.g. arrow map, sparse union). The notation `string_dictionary | string` or
-`binary_dictionary | binary` represents columns which are by default of dictionary type (string or binary) and which
-can evolve dynamically in non-dictionary form when the cardinality of the corresponding column exceeds a certain
-threshold (usually 2^16). YAML alias and anchor are used to avoid duplication of the same schema definition.
+> **Interpretation of the Arrow Schema representation** used in the next section: As there is no standard textual
+> representation of schema arrows, we use a relatively simple YAML representation. The name of the Arrow columns are
+> represented as a YAML key. The value of the YAML key represents the Arrow data type. Complex types are specified
+> as comments (e.g. arrow map, sparse union). The notation `string_dictionary | string` or `binary_dictionary | binary`
+> represents columns which are by default of dictionary type (string or binary) and which can evolve dynamically in
+> non-dictionary form when the cardinality of the corresponding column exceeds a certain threshold (usually 2^16).
+> YAML alias and anchor are used to avoid duplication of the same schema definition.
 
 #### Attribute Representation
 
@@ -546,19 +547,23 @@ We start by defining the Arrow Schema of the `exemplar` concept because it is us
 
 ```yaml
 # Exemplar Arrow Schema (declaration used in other schemas)
-exemplars: &exemplars
-- attributes: *attributes       # YAML alias to the attributes schema defined previously
-  time_unix_nano: timestamp     # arrow type = timestamp (time unit nanoseconds)
-  value:                        # arrow type = dense union
-    i64: int64
-    f64: float64
-  span_id: 8_bytes_binary_dictionary | 8_bytes_binary       # arrow fixed size binary array
-  trace_id: 16_bytes_binary_dictionary | 16_bytes_binary    # arrow fixed size binary array
+exemplars: &exemplars             # arrow type = list of struct
+  - attributes: *attributes       # YAML alias to the attributes schema defined previously
+    time_unix_nano: timestamp     # arrow type = timestamp (time unit nanoseconds)
+    value:                        # arrow type = sparse union
+      i64: int64
+      f64: float64
+    span_id: 8_bytes_binary_dictionary | 8_bytes_binary       # arrow fixed size binary array
+    trace_id: 16_bytes_binary_dictionary | 16_bytes_binary    # arrow fixed size binary array
 ```
 
 `span_id` and `trace_id` are represented as fixed size binary dictionaries by default but can evolve to non-dictionary
 form when their cardinality exceeds a certain threshold (usually 2^16).
 
+> Note: every OTLP timestamps are represented as Arrow timestamps with nanoseconds time unit. This representation will
+> simplify the integration with the rest of the Arrow ecosystem (numerous time/date functions are supported in
+> DataFusion for example).
+ 
 The Arrow Schema for the univariate metrics is the following:
 
 ```yaml
@@ -566,14 +571,14 @@ resource_metrics:
     - resource: 
         attributes: *attributes
         dropped_attributes_count: uint32 
-      schema_url: string | string_dictionary
+      schema_url: string_dictionary | string
       scope_metrics: 
         - scope: 
-            name: string | string_dictionary 
-            version: string | string_dictionary 
+            name: string_dictionary | string
+            version: string_dictionary | string 
             attributes: *attributes
             dropped_attributes_count: uint32
-          schema_url: string | string_dictionary
+          schema_url: string_dictionary | string
           # This section represents the standard OTLP metrics as defined in OTEL v1 
           # specifications.
           #
@@ -584,9 +589,9 @@ resource_metrics:
           # Shared attributes and timestamps are optional and only used for optimization
           # purposes.
           univariate_metrics:                               # arrow type = list                            
-            - name: string | string_dictionary              # required, arrow type = struct
-              description: string | string_dictionary
-              unit: string | string_dictionary 
+            - name: string_dictionary | string              # required, arrow type = struct
+              description: string_dictionary | string
+              unit: string_dictionary | string 
               shared_attributes: *attributes                # attributes inherited by data points if not defined locally 
               shared_start_time_unix_nano: timestamp        # start time inherited by data points if not defined locally
               shared_time_unix_nano: timestamp              # required if not defined in data points
@@ -596,22 +601,22 @@ resource_metrics:
                       - attributes: *attributes
                         start_time_unix_nano: timestamp     # arrow type = timestamp (time unit nanoseconds)
                         time_unix_nano: timestamp           # required if not defined as a shared field in the metric
-                        value:                              # arrow type = dense union
+                        value:                              # arrow type = sparse union
                           i64: int64 
                           f64: float64 
                         exemplars: *exemplars
-                        flags: uint32
+                        flags: uint32                       # each flag defined in this enum is a bit-mask
                 sum:                                        # arrow type = struct
                     data_points: 
                       - attributes: *attributes
                         start_time_unix_nano: timestamp   
                         time_unix_nano: timestamp           # required
-                        value:                              # arrow type = dense union
+                        value:                              # arrow type = sparse union
                           i64: int64
                           f64: float64
                         exemplars: *exemplars
-                        flags: uint32
-                    aggregation_temporality: int32
+                        flags: uint32                         # each flag defined in this enum is a bit-mask
+                    aggregation_temporality: uint8_dictionary # OTLP enum with 3 variants
                     is_monotonic: bool
                 summary:                                    # arrow type = struct
                     data_points: 
@@ -620,10 +625,10 @@ resource_metrics:
                         time_unix_nano: timestamp           # required
                         count: uint64
                         sum: float64
-                        quantile: 
+                        quantile:                           # arrow type = list of struct
                           - quantile: float64
                             value: float64
-                        flags: uint32
+                        flags: uint32                       # each flag defined in this enum is a bit-mask
                 histogram:                                  # arrow type = struct
                     data_points:
                       - attributes: *attributes
@@ -636,7 +641,7 @@ resource_metrics:
                         min: float64
                         max: float64
                         exemplars: *exemplars
-                        flags: uint32
+                        flags: uint32                       # each flag defined in this enum is a bit-mask
                     aggregation_temporality: int32
                 exp_histogram:                              # arrow type = struct
                     data_points:
@@ -656,12 +661,15 @@ resource_metrics:
                         min: float64
                         max: float64
                         exemplars: *exemplars
-                        flags: uint32
-                    aggregation_temporality: int32
+                        flags: uint32                         # each flag defined in this enum is a bit-mask
+                    aggregation_temporality: uint8_dictionary # OTLP enum with 3 variants
 ```
 
 `Gauge`, `Sum`, `Histogram`, `Exponential Histogram`, and `Summary` are represented as Arrow Sparse Union of structs.
 Additional variants can be added in the future.
+
+> Note: `aggregation_temporality` is represented as an Arrow dictionary with a dictionary index of type int8. This OTLP
+> enum has current 3 variants, and we don't expect to have in the future more than 2^8 variants.
 
 The Arrow Schema for the native multivariate metrics is the following:
 
@@ -708,7 +716,7 @@ resource_metrics:
                     f64: float64
                   exemplars: *exemplars
                   flags: uint32
-                  aggregation_temporality: int32
+                  aggregation_temporality: uint8_dictionary # OTLP enum with 3 variants
                   is_monotonic: bool
                 summary:                                    # arrow type = struct
                   name: string | string_dictionary          # required
@@ -751,7 +759,7 @@ resource_metrics:
                   flags: uint32
                   min: float64
                   max: float64
-                  aggregation_temporality: int32
+                  aggregation_temporality: uint8_dictionary # OTLP enum with 3 variants
 ```
 
 #### Logs Payload
@@ -776,7 +784,7 @@ resource_logs:
             observed_time_unix_nano: timestamp 
             trace_id: 16_bytes_binary | 16_bytes_binary_dictionary  # arrow fixed size binary array
             span_id: 8_bytes_binary | 8_bytes_binary_dictionary     # arrow fixed size binary array
-            severity_number: int32 
+            severity_number: uint8_dictionary                       # OTLP enum with 25 variants 
             severity_text: string | string_dictionary 
             body:                                                   # arrow type: sparse union
               str: string | string_dictionary 
@@ -817,7 +825,7 @@ resource_spans:
             trace_state: string | string_dictionary 
             parent_span_id: 8_bytes_binary | 8_bytes_binary_dictionary    # arrow fixed size binary array
             name: string | string_dictionary                              # required
-            kind: int32 
+            kind: uint8_dictionary                                        # OTLP enum with 6 variants 
             attributes: *attributes
             dropped_attributes_count: uint32 
             events: 
@@ -834,7 +842,7 @@ resource_spans:
                 dropped_attributes_count: uint32 
             dropped_links_count: uint32
             status: 
-              code: int32 
+              code: uint8_dictionary                                      # OTLP enum with 4 variants 
               status_message: string | string_dictionary
 ```
 
