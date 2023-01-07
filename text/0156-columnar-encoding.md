@@ -444,7 +444,7 @@ The selected approach is to use nested lists of structures to represent the gene
 to represent the highly dynamic attributes of the different levels. As the [benchmarks](#appendix-b---performance-benchmarks)
 show, this representation offers a good compromise between speed and compression ratio.
 
-Note: Historically this specification used a representation that flattened these three groups of fields (i.e. resource,
+> Note: Historically this specification used a representation that flattened these three groups of fields (i.e. resource,
 instrumentation scope, and metrics) into a single entity. Although efficient when compressed, this representation had
 the drawback, on real production data, of significantly duplicating the first levels of the hierarchy implying a higher
 CPU and memory consumption during the batch construction phase.
@@ -472,8 +472,8 @@ OTLP Arrow proposes to support multivariate time series in two different ways de
 * For standard OTLP streams containing univariate metrics that follow a model equivalent to that used by `system.memory.usage`,
 an automatic deduplication of data point attributes is performed. These shared data point attributes are moved to the
 definition of the metric itself.
-* For native Arrow OTLP streams issued by client SDKs supporting multivariant metrics declaration, a more optimal native
-representation is used.
+* For native Arrow OTLP streams issued by client SDKs supporting multivariate metrics declaration, a more optimal native
+representation is used (see the arrow schema for multivariate metrics).
 
 To take full advantage of this columnar representation, OTLP Arrow can optionally sort a subset of the text or binary columns to
 optimize the locality of identical data, thus increasing the compression ratio. More details on this aspect in the
@@ -494,17 +494,24 @@ attribute-to-column mapping because the concept of attribute is common to all pa
 to `OtlpArrowPayload` has been designed to be reversible in order to be able to implement an OTLP Arrow -> OTLP
 receiver.
 
+> **Explanation on the Arrow Schema representation**: As there is no standard textual representation of schema arrows, we use a relatively simple YAML representation. The
+name of the Arrow columns are represented as a YAML key. The value of the YAML key represents the Arrow data type.
+Complex types are specified as comments (e.g. arrow map, sparse union). The notation `string_dictionary | string` or
+`binary_dictionary | binary` represents columns which are by default of dictionary type (string or binary) and which
+can evolve dynamically in non-dictionary form when the cardinality of the corresponding column exceeds a certain
+threshold (usually 2^16). YAML alias and anchor are used to avoid duplication of the same schema definition.
+
 #### Attribute Representation
 
 Most attributes are simply key-value pairs with values having a primitive data type (i.e. int64, double, bool, string,
 bytes). The representation of these attributes is done using a map (arrow data type) having for key a string (i.e. the
-name of the attribute), and for value a sparse union of all the possible primitive data types. To support more complex
+name of the attribute, also represented as string dictionary), and for value a sparse union of all the possible primitive data types. To support more complex
 cases (supposedly rare), a specific variant is added to the sparse union. This variant named `cbor` contains a binary
 representation of complex attribute values in the form of a cbor encoding. This choice of representation defines a single
 Arrow schema that is known in advance and independent of the OTLP stream. This trade-off implements a simple and efficient
 mapping for the vast majority of cases and switches to CBOR encoding for more complex minority cases.
 
-A more structured approach has been studied and implemented based on Arrow lists, maps and structs. Although slightly
+> A more structured approach has been studied and implemented based on Arrow lists, maps and structs. Although slightly
 more efficient in terms of compression rate, this approach requires a much higher level of complexity. The number of
 Arrow schemas to be dynamically generated depends directly on the telemetry flows. It has been observed that on real
 production data, the number of different schemas to be maintained can be in the order of several hundred due to the
@@ -513,7 +520,7 @@ high variability of the nature of the attributes within the OTLP entities.
 ```yaml
 # Attributes Arrow Schema (declaration used in other schemas)
 attributes: &attributes                                 # arrow type = map
-  - key: string_dictionary | string
+  - key: string_dictionary | string                     # string dictionary by default, fallback to a string column when the cardinality is too high
     value:                                              # arrow type = sparse union
       str: string_dictionary | string 
       i64: int64
@@ -523,12 +530,15 @@ attributes: &attributes                                 # arrow type = map
       cbor: binary                                      # cbor encoded complex attribute values
 ```
 
-> **Arrow Schema Representation**: As there is no standard textual representation of schema arrows, we use a relatively simple YAML representation. The
-name of the Arrow columns are represented as a YAML key. The value of the YAML key represents the Arrow data type.
-Complex types are specified as comments (e.g. arrow map, sparse union). The notation `string_dictionary | string` or
-`binary_dictionary | binary` represents columns which are by default of dictionary type (string or binary) and which
-can evolve dynamically in non-dictionary form when the cardinality of the corresponding column exceeds a certain
-threshold (usually 2^16). YAML alias and anchor are used to avoid duplication of the same schema definition.
+> Note: **Dense vs Sparse union**: Apache Arrow supports two types of union: dense and sparse. Dense unions are more efficient
+> in memory usage but are less efficient in terms of compression ratio and processing speed. The memory consumed by a
+> sparse union depends directly on the number of variants present in the union definition. It is therefore important to
+> keep the number of variants low. The `cbor` variant groups all complex attribute values that cannot be represented
+> with the other available variants. This representation aims to minimize the memory overhead related to the number
+> of variants in the union. The current tradeoff allows to optimize the compression rate and the compression speed.
+> Optimizations on memory consumption are theoretically possible at the level of the Arrow Go library in order to
+> minimize the overhead of sparse unions in the future.
+
 
 #### Metrics Payload
 
