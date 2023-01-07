@@ -23,7 +23,7 @@ expose the new gRPC endpoint and to provide OTLP Arrow support via the previous 
   * [Why Apache Arrow and How to Use It?](#why-apache-arrow-and-how-to-use-it)
   * [Integration Strategy and Phasing](#integration-strategy-and-phasing)
 * [Protocol Details](#protocol-details)
-  * [EventStream Service](#eventstream-service)
+  * [ArrowStreamService](#arrowstreamservice)
   * [Mapping OTEL Entities to Arrow Records](#mapping-otel-entities-to-arrow-records)
     * [Attribute Representation](#attribute-representation)
     * [Metrics Payload](#metrics-payload)
@@ -212,7 +212,7 @@ The protocol specifications are composed of two parts. The first section describ
 column-oriented telemetry data. The second section presents the mapping between the OTLP entities and their Apache
 Arrow counterpart.
 
-### ArrowStreamService Service
+### ArrowStreamService
 
 OTLP Arrow defines the columnar encoding of telemetry data and the gRPC-based protocol used to exchange data between
 the client and the server. OTLP Arrow is a bi-directional stream oriented protocol leveraging Apache Arrow for the
