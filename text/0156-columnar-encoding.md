@@ -139,7 +139,8 @@ sections:
 [Apache Arrow](https://arrow.apache.org/) is a versatile columnar format for flat and hierarchical data, well
 established in the industry. Arrow is optimized for:
 
-* fast serialization and deserialization of columnar data (zero-copy)
+* column-oriented data exchange based on an in-memory format common among implementations, regardless of the language.
+The use of a serialization and deserialization mechanism is thus eliminated, allowing the Zero-copy.
 * in-memory analytic operations using modern hardware optimizations (e.g. SIMD)
 * integration with a large ecosystem (e.g. data pipelines, databases, stream processing, etc.)
 * language-independent
