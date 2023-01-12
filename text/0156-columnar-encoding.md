@@ -549,7 +549,6 @@ attributes: &attributes                                 # arrow type = map
 > Optimizations on memory consumption are theoretically possible at the level of the Arrow Go library in order to
 > minimize the overhead of sparse unions in the future.
 
-
 #### Metrics Payload
 
 We start by defining the Arrow Schema of the `exemplar` concept because it is used for several types of metrics.
