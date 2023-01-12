@@ -355,10 +355,11 @@ The `compression` attribute is a mandatory attribute that is used to define the 
 bytes buffer.
 
 ZSTD offers a training mode, which can be used to tune the algorithm for a selected type of data. The result of this
-training is a dictionary that can be used to compress the data. Using this dictionary can dramatically improve the
-compression rate for small batches. This future development will build on both the gRPC stream approach used in this
-proposal and the ability to send a ZSTD dictionary over the OTLP Arrow stateful protocol, allowing us to train the ZSTD
-algorithm on the first batches and then update the configuration of the ZSTD encoder/decoder with an optimized dictionary.
+training is a dictionary that can be used to compress the data. Using this [dictionary](http://facebook.github.io/zstd/#small-data) 
+can dramatically improve the compression rate for small batches. This future development will build on both the gRPC
+stream approach used in this proposal and the ability to send a ZSTD dictionary over the OTLP Arrow stateful protocol,
+allowing us to train the ZSTD algorithm on the first batches and then update the configuration of the ZSTD
+encoder/decoder with an optimized dictionary.
 
 This type of optimization, combined with the fact that we can use schema awareness at the arrow level to further improve
 the compression ratio, are the main motivations for this design. If we rely solely on the standard collector compression
@@ -571,7 +572,7 @@ form when their cardinality exceeds a certain threshold (usually 2^16).
 > Note: every OTLP timestamps are represented as Arrow timestamps with nanoseconds time unit. This representation will
 > simplify the integration with the rest of the Arrow ecosystem (numerous time/date functions are supported in
 > DataFusion for example).
- 
+
 The Arrow Schema for the univariate metrics is the following:
 
 ```yaml
