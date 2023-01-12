@@ -354,9 +354,18 @@ The `record` attribute is a binary representation of the Arrow RecordBatch.
 The `compression` attribute is a mandatory attribute that is used to define the compression algorithms for the different
 bytes buffer.
 
+ZSTD offers a training mode, which can be used to tune the algorithm for a selected type of data. The result of this
+training is a dictionary that can be used to compress the data. Using this dictionary can dramatically improve the
+compression rate for small batches. This future development will build on both the gRPC stream approach used in this
+proposal and the ability to send a ZSTD dictionary over the OTLP Arrow stateful protocol, allowing us to train the ZSTD
+algorithm on the first batches and then update the configuration of the ZSTD encoder/decoder with an optimized dictionary.
+
+This type of optimization, combined with the fact that we can use schema awareness at the arrow level to further improve
+the compression ratio, are the main motivations for this design. If we rely solely on the standard collector compression
+configuration, the level of awareness and optimization options will not be the same.
+
 > Note: By storing Arrow buffers in a protobuf field of type 'bytes' we can leverage the zero-copy capability of some
-> Protobuf
-> implementations (e.g. C++, Java, Rust) in order to get the most out of Arrow (relying on zero-copy ser/deser
+> Protobuf implementations (e.g. C++, Java, Rust) in order to get the most out of Arrow (relying on zero-copy ser/deser
 > framework).
 
 On the egress stream, a `BatchStatus` message is a collection of `StatusMessage`. A `StatusMessage` is composed of 5
@@ -1020,6 +1029,12 @@ able to persistently store the telemetry data until the receipt of an ack messag
 carry forward the received acknowledgements from the downstream elements and finally the final backend must be able to
 perform idempotent insertion operations and return an acknowledgement when the insertion is successful. The support of a
 such guarantee of delivery is still an open question.
+
+ZSTD offers a training mode, which can be used to tune the algorithm for a selected type of data. The result of this
+training is a dictionary that can be used to compress the data. Using this dictionary can dramatically improve the
+compression rate for small batches. This future development will build on both the gRPC stream approach used in this
+proposal and the ability to send a ZSTD dictionary over the OTLP Arrow stateful protocol, allowing us to train the ZSTD
+algorithm on the first batches and then update the configuration of the ZSTD encoder/decoder with an optimized dictionary.
 
 More advanced lightweight compression algorithms on a per column basis could be integrated to the OTLP Arrow
 protocol (e.g. delta delta encoding for numerical columns)
