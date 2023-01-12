@@ -252,11 +252,13 @@ service ArrowStreamService {
 }
 ```
 
-We use a stream-oriented protocol **to get rid of the overhead of specifying the schema and dictionaries for each
-batch.**
-A state will be maintained receiver side to keep track of the schemas and dictionaries.
-The [Arrow IPC format](#arrow-ipc-format) has been
-designed to follow this pattern and also allows the dictionaries to be sent incrementally.
+> **Unary RPC vs Stream RPC**: We use a stream-oriented protocol **to get rid of the overhead of specifying the schema
+> and dictionaries for each batch.** A state will be maintained receiver side to keep track of the schemas and
+> dictionaries. The [Arrow IPC format](#arrow-ipc-format) has been designed to follow this pattern and also allows the
+> dictionaries to be sent incrementally. Similarly, ZSTD dictionaries can also be transferred to the RPC stream to
+> optimize the transfer of small batches (for more details see the description of the compression field in the
+> following paragraphs). To mitigate the usual pitfalls of a stream-oriented protocol please see this [paragraph](#traffic-balancing-optimization) in the
+> implementation recommendations section.
 
 A `BatchArrowRecords` message is composed of 3 attributes. The protobuf definition is:
 
