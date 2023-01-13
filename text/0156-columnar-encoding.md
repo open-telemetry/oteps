@@ -282,10 +282,10 @@ identify the batch in the egress `BatchStatus` stream. See the [Batch Id generat
 more information on the implementation of this identifier.
 
 The `otlp_arrow_payloads` attribute is a list of `OtlpArrowPayload` messages. Each `OtlpArrowPayload` message represents
-a table of data encoded in a columnar format (metrics, logs, or traces). Although not used in the current version of
-this protocol, this attribute is an array to allow representing different types of entities.
-More details on the `OtlpArrowPayload` columns in the
-section [Mapping OTEL entities to Arrow records](#mapping-otel-entities-to-arrow-records).
+a table of data encoded in a columnar format (e.g. metrics, logs, traces, and future OTLP entities). Several correlated
+IPC Arrow messages of different nature and with different schemas can be sent in the same OTLP batch identified by
+`batch_id` and thus be processed as one unit without complex logic in the collector or any other processing systems.
+More details on the `OtlpArrowPayload` columns in the section [Mapping OTEL entities to Arrow records](#mapping-otel-entities-to-arrow-records).
 
 The `delivery_type` attribute is an optional attribute that can be used to indicate the type of message delivery
 guarantee expected by the sender. The delivery types are defined by the following protobuf enumeration:
