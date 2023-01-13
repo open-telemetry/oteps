@@ -865,20 +865,62 @@ resource_spans:
 ### Protocol Extension and Fallback Mechanism
 
 The support of this new protocol can only be progressive, so implementers are advised to follow the following
-implementation recommendations (phase 1):
+implementation recommendations in phase 1:
 
 * OTLP Receiver: Listen on a single TCP port for both OTLP and OTLP Arrow. The goal is to make the support of this
   protocol extension
   transparent and automatic. This can be achieved by adding the `ArrowStreamService` to the same gRPC listener. A
   configuration
-  parameter could be added to the OTLP receiver to disable this default behavior to support specific uses.
+  parameter will be added to the OTLP receiver to disable this default behavior to support specific uses.
 * OTLP Exporter: By default the OTLP exporter should initiate a connection to the `ArrowStreamService` endpoint of the target
   receiver. If this connection fails because the `ArrowStreamService` is not implemented by the target, the exporter
   must automatically fall back on the behavior of the classic OTLP protocol. A configuration parameter could be added to
   disable this default behavior.
 
-The implementation of these two rules should allow a seamless and adaptive integration of OTLP Arrow into the current
-ecosystem.
+The implementation of these two rules should allow a seamless and
+adaptive integration of OTLP Arrow into the current ecosystem
+generally.
+
+For the prototype specifically, which is a fork of the OpenTelemetry
+collector codebase, we have derived the OTLP/gRPC-Arrow exporter and
+receiver as set of changes directly to the `receiver/otlpreceiver` and
+`exporter/otlpexporter` components, with new `internal/arrow` packages
+in both.  With every collector release we merge the OTLP-Arrow changes
+with the mainline components to maintain this promise of
+compatibility.
+
+OTLP-Arrow supports conveying the gRPC metadta (i.e., http2 headers) using a dedicated `bytes` field.  Metadata is
+encoded using [hpack](https://datatracker.ietf.org/doc/rfc7541/) like a typical unary gRPC request.
+
+Specifically:
+
+#### OTLP/gRPC Receiver
+
+When Arrow is enabled, the OTLP receiver listens for both the standard unary gRPC service OTLP and OTLP-Arrow stream
+services.  Each stream uses an instance of the OTel-Arrow-Adapter's
+[Consumer](https://pkg.go.dev/github.com/f5/otel-arrow-adapter@v0.0.0-20230112224802-dafb6df21c97/pkg/otel/arrow_record#Consumer). Sets
+`client.Metadata` in the Context.
+
+#### OTLP/gRPC Exporter
+
+When Arrow is enabled, the OTLP exporter starts a fixed number of streams and repeatedly sends one `plog.Logs`,
+`ptrace.Traces`, or `pmetric.Metrics` item per stream request.  The `exporterhelper` callback first tries to get an
+available stream, blocking when none are available (or until the connection is downgraded), and then falls back to the
+standard unary gRPC path.  The stream-sending mechanism internally handles retries when failures are caused by streams
+restarting, while honoring the caller's context deadline, to avoid delays introduced by allowing these retries to go
+through the `exporterhelper` mechanism.
+
+Each stream uses an instance of the OTel-Arrow-Adapter's
+[Producer](https://pkg.go.dev/github.com/f5/otel-arrow-adapter@v0.0.0-20230112224802-dafb6df21c97/pkg/otel/arrow_record#Producer).
+
+When a stream fails specifically because the server does not recognize the Arrow service, it will not restart.  When all
+streams have failed in this manner, the connection downgrades by closing a channel, at which point the exporter behaves
+exactly as the standard OTLP exporter.
+
+The mechanism as described is vulnerable to partial failure scenarios.  When some of the streams are succeeding but some
+have failed with Arrow unsupported, the collector performance will be degraded because callers are blocked waiting for
+available streams.  The exact signal used to signal that Arrow and downgrade mechanism is seen as an area for future
+development.  [See the prototype's test for whether to downgrade.](https://github.com/open-telemetry/experimental-arrow-collector/blob/30e0ffb230d3d2f1ad9645ec54a90bbb7b9878c2/exporter/otlpexporter/internal/arrow/stream.go#L152)
 
 ### Batch ID Generation
 
@@ -1020,7 +1062,17 @@ in this document). Although a Parquet representation offers some additional enco
 ratio, Parquet is not designed as an in-memory format optimized for online data processing. Apache Arrow is optimized for
 this type of scenario and offers the best trade-off of compression ratio, processing speed, and serialization/deserialization speed.
 
+## Monitoring OTLP-Arrow performance 
+
+[OpenTelemetry Collector users would benefit from standard ways to monitor the number of network bytes sent and received.](https://github.com/open-telemetry/opentelemetry-collector/issues/6638).  [We have proposed the use of dedicated `obsreport` metrics in the Collector.](https://github.com/open-telemetry/opentelemetry-collector/pull/6712).
+
+In connection with these proposals, [we also propose corresponding improvements in the OpenTelemetry
+Collector-Contrib's `testbed` framework](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/16835),
+in order to include OTLP-Arrow in standard regression testing of the Collector.
+
 ## Open Questions
+
+### Extending into other parts of the Arrow ecosystem
 
 A SQL support for telemetry data processing remains an open question in the current Go collector. The main OTLP query
 engine [Datafusion](https://github.com/apache/arrow-datafusion) is implemented in Rust. Several solutions can be
@@ -1028,12 +1080,10 @@ considered: 1) create a Go wrapper on top of Datafusion, 2) implement a Rust col
 support of OTLP Arrow, 3) implement a SQL/Arrow engine in Go (big project). A proof of concept using Datafusion has been
 implemented in Rust and has shown very good results.
 
-In some contexts it is important to be able to guarantee the end-to-end delivery of telemetry data (e.g. audit events).
-The support of the at-least-once delivery mode requires the participation of all actors in the chain. The client must be
-able to persistently store the telemetry data until the receipt of an ack message. The chain of agent + collectors must
-carry forward the received acknowledgements from the downstream elements and finally the final backend must be able to
-perform idempotent insertion operations and return an acknowledgement when the insertion is successful. The support of a
-such guarantee of delivery is still an open question.
+We believe that because the Arrow IPC mechanism and data format is intended for zero-copy use, we believe it is possible
+to use Arrow libraries written in other languages, for example within the Golang-based OpenTelemetry Collector.
+
+### Further-integrated compression techniques
 
 ZSTD offers a training mode, which can be used to tune the algorithm for a selected type of data. The result of this
 training is a dictionary that can be used to compress the data. Using this dictionary can dramatically improve the
@@ -1044,9 +1094,19 @@ algorithm on the first batches and then update the configuration of the ZSTD enc
 More advanced lightweight compression algorithms on a per column basis could be integrated to the OTLP Arrow
 protocol (e.g. delta delta encoding for numerical columns)
 
+### Choosing row-oriented transport when it is more efficient
+
 The columnar representation is more efficient for transporting large homogeneous batches. The support of a mixed approach
 combining automatically column-oriented and row-oriented batches would allow to cover all scenarios. The development of
 a strategy to automatically select the best data representation mode is an open question.
+
+### Unary gRPC OTLP-Arrow and HTTP OTLP-Arrow
+
+The design currently calls for the use of gRPC streams to benefit from OTLP-Arrow transport.  We believe that some of
+this benefit can be had even for unary gRPC and HTTP requests with large request batches to amortize sending of
+dictionary and schema information.  This remains an area for study.
+
+### 
 
 ## Appendix A - Protocol Buffer Definitions
 
