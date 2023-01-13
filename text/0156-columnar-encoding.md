@@ -546,11 +546,12 @@ attributes: &attributes                                 # arrow type = map
 ```
 
 > Note: **Dense vs Sparse union**: Apache Arrow supports two types of union: dense and sparse. Dense unions are more efficient
-> in memory usage but are less efficient in terms of compression ratio and processing speed. The memory consumed by a
-> sparse union depends directly on the number of variants present in the union definition. It is therefore important to
-> keep the number of variants low. The `cbor` variant groups all complex attribute values that cannot be represented
-> with the other available variants. This representation aims to minimize the memory overhead related to the number
-> of variants in the union. The current tradeoff allows to optimize the compression rate and the compression speed.
+> in memory usage but are less efficient in terms of processing speed (and also in terms of compression ratio according
+> to some tests). The memory consumed by a sparse union depends directly on the number of variants present in the union
+> definition. It is therefore important to keep the number of variants low. The `cbor` variant groups all complex
+> attribute values that cannot be represented with the other available variants. This representation aims to minimize
+> the memory overhead related to the number of variants in the union. The current tradeoff optimizes the processing
+> speed and, to some extent, the compression ratio.
 > Optimizations on memory consumption are theoretically possible at the level of the Arrow Go library in order to
 > minimize the overhead of sparse unions in the future.
 
