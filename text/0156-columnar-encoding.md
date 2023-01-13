@@ -430,12 +430,13 @@ via `error_message`.
 
 ### Mapping OTEL Entities to Arrow Records
 
-OTEL entities are batched into Apache Arrow RecordBatch. An Apache Arrow RecordBatch is
-a combination of three things: a schema, a collection of structured data encoded in a columnar format, and a set of
-optional dictionaries. A dictionary is an efficient way to encode string (or binary) columns that have low cardinality.
-When used in the context of the Arrow IPC format, once the schema and dictionaries have been defined they can be omitted
-from all subsequent batches thus **amortizing the schema and dictionary overhead**. This can be achieved with our
-stream-oriented API.
+OTEL entities are batched into Apache Arrow RecordBatch. An Apache Arrow RecordBatch is a combination of two things:
+a schema and a collection of Arrow Arrays. Individual Arrow Arrays or their nested children may be dictionary encoded,
+in which case the Array that is dictionary encoded contains a reference to its dictionary. The Arrow IPC
+implementations, in general, will recognize when one dictionary is referenced by multiple Arrays and only send it
+across the wire once, allowing the receiving end to maintain the memory usage benefits of reusing a dictionary. In this
+proposal dictionary encoded arrays are used to encode string (or binary) columns that have low cardinality. The
+stream-oriented API is leverage to amortize the schema and dictionary overheads across multiple batches.
 
 An Apache Arrow schema can define columns of different [types](https://arrow.apache.org/docs/python/api/datatypes.html)
 and with or without nullability property. For more details on the Arrow Memory Layout see this
