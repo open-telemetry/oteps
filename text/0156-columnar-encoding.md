@@ -1062,7 +1062,7 @@ in this document). Although a Parquet representation offers some additional enco
 ratio, Parquet is not designed as an in-memory format optimized for online data processing. Apache Arrow is optimized for
 this type of scenario and offers the best trade-off of compression ratio, processing speed, and serialization/deserialization speed.
 
-## Monitoring OTLP-Arrow performance 
+## Monitoring OTLP-Arrow performance
 
 [OpenTelemetry Collector users would benefit from standard ways to monitor the number of network bytes sent and received.](https://github.com/open-telemetry/opentelemetry-collector/issues/6638).  [We have proposed the use of dedicated `obsreport` metrics in the Collector.](https://github.com/open-telemetry/opentelemetry-collector/pull/6712).
 
@@ -1105,8 +1105,6 @@ a strategy to automatically select the best data representation mode is an open 
 The design currently calls for the use of gRPC streams to benefit from OTLP-Arrow transport.  We believe that some of
 this benefit can be had even for unary gRPC and HTTP requests with large request batches to amortize sending of
 dictionary and schema information.  This remains an area for study.
-
-### 
 
 ## Appendix A - Protocol Buffer Definitions
 
