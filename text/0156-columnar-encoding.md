@@ -270,9 +270,6 @@ message BatchArrowRecords {
 
   // [mandatory] A collection of payloads containing the data of the batch.
   repeated OtlpArrowPayload otlp_arrow_payloads = 2;
-
-  // [optional] Delivery type (BEST_EFFORT by default).
-  DeliveryType delivery_type = 3;
 }
 ```
 
@@ -287,18 +284,6 @@ IPC Arrow messages of different nature and with different schemas can be sent in
 `batch_id` and thus be processed as one unit without complex logic in the collector or any other processing systems.
 More details on the `OtlpArrowPayload` columns in the section [Mapping OTEL entities to Arrow records](#mapping-otel-entities-to-arrow-records).
 
-The `delivery_type` attribute is an optional attribute that can be used to indicate the type of message delivery
-guarantee expected by the sender. The delivery types are defined by the following protobuf enumeration:
-
-```protobuf
-enum DeliveryType {
-  BEST_EFFORT = 0;
-}
-```
-
-The delivery type `BEST_EFFORT` is the default value. This means that the sender expects the receiver to acknowledge
-receipt of a message and to do its best to pass the message on to the rest of the downstream chain.
-
 More specifically, an `OtlpArrowPayload` protobuf message is defined as:
 
 ```protobuf
@@ -308,9 +293,6 @@ message OtlpArrowPayload {
 
   // [mandatory] Type of the OTLP Arrow payload.
   OtlpArrowPayloadType type = 2;
-
-  // [optional] Serialized Arrow dictionaries
-  repeated EncodedData dictionaries = 3;
 
   // [mandatory] Serialized Arrow Record Batch
   // For a description of the Arrow IPC format see: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
@@ -346,11 +328,6 @@ implementation
 of this identifier.
 
 The `OtlpArrowPayloadType` enum specifies the `type` of the payload.
-
-The `dictionaries` attribute is a list of binary representations of [Arrow dictionaries](#arrow-dictionary). Several
-dictionaries can be defined in the case of an entity containing several text or binary columns. The dictionaries are
-filled in the first message of their corresponding sub-stream. When a dictionary is updated, the delta dictionary will be
-emitted in the corresponding message within the sub-stream.
 
 The `record` attribute is a binary representation of the Arrow RecordBatch.
 
@@ -405,9 +382,9 @@ message RetryInfo {
 
 The `BatchStatus` message definition is relatively simple and essentially self-explanatory.
 
-The server may respond with either a success ('OK') or an error ('ERROR') status. Depending on the delivery_type, the
-success response indicates telemetry data is successfully received (BEST_EFFORT delivery type) or processed end-to-end
-(AT_LEAST_ONCE delivery type). If the server receives an empty `BatchEvent` the server should respond with success.
+The server may respond with either a success ('OK') or an error ('ERROR') status. Receiving an `OK` means that the
+message received by the collector has been processed by the collector. If the server receives an empty `BatchEvent`
+the server should respond with success.
 
 When an error is returned by the server it falls into 2 broad categories: retryable and not-retryable:
 
@@ -1013,7 +990,8 @@ rates.
 
 ### Best Effort Delivery Guarantee
 
-TBD (phase 1)
+The collector ensures that messages received will only receive a positive acknowledgement if they have been properly
+processed by the various stages of the collector.
 
 ## Risks and Mitigations
 
@@ -1135,9 +1113,6 @@ message BatchArrowRecords {
 
   // [mandatory] A collection of payloads containing the data of the batch.
   repeated OtlpArrowPayload otlp_arrow_payloads = 2;
-
-  // [optional] Delivery type (BEST_EFFORT by default).
-  DeliveryType delivery_type = 3;
 }
 
 // Enumeration of all the OTLP Arrow payload types currently supported by the OTLP Arrow protocol.
@@ -1158,22 +1133,12 @@ message OtlpArrowPayload {
   // [mandatory] Type of the OTLP Arrow payload.
   OtlpArrowPayloadType type = 2;
 
-  // [optional] Serialized Arrow dictionaries
-  repeated EncodedData dictionaries = 3;
-
   // [mandatory] Serialized Arrow Record Batch
   // For a description of the Arrow IPC format see: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
   bytes record = 4;
 
   // [mandatory]
   CompressionMethod compression = 5;
-}
-
-// The delivery mode used to process the message.
-// The collector must comply with this parameter.
-enum DeliveryType {
-  BEST_EFFORT = 0;
-  // Future extension -> AT_LEAST_ONCE = 1;
 }
 
 // The compression method used to compress the different bytes buffer.
