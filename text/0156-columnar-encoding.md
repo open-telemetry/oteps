@@ -116,7 +116,7 @@ Arrow. The two key results are:
 Bandwidth gains between *OTLP* and *OTLP Arrow* in a multivariate time series context are represented in the left column.
 Similarly, logs are represented in the right column. For both protocols, the baseline is the size of the uncompressed
 OTLP messages. The reduction factor is the ratio between this baseline and the compressed message size for each
-protocol.
+protocol. The compression algorithm used is ZSTD for OTLP and OTLP Arrow.
 
 The following two stacked bar graphs compare side-by-side the distribution of time spent for each step and for each
 version of the protocol. The 3x speed-up for the multivariate metrics is visible in the left column. The two protocols
