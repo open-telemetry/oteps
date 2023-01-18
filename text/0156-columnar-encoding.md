@@ -257,8 +257,8 @@ service ArrowStreamService {
 > and dictionaries for each batch.** A state will be maintained receiver side to keep track of the schemas and
 > dictionaries. The [Arrow IPC format](#arrow-ipc-format) has been designed to follow this pattern and also allows the
 > dictionaries to be sent incrementally. Similarly, ZSTD dictionaries can also be transferred to the RPC stream to
-> optimize the transfer of small batches (for more details see the description of the compression field in the
-> following paragraphs). To mitigate the usual pitfalls of a stream-oriented protocol please see this [paragraph](#traffic-balancing-optimization) in the
+> optimize the transfer of small batches. To mitigate the usual pitfalls of a stream-oriented protocol (e.g. unbalanced
+> connections with load balancer deployment) please see this [paragraph](#traffic-balancing-optimization) in the
 > implementation recommendations section.
 
 A `BatchArrowRecords` message is composed of 3 attributes. The protobuf definition is:
@@ -296,26 +296,13 @@ message OtlpArrowPayload {
 
   // [mandatory] Serialized Arrow Record Batch
   // For a description of the Arrow IPC format see: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
-  bytes record = 4;
-
-  // [mandatory]
-  CompressionMethod compression = 5;
+  bytes record = 3;
 }
 
 enum OtlpArrowPayloadType {
   METRICS = 0;
   LOGS = 1;
   SPANS = 2;
-}
-
-message EncodedData {
-  bytes ipc_message = 1;
-  bytes arrow_data = 2;
-}
-
-enum CompressionMethod {
-  NO_COMPRESSION = 0;
-  ZSTD = 1;
 }
 ```
 
@@ -331,23 +318,13 @@ The `OtlpArrowPayloadType` enum specifies the `type` of the payload.
 
 The `record` attribute is a binary representation of the Arrow RecordBatch.
 
-The `compression` attribute is a mandatory attribute that is used to define the compression algorithms for the different
-bytes buffer.
-
-ZSTD offers a training mode, which can be used to tune the algorithm for a selected type of data. The result of this
-training is a dictionary that can be used to compress the data. Using this [dictionary](http://facebook.github.io/zstd/#small-data)
-can dramatically improve the compression rate for small batches. This future development will build on both the gRPC
-stream approach used in this proposal and the ability to send a ZSTD dictionary over the OTLP Arrow stateful protocol,
-allowing us to train the ZSTD algorithm on the first batches and then update the configuration of the ZSTD
-encoder/decoder with an optimized dictionary.
-
-This type of optimization, combined with the fact that we can use schema awareness at the arrow level to further improve
-the compression ratio, are the main motivations for this design. If we rely solely on the standard collector compression
-configuration, the level of awareness and optimization options will not be the same.
-
 > Note: By storing Arrow buffers in a protobuf field of type 'bytes' we can leverage the zero-copy capability of some
 > Protobuf implementations (e.g. C++, Java, Rust) in order to get the most out of Arrow (relying on zero-copy ser/deser
 > framework).
+
+> Note: By default, ZSTD compression is enabled at the Arrow IPC level in order to benefit from the best compression
+> ratio regardless of the collector configuration. However, this compression can be disabled to enable it at the global
+> gRPC level if it makes more sense for a particular configuration.
 
 On the egress stream, a `BatchStatus` message is a collection of `StatusMessage`. A `StatusMessage` is composed of 5
 attributes. The protobuf definition is:
@@ -1064,10 +1041,11 @@ to use Arrow libraries written in other languages, for example within the Golang
 ### Further-integrated compression techniques
 
 ZSTD offers a training mode, which can be used to tune the algorithm for a selected type of data. The result of this
-training is a dictionary that can be used to compress the data. Using this dictionary can dramatically improve the
-compression rate for small batches. This future development will build on both the gRPC stream approach used in this
-proposal and the ability to send a ZSTD dictionary over the OTLP Arrow stateful protocol, allowing us to train the ZSTD
-algorithm on the first batches and then update the configuration of the ZSTD encoder/decoder with an optimized dictionary.
+training is a dictionary that can be used to compress the data. Using this [dictionary](http://facebook.github.io/zstd/#small-data) 
+can dramatically improve the compression rate for small batches. This future development will build on both the gRPC
+stream approach used in this proposal and the ability to send a ZSTD dictionary over the OTLP Arrow stateful protocol,
+allowing us to train the ZSTD algorithm on the first batches and then update the configuration of the ZSTD
+encoder/decoder with an optimized dictionary.
 
 More advanced lightweight compression algorithms on a per column basis could be integrated to the OTLP Arrow
 protocol (e.g. delta delta encoding for numerical columns)
@@ -1135,26 +1113,7 @@ message OtlpArrowPayload {
 
   // [mandatory] Serialized Arrow Record Batch
   // For a description of the Arrow IPC format see: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
-  bytes record = 4;
-
-  // [mandatory]
-  CompressionMethod compression = 5;
-}
-
-// The compression method used to compress the different bytes buffer.
-enum CompressionMethod {
-  NO_COMPRESSION = 0;
-  ZSTD = 1;
-}
-
-// Arrow IPC message
-// see: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
-message EncodedData {
-  // Serialized Arrow encoded IPC message
-  bytes ipc_message = 1;
-
-  // Serialized Arrow buffer
-  bytes arrow_data = 2;
+  bytes record = 3;
 }
 
 // A message sent by a Collector to the exporter that opened the Jodata stream.
