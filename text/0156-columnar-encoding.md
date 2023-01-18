@@ -123,7 +123,7 @@ version of the protocol. The 3x speed-up for the multivariate metrics is visible
 are on par for logs, as shown in the right column.
 
 ![Summary of the time spent](img/0156_summary_time_spent.png)
-[Zoom on the chart](https://github.com/F5Networks/otlp-arrow-collector/raw/main/docs/img/summary_time_spent.png)
+[Zoom on the chart](https://raw.githubusercontent.com/lquerel/oteps/main/text/img/0156_summary_time_spent.png)
 
 A more detailed presentation of the benchmarks comparing *OTLP* and *OTLP Arrow* can be found in the following
 sections:
