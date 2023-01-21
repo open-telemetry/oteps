@@ -328,7 +328,7 @@ The `record` attribute is a binary representation of the Arrow RecordBatch.
 By storing Arrow buffers in a protobuf field of type 'bytes' we can leverage the zero-copy capability of some
 Protobuf implementations (e.g. C++, Java, Rust) in order to get the most out of Arrow (relying on zero-copy ser/deser
 framework).
- 
+
 > Note: By default, ZSTD compression is enabled at the Arrow IPC level in order to benefit from the best compression
 > ratio regardless of the collector configuration. However, this compression can be disabled to enable it at the global
 > gRPC level if it makes more sense for a particular configuration.
