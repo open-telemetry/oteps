@@ -328,7 +328,7 @@ The `record` attribute is a binary representation of the Arrow RecordBatch.
 > Note: By storing Arrow buffers in a protobuf field of type 'bytes' we can leverage the zero-copy capability of some
 > Protobuf implementations (e.g. C++, Java, Rust) in order to get the most out of Arrow (relying on zero-copy ser/deser
 > framework).
-
+> 
 > Note: By default, ZSTD compression is enabled at the Arrow IPC level in order to benefit from the best compression
 > ratio regardless of the collector configuration. However, this compression can be disabled to enable it at the global
 > gRPC level if it makes more sense for a particular configuration.
@@ -1048,7 +1048,7 @@ to use Arrow libraries written in other languages, for example within the Golang
 ### Further-integrated compression techniques
 
 ZSTD offers a training mode, which can be used to tune the algorithm for a selected type of data. The result of this
-training is a dictionary that can be used to compress the data. Using this [dictionary](http://facebook.github.io/zstd/#small-data) 
+training is a dictionary that can be used to compress the data. Using this [dictionary](http://facebook.github.io/zstd/#small-data)
 can dramatically improve the compression rate for small batches. This future development will build on both the gRPC
 stream approach used in this proposal and the ability to send a ZSTD dictionary over the OTLP Arrow stateful protocol,
 allowing us to train the ZSTD algorithm on the first batches and then update the configuration of the ZSTD
