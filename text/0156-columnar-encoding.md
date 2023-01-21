@@ -125,6 +125,13 @@ are on par for logs, as shown in the right column.
 ![Summary of the time spent](img/0156_summary_time_spent.png)
 [Zoom on the chart](https://raw.githubusercontent.com/lquerel/oteps/main/text/img/0156_summary_time_spent.png)
 
+> Better bandwidth and speed? The organization of the data in columns allows to significantly reduce the number of
+> allocations, especially for batches of more than 500 entities. This has the effect of significantly reducing the cost
+> of memory management (malloc+GC cost) and therefore better overall performance. This is not true for small batches
+> because the overhead of initializing columns, dictionaries, bitmaps and schema validity becomes increasingly important
+> in proportion to the cost of feeding the batch with data. This becomes particularly inefficient for batch sizes less
+> than 10, as the cost of initializing the batch becomes more important than the cost of feeding data.
+
 A more detailed presentation of the benchmarks comparing *OTLP* and *OTLP Arrow* can be found in the following
 sections:
 
