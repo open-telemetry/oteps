@@ -230,8 +230,8 @@ OTLP and OTLP Arrow protocols can be used together and can use the same TCP port
 existing
 services (`MetricsService`, `LogsService` and `TraceService`), we introduce the service `ArrowStreamService`
 (see [this protobuf specification](#appendix-a---protocol-buffer-definitions) for more details) exposing a single API endpoint named `ArrowStream`.
-This endpoint is based on a bidirectional streaming protocol. The ingress side is a `BatchArrowRecords` stream encoding a
-batch of Apache Arrow buffers (more specifically [Arrow IPC format](#arrow-ipc-format)). The egress
+This endpoint is based on a bidirectional streaming protocol. The client message is a `BatchArrowRecords` stream encoding a
+batch of Apache Arrow buffers (more specifically [Arrow IPC format](#arrow-ipc-format)). The server message
 side is a `BatchStatus` stream reporting asynchronously the status of each `BatchArrowRecords` previously sent.
 
 After establishing the underlying transport the client starts sending telemetry data using the `ArrowStream` request.
@@ -282,7 +282,7 @@ message BatchArrowRecords {
 
 The `batch_id` attribute is a unique identifier for the batch inside the scope of the current stream. It is used to
 uniquely
-identify the batch in the egress `BatchStatus` stream. See the [Batch Id generation](#batch-id-generation) section for
+identify the batch in the server message `BatchStatus` stream. See the [Batch Id generation](#batch-id-generation) section for
 more information on the implementation of this identifier.
 
 The `otlp_arrow_payloads` attribute is a list of `OtlpArrowPayload` messages. Each `OtlpArrowPayload` message represents
@@ -333,7 +333,7 @@ framework).
 > ratio regardless of the collector configuration. However, this compression can be disabled to enable it at the global
 > gRPC level if it makes more sense for a particular configuration.
 
-On the egress stream, a `BatchStatus` message is a collection of `StatusMessage`. A `StatusMessage` is composed of 5
+On the server message stream, a `BatchStatus` message is a collection of `StatusMessage`. A `StatusMessage` is composed of 5
 attributes. The protobuf definition is:
 
 ```protobuf
