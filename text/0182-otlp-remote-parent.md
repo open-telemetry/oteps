@@ -99,9 +99,25 @@ As an alternative to adding a new field to spans, a new semantic convention attr
 This approach would avoid increasing the memory footprint of all spans, but would have a greater memory footprint for entry-point spans.
 The benefit of this approach would therefore depend on the ratio of entry-point to internal spans, and may even be more expensive.
 
+### Alternative 3: extend SpanKind values 
+
+Another alternative is to extend the SpanKind values to unambiguously define when a CONSUMER span has a remote parent or a local parent (e.g. with the message polling use case). 
+
+For example, introducing a new SpanKind (e.g. `AMBIENT_CONSUMER`) that would have a clear `no` on the `Remote-Incoming` property of the SpanKind, and `REMOTE_CONSUMER` would have a clear `yes` on the `Remote-Incoming` property of the SpanKind. The downside of this approach is that it is a breaking on the semantics of `CONSUMER` spans. 
+
+
 ## Open questions
 
-None.
+### Relation between `parent_span_is_remote` and `SpanKind`
+The specification for `SpanKind` describes the following:
+
+```
+The first property described by SpanKind reflects whether the Span is a "logical" remote child or parent ...
+```
+
+However, the specification stay ambiguous for the `CONSUMER` span kind with respect to the property of the "logical" remote parent. 
+Nevertheless, the proposed field `parent_span_is_remote` has some overlap with that `SpanKind` property. 
+The specification would require some clearification on the `SpanKind` and its relation to `parent_span_is_remote`.
 
 ## Future possibilities
 
