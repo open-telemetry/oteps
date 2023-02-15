@@ -304,6 +304,12 @@ MAY link to the "Create" or "Publish" span for the message.
 
 ## Examples
 
+This section contains a list of examples illustrating the use of the
+conventions outlined above. Regular boxes denote spans that are required to
+exist in order to conform to those conventions. Opaque boxes denote spans that
+are not required and covered by the conventions, but are hopefully helpful in
+understanding how messaging spans can be integrated into an overall trace flow.
+
 ### Single message producer, single message push-based consumer
 
 ```mermaid
@@ -358,6 +364,10 @@ flowchart LR;
   A-->S1[Settle m1]
   end
   PM1-. link .->DM1;
+
+  classDef additional opacity:0.4
+  class additional A
+  linkStyle 0,1 opacity:0.4
 ```
 
 ### Batch message producer with "Create" spans, single message pull-based consumer
@@ -429,6 +439,10 @@ flowchart LR;
   end
   CM1-. link .->RM1;
   CM2-. link .->RM2;
+
+  classDef additional opacity:0.4
+  class additional A
+  linkStyle 0,1,2 opacity:0.4
 ```
 
 ### Single message producers, batch push-based consumer with process spans
@@ -442,11 +456,15 @@ flowchart LR;
   end
   subgraph CONSUMER
   direction TB
-  D[Deliver]-->PRM1[Process m1]
-  D-->PRM2[Process m2]
+  D[Deliver]-.-PRM1[Process m1]
+  D-.-PRM2[Process m2]
   end
   PM1-. link .->D;
   PM2-. link .->D;
+
+  classDef additional opacity:0.4
+  class additional PRM1,PRM2
+  linkStyle 0,1 opacity:0.4
 ```
 
 ### Single message producers, batch pull-based consumer with process spans
@@ -461,11 +479,15 @@ flowchart LR;
   subgraph CONSUMER
   direction TB
   A[Ambient]-->R[Receive]
-  A-->PRM1[Process m1]
-  A-->PRM2[Process m2]
+  A-.-PRM1[Process m1]
+  A-.-PRM2[Process m2]
   end
   PM1-. link .->R;
   PM2-. link .->R;
+
+  classDef additional opacity:0.4
+  class additional A
+  linkStyle 0,1,2 opacity:0.4
 ```
 
 ### Single message producers, batch pull-based consumer with manual settlement
@@ -485,6 +507,10 @@ flowchart LR;
   end
   PM1-. link .->R;
   PM2-. link .->R;
+
+  classDef additional opacity:0.4
+  class additional A
+  linkStyle 0,1,2 opacity:0.4
 ```
 
 ## Future possibilities
@@ -509,18 +535,19 @@ flowchart LR;
   PM2[Publish m2]
   end
   subgraph INTERMEDIARY
-  direction TB
-  EQ[       ]
-  DQ[       ]
   end
   subgraph CONSUMER
   direction TB
-  D[Deliver]-->PRM1[Process m1]
-  D-->PRM2[Process m2]
+  D[Deliver]-.-PRM1[Process m1]
+  D-.-PRM2[Process m2]
   end
   PM1-. link .->D;
   PM2-. link .->D;
-  PM1-->EQ;
-  PM2-->EQ;
+  PM1-->INTERMEDIARY;
+  PM2-->INTERMEDIARY;
   DQ-->D;
+
+  classDef additional opacity:0.4
+  class additional INTERMEDIARY,PRM1,PRM2
+  linkStyle 0,1,4,5,6 opacity:0.4
 ```
