@@ -305,8 +305,8 @@ MAY link to the "Create" or "Publish" span for the message.
 ## Examples
 
 This section contains a list of examples illustrating the use of the
-conventions outlined above. Regular boxes denote spans that are required to
-exist in order to conform to those conventions. Opaque boxes denote spans that
+conventions outlined above. Green boxes denote spans that are required to
+exist in order to conform to those conventions. Other boxes denote spans that
 are not required and covered by the conventions, but are hopefully helpful in
 understanding how messaging spans can be integrated into an overall trace flow.
 
@@ -321,6 +321,10 @@ flowchart LR;
   DM1[Deliver m1]
   end
   PM1-. link .->DM1;
+
+  classDef normal fill:green
+  class PM1,DM1 normal
+  linkStyle 0 color:green,stroke:green
 ```
 
 ```mermaid
@@ -333,6 +337,10 @@ flowchart LR;
   end
   PM1-. link .->DM1;
   PM1-->DM1;
+
+  classDef normal fill:green
+  class PM1,DM1 normal
+  linkStyle 0,1 color:green,stroke:green
 ```
 
 ### Single message producer, single message push-based consumer with manual settlement
@@ -348,6 +356,10 @@ flowchart LR;
     DM1[Deliver m1]-->S1[Settle m1]
   end
   PM1-. link .->DM1;
+
+  classDef normal fill:green
+  class PM1,DM1,S1 normal
+  linkStyle 0,1 color:green,stroke:green
 ```
 
 ### Single message producer, single message push-based consumer with auto-settlement
@@ -365,9 +377,12 @@ flowchart LR;
   end
   PM1-. link .->DM1;
 
+  classDef normal fill:green
+  class PM1,DM1,S1 normal
   classDef additional opacity:0.4
   class additional A
   linkStyle 0,1 opacity:0.4
+  linkStyle 2 color:green,stroke:green
 ```
 
 ### Batch message producer with "Create" spans, single message pull-based consumer
@@ -386,6 +401,10 @@ flowchart LR;
   end
   CM1-. link .->RM1;
   CM2-. link .->RM2;
+
+  classDef normal fill:green
+  class P,CM1,CM2,RM1,RM2 normal
+  linkStyle 0,1,2,3 color:green,stroke:green
 ```
 
 ### Batch message producer, single message push-based consumer
@@ -403,6 +422,10 @@ flowchart LR;
   end
   P-. link .->DM1;
   P-. link .->DM2;
+
+  classDef normal fill:green
+  class P,DM1,DM2 normal
+  linkStyle 0,1 color:green,stroke:green
 ```
 
 ```mermaid
@@ -420,6 +443,10 @@ flowchart LR;
   P-. link .->DM2;
   P-->DM1;
   P-->DM2;
+
+  classDef normal fill:green
+  class P,DM1,DM2 normal
+  linkStyle 0,1,2,3 color:green,stroke:green
 ```
 
 ### Batch message producer with "Create" spans populated before publish, single message pull-based consumer
@@ -440,9 +467,12 @@ flowchart LR;
   CM1-. link .->RM1;
   CM2-. link .->RM2;
 
+  classDef normal fill:green
+  class CM1,CM2,P,RM1,RM2 normal
   classDef additional opacity:0.4
   class additional A
   linkStyle 0,1,2 opacity:0.4
+  linkStyle 3,4 color:green,stroke:green
 ```
 
 ### Single message producers, batch push-based consumer with process spans
@@ -462,9 +492,12 @@ flowchart LR;
   PM1-. link .->D;
   PM2-. link .->D;
 
+  classDef normal fill:green
+  class PM1,PM2,D normal
   classDef additional opacity:0.4
   class additional PRM1,PRM2
   linkStyle 0,1 opacity:0.4
+  linkStyle 2,3 color:green,stroke:green
 ```
 
 ### Single message producers, batch pull-based consumer with process spans
@@ -485,9 +518,12 @@ flowchart LR;
   PM1-. link .->R;
   PM2-. link .->R;
 
+  classDef normal fill:green
+  class PM1,PM2,R normal
   classDef additional opacity:0.4
   class additional A
   linkStyle 0,1,2 opacity:0.4
+  linkStyle 3,4 color:green,stroke:green
 ```
 
 ### Single message producers, batch pull-based consumer with manual settlement
@@ -508,9 +544,12 @@ flowchart LR;
   PM1-. link .->R;
   PM2-. link .->R;
 
+  classDef normal fill:green
+  class PM1,PM2,SM1,SM2,R normal
   classDef additional opacity:0.4
   class additional A
   linkStyle 0,1,2 opacity:0.4
+  linkStyle 3,4 color:green,stroke:green
 ```
 
 ## Future possibilities
@@ -534,8 +573,6 @@ flowchart LR;
   PM1[Publish m1]
   PM2[Publish m2]
   end
-  subgraph INTERMEDIARY
-  end
   subgraph CONSUMER
   direction TB
   D[Deliver]-.-PRM1[Process m1]
@@ -545,9 +582,12 @@ flowchart LR;
   PM2-. link .->D;
   PM1-->INTERMEDIARY;
   PM2-->INTERMEDIARY;
-  DQ-->D;
+  INTERMEDIARY-->D;
 
+  classDef normal fill:green
+  class PM1,PM2,D normal
   classDef additional opacity:0.4
-  class additional INTERMEDIARY,PRM1,PRM2
+  class INTERMEDIARY,PRM1,PRM2 additional
   linkStyle 0,1,4,5,6 opacity:0.4
+  linkStyle 2,3 color:green,stroke:green
 ```
