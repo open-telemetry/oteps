@@ -113,8 +113,10 @@ assigned. However, as a context must refer to a span this would require the
 creation of a distinct span for each message, which is not feasible in all
 scenarios. In certain batching scenarios where many messages are created and
 published in large batches, creating a span for every single message would
-obfuscate traces and is not desirable. Thus having a unique and distinct
-context per message is recommended, but not required.
+obfuscate traces and is not desirable. Thus instrumentation libraries and
+auto-instrumentation should default to creating a unique and distinct context
+per message, but may support configuration or other ways to change this default
+behavior.
 
 For each producer scenario, a "Publish" span needs to be created. This span
 measures the duration of the call or operation that provides messages for
