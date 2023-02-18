@@ -46,7 +46,7 @@ expose the new gRPC endpoint and to provide OTLP Arrow support via the previous 
 * [Prior Art and Alternatives](#prior-art-and-alternatives)
 * [Open Questions](#open-questions)
 * [Appendix A - Protocol Buffer Definitions](#appendix-a---protocol-buffer-definitions)
-* [Appendix B - Performance Benchmarks](#appendix-b---performance-benchmarks)
+* [Appendix B - Performance Benchmarks [wip]](#appendix-b---performance-benchmarks)
 * [Appendix C - Parameter Tuning and Design Optimization](#appendix-c---parameter-tuning-and-design-optimization)
 * [Glossary](#glossary)
 * [Acknowledgements](#acknowledgements)
@@ -1159,7 +1159,10 @@ message RetryInfo {
 }
 ```
 
-## Appendix B - Performance Benchmarks
+## Appendix B - Performance Benchmarks [Warning not up to date]
+
+> An update of this section will be provided soon. However, the results are summarized at the beginning of this
+> document in the [validation](#validation) section.
 
 This section compares the performance of the OTLP protocol with the OTLP Arrow extension for sending batches of
 telemetry data. The main metrics compared are:
