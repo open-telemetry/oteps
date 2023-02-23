@@ -18,6 +18,7 @@ The environment variable interface suffers from the following identified limitat
 * **Limited values**. Many systems only allow string values to be used, but OpenTelemetry specifies many configuration values other than this type. For example, OTEL_RESOURCE_ATTRIBUTES specifies a list of key value pairs to be used as resource attributes, but there is no way to specify array values, or indicate that the value should be interpreted as non-string type.
 * **Limited validation**. Validation can only be performed by the receiver, there is no meta-configuration language to validate input.
 * **Difficult to extend**. It’s difficult to anticipate the requirements of configuring custom extension components (processors, exporters, samplers, etc), and likely not practical to represent them in a flat structure. As a result, the environment variable interface is limited to components explicitly mentioned in the specification.
+* **Lacks versioning**. The lack of versioning support for environment variables prevents evolution over time.
 
 ## Explanation
 
@@ -28,7 +29,7 @@ Using a configuration model or configuration file, users can configure all optio
 * The configuration must be language implementation agnostic. It must not contain structure or statements that only can be interpreted in a subset of languages. This does not preclude the possibility that the configuration can have specific extensions included for a subset of languages, but it does mean that the configuration must be interpretable by all implementation languages.
 * Broadly supported format. Ideally, the information encoded in the file can be decoded using native tools for all OpenTelemetry implementation languages. However, it must be possible for languages that do not natively support an encoding format to write their own parsers.
 * The configuration format must support structured data. At the minimum arrays and associative arrays.
-* The format must support at least null, boolean, string, double precision floating point (IEEE 754-1985), or signed 64 bit integer value types.
+* The format must support at least null, boolean, string, double precision floating point (IEEE 754-1985), and signed 64 bit integer value types.
 * Custom span processors, exporters, samplers, or other user defined extension components can be configured using this format.
 * Configure SDK, but also configure instrumentation.
 * Must offer stability guarantees while supporting evolution
@@ -96,11 +97,9 @@ if err != nil {
 
 ```
 
-Implementations *MUST* allow users to specify an environment variable to set the configuration file. This gives flexibility to end users of implementations that do not support command line arguments. Some possible names for this variable:
+Implementations *MUST* allow users to specify an environment variable to set the configuration file. This gives flexibility to end users of implementations that do not support command line arguments. The proposed name for this variable:
 
-* `OTEL_CONFIGURATION_FILE`
 * `OTEL_CONFIG_FILE`
-* `OTEL_CONF`
 
 ### Configuration model
 
