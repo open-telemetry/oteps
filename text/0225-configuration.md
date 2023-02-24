@@ -32,7 +32,7 @@ Using a configuration model or configuration file, users can configure all optio
 * The format must support at least null, boolean, string, double precision floating point (IEEE 754-1985), and signed 64 bit integer value types.
 * Custom span processors, exporters, samplers, or other user defined extension components can be configured using this format.
 * Configure SDK, but also configure instrumentation.
-* Must offer stability guarantees while supporting evolution
+* Must offer stability guarantees while supporting evolution.
 * The structure of the configuration can be validated via a schema.
 * Support environment variable substitution to give users the option to avoid storing secrets in these files.
 
