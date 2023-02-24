@@ -117,7 +117,7 @@ Each language implementation supporting OpenTelemetry *MAY* support parsing a da
 ```python
 opentelemetry.ParseAndValidateConfiguration(
     {
-        "scheme_version": "0.0.1",
+        "file_format": "0.0.1",
         "sdk": {
             "resource": {
                 "attributes": {
@@ -197,7 +197,7 @@ The following demonstrates an example of a configuration file format (full examp
 
 ```yaml
 # include version specification in configuration files to help with parsing and schema evolution.
-scheme_version: 0.1
+file_format: 0.1
 sdk:
   # Disable the SDK for all signals.
   #
@@ -277,7 +277,7 @@ The syntax for environment variable expansion mirrors the [collector](https://op
 For example, given an environment where `API_KEY=1234`, the configuration file contents:
 
 ```yaml
-scheme_version: 0.1
+file_format: 0.1
 sdk:
   tracer_provider:
     exporters:
@@ -290,7 +290,7 @@ sdk:
 Result in the following after substitution:
 
 ```yaml
-scheme_version: 0.1
+file_format: 0.1
 sdk:
   tracer_provider:
     exporters:
