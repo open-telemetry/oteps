@@ -68,7 +68,7 @@ The method returns a `Configuration` model that has been validated. This API *MA
 filepath = "./config.yaml"
 
 try:
-  cfg = opentelemetry.ParseAndValidateConfigurationFromFile(filename)
+  cfg = opentelemetry.ParseAndValidateConfigurationFromFile(filepath)
 except Exception as e:
   print(e)
 
