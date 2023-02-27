@@ -36,6 +36,10 @@ Using a configuration model or configuration file, users can configure all optio
 * The structure of the configuration can be validated via a schema.
 * Support environment variable substitution to give users the option to avoid storing secrets in these files.
 
+#### Out of scope
+
+* Embedding additional configuration files within a configuration file through an expression. Additional configuration providers MAY choose to support this use-case in the future.
+
 ## Internal details
 
 The schema for OpenTelemetry configuration is to be published in a repository to allow language implementations to leverage that definition to automatically generate code and/or validate end-user configuration. This will ensure that all implementations provide a consistent experience for any version of the schema they support. An example of such a proposed schema is available [here](https://github.com/MrAlias/otel-schema/tree/main/json_schema/schema).
