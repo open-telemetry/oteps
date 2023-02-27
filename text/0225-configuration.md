@@ -221,6 +221,10 @@ sdk:
 
 Implementations *MUST* perform environment variable substitution before validating and parsing configuration file contents.
 
+#### Handling environment variable & file config overlap
+
+When both configuration file and environment variables are present, the implementation *MUST* ignore environment variables in preference of the configuration file. The support for environment variable substitution in the configuration file gives users a mechanism for migrating away from environment variables in favour of configuration files.
+
 ### Version guarantees & backwards compatibility
 
 Each version of the configuration schema carries a major and minor version. Configurations specify the major and minor version they adhere to. Before reaching 1.0, each minor version change is equivalent to major version change. That is, there are no guarantees about compatibility and all changes are permitted. As of 1.0, we provide the following stability guarantees:
@@ -271,13 +275,6 @@ In choosing to recommend JSON schema, the working group looked at the following 
   * Limitations in the schema definition language result in poor ergonomics if type safety is to be retained.
 
 ## Open questions
-
-### How to handle environment variable / file config overlap?
-
-How does file configuration interact with environment variable configuration when both are present?
-
-* Solution 1: Ignore environment configuration when file configuration is present. Log a warning to the user indicating that multiple configuration modes were detected, but use the file configuration as the source of truth.
-* Solution 2: Superimpose environment configuration on top of file configuration when both are present. One problem with this is that environment variable configuration doesn’t map to file configuration in an intuitive way. For example, OTEL_TRACES_EXPORTER defines a list of span exporters to be paired with a batch span processor configured by the OTEL_BSP_* variables. What do we do if the file config already contains one or more processors with an exporter specified in OTEL_TRACES_EXPORTER? Essentially, do we merge or append the environment variable configuration?
 
 ### How to handle no-code vs programmatic configuration?
 
