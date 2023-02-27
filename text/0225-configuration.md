@@ -191,7 +191,7 @@ sdk:
 
 Configuration files *MUST* support environment variable expansion. While this accommodates the scenario in which a configuration file needs to reference sensitive data and is not able to be stored securely, environment variable expansion is not limited to sensitive data.
 
-The syntax for environment variable expansion mirrors the [collector](https://opentelemetry.io/docs/collector/configuration/#configuration-environment-variables).
+As a starting point for development, the syntax for environment variable expansion *MAY* mirror the [collector](https://opentelemetry.io/docs/collector/configuration/#configuration-environment-variables).
 
 For example, given an environment where `API_KEY=1234`, the configuration file contents:
 
