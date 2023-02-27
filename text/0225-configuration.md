@@ -239,7 +239,7 @@ Allowable changes:
   * Required property keys may become optional.
   * Removal of properties, provided that the property key is not reused in the future.
 
-SDKs validating configuration *MUST* fail when they encounter a configuration with an unsupported version. Generally, this means fail when encountering a major version which is not recognized. An SDK might choose to maintain a library of validators / parsers for each major version, and use the configuration version to select and use the correct instance. Differences in minor versions (except pre-1.0 minor versions) SHOULD be acceptable, with the caveat that allowable property additions and removals MAY result in configuration that is different than excepted.
+SDKs validating configuration *MUST* fail when they encounter a configuration with an unsupported version. Generally, this means fail when encountering a major version which is not recognized. An SDK might choose to maintain a library of validators / parsers for each major version, and use the configuration version to select and use the correct instance. Differences in minor versions (except pre-1.0 minor versions) *MUST* be acceptable, with the caveat that allowable property additions and removals MAY result in configuration that is different than excepted.
 
 ## Trade-offs and mitigations
 
