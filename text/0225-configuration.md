@@ -187,6 +187,12 @@ sdk:
           #
           # Environment variable: OTEL_TRACES_EXPORTER
           exporter: zipkin
+      # custom processor
+      - name: my-custom-processor
+        args:
+          foo: bar
+          baz: qux
+
   # Configure the meter provider.
   ...
 ```
