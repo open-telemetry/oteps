@@ -107,6 +107,8 @@ Implementations *MUST* allow users to specify an environment variable to set the
 
 * `OTEL_CONFIG_FILE`
 
+The format for the configuration file will be detected using the file extension of this variable.
+
 ### Configuration model
 
 To allow SDKs and instrumentation libraries to accept configuration without having to implement the parsing logic, a `Configuration` model *MAY* be provided by implementations. This object:
