@@ -191,6 +191,8 @@ sdk:
   ...
 ```
 
+Note that there is no consistent mapping between environment variable names and the keys in the configuration file.
+
 ### Environment variable substitution
 
 Configuration files *MUST* support environment variable expansion. While this accommodates the scenario in which a configuration file needs to reference sensitive data and is not able to be stored securely, environment variable expansion is not limited to sensitive data.
