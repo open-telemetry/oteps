@@ -58,7 +58,7 @@ An API called `Configure` receives a configuration object. This method then appl
 
 ### ParseAndValidateConfigurationFromFile(filepath, format) -> config
 
-An API called `ParseAndValidateConfigurationFromFile` receives a string parameter indicating the file path containing the configuration to be parsed. An optional format parameter may be provided to indicate the format that this configuration uses. YAML *SHOULD* be supported, but JSON, which is a strict subset of YAML, *MAY* be supported if a language ecosystem has good reason. For example a language that has built-in support for JSON running in an environment that is sensitive to additional dependencies *MAY* only be able to support JSON configuration.
+An API called `ParseAndValidateConfigurationFromFile` receives a string parameter indicating the file path containing the configuration to be parsed. An optional format parameter may be provided to indicate the format that this configuration uses. At least one of JSON or YAML MUST be supported. If either format can be supported without additional dependencies, that format SHOULD be preferred. If neither or both formats are supported, YAML should be the preferred choice. If YAML is not supported due to dependency concerns, there MAY be a way for a user to explicitly enable it by installing their own dependency.
 
 The method returns a `Configuration` model that has been validated. This API *MAY* return an error or raise an exception, whichever is idiomatic to the implementation for the following reasons:
 
