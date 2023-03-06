@@ -1,42 +1,34 @@
-# Support Elastic Common Schema in OpenTelemetry
-
-Collaborators: Alexander Wert (Elastic), Jamie Hynds (Elastic), Alolita Sharma (OTel GC, Apple), Christian Beedgen (Sumo), Jonah Kowall (Logz.io), Tigran Najaryan (Splunk).
+# Merge Elastic Common Schema with OpenTelemetry Semantic Conventions
 
 ## Introduction
 
-This proposal is to add support for the Elastic Common Schema (ECS) in the OpenTelemetry specification and provide full interoperability for ECS in OpenTelemetry component implementations. We propose to implement this support by enriching OpenTelemetry Semantic Conventions with ECS fields through the donation of complete [ECS FieldSets](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html#ecs-fieldsets). The goal is to contribute ECS into OTel Semantic Conventions.
+This proposal is to merge the Elastic Common Schema (ECS) with the OpenTelemetry Semantic Conventions (SemConv) and provide full interoperability in OpenTelemetry component implementations. We propose to implement this by aligning the OpenTelemetry Semantic Conventions with [ECS FieldSets](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html#ecs-fieldsets) and vice versa where feasible. The long-term goal is to achieve convergence of ECS and OTel Semantic Conventions into a single open schema (e.g. OpenTelemetry Common Schema).
 
-## Proposed process to contribute ECS to OpenTelemetry Semantic Conventions
+## The Goal
+- Long-term, ECS and OTel SemConv will converge into one open standard that is maintained by OpenTelemetry (with Elastic contributing, participating and co-maintaining the new standard). 
+- OTel SemConv will adopt ECS in its full scope (except for individual adjustments in detail where needed), including the logging, observability and security domain fields, to make the new schema a true successor of ECS and OTel SemConv.
+- Migrate ECS and OTel SemConv users to the new common schema over time and provide utilities to allow the migration to be as easy as possible.
 
-This constitutes a contribution of ECS fieldsets into OpenTelemetry Semantic Conventions whereby both ECS and Opentelemetry will continue to maintain their own specification and governance bodies. This will minimize breaking changes in both ecosystems. Although existing separately, this OTEP establishes both specifications as extremely closely related specifications.
+## Scope and Overlap of ECS and OTel SemConv
+ECS and OTel SemConv have some overlap today, but also significant areas of mutually enriching fields. The following diagram illsutrates the different areas:
 
-We propose to integrate the contribution of ECS into OpenTelemetry Semantic Conventions as part of a joint review process of existing Semantic Conventions:
-1. Open issue to discuss prioritization of [ECS fieldsets](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html#ecs-fieldsets) contribution
-2. Open issue for each individual ECS fieldsets for discussion
-   * See this [Geo fieldset example issue](https://github.com/open-telemetry/opentelemetry-specification/issues/2834)
-3. Open draft PR’s to drive implementation (see [Geo example](https://github.com/open-telemetry/opentelemetry-specification/pull/2835))
-   * Identifying overlaps/breaking changes.
-   * Map ECS data types to OpenTelemetry data types.
-   * Identify high cardinality fields.
-   * Include 2-3 use cases of how these fieldsets are used today as part of the documentation
+<p align="center">
+<img src="https://user-images.githubusercontent.com/866830/223049510-93c5dab0-0fc1-4b54-8ac4-e5bcfef81156.png" width="300">
+</p>
 
-### Dealing with conflicts
-There are fields or fieldsets that conflict between ECS and OpenTelemetry Semantic Conventions.
-In some cases it might be possible and reasonable to introduce breaking changes on ECS or OpenTelemetry Semantic Conventions to resolve the conflict.
-However, there will also be fields for which it will not be feasible to introduce breaking-changes, both on the ECS side and on the OpenTelemetry Semantic Conventions side.
-For these cases, we propose to introduce OpenTelemetry Collector Processors that would provide automated mapping between ECS-specific fields and OpenTelemetry Semantic Conventions atributes.
+1. `A`: ECS comes with a rich set of fields that cover broad logging, observability and security use cases. Many fields are additive to the OTel SemConv and would enrich the OTel SemConv without major conflicts. Examples are [Geo information fields](https://www.elastic.co/guide/en/ecs/current/ecs-geo.html), [Threat Fields](https://www.elastic.co/guide/en/ecs/current/ecs-threat.html), and many others.
+2. `B`: Conversely, there are attributes in the OTel SemConv that do not exist in ECS and would be an enrichment to ECS. Examples are the [Messaging semantic conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/messaging/) or technology-specific conventions, such as the [AWS SDK conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/instrumentation/aws-sdk/).
+3. `C`: There is some significant area of overlap between ECS and OTel SemConv. The are `C` represents overlappingfields/attributes that are very similar in ECS and OTel SemConv. The field conflicts in `C` can be resolved through simple field renames and simple transformations.
+4. `D`: For some of the fields and attributes there will be conflicts that cannot be resolved through simple renaming or transformation and would require introducing breaking changes on ECS or OTel SemConv side for the purpose of merging the schemas. 
 
-### Schema evolution
-As described above, the contribution of ECS into OpenTelemetry Semantic Conventions will result in two highly aligned schemas, yet, both specifications will be separate.
-Once the initial contribution of ECS into OpenTelemetry Semantic Conventions is completed, an important goal is to maintain an aligned evolution process for both specifications to avoid drift over time.
-Therefore, we propose to establish and collaborate on a bidirectional synchronization processes. Concretely this would mean:
-* An open invitation to OpenTelemetry to participate and review ECS RFC’s
-* This could be facilitated through automated github review requests.
-* ECS’s RFC process would explicitly call contribution back to OpenTelemetry out as a necessary step.
-* Vice versa, new contributions to the OpenTelemetry Semantic Conventions will be reviewed and adopted by ECS.
-* Exploring open source community generated conversion tooling as needed.
+## Proposed process to merge ECS with OTel SemConv
+The process of merging ECS with OTel SemConv will take time and we propose to do it as part of the stabilization effort for OTel SemConv. During that period and also for a significant period after the merger (sunset period), Elastic will continue to support ECS as a schema. However, further evolution of ECS will happen on the basis of the new, common schema. Elastic's ECS experts will co-maintain and contribute to the new schema and will require the spec approver role in OpenTelemetry for the new schema.
 
-Acceptance of this OTEP registers the intent to kick off this process.
+With the merger there will be different categories of field conflicts between ECS fields and Otel SemConv attributes (as illustrated in the above figure). We expect the areas `A` and `B` to be less controversial and potentially low-handging fruits for an enriched, new schema.
+
+For the areas `C` and `D` we propose to resolve conflicts through a close collaboration as part of the stabilization initiative of the OTel SemConv. Where feasible, the goal is to align the OTel SemConv attributes as close as possible with the existing, stable ECS fields. Where alignment is not feasible, the goal is to identify ways to address field conflicts through technical transformations and aliasing, to bridge existing fields and formats into the new schema and vice versa (e.g. through OpenTelemetry Collector Processors). 
+
+While realistically truely breaking changes on ECS and OTel SemConv won't be avoidable as part of the merger, they should be the last resort and need to be discussed on a field-by-field basis.  
 
 ## Motivation
 
