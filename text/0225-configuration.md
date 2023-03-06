@@ -54,49 +54,50 @@ In order to provide a minimal API surface area, implementations *MUST* support t
 
 ### Configure(config)
 
-An API called `Configure` receives a configuration object. This method then applies the configuration object's details to the SDK. This method specifically applies the configuration object to allow for multiple configuration format providers to be supported in the future. This OTEP describes two such providers in a file and data structure formats below, but remote file formats *MAY* be implemented in the future.
+An API called `Configure` receives a configuration object. This method applies the configuration object's details to the SDK. This method specifically applies the configuration object to allow for multiple configuration format providers to be supported in the future. This OTEP describes two such providers in a file and data structure formats below, but remote file formats *MAY* be implemented in the future.
 
-### ParseAndValidateConfigurationFromFile(filepath, format) -> config
+### Parse(file) -> config
 
-An API called `ParseAndValidateConfigurationFromFile` receives a string parameter indicating the file path containing the configuration to be parsed. An optional format parameter may be provided to indicate the format that this configuration uses. At least one of JSON or YAML MUST be supported. If either format can be supported without additional dependencies, that format SHOULD be preferred. If neither or both formats are supported, YAML should be the preferred choice. If YAML is not supported due to dependency concerns, there MAY be a way for a user to explicitly enable it by installing their own dependency.
+An API called `Parse` receives a file object. The method loads the contents of the file, parses it, and validates that the configuration against the schema. At least one of JSON or YAML MUST be supported. If either format can be supported without additional dependencies, that format SHOULD be preferred. If neither or both formats are supported, YAML should be the preferred choice. If YAML is not supported due to dependency concerns, there MAY be a way for a user to explicitly enable it by installing their own dependency.
 
 The method returns a `Configuration` model that has been validated. This API *MAY* return an error or raise an exception, whichever is idiomatic to the implementation for the following reasons:
 
 * file doesn't exist or is invalid
 * configuration parsed is invalid
 
-#### Python ParseAndValidateConfigurationFromFile example
+#### Python Parse example
 
 ```python
 
 filepath = "./config.yaml"
 
+
 try:
-  cfg = opentelemetry.ParseAndValidateConfigurationFromFile(filepath)
+  cfg = opentelemetry.Parse(filepath)
 except Exception as e:
   print(e)
 
-filename = "./config.json"
+filepath = "./config.json"
 
 try:
-  cfg = opentelemetry.ParseAndValidateConfigurationFromFile(filename, format="json")
+  cfg = opentelemetry.Parse(filepath)
 except Exception as e:
   raise e
 
 ```
 
-#### Go ParseAndValidateConfigurationFromFile example
+#### Go Parse example
 
 ```go
 
-filename := "./config.yaml"
-cfg, err := otel.ParseAndValidateConfigurationFromFile(filename)
+filepath := "./config.yaml"
+cfg, err := otel.Parse(filepath)
 if err != nil {
   return err
 }
 
-filename := "./config.json"
-cfg, err := otel.ParseAndValidateConfigurationFromFile(filename, otelconfig.WithFormat("json"))
+filepath := "./config.json"
+cfg, err := otel.Parse(filepath)
 if err != nil {
   return err
 }
