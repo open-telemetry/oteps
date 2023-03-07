@@ -245,20 +245,14 @@ When both configuration file and environment variables are present, the implemen
 Each version of the configuration schema carries a major and minor version. Configurations specify the major and minor version they adhere to. Before reaching 1.0, each minor version change is equivalent to major version change. That is, there are no guarantees about compatibility and all changes are permitted. As of 1.0, we provide the following stability guarantees:
 
 * For major version: No guarantees.
-* For minor versions:
-  * Property keys will not change. Although the addition of optional properties is permitted and the removal of properties is permitted, this *MUST* not be abused to rename property keys.
-  * Property value types will not change, except that integers MAY become floating points.
-  * No additional required properties.
+* For minor versions: TBD
 
 Allowable changes:
 
 * For major versions: All changes are permitted.
-* For minor versions:
-  * Addition of optional properties.
-  * Required property keys may become optional.
-  * Removal of properties, provided that the property key is not reused in the future.
+* For minor versions: TBD
 
-SDKs validating configuration *MUST* fail when they encounter a configuration with an unsupported version. Generally, this means fail when encountering a major version which is not recognized. An SDK might choose to maintain a library of validators / parsers for each major version, and use the configuration version to select and use the correct instance. Differences in minor versions (except pre-1.0 minor versions) *MUST* be acceptable, with the caveat that allowable property additions and removals MAY result in configuration that is different than excepted.
+SDKs validating configuration *MUST* fail when they encounter a configuration with an unsupported version. Generally, this means fail when encountering a major version which is not recognized. An SDK might choose to maintain a library of validators / parsers for each major version, and use the configuration version to select and use the correct instance. Differences in minor versions (except pre-1.0 minor versions) *MUST* be acceptable.
 
 ## Trade-offs and mitigations
 
