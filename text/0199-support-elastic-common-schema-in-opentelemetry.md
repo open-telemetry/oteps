@@ -10,7 +10,7 @@ This proposal is to merge the Elastic Common Schema (ECS) with the OpenTelemetry
 - Migrate ECS and OTel SemConv users to the new common schema over time and provide utilities to allow the migration to be as easy as possible.
 
 ## Scope and Overlap of ECS and OTel SemConv
-ECS and OTel SemConv have some overlap today, but also significant areas of mutually enriching fields. The following diagram illsutrates the different areas:
+ECS and OTel SemConv have some overlap today, but also significant areas of mutually enriching fields. The following diagram illustrates the different areas:
 
 <p align="center">
 <img src="https://user-images.githubusercontent.com/866830/223049510-93c5dab0-0fc1-4b54-8ac4-e5bcfef81156.png" width="300">
