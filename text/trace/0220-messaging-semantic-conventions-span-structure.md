@@ -285,7 +285,7 @@ application when those operations are initiated by the application code.
 ##### General considerations
 
 "Deliver" or "Receive" spans MUST NOT be created for messages which are not
-forwarded to the application, but are pre-fetched or cached by messaging
+forwarded to the caller, but are pre-fetched or cached by messaging
 libraries or SDKs.
 
 A single "Deliver" or "Receive" span can account for a single message, for
