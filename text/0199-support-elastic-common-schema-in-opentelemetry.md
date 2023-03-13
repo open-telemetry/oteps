@@ -33,7 +33,7 @@ While realistically truly breaking changes on ECS and OTel SemConv won't be avoi
 
 ## Motivation
 
-Adding the Elastic Common Schema (ECS) to OpenTelemetry (OTel) is a great way to accelerate the integration of vendor-created logging and OTel component logs (ie OTel Collector Logs Receivers). The goal is to define vendor neutral semantic conventions for most popular types of systems and support vendor-created or open-source components (for example HTTP access logs, network logs, system access/authentication logs) extending OTel correlation to these new signals.
+Adding the Elastic Common Schema (ECS) to OpenTelemetry (OTel) is a great way to accelerate the integration of vendor-created logging and OTel component logs (i.e. OTel Collector Logs Receivers). The goal is to define vendor neutral semantic conventions for most popular types of systems and support vendor-created or open-source components (for example HTTP access logs, network logs, system access/authentication logs) extending OTel correlation to these new signals.
 
 Adding the coverage of ECS to OTel would provide guidance to authors of OpenTelemetry Collector Logs Receivers and help establish the OTel Collector as a de facto standard log collector with a well-defined schema to allow for richer data definition.
 
