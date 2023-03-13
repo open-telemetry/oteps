@@ -25,7 +25,7 @@ ECS and OTel SemConv have some overlap today, but also significant areas of mutu
 ## Proposed process to merge ECS with OTel SemConv
 The process of merging ECS with OTel SemConv will take time and we propose to do it as part of the stabilization effort for OTel SemConv. During that period and also for a significant period after the merger (sunset period), Elastic will continue to support ECS as a schema. However, further evolution of ECS will happen on the basis of the new, common schema. Elastic's ECS experts will co-maintain and contribute to the new schema and will require the spec approver role in OpenTelemetry for the new schema.
 
-With the merger there will be different categories of field conflicts between ECS fields and Otel SemConv attributes (as illustrated in the above figure). We expect the areas `A` and `B` to be less controversial and potentially low-handging fruits for an enriched, new schema.
+With the merger there will be different categories of field conflicts between ECS fields and Otel SemConv attributes (as illustrated in the above figure). We expect the areas `A` and `B` to be less controversial and potentially low-hanging fruits for an enriched, new schema.
 
 For the areas `C` and `D` we propose to resolve conflicts through a close collaboration as part of the stabilization initiative of the OTel SemConv. Where feasible, the goal is to align the OTel SemConv attributes as close as possible with the existing, stable ECS fields. Where alignment is not feasible, the goal is to identify ways to address field conflicts through technical transformations and aliasing, to bridge existing fields and formats into the new schema and vice versa (e.g. through OpenTelemetry Collector Processors). 
 
