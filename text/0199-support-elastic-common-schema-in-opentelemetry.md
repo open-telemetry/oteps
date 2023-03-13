@@ -29,7 +29,7 @@ With the merger there will be different categories of field conflicts between EC
 
 For the areas `C` and `D` we propose to resolve conflicts through a close collaboration as part of the stabilization initiative of the OTel SemConv. Where feasible, the goal is to align the OTel SemConv attributes as close as possible with the existing, stable ECS fields. Where alignment is not feasible, the goal is to identify ways to address field conflicts through technical transformations and aliasing, to bridge existing fields and formats into the new schema and vice versa (e.g. through OpenTelemetry Collector Processors). 
 
-While realistically truely breaking changes on ECS and OTel SemConv won't be avoidable as part of the merger, they should be the last resort and need to be discussed on a field-by-field basis.  
+While realistically truly breaking changes on ECS and OTel SemConv won't be avoidable as part of the merger, they should be the last resort and need to be discussed on a field-by-field basis.  
 
 ## Motivation
 
