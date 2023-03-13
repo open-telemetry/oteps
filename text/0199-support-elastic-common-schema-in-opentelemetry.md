@@ -45,7 +45,7 @@ We'd like to see different categories of structured logs being well-supported in
 
 ## Customer Motivation
 
-Adoption of OTel logs will accelerate greatly if ECS is leveraged as the common standard, using this basis for normalization. OTel Logs adoption will be accelerated by this support. For example, ECS can provide the unified structured format for handling vendor-generated along with open source logs.
+Adoption of OTel logs will accelerate greatly if ECS is leveraged as the common standard, using this basis for normalization. OTel Logs adoption will be accelerated by this support. For example, ECS can provide the unified structured format for handling vendor-generated logs along with open source logs.
 
 Customers will benefit from turnkey logs integrations that will be fully recognized by OTel-compatible observability products and services.
 
