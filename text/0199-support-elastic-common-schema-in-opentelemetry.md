@@ -282,8 +282,7 @@ Prometheus' conventions are restricted to the style of the name of the metrics (
 ## Other areas that need to be addressed by OTel (the project)
 
 Some areas that need to be addressed in the long run as ECS is integrated into OTel include defining the innovation process,
-providing maintainer rights to Elastic contributors who maintain ECS today, ensuring the OTel specification incorporates the changes to
-accommodate ECS, and a process for handling breaking changes if any (the proposal
+ensuring the OTel specification incorporates the changes to accommodate ECS, and a process for handling breaking changes if any (the proposal
 [Define semantic conventions and instrumentation stability #2180](https://github.com/open-telemetry/opentelemetry-specification/pull/2180)
 should tackle this point). Also, migration of existing naming (e.g. Prometheus exporter) to standardized convention (see
 [Semantic Conventions for System Metrics](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/system-metrics.md) ,
