@@ -244,7 +244,7 @@ As the markdown code of the tables is hard to read and maintain with very long l
 </table>
 
 ## How would OpenTelemetry users practically use the new OpenTelemetry Semantic Conventions Attributes brought by ECS
-The concrete usage of ECS-enriched OpenTelemetry Semantic Conventions Attributes depends on the use case and the fiedset.
+The concrete usage of ECS-enriched OpenTelemetry Semantic Conventions Attributes depends on the use case and the fieldset.
 In general, OpenTelemetry users would transparently upgrade to ECS and benefit from the alignment of attributes for new use cases.
 The main goal of this work is to enable producers of OpenTelemetry signals (collectors/exporters) to create enriched uniform signals for existing and new use cases.
 The uniformity allows for easier correlation between signals originating from different producers. The richness ensures more options for Root Cause Analysis, correlation and reporting.
