@@ -244,7 +244,7 @@ SHOULD be set according to the following table, based on the operation a span de
 
 | Operation name | Span kind|
 |----------------|-------------|
-| `publish`      | `PRODUCER`, if no `create` spans are present. `INTERNAL` otherwise. |
+| `publish`      | `PRODUCER`, if no `create` spans are present. |
 | `create`       | `PRODUCER` |
 | `receive`      | `CONSUMER` |
 | `deliver`      | `CONSUMER` |
