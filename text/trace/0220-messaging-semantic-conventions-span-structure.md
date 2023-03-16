@@ -380,8 +380,7 @@ flowchart LR;
 
   classDef normal fill:green
   class PM1,DM1,S1 normal
-  linkStyle 0,1 opacity:0.4
-  linkStyle 2 color:green,stroke:green
+  linkStyle 0,1 color:green,stroke:green
 ```
 
 ### Batch message producer with "Create" spans, single message pull-based consumer
