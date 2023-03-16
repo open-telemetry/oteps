@@ -168,9 +168,7 @@ application code. This usually involves a blocking call, which returns zero or
 more messages on completion.
 
 A "Receive" span covers such calls and should link to the "Create" or "Publish"
-spans of all messages that are forwarded via the respective call. Depending on
-the use case, "Receive" spans can correlate with "Process" spans or other spans
-modelling processing operations.
+spans of all messages that are forwarded via the respective call. 
 
 #### General considerations for both push-based and pull-based scenarios
 
