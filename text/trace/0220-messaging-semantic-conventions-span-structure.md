@@ -159,8 +159,7 @@ called by messaging SDKs to forward messages to the application.
 
 A "Deliver" span covers the call of such a callback or handler and should link
 to the "Create" or "Publish" spans of all messages that are forwarded via the
-respective call. Depending on the use case, "Deliver" spans can correlate with
-"Process" spans or other spans modelling processing operations.
+respective call. 
 
 #### Instrumenting pull-based scenarios
 
