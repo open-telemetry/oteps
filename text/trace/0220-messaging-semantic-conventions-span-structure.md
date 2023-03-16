@@ -248,7 +248,10 @@ SHOULD be set according to the following table, based on the operation a span de
 | `create`       | `PRODUCER` |
 | `receive`      | `CONSUMER` |
 | `deliver`      | `CONSUMER` |
-| `settle`       | `INTERNAL` |
+
+The kind of `settle` spans should be set according to the [generic specification about span kinds](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#spankind),
+e. g. it should be to `CLIENT` if the `settle` spans models a synchronous call
+to the intermediary.
 
 Setting span kinds according to this table ensures, that span links between
 consumers and producers always go from a `PRODUCER` span on the producer side to
