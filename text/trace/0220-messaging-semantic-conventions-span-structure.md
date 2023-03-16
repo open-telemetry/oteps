@@ -520,7 +520,7 @@ flowchart LR;
   classDef normal fill:green
   class PM1,PM2,R normal
   classDef additional opacity:0.4
-  class A additional
+  class A,PRM1,PRM2 additional
   linkStyle 0,1,2 opacity:0.4
   linkStyle 3,4 color:green,stroke:green
 ```
