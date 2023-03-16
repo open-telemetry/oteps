@@ -127,8 +127,7 @@ multiple messages.
 It is recommended to create a "Create" span for every single message. "Create"
 spans can be created during the "Publish" operation as children of the
 "Publish" span. Alternatively, "Create" spans can be created independently of
-the "Publish" operation. In that case, SDKs may provide mechanisms to allow
-attaching independent contexts with messages.
+the "Publish" operation.
 
 If a "Create" span exists for a message, its context must be attached to the
 message. If no "Create" span exists for a message, the context of the related
