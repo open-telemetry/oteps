@@ -63,7 +63,7 @@ An API called `Parse` receives a file object. The method loads the contents of t
 The method returns a `Configuration` model that has been validated. This API *MAY* return an error or raise an exception, whichever is idiomatic to the implementation for the following reasons:
 
 * file doesn't exist or is invalid
-* configuration parsed is invalid
+* configuration parsed is invalid according to schema
 
 #### Python Parse example
 
