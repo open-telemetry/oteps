@@ -374,15 +374,12 @@ flowchart LR;
   end
   subgraph CONSUMER
   direction TB
-  A[Ambient]-->DM1[Deliver m1]
-  A-->S1[Settle m1]
+  DM1[Deliver m1]-->S1[Settle m1]
   end
   PM1-. link .->DM1;
 
   classDef normal fill:green
   class PM1,DM1,S1 normal
-  classDef additional opacity:0.4
-  class additional A
   linkStyle 0,1 opacity:0.4
   linkStyle 2 color:green,stroke:green
 ```
@@ -472,7 +469,7 @@ flowchart LR;
   classDef normal fill:green
   class CM1,CM2,P,RM1,RM2 normal
   classDef additional opacity:0.4
-  class additional A
+  class A additional
   linkStyle 0,1,2 opacity:0.4
   linkStyle 3,4 color:green,stroke:green
 ```
@@ -497,7 +494,7 @@ flowchart LR;
   classDef normal fill:green
   class PM1,PM2,D normal
   classDef additional opacity:0.4
-  class additional PRM1,PRM2
+  class PRM1,PRM2 additional
   linkStyle 0,1 opacity:0.4
   linkStyle 2,3 color:green,stroke:green
 ```
@@ -523,7 +520,7 @@ flowchart LR;
   classDef normal fill:green
   class PM1,PM2,R normal
   classDef additional opacity:0.4
-  class additional A
+  class A additional
   linkStyle 0,1,2 opacity:0.4
   linkStyle 3,4 color:green,stroke:green
 ```
@@ -549,7 +546,7 @@ flowchart LR;
   classDef normal fill:green
   class PM1,PM2,SM1,SM2,R normal
   classDef additional opacity:0.4
-  class additional A
+  class A additional
   linkStyle 0,1,2 opacity:0.4
   linkStyle 3,4 color:green,stroke:green
 ```
