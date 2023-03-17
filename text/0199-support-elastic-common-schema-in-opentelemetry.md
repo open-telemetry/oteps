@@ -53,7 +53,7 @@ OpenTelemetry logging is today mostly structured when instrumentation libraries 
 By expanding the OTel semantic conventions with further namespaces already defined in ECS, a broader coverage of such mappings from different sources can be defined and implemented in the OTel collector.
 This, for example, includes logs from network appliances (mapping to the `network` and `interface` namespaces in ECS).
 
-The semantic conventions of a log are a challenge. What is a specific component defined in a log and how does it relate to other logs which have the same semantic component defined differently. ECS has already done some heavy-lifting on defining a unified set of semantic conventions which can be adopted in OTel.
+The semantic conventions of a log are a challenge. What is a specific component defined in a log and how does it relate to other logs which have the same semantic component defined differently? ECS has already done some heavy-lifting on defining a unified set of semantic conventions which can be adopted in OTel.
 
 OpenTelemetry has the potential to grow exponentially if the data from these other services can be correlated with instrumented code and components. In order to do this, industry stakeholders should leverage a common and standard logging data model which allows for the mapping of these different data types. The OpenTelemetry data protocol can provide this interoperable open standard. This unlocks countless use cases, and ensures that OpenTelemetry can work with other technologies which are not OpenTelemetry compliant.
 
