@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This proposal is to merge the Elastic Common Schema (ECS) with the OpenTelemetry Semantic Conventions (SemConv) and provide full interoperability in OpenTelemetry component implementations. We propose to implement this by aligning the OpenTelemetry Semantic Conventions with [ECS FieldSets](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html#ecs-fieldsets) and vice versa where feasible. The long-term goal is to achieve convergence of ECS and OTel Semantic Conventions into a single open schema (e.g. OpenTelemetry Common Schema).
+This proposal is to merge the Elastic Common Schema (ECS) with the OpenTelemetry Semantic Conventions (SemConv) and provide full interoperability in OpenTelemetry component implementations. We propose to implement this by aligning the OpenTelemetry Semantic Conventions with [ECS FieldSets](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html#ecs-fieldsets) and vice versa where feasible. The long-term goal is to achieve convergence of ECS and OTel Semantic Conventions into a single open schema so that OpenTelemetry Semantic Conventions truly is a successor of the Elastic Common Schema.
 
 ## The Goal
 - Long-term, ECS and OTel SemConv will converge into one open standard that is maintained by OpenTelemetry. To kick off this effort, Elastic will nominate several domain experts to join the OpenTelemetry Semantic Convention Approvers to help with maintaining the new standard.
