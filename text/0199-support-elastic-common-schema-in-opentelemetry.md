@@ -5,12 +5,14 @@
 This proposal is to merge the Elastic Common Schema (ECS) with the OpenTelemetry Semantic Conventions (SemConv) and provide full interoperability in OpenTelemetry component implementations. We propose to implement this by aligning the OpenTelemetry Semantic Conventions with [ECS FieldSets](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html#ecs-fieldsets) and vice versa where feasible. The long-term goal is to achieve convergence of ECS and OTel Semantic Conventions into a single open schema so that OpenTelemetry Semantic Conventions truly is a successor of the Elastic Common Schema.
 
 ## The Goal
+
 - Long-term, ECS and OTel SemConv will converge into one open standard that is maintained by OpenTelemetry. To kick off this effort, Elastic will nominate several domain experts to join the OpenTelemetry Semantic Convention Approvers to help with maintaining the new standard.
 - OTel SemConv will adopt ECS in its full scope (except for individual adjustments in detail where inevitable), including the logging, observability and security domain fields, to make the new schema a true successor of ECS and OTel SemConv.
 - Elastic and OpenTelemetry will coordinate and officially announce the direction of the merger (e.g. through official websites, blog posts, etc.)
 - Migrate ECS and OTel SemConv users to the new common schema over time and provide utilities to allow the migration to be as easy as possible.
 
 ## Scope and Overlap of ECS and OTel SemConv
+
 ECS and OTel SemConv have some overlap today, but also significant areas of mutually enriching fields. The following diagram illustrates the different areas:
 
 <p align="center">
@@ -20,14 +22,15 @@ ECS and OTel SemConv have some overlap today, but also significant areas of mutu
 1. `A`: ECS comes with a rich set of fields that cover broad logging, observability and security use cases. Many fields are additive to the OTel SemConv and would enrich the OTel SemConv without major conflicts. Examples are [Geo information fields](https://www.elastic.co/guide/en/ecs/current/ecs-geo.html), [Threat Fields](https://www.elastic.co/guide/en/ecs/current/ecs-threat.html), and many others.
 2. `B`: Conversely, there are attributes in the OTel SemConv that do not exist in ECS and would be an enrichment to ECS. Examples are the [Messaging semantic conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/messaging/) or technology-specific conventions, such as the [AWS SDK conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/instrumentation/aws-sdk/).
 3. `C`: There is some significant area of overlap between ECS and OTel SemConv. The are `C` represents overlapping fields/attributes that are very similar in ECS and OTel SemConv. The field conflicts in `C` can be resolved through simple field renames and simple transformations.
-4. `D`: For some of the fields and attributes there will be conflicts that cannot be resolved through simple renaming or transformation and would require introducing breaking changes on ECS or OTel SemConv side for the purpose of merging the schemas. 
+4. `D`: For some of the fields and attributes there will be conflicts that cannot be resolved through simple renaming or transformation and would require introducing breaking changes on ECS or OTel SemConv side for the purpose of merging the schemas.
 
 ## Proposed process to merge ECS with OTel SemConv
+
 The process of merging ECS with OTel SemConv will take time and we propose to do it as part of the stabilization effort for OTel SemConv. During that period and also for a significant period after the merger (sunset period), Elastic will continue to support ECS as a schema. However, further evolution of ECS will happen on the basis of the new, common schema. Elastic will nominate ECS experts to help with maintaining the new schema and will require the approver role for the semantic conventions in OpenTelemetry for the new schema.
 
 With the merger there will be different categories of field conflicts between ECS fields and Otel SemConv attributes (as illustrated in the above figure). We expect the areas `A` and `B` to be less controversial and potentially low-hanging fruits for an enriched, new schema.
 
-For the areas `C` and `D` we propose to resolve conflicts through a close collaboration as part of the stabilization initiative of the OTel SemConv. Where feasible, the goal is to align the OTel SemConv attributes as close as possible with the existing, stable ECS fields. Where alignment is not feasible, the goal is to identify ways to address field conflicts through technical transformations and aliasing, to bridge existing fields and formats into the new schema and vice versa (e.g. through OpenTelemetry Collector Processors). 
+For the areas `C` and `D` we propose to resolve conflicts through a close collaboration as part of the stabilization initiative of the OTel SemConv. Where feasible, the goal is to align the OTel SemConv attributes as close as possible with the existing, stable ECS fields. Where alignment is not feasible, the goal is to identify ways to address field conflicts through technical transformations and aliasing, to bridge existing fields and formats into the new schema and vice versa (e.g. through OpenTelemetry Collector Processors).
 
 While realistically truly breaking changes on ECS and OTel SemConv won't be avoidable as part of the merger, they should be the last resort and need to be discussed on a field-by-field basis.  
 
@@ -244,6 +247,7 @@ As the markdown code of the tables is hard to read and maintain with very long l
 </table>
 
 ## How would OpenTelemetry users practically use the new OpenTelemetry Semantic Conventions Attributes brought by ECS
+
 The concrete usage of ECS-enriched OpenTelemetry Semantic Conventions Attributes depends on the use case and the fieldset.
 In general, OpenTelemetry users would transparently upgrade to ECS and benefit from the alignment of attributes for new use cases.
 The main goal of this work is to enable producers of OpenTelemetry signals (collectors/exporters) to create enriched uniform signals for existing and new use cases.
@@ -264,6 +268,7 @@ of other web components (web servers, load balancers, L7 firewalls...) allowing 
 and enabling richer correlations.
 
 ### Other Examples
+
 - [Logs with sessions (VPN Logs, Network Access Sessions, RUM sessions, etc.)](https://github.com/elastic/ecs/blob/main/rfcs/text/0004-session.md#usage)
 - [Logs from systems processing files](https://www.elastic.co/guide/en/ecs/current/ecs-file.html)
 
