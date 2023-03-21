@@ -17,7 +17,6 @@ The environment variable interface suffers from the following identified limitat
 * **Runtime dependent**. Different systems expose this interface differently (Linux, BSD, Windows). This usually means unique instructions are required to properly interact with the configuration interface on different systems.
 * **Limited values**. Many systems only allow string values to be used, but OpenTelemetry specifies many configuration values other than this type. For example, OTEL_RESOURCE_ATTRIBUTES specifies a list of key value pairs to be used as resource attributes, but there is no way to specify array values, or indicate that the value should be interpreted as non-string type.
 * **Limited validation**. Validation can only be performed by the receiver, there is no meta-configuration language to validate input.
-* **Difficult to extend**. It’s difficult to anticipate the requirements of configuring custom extension components (processors, exporters, samplers, etc), and likely not practical to represent them in a flat structure. As a result, the environment variable interface is limited to components explicitly mentioned in the specification.
 * **Lacks versioning**. The lack of versioning support for environment variables prevents evolution over time.
 
 ## Explanation
