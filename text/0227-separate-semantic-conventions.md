@@ -142,3 +142,17 @@ This OTEP paves way for the following desirable features:
 - Semantic Conventions can have dedicated maintainers and approvers.
 - Semantic Conventions can restructure to better enable subject matter experts
   (SMEs) to have approver/CODEOWNER status on relevant directories.
+
+There is a desire to move semantic conventions to domain-specific directories
+instead of signal-specific. This can occur after a separation of the repository.
+
+For example:
+
+- `docs/`
+  - `signals/` - Conventions for metrics, traces + logs
+    - `http/`
+    - `db/` 
+    - `messaging/`
+    - `client/`
+  - `resource/` - We still need resource-specific semantic conventions
+
