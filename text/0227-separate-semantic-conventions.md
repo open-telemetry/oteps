@@ -1,6 +1,6 @@
 # Separate Semantic Conventions
 
-Move Semantic Conventions outside of the main Specificaiton and version them
+Move Semantic Conventions outside of the main Specifications and version them
 separately.
 
 ## Motivation
@@ -45,7 +45,7 @@ There will also be the following exceptions in the specification:
   and will not be allowed to change in the Semantic Convention directory.
   - Error/Exception handling will remain in the specification.
   - SDK configuration interaction w/ semantic convention will remain in the
-    specifcation. Specifically `service.name`.    
+    specification. Specifically `service.name`.    
 - The specification may elevate some semantic conventions as necessary for
   compatibility requirements, e.g. `service.instance.id` and 
   [Prometheus Compatibility](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/compatibility/prometheus_and_openmetrics.md).
@@ -85,7 +85,7 @@ This proposal has a few drawbacks:
 
 - The semantic conventions will no longer be easily referencable form the specification.
   - This is actually a benefit. We can ensure isolation of convention from
-    specification and require the Specifcation to use firm language for
+    specification and require the Specification to use firm language for
     attributes it requires, like `service.name`.
   - We will provide x-links from existing location to the new location.
 - Semantic Convention version will no longer match the specification version.
@@ -106,8 +106,8 @@ Initially this repository would have the following ownership:
   - [Armin Reuch](github.com/arminru)
   - [Reiley Yang](github.com/reyang)
 
-That is, Maintainence would initially continue to fall on (a subset of) the
-Technical comittee. Approvers would start targeted at HTTP semantic convention
+That is, Maintenance would initially continue to fall on (a subset of) the
+Technical committee. Approvers would start targeted at HTTP semantic convention
 stability and expand rapidly as we build momentum on semantic conventions.
 
 ## Prior art and alternatives
@@ -136,7 +136,7 @@ adapt to the new location.
 
 This OTEP paves way for the following desirable features:
 
-- Semantic Conventions can decide to bump major version numbers to accomodate
+- Semantic Conventions can decide to bump major version numbers to accommodate
   new signals or hard-to-resolve new domains without breaking the Specification
   version number.
 - Semantic Conventions can have dedicated maintainers and approvers.
