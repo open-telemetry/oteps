@@ -63,7 +63,7 @@ required attribute names and their interaction with the SDK.
 The following process would be used to ensure semantic conventions are
 seamlessly moved to their new location.
 
-- A new repository `opentelemetry/semantic_conventions` will be constructed with
+- A new repository `open-telemetry/semantic-conventions` will be constructed with
   the proposed format and necessary `Makefile` / tooling.
 - A moratorium will be placed on Semantic Convention PRs to the specififcation
   repository. (Caveat that PRs related to this proposal would be allowed).
