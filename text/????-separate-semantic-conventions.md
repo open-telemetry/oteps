@@ -5,17 +5,17 @@ separately.
 
 ## Motivation
 
-We need to allow semantic conventions to evolve independently of the overall
-OpenTelemetry specification. Today, any breaking change in a semantic convention
-would require bumping the version number of the entirety of the OpenTelemetry
-specification.
+We need to allow semantic conventions to evolve mostly independent of the
+overall OpenTelemetry specification. Today, any breaking change in a semantic
+convention would require bumping the version number of the entirety of the
+OpenTelemetry specification.
 
 ## Explanation
 
 A new github repository called `semantic-conventions` would be created in the
 OpenTelemetry organization.
 
-This would have the following structure:
+This would *initially* have the following structure:
 
 - Boilerplate files, e.g. `README.md`, `LICENSE`, `CODEOWNERS`, `CONTRIBUTING.md`
 - `Makefile` that allows automatic generation of documentation from model.
@@ -34,16 +34,29 @@ This would have the following structure:
 Existing semantic conventions in the specification would be marked as
 deprecated, with documentation denoting the move.
 
+Additionally, if the semantic conventions eventually move to domain-specific
+director structure (e.g. `docs/{domain}/README.md`, with trace, metrics, events
+in the same file), then this can be refactored in the new repository, preserving
+git history.
+
 There will also be the following exceptions in the specification:
 
 - Semantic convetions used to implement API/SDK details will be fully specified
   and will not be allowed to change in the Semantic Convention directory.
-  - Error/Exception handling will remain in the specification
+  - Error/Exception handling will remain in the specification.
   - SDK configuration interaction w/ semantic convention will remain in the
-    specifcation. Specifically `service.name`.
+    specifcation. Specifically `service.name`.    
 - The specification may elevate some semantic conventions as necessary for
   compatibility requirements, e.g. `service.instance.id` and 
   [Prometheus Compatibility](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/compatibility/prometheus_and_openmetrics.md).
+
+These exceptions exist because:
+
+- Stable portions of the specification already rely on these conventions
+- These conventions are required to implement an SDK today.
+
+As such, the Specification should define the absolute minimum of reserved or
+required attribute names and their interaction with the SDK.
 
 ## Internal details
 
@@ -82,11 +95,27 @@ This proposal has a few drawbacks:
   - We expect changes from Semantic Conventions and Specification to be
     orthogonal, so this should not add significant wall-clock time.
 
+Initially this repository would have the following ownership:
+
+- Approvers
+  - [Liudmila Molkova](github.com/lmolkova)
+- Approvers (HTTP Only)
+  - [Trask Stalnaker](github.com/trask)
+- Maintainers
+  - [Josh Suereth](github.com/jsuereth)
+  - [Armin Reuch](github.com/arminru)
+  - [Reiley Yang](github.com/reyang)
+
+That is, Maintainence would initially continue to fall on (a subset of) the
+Technical comittee. Approvers would start targeted at HTTP semantic convention
+stability and expand rapidly as we build momentum on semantic conventions.
 
 ## Prior art and alternatives
 
 When we evaluate equivalent communities and efforts we see the following:
 
+- `OpenTracing` - had specification and [semantics](https://github.com/opentracing/specification/blob/master/semantic_conventions.md)
+  merged.
 - `OpenCensus` - had specification and semantics merged. However, OpenCensus
   merged with OpenTelemetry prior to mass adoption or stable release of its
   specification.
