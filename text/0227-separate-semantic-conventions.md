@@ -28,7 +28,7 @@ This would *initially* have the following structure:
   - `metrics/` - Contents of `{specification}/metrics/semantic_conventions`
   - `logs/`- Contents of `{specification}/logs/semantic_conventions`
   - `schemas/` - A new location for [Telemetry Schemas](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/schemas/README.md)
-    to live. This directory will be hosted at 
+    to live. This directory will be hosted at
     `https://opentelemetry.io/semantic_conventions/schemas/`
 
 Existing semantic conventions in the specification would be marked as
@@ -45,9 +45,9 @@ There will also be the following exceptions in the specification:
   and will not be allowed to change in the Semantic Convention directory.
   - Error/Exception handling will remain in the specification.
   - SDK configuration interaction w/ semantic convention will remain in the
-    specification. Specifically `service.name`.    
+    specification. Specifically `service.name`.
 - The specification may elevate some semantic conventions as necessary for
-  compatibility requirements, e.g. `service.instance.id` and 
+  compatibility requirements, e.g. `service.instance.id` and
   [Prometheus Compatibility](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/compatibility/prometheus_and_openmetrics.md).
 
 These exceptions exist because:
@@ -73,11 +73,10 @@ seamlessly moved to their new location.
   links to the new location.
 - The Specification will be updated to require "special" conventions, like
   `service.name` and configuration interaction.
-- Instrumentation authors will update their `SchemaURL` to 
+- Instrumentation authors will update their `SchemaURL` to
    `https://opentelemetry.io/semantic_conventions/schemas/{semconv_version}`
    from
    `https://opentelemetry.io/schemas/{spec_version}`
-
 
 ## Trade-offs and mitigations
 
@@ -124,7 +123,6 @@ When we evaluate equivalent communities and efforts we see the following:
   semantic conventions, instead relying on naming conventions and
   standardization through mass adoption.
 
-
 ## Open questions
 
 This OTEP doesn't address the full needs of tooling and codegen that will be
@@ -151,8 +149,7 @@ For example:
 - `docs/`
   - `signals/` - Conventions for metrics, traces + logs
     - `http/`
-    - `db/` 
+    - `db/`
     - `messaging/`
     - `client/`
   - `resource/` - We still need resource-specific semantic conventions
-
