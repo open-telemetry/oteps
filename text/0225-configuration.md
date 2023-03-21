@@ -291,6 +291,26 @@ How should the SDK be configured when both no-code configuration (either environ
 
 * Solution 1: Make it clear that interpretation of the environment shouldn’t be built into components. Instead, SDKs should have a component that explicitly interprets the environment and returns a configured instance of the SDK. This is how the java SDK works today and it nicely separates concerns.
 
+### What is the exact configuration file format to use?
+
+Included in this OTEP is an example configuration file format.
+This included format was settled on so the configuration file schemas being proposed here could all be evaluated as viable options.
+It acted as proof-of-concept that _a_ configuration file format existed that could describe needed OTel configuration and be described by a schema.
+However, the configuration file format presented here is not meant as the final, nor optimal, design for use by OpenTelemetry.
+
+What that final design will be is left to discussion when this OTEP is implemented in the OpenTelemetry specification.
+It is explicitly something this OTEP is not intended to resolved.
+
+The following are existing questions that will need to be resolved in the final design:
+
+1. Should the trace exporter be at the same level as the span processors?
+2. Should the sampler config be separate from the sampler?
+3. Is the `sdk` key appropriate? Should alternate configuration live under its own key but the SDKs configuration be at the top level?
+4. Should the `disabled` key be renamed as `enabled`?
+
+This list is not intended as comprehensive.
+There are likely more questions related to the final design that will be discussed when implemented in the OpenTelemetry specification.
+
 ## Future possibilities
 
 ### Additional configuration providers
