@@ -248,7 +248,7 @@ sdk:
 
 Implementations *MUST* perform environment variable substitution before validating and parsing configuration file contents.
 
-If a configuration file references an environment variable which is undefined, implementations *MUST* return an error or raise an exception. 
+If a configuration file references an environment variable which is undefined, implementations *MUST* return an error or raise an exception.
 
 #### Handling environment variable & file config overlap
 
