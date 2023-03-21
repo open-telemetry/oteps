@@ -41,7 +41,7 @@ git history.
 
 There will also be the following exceptions in the specification:
 
-- Semantic convetions used to implement API/SDK details will be fully specified
+- Semantic conventions used to implement API/SDK details will be fully specified
   and will not be allowed to change in the Semantic Convention directory.
   - Error/Exception handling will remain in the specification.
   - SDK configuration interaction w/ semantic convention will remain in the
