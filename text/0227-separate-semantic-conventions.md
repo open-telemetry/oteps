@@ -142,7 +142,8 @@ This OTEP paves way for the following desirable features:
   (SMEs) to have approver/CODEOWNER status on relevant directories.
 
 There is a desire to move semantic conventions to domain-specific directories
-instead of signal-specific. This can occur after a separation of the repository.
+instead of signal-specific. This can occur after a separation of the repository
+and will be proposed and discussed separately from this OTEP.
 
 For example:
 
