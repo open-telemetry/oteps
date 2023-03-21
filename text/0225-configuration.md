@@ -50,17 +50,13 @@ The working group proposes the use of [JSON Schema](https://json-schema.org/) as
 * code generation
 * broad support across languages
 
-In order to provide a minimal API surface area, implementations *MUST* support the following methods.
-
-### Configure(config)
-
-An API called `Configure` receives a configuration object. This method applies the configuration object's details to the SDK. This method specifically applies the configuration object to allow for multiple configuration format providers to be supported in the future. This OTEP describes two such providers in a file and data structure formats below, but remote file formats *MAY* be implemented in the future.
+In order to provide a minimal API surface area, implementations *MUST* support the following:
 
 ### Parse(file) -> config
 
 An API called `Parse` receives a file object. The method loads the contents of the file, parses it, and validates that the configuration against the schema. At least one of JSON or YAML MUST be supported. If either format can be supported without additional dependencies, that format SHOULD be preferred. If neither or both formats are supported, YAML should be the preferred choice. If YAML is not supported due to dependency concerns, there MAY be a way for a user to explicitly enable it by installing their own dependency.
 
-The method returns a `Configuration` model that has been validated. This API *MAY* return an error or raise an exception, whichever is idiomatic to the implementation for the following reasons:
+The method returns a [Configuration model](#configuration-model) that has been validated. This API *MAY* return an error or raise an exception, whichever is idiomatic to the implementation for the following reasons:
 
 * file doesn't exist or is invalid
 * configuration parsed is invalid according to schema
@@ -109,6 +105,22 @@ Implementations *MUST* allow users to specify an environment variable to set the
 * `OTEL_CONFIG_FILE`
 
 The format for the configuration file will be detected using the file extension of this variable.
+
+### Configurer
+
+`Configurer` interprets a [Configuration model](#configuration-model) and produces configured SDK components.
+
+Multiple `Configurer`s can be [created](#createconfig---configurer) with different configurations. It is the caller's responsibility to ensure the [resulting SDK components](#get-tracerprovider-meterprovider-loggerprovider) are correctly wired into the application and instrumentation.
+
+`Configurer` **MAY** be extended in the future with functionality to apply an updated configuration model to the resulting SDK components.
+
+#### Create(config) -> Configurer
+
+Create a `Configurer` from a [configuration model](#configuration-model).
+
+#### Get TracerProvider, MeterProvider, LoggerProvider
+
+Interpret the [configuration model](#configuration-model) and return SDK TracerProvider, MeterProvider, LoggerProvider which strictly reflect the configuration object's details and ignores the [opentelemetry environment variable configuration scheme](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/sdk-environment-variables.md).
 
 ### Configuration model
 
