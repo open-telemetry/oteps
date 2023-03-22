@@ -254,7 +254,7 @@ If a configuration file references an environment variable which is undefined, i
 The behaviour when both configuration file and environment variables are present will be decided in the final design. Here are four options that should be considered:
 
 1. implementations ignore environment variables in preference of the configuration file
-2. implementations give preference to the environment variables in preference over the configuration file
+2. implementations give preference to the environment variables over the configuration file
 3. an exception arises causing the application to fail to start
 4. the behaviour is left unspecified
 
