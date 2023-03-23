@@ -347,7 +347,7 @@ The Java implementation provides a JAR that supports configuring various paramet
 
 ```bash
 java -javaagent:path/to/opentelemetry-javaagent.jar \
-     -Dotel.config=./config.yaml
+     -Dotel.config.file=./config.yaml
      -jar myapp.jar
 ```
 
