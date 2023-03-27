@@ -41,7 +41,7 @@ Using a configuration model or configuration file, users can configure all optio
 
 ## Internal details
 
-The schema for OpenTelemetry configuration is to be published in a repository to allow language implementations to leverage that definition to automatically generate code and/or validate end-user configuration. This will ensure that all implementations provide a consistent experience for any version of the schema they support. An example of such a proposed schema is available [here](https://github.com/MrAlias/otel-schema/tree/main/json_schema/schema).
+The schema for OpenTelemetry configuration is to be published in a repository to allow language implementations to leverage that definition to automatically generate code and/or validate end-user configuration. This will ensure that all implementations provide a consistent experience for any version of the schema they support. An example of such a proposed schema is available [here](./assets/0225-schema.json).
 
 The working group proposes the use of [JSON Schema](https://json-schema.org/) as the language to define the schema. It provides:
 
@@ -130,7 +130,7 @@ To allow SDKs and instrumentation libraries to accept configuration without havi
 
 ### Configuration file
 
-The following demonstrates an example of a configuration file format (full example [here](https://github.com/MrAlias/otel-schema/blob/main/config.yaml)):
+The following demonstrates an example of a configuration file format (full example [here](./assets/0225-config.yaml)):
 
 ```yaml
 # include version specification in configuration files to help with parsing and schema evolution.
