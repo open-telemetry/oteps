@@ -53,7 +53,7 @@ In order to provide a minimal API surface area, implementations *MUST* support t
 
 ### Parse(file) -> config
 
-An API called `Parse` receives a file object. The method loads the contents of the file, parses it, and validates that the configuration against the schema. At least one of JSON or YAML MUST be supported. If either format can be supported without additional dependencies, that format SHOULD be preferred. If neither or both formats are supported, YAML should be the preferred choice. If YAML is not supported due to dependency concerns, there MAY be a way for a user to explicitly enable it by installing their own dependency.
+An API called `Parse` receives a file object. The method loads the contents of the file, parses it, and validates that the configuration against the schema. At least one of JSON or YAML MUST be supported. If either format can be supported without additional dependencies, that format SHOULD be preferred. If neither or both formats are supported natively, YAML should be the preferred choice. If YAML is not supported due to dependency concerns, there MAY be a way for a user to explicitly enable it by installing their own dependency.
 
 The method returns a [Configuration model](#configuration-model) that has been validated. This API *MAY* return an error or raise an exception, whichever is idiomatic to the implementation for the following reasons:
 
