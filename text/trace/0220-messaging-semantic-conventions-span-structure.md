@@ -159,7 +159,7 @@ called by messaging SDKs to forward messages to the application.
 
 A "Deliver" span covers the call of such a callback or handler and should link
 to the "Create" or "Publish" spans of all messages that are forwarded via the
-respective call. 
+respective call.
 
 #### Instrumenting pull-based scenarios
 
@@ -168,7 +168,7 @@ application code. This usually involves a blocking call, which returns zero or
 more messages on completion.
 
 A "Receive" span covers such calls and should link to the "Create" or "Publish"
-spans of all messages that are forwarded via the respective call. 
+spans of all messages that are forwarded via the respective call.
 
 #### General considerations for both push-based and pull-based scenarios
 
@@ -196,6 +196,7 @@ when parenting "Deliver" or "Receive" spans to an ambient context), it can
 improve the user experience in some scenarios.
 
 #### Settlement
+
 Messages can be settled in a variety of different ways. In some cases, messages
 are not settled at all (fire-and-forget), or settlement happens on the broker.
 In other cases settlement operations are triggered manually by the user, and in
