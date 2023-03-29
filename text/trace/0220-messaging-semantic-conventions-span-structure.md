@@ -203,7 +203,7 @@ callback scenarios settlement can be automatically triggered by messaging SDKs
 based on return values of callbacks.
 
 A "Settle" span should be created for every settlement operation, no matter which party triggered it.
-triggered by SDKs. SDKs will in some cases auto-settle messages in
+SDKs will, in some cases, auto-settle messages in
 push-scenarios when messages are delivered via callbacks. In cases where it is
 possible, it is recommended to create the "Settle" span in the scope of the
 "Deliver" span.
