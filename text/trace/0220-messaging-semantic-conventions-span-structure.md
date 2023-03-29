@@ -202,7 +202,7 @@ In other cases settlement operations are triggered manually by the user, and in
 callback scenarios settlement can be automatically triggered by messaging SDKs
 based on return values of callbacks.
 
-A "Settle" span should be created for every settlement operation, no matter if
+A "Settle" span should be created for every settlement operation, no matter which party triggered it.
 the settlement operation was manually triggered by the user or automatically
 triggered by SDKs. SDKs will in some cases auto-settle messages in
 push-scenarios when messages are delivered via callbacks. In cases where it is
