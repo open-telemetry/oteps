@@ -106,7 +106,7 @@ spans.
 
 ### Producer
 
-Producers are responsible for attaching a creation context to a message.
+Producers are responsible for injecting a creation context into a message.
 Subsequent consumers will use this context to link consumer traces to producer
 traces. Ideally, each message gets a unique and distinct creation context
 assigned. However, as a context must refer to a span this would require the
@@ -129,9 +129,9 @@ spans can be created during the "Publish" operation as children of the
 "Publish" span. Alternatively, "Create" spans can be created independently of
 the "Publish" operation.
 
-If a "Create" span exists for a message, its context must be attached to the
+If a "Create" span exists for a message, its context must be injected into the
 message. If no "Create" span exists for a message, the context of the related
-"Publish" span must be attached to the message.
+"Publish" span must be injected into the message.
 
 ### Consumer
 
@@ -264,9 +264,9 @@ for a single message, or for multiple messages (in the case of providing
 messages in batches). "Create" spans MAY be created. A single "Create" span
 SHOULD account only for a single message.
 
-If a "Create" span exists for a message, its context SHOULD be attached to
+If a "Create" span exists for a message, its context SHOULD be injected into
 the message. If no "Create" span exists, the context of the related "Publish"
-span SHOULD be attached to the message.
+span SHOULD be injected into the message.
 
 #### Consumer spans
 
