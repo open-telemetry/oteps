@@ -309,6 +309,8 @@ conventions outlined above. Green boxes denote spans that are required to
 exist in order to conform to those conventions. Other boxes denote spans that
 are not required and covered by the conventions, but are hopefully helpful in
 understanding how messaging spans can be integrated into an overall trace flow.
+Solid arrows denote parent/child relationships, dotted arrows denote link
+relationships.
 
 ### Single message producer, single message push-based consumer
 
