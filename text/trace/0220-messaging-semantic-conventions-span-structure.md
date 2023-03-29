@@ -300,7 +300,7 @@ the "Create" or "Publish" span MAY be set as a parent of the "Deliver" or
 triggered settlement operation. A single "Settle" span can account for a
 single message or for multiple messages (in case messages are passed for
 settling as batches). For each message it accounts for, the "Settle" span
-MAY link to the "Create" or "Publish" span for the message.
+MAY link to the "Create" or "Publish" span of the message.
 
 ## Examples
 
