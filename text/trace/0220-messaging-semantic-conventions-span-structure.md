@@ -96,8 +96,8 @@ flowchart LR;
 3. The consumer receives the message from an intermediary.
 4. The consumer processes the message.
 5. The consumer settles the message by notifying the intermediary that the
-   message was processed. In some cases (fire-and-forget), the settlement stage
-   does not exist.
+   message was processed. In some cases (fire-and-forget scenarios, or when
+   settlement happens on the broker), the settlement stage does not exist.
 
 The semantic conventions described below define how to model those stages with
 spans.
@@ -196,11 +196,11 @@ when parenting "Deliver" or "Receive" spans to an ambient context), it can
 improve the user experience in some scenarios.
 
 #### Settlement
-
 Messages can be settled in a variety of different ways. In some cases, messages
-are not settled at all (fire-and-forget), in other cases settlement operations
-are triggered manually by the user, and in callback scenarios settlement can be
-automatically triggered by messaging SDKs based on return values of callbacks.
+are not settled at all (fire-and-forget), or settlement happens on the broker.
+In other cases settlement operations are triggered manually by the user, and in
+callback scenarios settlement can be automatically triggered by messaging SDKs
+based on return values of callbacks.
 
 A "Settle" span should be created for every settlement operation, no matter if
 the settlement operation was manually triggered by the user or automatically
