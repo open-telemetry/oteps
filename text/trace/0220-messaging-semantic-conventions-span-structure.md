@@ -248,7 +248,7 @@ The kind of `settle` spans should be set according to the [generic specification
 e. g. it should be set to `CLIENT` if the `settle` spans models a synchronous call
 to the intermediary.
 
-Setting span kinds according to this table ensures, that span links between
+Setting span kinds according to this table ensures that span links between
 consumers and producers always go from a `PRODUCER` span on the producer side to
 a `CONSUMER` span on the consumer side. This allows analysis tools to interpret
 linked traces without the need for additional semantic hints.
