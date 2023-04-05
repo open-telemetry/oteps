@@ -197,7 +197,7 @@ trace can greatly improve the user experience.
 
 #### Settlement
 
-Messages can be settled in a variety of different ways: 
+Messages can be settled in a variety of different ways:
 
 * Messages are not settled at all (fire-and-forget).
 * Settlement happens on the broker.
