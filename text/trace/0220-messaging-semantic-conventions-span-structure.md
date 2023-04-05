@@ -28,6 +28,7 @@ and detailed in [OTEP 0205](0205-messaging-semantic-conventions-context-propagat
   - [Operation name](operation-name)
   - [Span kind](span-kind)
   - [Span relationships](span-relationships)
+* [Open issues](#open-issues)
 * [Examples](#examples)
 * [Future possibilities](#future-possibilities)
   - [Intermediary instrumentation](#intermediary-instrumentation)
@@ -197,16 +198,24 @@ improve the user experience in some scenarios.
 
 #### Settlement
 
-Messages can be settled in a variety of different ways. In some cases, messages
+Messages can be settled in a variety of different ways: 
+
+* Messages are not settled at all (fire-and-forget).
+* Settlement happens on the broker.
+* Settlement operations are triggered manually by the user.
+* In callback scenarios settlement can be automatically triggered by messaging SDKs
+  based on return values of callbacks.
+
+Messages can be settled in a variety of different ways: In some cases, messages
 are not settled at all (fire-and-forget), or settlement happens on the broker.
 In other cases settlement operations are triggered manually by the user, and in
 callback scenarios settlement can be automatically triggered by messaging SDKs
 based on return values of callbacks.
 
-A "Settle" span should be created for every settlement operation, no matter which party triggered it.
-SDKs will, in some cases, auto-settle messages in
+A "Settle" span should be created for every settlement operation, no matter
+which party triggered it.  SDKs will, in some cases, auto-settle messages in
 push-scenarios when messages are delivered via callbacks. In cases where it is
-possible, it is recommended to create the "Settle" span in the scope of the
+possible, it is recommended to create the "Settle" span as a child of the
 "Deliver" span.
 
 Alternatively, an event can be created instead of a "Settle" span. Events could
@@ -303,6 +312,31 @@ single message or for multiple messages (in case messages are passed for
 settling as batches). For each message it accounts for, the "Settle" span
 MAY link to the "Create" or "Publish" span of the message.
 
+## Open issues
+
+Fully integrating the changes proposed in this document into messaging semantic
+conventions requires some additions and clarifications in the specification,
+which are listed in this section.
+
+* [open-telemetry/opentelemetry-specification#454](https://github.com/open-telemetry/opentelemetry-specification/issues/454)
+  To instrument push-based "Receive" operations as described in this document,
+  it is necessary to add links to spans after those spans were created. The
+  reason for this is, that not all messages are present at the start of a
+  "Receive" operations, so links to related contexts cannot be added at the start
+  of the span.
+* [open-telemetry/opentelemetry-specification#2176](https://github.com/open-telemetry/opentelemetry-specification/issues/2176)
+  When consuming a message with no attached creation context as part of a
+  batch, it would still be useful to capture related message-specific
+  attributes as part of a link which points to an invalid context. However,
+  according to the specification links pointing to an invalid context may be
+  ignored. For consistently reporting message-specific attributes on links, links
+  to invalid contexts should be allowed and supported.
+* [open-telemetry/opentelemetry-specification#3172](https://github.com/open-telemetry/opentelemetry-specification/issues/3172)
+  Currently the specification is unclear about whether relationships between
+  producer and consumer spans can be modelled via links, the wording suggests
+  that it should be a parent/child relationship. The wording in the specification
+  needs to make it clear that this can be a link too.
+
 ## Examples
 
 This section contains a list of examples illustrating the use of the
@@ -313,7 +347,9 @@ understanding how messaging spans can be integrated into an overall trace flow.
 Solid arrows denote parent/child relationships, dotted arrows denote link
 relationships.
 
-### Single message producer, single message push-based consumer
+### Push-based scenarios
+
+A producer creates and publishes a single message, the single message is delivered to a consumer:
 
 ```mermaid
 flowchart LR;
@@ -329,6 +365,8 @@ flowchart LR;
   class PM1,DM1 normal
   linkStyle 0 color:green,stroke:green
 ```
+
+When consuming a single message, the "deliver" spans can be parented to the creation context:
 
 ```mermaid
 flowchart LR;
@@ -346,7 +384,8 @@ flowchart LR;
   linkStyle 0,1 color:green,stroke:green
 ```
 
-### Single message producer, single message push-based consumer with manual settlement
+It is recommended to add spans for settlement operations. Those spans can
+either be created manually or via auto-instrumentation:
 
 ```mermaid
 flowchart LR;
@@ -365,48 +404,7 @@ flowchart LR;
   linkStyle 0,1 color:green,stroke:green
 ```
 
-### Single message producer, single message push-based consumer with auto-settlement
-
-```mermaid
-flowchart LR;
-  subgraph PRODUCER
-  direction TB
-  PM1[Publish m1]
-  end
-  subgraph CONSUMER
-  direction TB
-  DM1[Deliver m1]-->S1[Settle m1]
-  end
-  PM1-. link .->DM1;
-
-  classDef normal fill:green
-  class PM1,DM1,S1 normal
-  linkStyle 0,1 color:green,stroke:green
-```
-
-### Batch message producer with "Create" spans, single message pull-based consumer
-
-```mermaid
-flowchart LR;
-  subgraph PRODUCER
-  direction TB
-  P[Publish]-->CM1[Create m1]
-  P-->CM2[Create m2]
-  end
-  subgraph CONSUMER
-  direction TB
-  RM1[Receive m1]
-  RM2[Receive m2]
-  end
-  CM1-. link .->RM1;
-  CM2-. link .->RM2;
-
-  classDef normal fill:green
-  class P,CM1,CM2,RM1,RM2 normal
-  linkStyle 0,1,2,3 color:green,stroke:green
-```
-
-### Batch message producer, single message push-based consumer
+A producer publishes a batch of messages, single messages are delivered to consumers:
 
 ```mermaid
 flowchart LR;
@@ -426,6 +424,8 @@ flowchart LR;
   class P,DM1,DM2 normal
   linkStyle 0,1 color:green,stroke:green
 ```
+
+When consuming a single message, the "deliver" spans can be parented to the creation context:
 
 ```mermaid
 flowchart LR;
@@ -448,7 +448,37 @@ flowchart LR;
   linkStyle 0,1,2,3 color:green,stroke:green
 ```
 
-### Batch message producer with "Create" spans populated before publish, single message pull-based consumer
+A producer creates and publishes a single message, it is delivered as part of a
+batch of message to a consumer:
+
+```mermaid
+flowchart LR;
+  subgraph PRODUCER
+  direction TB
+  PM1[Publish m1]
+  PM2[Publish m2]
+  end
+  subgraph CONSUMER
+  direction TB
+  D[Deliver]-.-PRM1[Process m1]
+  D-.-PRM2[Process m2]
+  end
+  PM1-. link .->D;
+  PM2-. link .->D;
+
+  classDef normal fill:green
+  class PM1,PM2,D normal
+  classDef additional opacity:0.4
+  class PRM1,PRM2 additional
+  linkStyle 0,1 opacity:0.4
+  linkStyle 2,3 color:green,stroke:green
+```
+
+### Pull-based scenarios
+
+A producer creates and publishes a single message, the single message is
+delivered to a consumer. "Create" spans are created independently of the
+"publish" operation:
 
 ```mermaid
 flowchart LR;
@@ -474,32 +504,31 @@ flowchart LR;
   linkStyle 3,4 color:green,stroke:green
 ```
 
-### Single message producers, batch push-based consumer with process spans
+"Create" spans are created as part of the "publish" operation:
 
 ```mermaid
 flowchart LR;
   subgraph PRODUCER
   direction TB
-  PM1[Publish m1]
-  PM2[Publish m2]
+  P[Publish]-->CM1[Create m1]
+  P-->CM2[Create m2]
   end
   subgraph CONSUMER
   direction TB
-  D[Deliver]-.-PRM1[Process m1]
-  D-.-PRM2[Process m2]
+  RM1[Receive m1]
+  RM2[Receive m2]
   end
-  PM1-. link .->D;
-  PM2-. link .->D;
+  CM1-. link .->RM1;
+  CM2-. link .->RM2;
 
   classDef normal fill:green
-  class PM1,PM2,D normal
-  classDef additional opacity:0.4
-  class PRM1,PRM2 additional
-  linkStyle 0,1 opacity:0.4
-  linkStyle 2,3 color:green,stroke:green
+  class P,CM1,CM2,RM1,RM2 normal
+  linkStyle 0,1,2,3 color:green,stroke:green
 ```
 
-### Single message producers, batch pull-based consumer with process spans
+A producer creates and publishes a single message, it is delivered as part of a
+batch of message to a consumer. "Process" spans for single messages can be
+created, but are not covered by these conventions:
 
 ```mermaid
 flowchart LR;
@@ -525,7 +554,8 @@ flowchart LR;
   linkStyle 3,4 color:green,stroke:green
 ```
 
-### Single message producers, batch pull-based consumer with manual settlement
+It is recommended to add spans for settlement operations. Those spans can
+either be created manually or via auto-instrumentation:
 
 ```mermaid
 flowchart LR;
