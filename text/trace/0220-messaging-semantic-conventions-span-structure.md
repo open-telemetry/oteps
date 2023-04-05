@@ -401,7 +401,7 @@ flowchart LR;
 
   classDef normal fill:green
   class PM1,DM1,S1 normal
-  linkStyle 0,1 color:green,stroke:green
+  linkStyle 0,1,2 color:green,stroke:green
 ```
 
 A producer publishes a batch of messages, single messages are delivered to consumers:
@@ -495,8 +495,8 @@ flowchart LR;
   end
   CM1-. link .->RM1;
   CM2-. link .->RM2;
-  P-. link .->CM1;
-  P-. link .->CM2;
+  CM1-. link .->P;
+  CM2-. link .->P;
 
   classDef normal fill:green
   class CM1,CM2,P,RM1,RM2 normal
