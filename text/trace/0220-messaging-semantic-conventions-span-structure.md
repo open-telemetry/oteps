@@ -128,7 +128,8 @@ multiple messages.
 It is recommended to create a "Create" span for every single message. "Create"
 spans can be created during the "Publish" operation as children of the
 "Publish" span. Alternatively, "Create" spans can be created independently of
-the "Publish" operation.
+the "Publish" operation. In this case, the "Publish" span should link to the
+"Create" spans.
 
 If a "Create" span exists for a message, its context must be injected into the
 message. If no "Create" span exists for a message, the context of the related
@@ -189,12 +190,10 @@ message, or multiple messages (a batch of messages). "Deliver" and "Receive"
 spans should link to the "Create" or "Publish" span of the messages forwarded,
 thus those spans can link to zero, one, or multiple "Create" spans.
 
-If the operation covered by "Deliver" or "Receive" forwards exactly one
-message, in addition to creating a link to the "Create" span, the "Create" span
-may also be used as a parent of the "Deliver" or "Receive" span. While this is
-not possible for all scenarios (e. g. when receiving a batch of messages, or
-when parenting "Deliver" or "Receive" spans to an ambient context), it can
-improve the user experience in some scenarios.
+For single-message scenarios, in addition to adding the "Create" span as a link
+on the "Deliver" or "Receive" span, the "Create" span may also be used as a
+parent on those operations. Keeping single-messages operations in the same
+trace can greatly improve the user experience.
 
 #### Settlement
 
@@ -221,9 +220,8 @@ possible, it is recommended to create the "Settle" span as a child of the
 Alternatively, an event can be created instead of a "Settle" span. Events could
 be added to "Deliver" spans or to ambient spans.
 
-"Settle" spans may link to "Create" or "Publish" spans of the messages that are
-settled, however, for some settlement scenarios this is not feasible or
-possible.
+"Settle" spans SHOULD link to "Create" or "Publish" spans of the messages that are
+settled, when possible.
 
 ## Proposed changes and additions to the messaging semantic conventions
 
@@ -271,7 +269,8 @@ linked traces without the need for additional semantic hints.
 sending or publishing to an intermediary. A single "Publish" span can account
 for a single message, or for multiple messages (in the case of providing
 messages in batches). "Create" spans MAY be created. A single "Create" span
-SHOULD account only for a single message.
+SHOULD account only for a single message. "Create" spans SHOULD either be
+children or links of the related "Publish" span.
 
 If a "Create" span exists for a message, its context SHOULD be injected into
 the message. If no "Create" span exists, the context of the related "Publish"
@@ -366,7 +365,7 @@ flowchart LR;
   linkStyle 0 color:green,stroke:green
 ```
 
-When consuming a single message, the "deliver" spans can be parented to the creation context:
+When consuming a single message, the "Deliver" spans can be parented to the creation context:
 
 ```mermaid
 flowchart LR;
@@ -398,6 +397,7 @@ flowchart LR;
     DM1[Deliver m1]-->S1[Settle m1]
   end
   PM1-. link .->DM1;
+  PM1-. link .->S1;
 
   classDef normal fill:green
   class PM1,DM1,S1 normal
@@ -425,7 +425,7 @@ flowchart LR;
   linkStyle 0,1 color:green,stroke:green
 ```
 
-When consuming a single message, the "deliver" spans can be parented to the creation context:
+When consuming a single message, the "Deliver" spans can be parented to the creation context:
 
 ```mermaid
 flowchart LR;
@@ -478,7 +478,7 @@ flowchart LR;
 
 A producer creates and publishes a single message, the single message is
 delivered to a consumer. "Create" spans are created independently of the
-"publish" operation:
+"Publish" operation:
 
 ```mermaid
 flowchart LR;
@@ -495,16 +495,18 @@ flowchart LR;
   end
   CM1-. link .->RM1;
   CM2-. link .->RM2;
+  P-. link .->CM1;
+  P-. link .->CM2;
 
   classDef normal fill:green
   class CM1,CM2,P,RM1,RM2 normal
   classDef additional opacity:0.4
   class A additional
   linkStyle 0,1,2 opacity:0.4
-  linkStyle 3,4 color:green,stroke:green
+  linkStyle 3,4,5,6 color:green,stroke:green
 ```
 
-"Create" spans are created as part of the "publish" operation:
+"Create" spans are created as part of the "Publish" operation:
 
 ```mermaid
 flowchart LR;
@@ -572,13 +574,15 @@ flowchart LR;
   end
   PM1-. link .->R;
   PM2-. link .->R;
+  PM1-. link .->SM1;
+  PM2-. link .->SM2;
 
   classDef normal fill:green
   class PM1,PM2,SM1,SM2,R normal
   classDef additional opacity:0.4
   class A additional
   linkStyle 0,1,2 opacity:0.4
-  linkStyle 3,4 color:green,stroke:green
+  linkStyle 3,4,5,6 color:green,stroke:green
 ```
 
 ## Future possibilities
