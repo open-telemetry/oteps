@@ -135,6 +135,9 @@ If a "Create" span exists for a message, its context must be injected into the
 message. If no "Create" span exists for a message, the context of the related
 "Publish" span must be injected into the message.
 
+"Create" spans must not be created for forwarded messages into which a context
+has already been injected.
+
 ### Consumer
 
 For many use cases, it is not possible to rely on the presence of "Process"
@@ -204,12 +207,6 @@ Messages can be settled in a variety of different ways:
 * Settlement operations are triggered manually by the user.
 * In callback scenarios settlement can be automatically triggered by messaging SDKs
   based on return values of callbacks.
-
-Messages can be settled in a variety of different ways: In some cases, messages
-are not settled at all (fire-and-forget), or settlement happens on the broker.
-In other cases settlement operations are triggered manually by the user, and in
-callback scenarios settlement can be automatically triggered by messaging SDKs
-based on return values of callbacks.
 
 A "Settle" span should be created for every settlement operation, no matter
 which party triggered it.  SDKs will, in some cases, auto-settle messages in
