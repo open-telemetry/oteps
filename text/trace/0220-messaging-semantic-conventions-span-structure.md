@@ -449,7 +449,7 @@ flowchart LR;
 ```
 
 A producer creates and publishes a single message, it is delivered as part of a
-batch of message to a consumer:
+batch of messages to a consumer:
 
 ```mermaid
 flowchart LR;
