@@ -529,7 +529,7 @@ flowchart LR;
 ```
 
 A producer creates and publishes a single message, it is delivered as part of a
-batch of message to a consumer. "Process" spans for single messages can be
+batch of messages to a consumer. "Process" spans for single messages can be
 created, but are not covered by these conventions:
 
 ```mermaid
