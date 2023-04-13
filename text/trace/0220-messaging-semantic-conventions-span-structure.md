@@ -214,9 +214,6 @@ push-scenarios when messages are delivered via callbacks. In cases where it is
 possible, it is recommended to create the "Settle" span as a child of the
 "Deliver" span.
 
-Alternatively, an event can be created instead of a "Settle" span. Events could
-be added to "Deliver" spans or to ambient spans.
-
 "Settle" spans SHOULD link to "Create" or "Publish" spans of the messages that are
 settled, when possible.
 
@@ -302,11 +299,11 @@ the "Create" or "Publish" span MAY be set as a parent of the "Deliver" or
 
 #### Settlement spans
 
-"Settle" spans or events SHOULD be created for every manually or automatically
-triggered settlement operation. A single "Settle" span can account for a
-single message or for multiple messages (in case messages are passed for
-settling as batches). For each message it accounts for, the "Settle" span
-MAY link to the "Create" or "Publish" span of the message.
+"Settle" spans SHOULD be created for every manually or automatically triggered
+settlement operation. A single "Settle" span can account for a single message
+or for multiple messages (in case messages are passed for settling as batches).
+For each message it accounts for, the "Settle" span MAY link to the "Create" or
+"Publish" span of the message.
 
 ## Open issues
 
@@ -621,3 +618,22 @@ flowchart LR;
   linkStyle 0,1,4,5,6 opacity:0.4
   linkStyle 2,3 color:green,stroke:green
 ```
+
+### Instrumentation of "Process" operations
+
+This OTEP focuses on a consistent set of conventions that can be applied across
+all messaging scenarios, which in one form or another cover "Publish" and/or
+"Create", "Deliver" or "Receive", and "Settle" operations. Those operations
+share common characteristics across all messaging scenarios.
+
+Characteristics of "Process" operations on the other hand vary considerable
+across messaging scenarios. Furthermore it is often hard or even impossible to
+provide auto-instrumentation for such operations. For those reasons,
+conventions for "Process" operations were declared as out-of-scope for this
+OTEP.
+
+However, interest was expressed from many sides to also achieve some
+consistency for the instrumentation of "Process" operations. Therefore,
+[#3395](https://github.com/open-telemetry/opentelemetry-specification/issues/3395)
+covers the effort to define conventions for "Process" operations, which will
+build on the foundation that this OTEP lays.
