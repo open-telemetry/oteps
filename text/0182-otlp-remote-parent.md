@@ -115,7 +115,7 @@ The specification for `SpanKind` describes the following:
 The first property described by SpanKind reflects whether the Span is a "logical" remote child or parent ...
 ```
 
-However, the specification stay ambiguous for the `CONSUMER` span kind with respect to the property of the "logical" remote parent. 
+However, the specification stay ambiguous for the `CONSUMER` span kind with respect to the property of the "logical" remote parent.
 Nevertheless, the proposed field `parent_span_is_remote` has some overlap with that `SpanKind` property.
 The specification would require some clearification on the `SpanKind` and its relation to `parent_span_is_remote`.
 
