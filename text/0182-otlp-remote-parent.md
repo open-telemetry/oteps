@@ -99,7 +99,7 @@ As an alternative to adding a new field to spans, a new semantic convention attr
 This approach would avoid increasing the memory footprint of all spans, but would have a greater memory footprint for entry-point spans.
 The benefit of this approach would therefore depend on the ratio of entry-point to internal spans, and may even be more expensive.
 
-### Alternative 3: extend SpanKind values 
+### Alternative 3: extend SpanKind values
 
 Another alternative is to extend the SpanKind values to unambiguously define when a CONSUMER span has a remote parent or a local parent (e.g. with the message polling use case). 
 
