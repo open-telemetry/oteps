@@ -103,7 +103,7 @@ The benefit of this approach would therefore depend on the ratio of entry-point 
 
 Another alternative is to extend the SpanKind values to unambiguously define when a CONSUMER span has a remote parent or a local parent (e.g. with the message polling use case). 
 
-For example, introducing a new SpanKind (e.g. `AMBIENT_CONSUMER`) that would have a clear `no` on the `Remote-Incoming` property of the SpanKind, and `REMOTE_CONSUMER` would have a clear `yes` on the `Remote-Incoming` property of the SpanKind. The downside of this approach is that it is a breaking on the semantics of `CONSUMER` spans. 
+For example, introducing a new SpanKind (e.g. `AMBIENT_CONSUMER`) that would have a clear `no` on the `Remote-Incoming` property of the SpanKind, and `REMOTE_CONSUMER` would have a clear `yes` on the `Remote-Incoming` property of the SpanKind. The downside of this approach is that it is a breaking on the semantics of `CONSUMER` spans.
 
 
 ## Open questions
