@@ -108,6 +108,7 @@ For example, introducing a new SpanKind (e.g. `AMBIENT_CONSUMER`) that would hav
 ## Open questions
 
 ### Relation between `parent_span_is_remote` and `SpanKind`
+
 The specification for `SpanKind` describes the following:
 
 ```
