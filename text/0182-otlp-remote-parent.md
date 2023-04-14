@@ -105,7 +105,6 @@ Another alternative is to extend the SpanKind values to unambiguously define whe
 
 For example, introducing a new SpanKind (e.g. `AMBIENT_CONSUMER`) that would have a clear `no` on the `Remote-Incoming` property of the SpanKind, and `REMOTE_CONSUMER` would have a clear `yes` on the `Remote-Incoming` property of the SpanKind. The downside of this approach is that it is a breaking on the semantics of `CONSUMER` spans.
 
-
 ## Open questions
 
 ### Relation between `parent_span_is_remote` and `SpanKind`
