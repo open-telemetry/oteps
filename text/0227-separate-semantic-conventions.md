@@ -61,22 +61,32 @@ required attribute names and their interaction with the SDK.
 ## Internal details
 
 The following process would be used to ensure semantic conventions are
-seamlessly moved to their new location.
+seamlessly moved to their new location. This process lists steps in order:
 
-- A new repository `open-telemetry/semantic-conventions` will be constructed with
-  the proposed format and necessary `Makefile` / tooling.
 - A moratorium will be placed on Semantic Convention PRs to the specififcation
   repository. (Caveat that PRs related to this proposal would be allowed).
-- All semantic conventions in the Specification will be copied to the new
-  repository.
+- Interactions between Semantic Conventions and the Specification will be
+  extracted such that the Specification can require things of Semantic
+  Conventions and *normative* specification langauge will remain in the
+  specification.
+- A new repository `open-telemetry/semantic-conventions` will be constructed with
+  the proposed format and necessary `Makefile` / tooling.
+  - The new repository would be created by using `git filter-branch` to preserve
+    all existing semantic convention history. *This means all existing
+    semantic conventions will be in the new repository*.
+  - Github Actions, `Makefile` tooling and contributing / readmes would be
+    updated for the separate repository.
+  - **Note: At this point, the new location for semantic conventions should
+      be adoptable/usable.**
 - Semantic conventions in the Specification will be marked as deprecated with
   links to the new location.
-- The Specification will be updated to require "special" conventions, like
-  `service.name` and configuration interaction.
 - Instrumentation authors will update their `SchemaURL` to
    `https://opentelemetry.io/semantic_conventions/schemas/{semconv_version}`
    from
-   `https://opentelemetry.io/schemas/{spec_version}`
+   `https://opentelemetry.io/schemas/{spec_version}`.
+  - This includes updating tooling that autogenerates semantic conventions to
+    leverage the new repository.
+  - This migration can be done at the convenience of the language community.
 
 ## Trade-offs and mitigations
 
@@ -93,11 +103,23 @@ This proposal has a few drawbacks:
     now be split into two (hopefully smaller) efforts.
   - We expect changes from Semantic Conventions and Specification to be
     orthogonal, so this should not add significant wall-clock time.
+- Semantic Convention SchemaURL will change
+  - This is to *avoid confusion* with Specification versions no longer matching
+    semantic convention versions.
+  - This also aides in creating a clear signal on which instrumentation has
+    successfully migrated from the existing Specification semconv to the new
+    repository.
 
 Initially this repository would have the following ownership:
 
-- Approvers
-  - [Liudmila Molkova](github.com/lmolkova)
+- Approvers  
+  - [Christian Neumüller](https://github.com/Oberon00), Dynatrace
+  - [James Moessis](https://github.com/jamesmoessis), Atlassian
+  - [Joao Grassi](https://github.com/joaopgrassi), Dynatrace
+  - [Johannes Tax](https://github.com/pyohannes), Microsoft
+  - [Liudmila Molkova](https://github.com/lmolkova), Microsoft
+  - [Sean Marcinak](https://github.com/MovieStoreGuy), Atlassian
+  - [Ted Young](https://github.com/tedsuo), Lightstep
 - Approvers (HTTP Only)
   - [Trask Stalnaker](github.com/trask)
 - Maintainers
@@ -106,8 +128,9 @@ Initially this repository would have the following ownership:
   - [Reiley Yang](github.com/reyang)
 
 That is, Maintenance would initially continue to fall on (a subset of) the
-Technical committee. Approvers would start targeted at HTTP semantic convention
-stability and expand rapidly as we build momentum on semantic conventions.
+Technical committee. Approvers would start with exsiting semconv approvers in
+addition to targeted at HTTP semantic convention stability approvers and 
+expand rapidly as we build momentum on semantic conventions.
 
 ## Prior art and alternatives
 
