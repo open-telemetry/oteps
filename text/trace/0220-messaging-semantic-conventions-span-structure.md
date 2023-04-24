@@ -370,7 +370,7 @@ flowchart LR;
   DM1[Deliver m1]
   end
   PM1-. link .->DM1;
-  PM1-->DM1;
+  PM1-->|parent|DM1;
 
   classDef normal fill:green
   class PM1,DM1 normal
@@ -434,8 +434,8 @@ flowchart LR;
   end
   P-. link .->DM1;
   P-. link .->DM2;
-  P-->DM1;
-  P-->DM2;
+  P-->|parent|DM1;
+  P-->|parent|DM2;
 
   classDef normal fill:green
   class P,DM1,DM2 normal
@@ -478,9 +478,9 @@ delivered to a consumer. "Create" spans are created independently of the
 flowchart LR;
   subgraph PRODUCER
   direction TB
-  A[Ambient]-->CM1[Create m1]
-  A-->CM2[Create m2]
-  A-->P[Publish]
+  A[Ambient]-->|parent|CM1[Create m1]
+  A-->|parent|CM2[Create m2]
+  A-->|parent|P[Publish]
   end
   subgraph CONSUMER
   direction TB
@@ -506,8 +506,8 @@ flowchart LR;
 flowchart LR;
   subgraph PRODUCER
   direction TB
-  P[Publish]-->CM1[Create m1]
-  P-->CM2[Create m2]
+  P[Publish]-->|parent|CM1[Create m1]
+  P-->|parent|CM2[Create m2]
   end
   subgraph CONSUMER
   direction TB
@@ -535,7 +535,7 @@ flowchart LR;
   end
   subgraph CONSUMER
   direction TB
-  A[Ambient]-->R[Receive]
+  A[Ambient]-->|parent|R[Receive]
   A-.-PRM1[Process m1]
   A-.-PRM2[Process m2]
   end
@@ -562,9 +562,9 @@ flowchart LR;
   end
   subgraph CONSUMER
   direction TB
-  A[Ambient]-->R[Receive]
-  A-->SM1[Settle m1]
-  A-->SM2[Settle m2]
+  A[Ambient]-->|parent|R[Receive]
+  A-->|parent|SM1[Settle m1]
+  A-->|parent|SM2[Settle m2]
   end
   PM1-. link .->R;
   PM2-. link .->R;
@@ -607,9 +607,9 @@ flowchart LR;
   end
   PM1-. link .->D;
   PM2-. link .->D;
-  PM1-->INTERMEDIARY;
-  PM2-->INTERMEDIARY;
-  INTERMEDIARY-->D;
+  PM1-->|parent|INTERMEDIARY;
+  PM2-->|parent|INTERMEDIARY;
+  INTERMEDIARY-->|parent|D;
 
   classDef normal fill:green
   class PM1,PM2,D normal
