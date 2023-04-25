@@ -117,7 +117,8 @@ published in large batches, creating a span for every single message would
 obfuscate traces and is not desirable. Thus instrumentation libraries and
 auto-instrumentation should default to creating a unique and distinct context
 per message, but may support configuration or other ways to change this default
-behavior.
+behavior. The latter can help to reduce the number of spans and to avoid overly
+verbose traces.
 
 For each producer scenario, a "Publish" span needs to be created. This span
 measures the duration of the call or operation that provides messages for
@@ -128,15 +129,16 @@ multiple messages.
 It is recommended to create a "Create" span for every single message. "Create"
 spans can be created during the "Publish" operation as children of the
 "Publish" span. Alternatively, "Create" spans can be created independently of
-the "Publish" operation. In this case, the "Publish" span should link to the
-"Create" spans.
+the "Publish" operation, e. g. in cases where messages are created before they
+are passed to a "Publish" operation. In this case, the "Publish" span should
+link to the "Create" spans.
 
 If a "Create" span exists for a message, its context must be injected into the
 message. If no "Create" span exists for a message, the context of the related
 "Publish" span must be injected into the message.
 
-"Create" spans must not be created for forwarded messages into which a context
-has already been injected.
+"Create" spans must not be created for messages into which a context has
+already been injected.
 
 ### Consumer
 
