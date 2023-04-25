@@ -19,7 +19,7 @@ This would *initially* have the following structure:
 
 - Boilerplate files, e.g. `README.md`, `LICENSE`, `CODEOWNERS`, `CONTRIBUTING.md`
 - `Makefile` that allows automatic generation of documentation from model.
-- `model/` The set of YAML files that exist in
+- `semantic_conventions/` The set of YAML files that exist in
   `{specification}/semantic_conventions` today.
 - `docs/` A new directory that contains human readable documentation for how to
   create instrumentation compliant with semantic conventions.
@@ -68,7 +68,7 @@ seamlessly moved to their new location. This process lists steps in order:
 - Interactions between Semantic Conventions and the Specification will be
   extracted such that the Specification can require things of Semantic
   Conventions and *normative* specification langauge will remain in the
-  specification.
+  core specification directories.
 - A new repository `open-telemetry/semantic-conventions` will be constructed with
   the proposed format and necessary `Makefile` / tooling.
   - The new repository would be created by using `git filter-branch` to preserve
@@ -80,13 +80,14 @@ seamlessly moved to their new location. This process lists steps in order:
       be adoptable/usable.**
 - Semantic conventions in the Specification will be marked as deprecated with
   links to the new location.
-- Instrumentation authors will update their `SchemaURL` to
-   `https://opentelemetry.io/semantic_conventions/schemas/{semconv_version}`
-   from
-   `https://opentelemetry.io/schemas/{spec_version}`.
-  - This includes updating tooling that autogenerates semantic conventions to
-    leverage the new repository.
-  - This migration can be done at the convenience of the language community.
+  - The semconv YAML files in the specification repository *will be deleted*.
+  - All semconv markdown files will be updated such that:
+    - They no longer generate from YAML files.
+    - They include a header denoting deprecation and move to the new repository.
+- Instrumentation authors will update their code generation to pull from the new
+  semconv repository instead of the specification repository..
+- The new repository will have its first released versioned be `2.0.0`, to avoid
+    confusion with specification version.
 
 ## Trade-offs and mitigations
 
@@ -103,12 +104,7 @@ This proposal has a few drawbacks:
     now be split into two (hopefully smaller) efforts.
   - We expect changes from Semantic Conventions and Specification to be
     orthogonal, so this should not add significant wall-clock time.
-- Semantic Convention SchemaURL will change
-  - This is to *avoid confusion* with Specification versions no longer matching
-    semantic convention versions.
-  - This also aides in creating a clear signal on which instrumentation has
-    successfully migrated from the existing Specification semconv to the new
-    repository.
+- Existing PRs against semantic conventions will need tobe regenerated.
 
 Initially this repository would have the following ownership:
 
@@ -163,6 +159,8 @@ This OTEP paves way for the following desirable features:
 - Semantic Conventions can have dedicated maintainers and approvers.
 - Semantic Conventions can restructure to better enable subject matter experts
   (SMEs) to have approver/CODEOWNER status on relevant directories.
+- Semantic Conventions can adopt semantic versioning for itself, helping clearly
+  denote breaking changes to users.
 
 There is a desire to move semantic conventions to domain-specific directories
 instead of signal-specific. This can occur after a separation of the repository
