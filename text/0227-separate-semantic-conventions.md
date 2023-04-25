@@ -67,7 +67,7 @@ seamlessly moved to their new location. This process lists steps in order:
   repository. (Caveat that PRs related to this proposal would be allowed).
 - Interactions between Semantic Conventions and the Specification will be
   extracted such that the Specification can require things of Semantic
-  Conventions and *normative* specification langauge will remain in the
+  Conventions and *normative* specification language will remain in the
   core specification directories.
 - A new repository `open-telemetry/semantic-conventions` will be constructed with
   the proposed format and necessary `Makefile` / tooling.
@@ -124,8 +124,8 @@ Initially this repository would have the following ownership:
   - [Reiley Yang](github.com/reyang)
 
 That is, Maintenance would initially continue to fall on (a subset of) the
-Technical committee. Approvers would start with exsiting semconv approvers in
-addition to targeted at HTTP semantic convention stability approvers and 
+Technical committee. Approvers would start with existing semconv approvers in
+addition to targeted at HTTP semantic convention stability approvers and
 expand rapidly as we build momentum on semantic conventions.
 
 ## Prior art and alternatives
