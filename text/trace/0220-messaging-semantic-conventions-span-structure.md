@@ -143,7 +143,7 @@ has already been injected.
 For many use cases, it is not possible to rely on the presence of "Process"
 spans for correlating producer with consumer traces: there are cases where a
 dedicated processing operation cannot be identified, or where processing
-happens in a different trace. Furthermore, processing operations often are not
+happens in a different trace. Furthermore, processing operations are not often
 covered by messaging libraries and SDKs, but take place in application code.
 Consistently creating spans for "Processing" operations would require either
 effort from the application owner to correctly instrument those operations, or
