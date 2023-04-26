@@ -122,7 +122,7 @@ behavior.
 For each producer scenario, a "Publish" span needs to be created. This span
 measures the duration of the call or operation that provides messages for
 sending or publishing to an intermediary. This call or operation (and the
-related "Publish" span) can either refer to a single message or a batch of
+related "Publish" span) can either refer to a single message or to a batch of
 multiple messages.
 
 It is recommended to create a "Create" span for every single message. "Create"
