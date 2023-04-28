@@ -32,7 +32,7 @@ This would *initially* have the following structure:
     `https://opentelemetry.io/schemas/`
 
 Existing semantic conventions in the specification would be marked as
-deprecated, with documentation denoting the move.
+moved, with documentation denoting the move, but preserving previous contents.
 
 Additionally, if the semantic conventions eventually move to domain-specific
 director structure (e.g. `docs/{domain}/README.md`, with trace, metrics, events
@@ -97,7 +97,7 @@ This proposal has a few drawbacks:
   - This is actually a benefit. We can ensure isolation of convention from
     specification and require the Specification to use firm language for
     attributes it requires, like `service.name`.
-  - We will provide x-links from existing location to the new location.
+  - We will provide links from existing location to the new location.
 - Semantic Convention version will no longer match the specification version.
   - Instrumentation authors will need to consume a separate semantic-convention
     bundle from Specification bundle. What used to be ONE upgrade effort will
@@ -108,7 +108,7 @@ This proposal has a few drawbacks:
 
 Initially this repository would have the following ownership:
 
-- Approvers  
+- Approvers
   - [Christian Neumüller](https://github.com/Oberon00), Dynatrace
   - [James Moessis](https://github.com/jamesmoessis), Atlassian
   - [Joao Grassi](https://github.com/joaopgrassi), Dynatrace
@@ -118,6 +118,8 @@ Initially this repository would have the following ownership:
   - [Ted Young](https://github.com/tedsuo), Lightstep
 - Approvers (HTTP Only)
   - [Trask Stalnaker](github.com/trask)
+- Approvers (SchemaUrl Files)
+  - [Tigran Najaryan](github.com/tigrannajaryan)
 - Maintainers
   - [Josh Suereth](github.com/jsuereth)
   - [Armin Reuch](github.com/arminru)
