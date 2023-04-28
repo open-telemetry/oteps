@@ -66,7 +66,7 @@ seamlessly moved to their new location. This process lists steps in order:
 - A moratorium will be placed on Semantic Convention PRs to the specififcation
   repository. (Caveat that PRs related to this proposal would be allowed).
 - Interactions between Semantic Conventions and the Specification will be
-  extracted such that the Specification can require things of Semantic
+  extracted such that the Specification can place requirements on Semantic
   Conventions and *normative* specification language will remain in the
   core specification directories.
 - A new repository `open-telemetry/semantic-conventions` will be constructed with
