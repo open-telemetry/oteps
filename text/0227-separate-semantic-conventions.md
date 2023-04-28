@@ -78,7 +78,7 @@ seamlessly moved to their new location. This process lists steps in order:
     updated for the separate repository.
   - **Note: At this point, the new location for semantic conventions should
       be adoptable/usable.**
-- Semantic conventions in the Specification will be marked as deprecated with
+- Semantic conventions in the Specification will be marked as moved with
   links to the new location.
   - The semconv YAML files in the specification repository *will be deleted*.
   - All semconv markdown files will be updated such that:
