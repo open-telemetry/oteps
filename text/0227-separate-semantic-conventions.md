@@ -52,7 +52,7 @@ There will also be the following exceptions in the specification:
 
 These exceptions exist because:
 
-- Stable portions of the specification already rely on these conventions
+- Stable portions of the specification already rely on these conventions.
 - These conventions are required to implement an SDK today.
 
 As such, the Specification should define the absolute minimum of reserved or
