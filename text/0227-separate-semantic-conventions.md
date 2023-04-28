@@ -35,7 +35,7 @@ Existing semantic conventions in the specification would be marked as
 moved, with documentation denoting the move, but preserving previous contents.
 
 Additionally, if the semantic conventions eventually move to domain-specific
-director structure (e.g. `docs/{domain}/README.md`, with trace, metrics, events
+directory structure (e.g. `docs/{domain}/README.md`, with trace, metrics, events
 in the same file), then this can be refactored in the new repository, preserving
 git history.
 
