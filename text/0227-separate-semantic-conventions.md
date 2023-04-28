@@ -29,7 +29,7 @@ This would *initially* have the following structure:
   - `logs/`- Contents of `{specification}/logs/semantic_conventions`
   - `schemas/` - A new location for [Telemetry Schemas](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/schemas/README.md)
     to live. This directory will be hosted at
-    `https://opentelemetry.io/semantic_conventions/schemas/`
+    `https://opentelemetry.io/schemas/`
 
 Existing semantic conventions in the specification would be marked as
 deprecated, with documentation denoting the move.
