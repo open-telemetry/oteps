@@ -104,7 +104,7 @@ This proposal has a few drawbacks:
     now be split into two (hopefully smaller) efforts.
   - We expect changes from Semantic Conventions and Specification to be
     orthogonal, so this should not add significant wall-clock time.
-- Existing PRs against semantic conventions will need tobe regenerated.
+- Existing PRs against semantic conventions will need to be regenerated.
 
 Initially this repository would have the following ownership:
 
