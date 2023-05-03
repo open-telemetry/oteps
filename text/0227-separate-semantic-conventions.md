@@ -85,8 +85,7 @@ seamlessly moved to their new location. This process lists steps in order:
     - They no longer generate from YAML files.
     - They include a header denoting deprecation and move to the new repository.
 - Instrumentation authors will update their code generation to pull from the new
-  semconv repository instead of the specification repository..
-
+  semconv repository instead of the specification repository.
 
 ## Trade-offs and mitigations
 
@@ -154,7 +153,6 @@ The first version of the new location for semantic conventions may not follow
 the latest of the specification. There is reasoning to desire a `2.0` but the
 details will be discussed in the new repository location upon execution of this
 OTEP.
-
 
 ## Future possibilities
 
