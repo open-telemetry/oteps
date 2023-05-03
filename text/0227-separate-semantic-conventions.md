@@ -126,7 +126,7 @@ Initially this repository would have the following ownership:
   - [Reiley Yang](github.com/reyang)
 
 That is, Maintenance would initially continue to fall on (a subset of) the
-Technical committee. Approvers would start with existing semconv approvers in
+Technical Committee. Approvers would start with existing semconv approvers in
 addition to targeted at HTTP semantic convention stability approvers and
 expand rapidly as we build momentum on semantic conventions.
 
