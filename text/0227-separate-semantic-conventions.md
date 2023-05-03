@@ -12,7 +12,7 @@ OpenTelemetry specification.
 
 ## Explanation
 
-A new github repository called `semantic-conventions` would be created in the
+A new GitHub repository called `semantic-conventions` would be created in the
 OpenTelemetry organization.
 
 This would *initially* have the following structure:
