@@ -122,7 +122,7 @@ Initially this repository would have the following ownership:
   - [Tigran Najaryan](github.com/tigrannajaryan)
 - Maintainers
   - [Josh Suereth](github.com/jsuereth)
-  - [Armin Reuch](github.com/arminru)
+  - [Armin Ruech](github.com/arminru)
   - [Reiley Yang](github.com/reyang)
 
 That is, Maintenance would initially continue to fall on (a subset of) the
