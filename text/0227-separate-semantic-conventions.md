@@ -93,7 +93,7 @@ seamlessly moved to their new location. This process lists steps in order:
 
 This proposal has a few drawbacks:
 
-- The semantic conventions will no longer be easily referencable form the specification.
+- The semantic conventions will no longer be easily referenceable form the specification.
   - This is actually a benefit. We can ensure isolation of convention from
     specification and require the Specification to use firm language for
     attributes it requires, like `service.name`.
