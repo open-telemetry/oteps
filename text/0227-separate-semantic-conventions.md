@@ -165,7 +165,7 @@ This OTEP paves way for the following desirable features:
   denote breaking changes to users.
 
 There is a desire to move semantic conventions to domain-specific directories
-instead of signal-specific. This can occur after a separation of the repository
+instead of signal-specific. This can occur after the separation of the repository
 and will be proposed and discussed separately from this OTEP.
 
 For example:
