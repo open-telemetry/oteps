@@ -74,7 +74,7 @@ seamlessly moved to their new location. This process lists steps in order:
   - The new repository would be created by using `git filter-branch` to preserve
     all existing semantic convention history. *This means all existing
     semantic conventions will be in the new repository*.
-  - Github Actions, `Makefile` tooling and contributing / readmes would be
+  - GitHub Actions, `Makefile` tooling and contributing / readmes would be
     updated for the separate repository.
   - **Note: At this point, the new location for semantic conventions should
       be adoptable/usable.**
