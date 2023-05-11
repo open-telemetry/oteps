@@ -7,69 +7,74 @@ supporting Span-to-Metrics pipelines is limited to powers-of-two
 probabilities and is designed to work without making assumptions about 
 TraceID randomness.
 
-Head sampling requires the use of TraceState to propagate context from
-the parent for recording in child spans, in support of Span-to-Metrics
-pipelines.  Tail sampling does not require context propagation
-support, but it has many similar requirements:
+The term "Tail sampling" is in common use to describe _various_ forms
+of sampling that take place after a span starts.  The term "Tail" in
+this phrase distinguishes other techniques from head sampling, however
+the term is only broadly descriptive.
 
-1. Sampling should be "consistent", so that independent collection
-   paths make identical sampling decisions.
-2. Spans should be countable in a Span-to-Metrics pipeline, which
-   requires knowing the "adjusted count" for each span directly from
-   the data.
+Head sampling requires the use of TraceState to propagate context
+about sampling decisions parent spans to child spans.  With sampling
+information included in the TraceState, spans can be labeled with their
+effective adjusted count, making it possible to count spans as they
+arrive at their destination in real time, meaning before assembling
+complete traces.
 
-This OTEP makes use of the [draft-standard W3C tracecontext `random`
+Here, the term Intermediate Span Sampling is used to describe sampling
+performed on individual spans at any point in their collection path.
+Like Head sampling, Intermediate Span Sampling benefits from being
+consistent, because it makes recovery of complete traces possible
+after spans have independently sampled.  On the other hand, when "Tail
+sampling" refers to sampling of complete traces, sampling consistency
+is not an important property.
+
+Intermediate Span Sampling is exemplified by the
+[OpenTelemetry-Collector-Contrib's `probabilisticsampler`
+processor](https://pkg.go.dev/github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor).
+This proposal is motivated by wanting to compute Span-to-Metrics from
+spans that have been sampled by such a processor.
+
+This proposal makes use of the [draft-standard W3C tracecontext
+`random`
 flag](https://w3c.github.io/trace-context/#random-trace-id-flag),
-which is an indicator that 7 bytes of true randomness are available
-for probability sampler decisions.
+which is an indicator that 56 bits of true randomness are available
+for probability sampler decisions.  As an added benefit, we find that
+this proposal _also works for Head sampling_, and that when 56 bits of
+definite randomness are available in the TraceID we can use simpler
+sampling logic compared with the p-value, r-value approach.
 
 This proposes to create a specification with support for 56-bit
-precision tail sampling.  This is seen as particularly important for
-implementation of probabilistic tail samplers (e.g., in the
-OpenTelemetry Collector) as explained below.
+precision consistent Head and Intermediate Span sampling.  Because
+this proposal is also meant for use with Head sampling, a new member
+of the OpenTelemetry TraceState field will be defined.  Intermediate
+Span Samplers will modify the TraceState field of spans they sample.
+
+Note also there is an interest in probabilistic sampling of
+OpenTelemetry Log Records on the collection path too.  This proposal
+recommends the creation of a new field in the OpenTelemetry Log Record
+with equivalent use and interpretation as the (W3C trace-context)
+TraceState field.  It would be appropriate to name this field
+`LogState`.
 
 ## Explanation
 
-The existing, experimental TraceState probability sampling
-specification relies on two variables known as **r-value** and
-**p-value**.  The r-value carries the source of randomness and the
-p-value carries the effective sampling probability.  The preceding
-specification recommends the use of interpolation to achieve
-non-power-of-two sampling probabilities.
-
-This specification is proposed that aims to offer an alternative to
-that r-value, p-value specification, one that is simpler to implement,
-can be used in both head- and tail-samplers, and that naturally
-supports non-power-of-two sampling probabilities.
-
-This proposal uses the 7 bytes of intrinsic randomness in the TraceID,
-the ones (draft-) specified [in the W3C tracecontext `random`
-flag](https://w3c.github.io/trace-context/#random-trace-id-flag). With
-these bits, a simple threshold test is defined to allow sampling based
-on TraceID randomness.
-
-This document proposes extending the p-value, r-value mechanism with
-support for a new indicator for non-power-of-two probability sampling
-known as "t-value", where "t" is chosen because it signifies a
-threshold.  Tail-based sampling encoded by t-value can be combined
-with p-value, in which case the adjusted count implied by t-value is
-**multiplied** with the adjusted count implied by p-value because they
-are independent mechanisms.
+This document recommends deprecating the experimental p-value, r-value
+specification.
 
 ### Detailed design
 
-Support for Span-to-Metrics pipelines requires knowing the "adjusted
-count" of every collected span.  This proposal defines the sampling
-"threshold" as a 7-byte string used to make consistent sampling
-decisions, as follows.
+This proposal defines the sampling "threshold" as a 7-byte string used
+to make consistent sampling decisions, as follows.
 
-1. Bytes 9-16 of the TraceID are interpreted as a 7-byte unsigned
+1. Bytes 9-16 of the TraceID are interpreted as a 56-bit random
    value in big-endian byte order.
-2. If the unsigned value determined by the trace is less-than
-   to the sampling threshold, the span is sampled, otherwise it is
-   discarded.
+2. The sampling probability (range `[0x1p-56, 1]`) is multipled by
+   `0x1p+56`, yielding a unsigned Threshold value in the range `[1,
+   0x1p+56]`.
+3. If the unsigned TraceID random value (range `[0, 0x1p+56)`) is
+   less-than the sampling Threshold, the span is sampled, otherwise it
+   is discarded.
    
-To calculate the Sampling threshold, we begin with an IEEE-754
+To calculate the Sampling threshold, we began with an IEEE-754
 standard double-precision floating point number.  With 52-bits of
 significand and a floating exponent, the probability value used to
 calculate a threshold may be capable of representing more-or-less
@@ -80,7 +85,7 @@ some of which result in loss of precision.  This specification dicates
 exactly how to calculate a sampling threshold from a floating point
 number, and it is the sampling threshold that determines exactly the
 effective sampling probability.  The conversion between sampling
-probability and threshold is not exactly reversible, so to determine
+probability and threshold is not always reversible, so to determine
 the sampling probability exactly from an encoded t-value, first
 compute the exact sampling threshold, then use the threshold to derive
 the exact sampling probability.
@@ -90,11 +95,11 @@ to machine precision) the adjusted count of each span.  For example,
 given a sampling probability encoded as "0.1", we first compute the
 nearest base-2 floating point, which is exactly 0x1.999999999999ap-04,
 which is approximately 0.10000000000000000555.  The exact quantity in
-this example, 0x1.999999999999ap-04, is multipled by `2^56` and
+this example, 0x1.999999999999ap-04, is multipled by `0x1p+56` and
 rounded to an unsigned integer (7205759403792794).  This specification
 says that to carry out sampling probability "0.1", we should keep
-exactly 7205759403792794 smallest unsigned values of the 56-bit random
-TraceID bits.
+Traces whose least-significant 56 bits form an unsigned value less
+than 7205759403792794.
 
 ## T-value encoding for adjusted counts
 
@@ -128,65 +133,34 @@ sampling probability.
 
 ## Where to store t-value in a Span and/or Log Record
 
-Although prepared as a solution for tail sampling, the t-value
-encoding scheme could also be used to convey Logs sampling.  While
-tail sampling does not require the use of trace state, which is
-associated with context propagation, it makes a natural place to store
-t-value because it should be interpreted along with p-value, which
-resides in the trace state.  However, if spans store t-value in trace
-state, it is not clear how to convey logs sampling.
+As specified, t-value should be encoded in the TraceState field of the
+span.  Probabilistic head samplers should set t-value in propagated
+contexts so that children using ParentBased samplers are correctly
+counted.
 
-Here are ways to address this:
+Although prepared as a solution for Head and Intermediate Span
+sampling, the t-value encoding scheme could also be used to convey
+Logs sampling.  This document proposes to add an optional `LogState`
+string to the OTLP LogRecord, defined identically to the W3C
+tracecontext `TraceState` field.
 
-1. Store t-value in a new dedicated field in the Span or Log Record
-   (as a string).  (Author's preference.)
-2. Store t-value as a Span or Log Record attribute (as a string).
-   This may cause confusion because the attribute, which was not
-   applied by a user, can change long the collection path even though
-   the data has not changed.
-3. Store t-value as an optional floating point field in the Span or
-   Log Record.  An optional field is required because we need a
-   meaningful way to represent zero probability, for cases where spans
-   are exporter due to a non-probabilistic decision.
-4. Create a new field in both Spans and Log Records as a dedicated
-   field for storing t-values.
-   
-The benefit of using TraceState is that it is an extensible field,
-made for multiple vendors to place arbitrary contents.  It is not
-clear whether use of tracestate to record collection-time decisions is
-appropriate, or whether it is only meant for in-band context
-propagation.  If this use-case is acceptable, the name Trace State
-would become a legacy; in this case, a more signal-neutral name for
-the field could be developed (e.g., "Collection State")
+### 90% Intermediate Span sampling
 
-### 90% sampling 
+A span that has been sampled at 90% by an intermediate processor will
+have `ot=t:0.9` added to its TraceState field in the Span record.  The
+sampling threshold is `0.9 * 0x1p+56`.
 
-The following header
+### 90% Head sampling
 
-```
-tracestate: ot=t:0.9
-```
+A span that has been sampled at 90% by a head sampler will add
+`ot=t:0.9` to the TraceState context propagated to its children and
+record the same in its Span record.  The sampling threshold is `0.9 *
+0x1p+56`.
 
 ### 1-in-3 sampling
 
-The following header
-
-```
-tracestate: ot=t:3
-```
-
-corresponds with 1-in-3 sampling.
-
-### 25% head sampling, 1-in-10 tail sampling
-
-The following header
-
-```
-tracestate: ot=p:2;t:10
-```
-
-corresponds with 1-in-4 sampling at the head and 1-in-10 tail
-sampling.  The resulting span has adjusted count 40.
+The tracestate value `ot=t:3` corresponds with 1-in-3 sampling.  The
+sampling threshold is `1/3 * 0x1p+56`.
 
 ## Trade-offs and mitigations
 
@@ -202,4 +176,15 @@ loss.
 
 ## Prior art and alternatives
 
-An earlier draft of proposal was explored [here](https://github.com/jmacd/opentelemetry-collector-contrib/pull/2925).
+The existing p-value, r-value mechanism could only achieve
+non-power-of-two sampling using interpolation between powers of two,
+which was only possible at the head.  That specification could not be
+used for Intermediate Span sampling using non-power-of-two sampling
+probabilities.
+
+There is a case to be made that users who apply simple probability
+sampling with hard-coded probabilities are not asking for what they
+want, which is to apply a rate-limit in their sampler.  It is true
+that rate-limited sampling can be achieved confined to power-of-two
+sampling probabilities, but we feel this does not diminish the case
+for simply supporting non-power-of-two probabilities.
