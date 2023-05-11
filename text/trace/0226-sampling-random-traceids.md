@@ -144,6 +144,30 @@ Logs sampling.  This document proposes to add an optional `LogState`
 string to the OTLP LogRecord, defined identically to the W3C
 tracecontext `TraceState` field.
 
+## Re-sampling with t-value
+
+It is possible to re-sample spans that have already been sampled,
+according to their t-value.  This allows a processor to further reduce
+the volume of data it is sending by lowering the sampling threshold.
+
+In such a sampler, the incoming span will be inspected for an existing
+t-value.  If found, the incoming t-value is converted to a sampling
+threshold and compared against the new threshold.  These are two cases:
+
+- If the Threshold calculated from the incoming t-value is less than
+  or equal to the current sampler's Threshold, the outgoing t-value is
+  copied from the incoming t-value.  In this case, the span had
+  already been sampled with a less-than-or-equal probability compared
+  with the current sampler, so for consistency the span simply passes
+  through.
+- If the Threshold calculated from the incoming t-value is larger than
+  the current sampler's Threshold, the current sampler's Threshold is
+  re-applied; if the TraceID random value is less than the current
+  Sampler's threshold, the span passes through with the current
+  sampler's t-value, otherwise the span is discarded.
+
+## Examples
+
 ### 90% Intermediate Span sampling
 
 A span that has been sampled at 90% by an intermediate processor will
