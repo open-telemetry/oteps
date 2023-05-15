@@ -134,8 +134,9 @@ are passed to a "Publish" operation. In this case, the "Publish" span should
 link to the "Create" spans.
 
 If a "Create" span exists for a message, its context must be injected into the
-message. If no "Create" span exists for a message, the context of the related
-"Publish" span must be injected into the message.
+message as its creation context. If no "Create" span exists for a message, the
+context of the related "Publish" span must be injected into the message as its
+creation context.
 
 "Create" spans must not be created for messages into which a context has
 already been injected.
@@ -204,7 +205,6 @@ trace can greatly improve the user experience.
 
 Messages can be settled in a variety of different ways:
 
-* Messages are not settled at all (fire-and-forget).
 * Settlement happens on the broker.
 * Settlement operations are triggered manually by the user.
 * In callback scenarios settlement can be automatically triggered by messaging SDKs
@@ -216,8 +216,11 @@ push-scenarios when messages are delivered via callbacks. In cases where it is
 possible, it is recommended to create the "Settle" span as a child of the
 "Deliver" span.
 
-"Settle" spans SHOULD link to "Create" or "Publish" spans of the messages that are
+"Settle" spans should link to "Create" or "Publish" spans of the messages that are
 settled, when possible.
+
+No settlement span should be created for "fire-and-forget" scenarios, where
+messages aren't settled at all.
 
 ## Proposed changes and additions to the messaging semantic conventions
 
@@ -295,9 +298,8 @@ A single "Deliver" or "Receive" span can account for a single message, for
 multiple messages (in case messages are passed for processing as batches), or
 for no message at all (if it is signalled that no messages were received).  For
 each message it accounts for, the "Deliver" or "Receive" span SHOULD link to
-the "Create" or "Publish" span for the message. In addition, if it is possible
-the "Create" or "Publish" span MAY be set as a parent of the "Deliver" or
-"Receive" span.
+the message's creation context. In addition, if it is possible the creation
+context MAY be set as a parent of the "Deliver" or "Receive" span.
 
 #### Settlement spans
 
@@ -314,7 +316,7 @@ conventions requires some additions and clarifications in the specification,
 which are listed in this section.
 
 * [open-telemetry/opentelemetry-specification#454](https://github.com/open-telemetry/opentelemetry-specification/issues/454)
-  To instrument push-based "Receive" operations as described in this document,
+  To instrument pull-based "Receive" operations as described in this document,
   it is necessary to add links to spans after those spans were created. The
   reason for this is, that not all messages are present at the start of a
   "Receive" operations, so links to related contexts cannot be added at the start
