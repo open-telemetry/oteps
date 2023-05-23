@@ -89,7 +89,7 @@ flowchart LR;
   end
   PU --> INTERMEDIARY
   INTERMEDIARY --> RE
-  SE -..-> INTERMEDIARY
+  SE -..-- INTERMEDIARY
 ```
 
 1. The producer creates a message.
@@ -356,7 +356,7 @@ flowchart LR;
   subgraph CONSUMER
   DM1[Deliver m1]
   end
-  PM1-. link .->DM1;
+  PM1-. link .--DM1;
 
   classDef normal fill:green
   class PM1,DM1 normal
@@ -373,7 +373,7 @@ flowchart LR;
   subgraph CONSUMER
   DM1[Deliver m1]
   end
-  PM1-. link .->DM1;
+  PM1-. link .--DM1;
   PM1-- parent -->DM1;
 
   classDef normal fill:green
@@ -394,15 +394,16 @@ flowchart LR;
     direction TB
     DM1[Deliver m1]-->S1[Settle m1]
   end
-  PM1-. link .->DM1;
-  PM1-. link .->S1;
+  PM1-. link .--DM1;
+  PM1-. link .--S1;
 
   classDef normal fill:green
   class PM1,DM1,S1 normal
   linkStyle 0,1,2 color:green,stroke:green
 ```
 
-A producer publishes a batch of messages, single messages are delivered to consumers:
+A producer publishes a batch of messages, single messages are delivered to
+consumers. "Create" spans are created as part of the "Publish" operation:
 
 ```mermaid
 flowchart LR;
@@ -416,12 +417,12 @@ flowchart LR;
   DM1[Deliver m1]
   DM2[Deliver m2]
   end
-  C1-. link .->DM1;
-  C2-. link .->DM2;
+  C1-. link .--DM1;
+  C2-. link .--DM2;
 
   classDef normal fill:green
-  class P,DM1,DM2 normal
-  linkStyle 2,3 color:green,stroke:green
+  class P,C1,C2,DM1,DM2 normal
+  linkStyle 0,1,2,3 color:green,stroke:green
 ```
 
 When consuming a single message, the "Deliver" spans can be parented to the creation context:
@@ -438,14 +439,14 @@ flowchart LR;
   DM1[Deliver m1]
   DM2[Deliver m2]
   end
-  C1-. link .->DM1;
-  C2-. link .->DM2;
+  C1-. link .--DM1;
+  C2-. link .--DM2;
   C1-- parent -->DM1;
   C2-- parent -->DM2;
 
   classDef normal fill:green
-  class P,DM1,DM2 normal
-  linkStyle 2,3,4,5 color:green,stroke:green
+  class P,C1,C2,DM1,DM2 normal
+  linkStyle 0,1,2,3,4,5 color:green,stroke:green
 ```
 
 A producer creates and publishes a single message, it is delivered as part of a
@@ -463,8 +464,8 @@ flowchart LR;
   D[Deliver]-.-PRM1[Process m1]
   D-.-PRM2[Process m2]
   end
-  PM1-. link .->D;
-  PM2-. link .->D;
+  PM1-. link .--D;
+  PM2-. link .--D;
 
   classDef normal fill:green
   class PM1,PM2,D normal
@@ -493,10 +494,10 @@ flowchart LR;
   RM1[Receive m1]
   RM2[Receive m2]
   end
-  CM1-. link .->RM1;
-  CM2-. link .->RM2;
-  CM1-. link .->P;
-  CM2-. link .->P;
+  CM1-. link .--RM1;
+  CM2-. link .--RM2;
+  CM1-. link .--P;
+  CM2-. link .--P;
 
   classDef normal fill:green
   class CM1,CM2,P,RM1,RM2 normal
@@ -520,8 +521,8 @@ flowchart LR;
   RM1[Receive m1]
   RM2[Receive m2]
   end
-  CM1-. link .->RM1;
-  CM2-. link .->RM2;
+  CM1-. link .--RM1;
+  CM2-. link .--RM2;
 
   classDef normal fill:green
   class P,CM1,CM2,RM1,RM2 normal
@@ -545,8 +546,8 @@ flowchart LR;
   A-.-PRM1[Process m1]
   A-.-PRM2[Process m2]
   end
-  PM1-. link .->R;
-  PM2-. link .->R;
+  PM1-. link .--R;
+  PM2-. link .--R;
 
   classDef normal fill:green
   class PM1,PM2,R normal
@@ -572,10 +573,10 @@ flowchart LR;
   A-- parent -->SM1[Settle m1]
   A-- parent -->SM2[Settle m2]
   end
-  PM1-. link .->R;
-  PM2-. link .->R;
-  PM1-. link .->SM1;
-  PM2-. link .->SM2;
+  PM1-. link .--R;
+  PM2-. link .--R;
+  PM1-. link .--SM1;
+  PM2-. link .--SM2;
 
   classDef normal fill:green
   class PM1,PM2,SM1,SM2,R normal
@@ -611,8 +612,8 @@ flowchart LR;
   D[Deliver]-.-PRM1[Process m1]
   D-.-PRM2[Process m2]
   end
-  PM1-. link .->D;
-  PM2-. link .->D;
+  PM1-. link .--D;
+  PM2-. link .--D;
   PM1-- parent -->INTERMEDIARY;
   PM2-- parent -->INTERMEDIARY;
   INTERMEDIARY-- parent -->D;
