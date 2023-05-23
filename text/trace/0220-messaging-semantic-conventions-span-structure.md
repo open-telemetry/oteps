@@ -193,13 +193,13 @@ operation of pre-fetching and caching should not be covered by the "Deliver" or
 Operations covered by "Deliver" or "Receive" can forward zero messages (e. g.
 to notify the application that no message is available for processing), one
 message, or multiple messages (a batch of messages). "Deliver" and "Receive"
-spans should link to the "Create" or "Publish" span of the messages forwarded,
-thus those spans can link to zero, one, or multiple "Create" spans.
+spans should link to the creation context of the messages forwarded, thus those
+spans can link to zero, one, or multiple producer spans.
 
-For single-message scenarios, in addition to adding the "Create" span as a link
-on the "Deliver" or "Receive" span, the "Create" span may also be used as a
-parent on those operations. Keeping single-messages operations in the same
-trace can greatly improve the user experience.
+For single-message scenarios, and if the "Deliver" or "Receive" spans would be
+root spans of a new trace, the creation context may also be used as a parent on
+those operations in addition to being added as a link. Keeping single-messages
+operations in the same trace can greatly improve the user experience.
 
 #### Settlement
 
@@ -256,9 +256,9 @@ e. g. it should be set to `CLIENT` if the `settle` spans models a synchronous ca
 to the intermediary.
 
 Setting span kinds according to this table ensures that span links between
-consumers and producers always go from a `PRODUCER` span on the producer side to
-a `CONSUMER` span on the consumer side. This allows analysis tools to interpret
-linked traces without the need for additional semantic hints.
+consumers and producers always exist between a `PRODUCER` span on the producer
+side and a `CONSUMER` span on the consumer side. This allows analysis tools to
+interpret linked traces without the need for additional semantic hints.
 
 ### Span relationships
 
@@ -408,19 +408,20 @@ A producer publishes a batch of messages, single messages are delivered to consu
 flowchart LR;
   subgraph PRODUCER
   direction TB
-  P[Publish]
+  P[Publish]-->C1[Create m1]
+  P-->C2[Create m2]
   end
   subgraph CONSUMER
   direction TB
   DM1[Deliver m1]
   DM2[Deliver m2]
   end
-  P-. link .->DM1;
-  P-. link .->DM2;
+  C1-. link .->DM1;
+  C2-. link .->DM2;
 
   classDef normal fill:green
   class P,DM1,DM2 normal
-  linkStyle 0,1 color:green,stroke:green
+  linkStyle 2,3 color:green,stroke:green
 ```
 
 When consuming a single message, the "Deliver" spans can be parented to the creation context:
@@ -429,21 +430,22 @@ When consuming a single message, the "Deliver" spans can be parented to the crea
 flowchart LR;
   subgraph PRODUCER
   direction TB
-  P[Publish]
+  P[Publish]-->C1[Create m1]
+  P-->C2[Create m2]
   end
   subgraph CONSUMER
   direction TB
   DM1[Deliver m1]
   DM2[Deliver m2]
   end
-  P-. link .->DM1;
-  P-. link .->DM2;
-  P-- parent -->DM1;
-  P-- parent -->DM2;
+  C1-. link .->DM1;
+  C2-. link .->DM2;
+  C1-- parent -->DM1;
+  C2-- parent -->DM2;
 
   classDef normal fill:green
   class P,DM1,DM2 normal
-  linkStyle 0,1,2,3 color:green,stroke:green
+  linkStyle 2,3,4,5 color:green,stroke:green
 ```
 
 A producer creates and publishes a single message, it is delivered as part of a
