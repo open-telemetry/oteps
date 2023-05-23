@@ -383,8 +383,8 @@ flowchart LR;
   linkStyle 0,1 color:green,stroke:green
 ```
 
-It is recommended to add spans for settlement operations. Those spans can
-either be created manually or via auto-instrumentation:
+It is recommended to add spans for settlement operations on the consumer side.
+Those spans can either be created manually or via auto-instrumentation:
 
 ```mermaid
 flowchart LR;
