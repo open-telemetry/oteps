@@ -126,20 +126,22 @@ sending or publishing to an intermediary. This call or operation (and the
 related "Publish" span) can either refer to a single message or to a batch of
 multiple messages.
 
-It is recommended to create a "Create" span for every single message. "Create"
-spans can be created during the "Publish" operation as children of the
-"Publish" span. Alternatively, "Create" spans can be created independently of
-the "Publish" operation, e. g. in cases where messages are created before they
-are passed to a "Publish" operation. In this case, the "Publish" span should
-link to the "Create" spans.
+There are three different scenarios for injecting a creation context into a message:
 
-If a "Create" span exists for a message, its context must be injected into the
-message as its creation context. If no "Create" span exists for a message, the
-context of the related "Publish" span must be injected into the message as its
-creation context.
-
-"Create" spans must not be created for messages into which a context has
-already been injected.
+1. A user provides a custom creation context for a message, which doesn't refer
+   to any span described in this document. This provides flexibility to users
+   to model custom scenarios. In this case, no other spans besides the "Publish"
+   span should be created.
+2. If no custom creation context is provided for a message, it is recommended
+   to create a "Create" span for every single message and inject its context.
+   "Create" spans can be created during the "Publish" operation as children of the
+   "Publish" span.  Alternatively, "Create" spans can be created independently of
+   the "Publish" operation, e. g. in cases where messages are created before they
+   are passed to a "Publish" operation. In this case, the "Publish" span should
+   link to the "Create" spans.
+3. For single-message scenarios and when large number of spans are a problem,
+   the context of the "Publish" span can be injected as creation context. In
+   this case, no other spans besides the "Publish" span should be created.
 
 ### Consumer
 
@@ -166,8 +168,8 @@ the application code. Instead, callbacks or handlers are registered and then
 called by messaging SDKs to forward messages to the application.
 
 A "Deliver" span covers the call of such a callback or handler and should link
-to the "Create" or "Publish" spans of all messages that are forwarded via the
-respective call.
+to the creation context of all messages that are forwarded via the respective
+call.
 
 #### Instrumenting pull-based scenarios
 
@@ -175,8 +177,8 @@ In pull-based consumer scenarios, the delivery of messages is requested by the
 application code. This usually involves a blocking call, which returns zero or
 more messages on completion.
 
-A "Receive" span covers such calls and should link to the "Create" or "Publish"
-spans of all messages that are forwarded via the respective call.
+A "Receive" span covers such calls and should link to the creation context of
+all messages that are forwarded via the respective call.
 
 #### General considerations for both push-based and pull-based scenarios
 
@@ -216,7 +218,7 @@ push-scenarios when messages are delivered via callbacks. In cases where it is
 possible, it is recommended to create the "Settle" span as a child of the
 "Deliver" span.
 
-"Settle" spans should link to "Create" or "Publish" spans of the messages that are
+"Settle" spans should link to creation context of the messages that are
 settled, when possible.
 
 No settlement span should be created for "fire-and-forget" scenarios, where
@@ -306,8 +308,8 @@ context MAY be set as a parent of the "Deliver" or "Receive" span.
 "Settle" spans SHOULD be created for every manually or automatically triggered
 settlement operation. A single "Settle" span can account for a single message
 or for multiple messages (in case messages are passed for settling as batches).
-For each message it accounts for, the "Settle" span MAY link to the "Create" or
-"Publish" span of the message.
+For each message it accounts for, the "Settle" span MAY link to the creation
+context of the message.
 
 ## Open issues
 
