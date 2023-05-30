@@ -592,6 +592,8 @@ attributes: &attributes                                 # arrow type = map
 
 #### Metrics Payload
 
+![Metrics Arrow Schema](img/0156_metrics_schema.png)
+
 We start by defining the Arrow Schema of the `exemplar` concept because it is used for several types of metrics.
 
 ```yaml
@@ -815,6 +817,8 @@ resource_metrics:
 
 Although simpler, a logs 'ArrowPayload' takes a similar approach.
 
+![Logs Arrow Schema](img/0156_logs_schema.png)
+
 ```yaml
 resource_logs: 
   - resource: 
@@ -852,6 +856,8 @@ The type of the column `body` depends on the OTLP type and follows the same tran
 #### Spans Payload
 
 The set of possible columns for a span payload is summarized in the following yaml description.
+
+![Traces Arrow Schema](img/0156_traces_schema.png)
 
 ```yaml
 resource_spans:
