@@ -264,10 +264,28 @@ This behavior is described in more details in the section [Best effort delivery 
 The protobuf definition of this service is:
 
 ```protobuf
+// Service that can be used to send `BatchArrowRecords` between one Application instrumented with OpenTelemetry and a
+// collector, or between collectors.
 service ArrowStreamService {
   // The ArrowStream endpoint is a bi-directional stream used to send batch of `BatchArrowRecords` from the exporter
-  // to the collector. The collector returns `BatchStatus` messages to acknowledge the `BatchArrowRecords` messages received.
+  // to the collector. The collector returns `BatchStatus` messages to acknowledge the `BatchArrowRecords`
+  // messages received.
   rpc ArrowStream(stream BatchArrowRecords) returns (stream BatchStatus) {}
+}
+
+// ArrowTracesService is a traces-only Arrow stream.
+service ArrowTracesService {
+  rpc ArrowTraces(stream BatchArrowRecords) returns (stream BatchStatus) {}
+}
+
+// ArrowTracesService is a logs-only Arrow stream.
+service ArrowLogsService {
+  rpc ArrowLogs(stream BatchArrowRecords) returns (stream BatchStatus) {}
+}
+
+// ArrowTracesService is a metrics-only Arrow stream.
+service ArrowMetricsService {
+  rpc ArrowMetrics(stream BatchArrowRecords) returns (stream BatchStatus) {}
 }
 ```
 
@@ -282,12 +300,16 @@ service ArrowStreamService {
 A `BatchArrowRecords` message is composed of 3 attributes. The protobuf definition is:
 
 ```protobuf
+// A message sent by an exporter to a collector containing a batch of Arrow records.
 message BatchArrowRecords {
   // [mandatory] Batch ID. Must be unique in the context of the stream.
   string batch_id = 1;
 
   // [mandatory] A collection of payloads containing the data of the batch.
   repeated OtlpArrowPayload otlp_arrow_payloads = 2;
+
+  // [optional] Headers associated with this batch, encoded using hpack.
+  bytes headers = 3;
 }
 ```
 
@@ -305,22 +327,57 @@ More details on the `OtlpArrowPayload` columns in the section [Mapping OTel enti
 More specifically, an `OtlpArrowPayload` protobuf message is defined as:
 
 ```protobuf
+// Enumeration of all the OTLP Arrow payload types currently supported by the OTLP Arrow protocol.
+enum OtlpArrowPayloadType {
+  UNKNOWN = 0;
+
+  // A payload representing a collection of resource attributes.
+  RESOURCE_ATTRS = 1;
+  // A payload representing a collection of scope attributes.
+  SCOPE_ATTRS = 2;
+
+  // A set of payloads representing a collection of metrics.
+  METRICS = 10;                    // Main metric payload
+  NUMBER_DATA_POINTS = 11;
+  SUMMARY_DATA_POINTS = 12;
+  HISTOGRAM_DATA_POINTS = 13;
+  EXP_HISTOGRAM_DATA_POINTS = 14;
+  NUMBER_DP_ATTRS = 15;
+  SUMMARY_DP_ATTRS = 16;
+  HISTOGRAM_DP_ATTRS = 17;
+  EXP_HISTOGRAM_DP_ATTRS = 18;
+  NUMBER_DP_EXEMPLARS = 19;
+  HISTOGRAM_DP_EXEMPLARS = 20;
+  EXP_HISTOGRAM_DP_EXEMPLARS = 21;
+  NUMBER_DP_EXEMPLAR_ATTRS = 22;
+  HISTOGRAM_DP_EXEMPLAR_ATTRS = 23;
+  EXP_HISTOGRAM_DP_EXEMPLAR_ATTRS = 24;
+
+  // A set of payloads representing a collection of logs.
+  LOGS = 30;
+  LOG_ATTRS = 31;
+
+  // A set of payloads representing a collection of traces.
+  SPANS = 40;
+  SPAN_ATTRS = 41;
+  SPAN_EVENTS = 42;
+  SPAN_LINKS = 43;
+  SPAN_EVENT_ATTRS = 44;
+  SPAN_LINK_ATTRS = 45;
+}
+
+// Represents a batch of OTLP Arrow entities.
 message OtlpArrowPayload {
   // [mandatory] A unique id assigned to a sub-stream of the batch sharing the same schema, and dictionaries.
   string sub_stream_id = 1;
 
-  // [mandatory] Type of the OTel Arrow payload.
+  // [mandatory] Type of the OTLP Arrow payload.
   OtlpArrowPayloadType type = 2;
 
   // [mandatory] Serialized Arrow Record Batch
-  // For a description of the Arrow IPC format see: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
+  // For a description of the Arrow IPC format see:
+  // https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
   bytes record = 3;
-}
-
-enum OtlpArrowPayloadType {
-  METRICS = 0;
-  LOGS = 1;
-  SPANS = 2;
 }
 ```
 
@@ -348,6 +405,7 @@ On the server message stream, a `BatchStatus` message is a collection of `Status
 attributes. The protobuf definition is:
 
 ```protobuf
+// A message sent by a Collector to the exporter that opened the data stream.
 message BatchStatus {
   repeated StatusMessage statuses = 1;
 }
@@ -1085,21 +1143,53 @@ dictionary and schema information.  This remains an area for study.
 Protobuf specification for an Arrow-based OpenTelemetry event.
 
 ```protobuf
+// Copyright The OpenTelemetry Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 syntax = "proto3";
 
-package opentelemetry.proto.collector.arrow.v1;
+package opentelemetry.proto.experimental.arrow.v1;
 
 option java_multiple_files = true;
-option java_package = "io.opentelemetry.proto.collector.arrow.v1";
+option java_package = "io.opentelemetry.proto.experimental.arrow.v1";
 option java_outer_classname = "ArrowServiceProto";
 
 // Note the following is temporary
-option go_package = "github.com/f5/otel-arrow-adapter/api/collector/arrow/v1";
+option go_package = "github.com/f5/otel-arrow-adapter/api/experimental/arrow/v1";
 
+// Service that can be used to send `BatchArrowRecords` between one Application instrumented with OpenTelemetry and a
+// collector, or between collectors.
 service ArrowStreamService {
   // The ArrowStream endpoint is a bi-directional stream used to send batch of `BatchArrowRecords` from the exporter
-  // to the collector. The collector returns `BatchStatus` messages to acknowledge the `BatchArrowRecords` messages received.
+  // to the collector. The collector returns `BatchStatus` messages to acknowledge the `BatchArrowRecords`
+  // messages received.
   rpc ArrowStream(stream BatchArrowRecords) returns (stream BatchStatus) {}
+}
+
+// ArrowTracesService is a traces-only Arrow stream.
+service ArrowTracesService {
+  rpc ArrowTraces(stream BatchArrowRecords) returns (stream BatchStatus) {}
+}
+
+// ArrowTracesService is a logs-only Arrow stream.
+service ArrowLogsService {
+  rpc ArrowLogs(stream BatchArrowRecords) returns (stream BatchStatus) {}
+}
+
+// ArrowTracesService is a metrics-only Arrow stream.
+service ArrowMetricsService {
+  rpc ArrowMetrics(stream BatchArrowRecords) returns (stream BatchStatus) {}
 }
 
 // A message sent by an exporter to a collector containing a batch of Arrow records.
@@ -1109,32 +1199,65 @@ message BatchArrowRecords {
 
   // [mandatory] A collection of payloads containing the data of the batch.
   repeated OtlpArrowPayload otlp_arrow_payloads = 2;
+
+  // [optional] Headers associated with this batch, encoded using hpack.
+  bytes headers = 3;
 }
 
-// Enumeration of all the OTel Arrow payload types currently supported by the OTel Arrow protocol.
+// Enumeration of all the OTLP Arrow payload types currently supported by the OTLP Arrow protocol.
 enum OtlpArrowPayloadType {
-  // A payload representing a collection of metrics.
-  METRICS = 0;
-  // A payload representing a collection of logs.
-  LOGS = 1;
-  // A payload representing a collection of traces.
-  SPANS = 2;
+  UNKNOWN = 0;
+
+  // A payload representing a collection of resource attributes.
+  RESOURCE_ATTRS = 1;
+  // A payload representing a collection of scope attributes.
+  SCOPE_ATTRS = 2;
+
+  // A set of payloads representing a collection of metrics.
+  METRICS = 10;                    // Main metric payload
+  NUMBER_DATA_POINTS = 11;
+  SUMMARY_DATA_POINTS = 12;
+  HISTOGRAM_DATA_POINTS = 13;
+  EXP_HISTOGRAM_DATA_POINTS = 14;
+  NUMBER_DP_ATTRS = 15;
+  SUMMARY_DP_ATTRS = 16;
+  HISTOGRAM_DP_ATTRS = 17;
+  EXP_HISTOGRAM_DP_ATTRS = 18;
+  NUMBER_DP_EXEMPLARS = 19;
+  HISTOGRAM_DP_EXEMPLARS = 20;
+  EXP_HISTOGRAM_DP_EXEMPLARS = 21;
+  NUMBER_DP_EXEMPLAR_ATTRS = 22;
+  HISTOGRAM_DP_EXEMPLAR_ATTRS = 23;
+  EXP_HISTOGRAM_DP_EXEMPLAR_ATTRS = 24;
+
+  // A set of payloads representing a collection of logs.
+  LOGS = 30;
+  LOG_ATTRS = 31;
+
+  // A set of payloads representing a collection of traces.
+  SPANS = 40;
+  SPAN_ATTRS = 41;
+  SPAN_EVENTS = 42;
+  SPAN_LINKS = 43;
+  SPAN_EVENT_ATTRS = 44;
+  SPAN_LINK_ATTRS = 45;
 }
 
-// Represents a batch of OTel Arrow entities.
+// Represents a batch of OTLP Arrow entities.
 message OtlpArrowPayload {
   // [mandatory] A unique id assigned to a sub-stream of the batch sharing the same schema, and dictionaries.
   string sub_stream_id = 1;
 
-  // [mandatory] Type of the OTel Arrow payload.
+  // [mandatory] Type of the OTLP Arrow payload.
   OtlpArrowPayloadType type = 2;
 
   // [mandatory] Serialized Arrow Record Batch
-  // For a description of the Arrow IPC format see: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
+  // For a description of the Arrow IPC format see:
+  // https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
   bytes record = 3;
 }
 
-// A message sent by a Collector to the exporter that opened the Jodata stream.
+// A message sent by a Collector to the exporter that opened the data stream.
 message BatchStatus {
   repeated StatusMessage statuses = 1;
 }
