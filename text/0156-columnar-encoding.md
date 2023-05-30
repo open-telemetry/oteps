@@ -81,9 +81,9 @@ OpenTelemetry protocol this compatible extension has the following improvements:
   telemetry data based on a columnar representation, 2) a stream-oriented gRPC endpoint that is more efficient to
   transmit batches of OTLP entities.
 * **Provide a more optimal representation for multivariate time-series data**.
-  With the current version of the OpenTelemetry protocol, users have to transform multivariate time-series (i.e multiple
-  related metrics sharing the same attributes and timestamp) into a collection of univariate time-series resulting in a
-  large amount of duplication and additional overhead covering the entire chain from exporters to backends.
+  Multivariate time-series are currently not well compressed in the existing protocol (multivariate = related metrics
+  sharing the same attributes and timestamp). The OTel Arrow protocol provides a much better compression rate for this
+  type of data by leveraging the columnar representation.
 * **Provide more advanced and efficient telemetry data processing capabilities**. Increasing data volume, cost
   efficiency, and data minimization require additional data processing capabilities such as data projection,
   aggregation, and filtering.
@@ -103,7 +103,7 @@ basis for columnar support in OTLP.
 
 ### Validation
 
-A series of tests were conducted to compare compression ratios between OTLP and a columnar version of OTLP called OTLP
+A series of tests were conducted to compare compression ratios between OTLP and a columnar version of OTLP called OTel
 Arrow. The key results are:
 
 * For univariate time series, OTel Arrow is **2 to 3.5 better in terms of bandwidth reduction while having an
@@ -191,7 +191,7 @@ A two-phase integration is proposed to allow incremental benefits.
 #### Phase 1
 
 This proposal is designed as a protocol extension compatible with the existing OTLP protocol. As illustrated in the
-following diagram, a new OTLP-Arrow to OTLP receiver will be responsible for translating the protocol extension to the
+following diagram, a new OTel Arrow to OTLP receiver will be responsible for translating the protocol extension to the
 existing protocol. Similarly, a new exporter will be responsible for translating the OTLP messages into this new Arrow-based
 format.
 
@@ -327,7 +327,7 @@ More details on the `OtlpArrowPayload` columns in the section [Mapping OTel enti
 More specifically, an `OtlpArrowPayload` protobuf message is defined as:
 
 ```protobuf
-// Enumeration of all the OTLP Arrow payload types currently supported by the OTLP Arrow protocol.
+// Enumeration of all the OTLP Arrow payload types currently supported by the OTel Arrow protocol.
 enum OtlpArrowPayloadType {
   UNKNOWN = 0;
 
@@ -366,12 +366,12 @@ enum OtlpArrowPayloadType {
   SPAN_LINK_ATTRS = 45;
 }
 
-// Represents a batch of OTLP Arrow entities.
+// Represents a batch of OTel Arrow entities.
 message OtlpArrowPayload {
   // [mandatory] A unique id assigned to a sub-stream of the batch sharing the same schema, and dictionaries.
   string sub_stream_id = 1;
 
-  // [mandatory] Type of the OTLP Arrow payload.
+  // [mandatory] Type of the OTel Arrow payload.
   OtlpArrowPayloadType type = 2;
 
   // [mandatory] Serialized Arrow Record Batch
@@ -915,18 +915,18 @@ For the prototype specifically, which is a fork of the OpenTelemetry
 collector codebase, we have derived the OTLP/gRPC-Arrow exporter and
 receiver as set of changes directly to the `receiver/otlpreceiver` and
 `exporter/otlpexporter` components, with new `internal/arrow` packages
-in both.  With every collector release we merge the OTLP-Arrow changes
+in both.  With every collector release we merge the OTel Arrow changes
 with the mainline components to maintain this promise of
 compatibility.
 
-OTLP-Arrow supports conveying the gRPC metadta (i.e., http2 headers) using a dedicated `bytes` field.  Metadata is
+OTel Arrow supports conveying the gRPC metadta (i.e., http2 headers) using a dedicated `bytes` field.  Metadata is
 encoded using [hpack](https://datatracker.ietf.org/doc/rfc7541/) like a typical unary gRPC request.
 
 Specifically:
 
 #### OTLP/gRPC Receiver
 
-When Arrow is enabled, the OTLP receiver listens for both the standard unary gRPC service OTLP and OTLP-Arrow stream
+When Arrow is enabled, the OTLP receiver listens for both the standard unary gRPC service OTLP and OTel Arrow stream
 services.  Each stream uses an instance of the OTel-Arrow-Adapter's
 [Consumer](https://pkg.go.dev/github.com/f5/otel-arrow-adapter@v0.0.0-20230112224802-dafb6df21c97/pkg/otel/arrow_record#Consumer). Sets
 `client.Metadata` in the Context.
@@ -1132,9 +1132,9 @@ The columnar representation is more efficient for transporting large homogeneous
 combining automatically column-oriented and row-oriented batches would allow to cover all scenarios. The development of
 a strategy to automatically select the best data representation mode is an open question.
 
-### Unary gRPC OTLP-Arrow and HTTP OTLP-Arrow
+### Unary gRPC OTel Arrow and HTTP OTel Arrow
 
-The design currently calls for the use of gRPC streams to benefit from OTLP-Arrow transport.  We believe that some of
+The design currently calls for the use of gRPC streams to benefit from OTel Arrow transport.  We believe that some of
 this benefit can be had even for unary gRPC and HTTP requests with large request batches to amortize sending of
 dictionary and schema information.  This remains an area for study.
 
@@ -1420,7 +1420,7 @@ The batch creation+sorting phase for OTel Arrow represents almost all the time s
 times are
 almost zero due to the use of Flatbuffer by Apache Arrow (ser/deser without parsing/unpacking). Compression and
 decompression
-times are low due to the fact that the size of the Arrow OTLP message before compression is more than 7 times
+times are low due to the fact that the size of the OTel Arrow message before compression is more than 7 times
 smaller than an OTLP message with the same content.
 
 > It should be possible to significantly optimize the creation of OTel Arrow batches for contexts where the structure
@@ -1437,7 +1437,7 @@ details on a solution to facilitate data sharing.
 
 ## Appendix C - Parameter Tuning and Design Optimization
 
-This section describes the systematic approach used to optimize the Arrow OTLP design and its parameters. The approach
+This section describes the systematic approach used to optimize the OTel Arrow design and its parameters. The approach
 is
 based on an optimization technique called "blackbox optimization" which allows to describe the system to be optimized as
 a black box with a set of input parameters and an output corresponding to the value of a function to be optimized
