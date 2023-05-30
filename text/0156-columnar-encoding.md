@@ -27,7 +27,7 @@ expose the new gRPC endpoint and to provide OTel Arrow support via the previous 
   * [Mapping OTel Entities to Arrow Records](#mapping-otel-entities-to-arrow-records)
     * [Logs Arrow Mapping](#logs-arrow-mapping)
     * [Spans Arrow Mapping](#spans-arrow-mapping)
-    * [Metrics Payload](#metrics-payload)
+    * [Metrics Arrow Mapping](#metrics-arrow-mapping)
 * [Implementation Recommendations](#implementation-recommendations)
   * [Protocol Extension and Fallback Mechanism](#protocol-extension-and-fallback-mechanism)
   * [Batch ID Generation](#batch-id-generation)
@@ -601,228 +601,41 @@ Similarly, each of the Arrow records is sorted by specific columns to optimize t
 The `end_time_unix_nano` is represented as a duration (`end_time_unix_nano` - `start_time_unix_nano`) to reduce the
 number of bits required to represent the timestamp.
 
-#### Metrics Payload
+#### Metrics Arrow Mapping
+
+The mapping for metrics, while being the most complex, fundamentally follows the same logic as applied to logs and
+spans. The primary 'METRICS' entity encapsulates a flattened representation of `ResourceMetrics`, `ScopeMetrics`, and
+`Metrics`. All common columns among the different metric types are consolidated in this main entity (i.e., `metric_type`,
+`name`, `description`, `unit`, `aggregation_temporality`, and `is_monotonic`). Furthermore, a dedicated entity is
+crafted to represent data points for each type of metrics, with their columns being specific to the respective metric
+type. For instance, the `SUMMARY_DATA_POINTS` entity includes columns `id`, `parent_id`, `start_time_unix_nano`,
+`time_unix_nano`, `count`, `sum`, and `flags`. Each of these "data points" entities is linked to:
+- A set of data point attributes (following a one-to-many relationship).
+- A set of data points exemplars (also adhering to a one-to-many relationship).
+
+Exemplar entities, in turn, are connected to their dedicated set of attributes.
+
+Technically speaking, the `quantile` entity isn't encoded as an independent entity but rather as a list of struct within
+the `SUMMARY_DATA_POINTS entity`.
 
 ![Metrics Arrow Schema](img/0156_metrics_schema.png)
 
-We start by defining the Arrow Schema of the `exemplar` concept because it is used for several types of metrics.
-
-```yaml
-# Exemplar Arrow Schema (declaration used in other schemas)
-exemplars: &exemplars             # arrow type = list of struct
-  - attributes: *attributes       # YAML alias to the attributes schema defined previously
-    time_unix_nano: timestamp     # arrow type = timestamp (time unit nanoseconds)
-    value:                        # arrow type = sparse union
-      i64: int64
-      f64: float64
-    span_id: 8_bytes_binary_dictionary | 8_bytes_binary       # arrow fixed size binary array
-    trace_id: 16_bytes_binary_dictionary | 16_bytes_binary    # arrow fixed size binary array
-```
+Gauge and Sum are identified by the `metric_type` column in the `METRICS` entity and they share the same Arrow record
+for the data points, i.e. `NUMBER_DATA_POINTS`.
 
 `span_id` and `trace_id` are represented as fixed size binary dictionaries by default but can evolve to non-dictionary
 form when their cardinality exceeds a certain threshold (usually 2^16).
+
+As usual, each of these Arrow records is sorted by specific columns to optimize the compression ratio. With this mapping
+batch of metrics containing a large number of data points sharing the same attributes and timestamp will be highly
+compressible (multivariate time-series scenario).
 
 > Note: every OTLP timestamps are represented as Arrow timestamps with nanoseconds time unit. This representation will
 > simplify the integration with the rest of the Arrow ecosystem (numerous time/date functions are supported in
 > DataFusion for example).
 
-The Arrow Schema for the univariate metrics is the following:
-
-```yaml
-resource_metrics:
-    - resource: 
-        attributes: *attributes
-        dropped_attributes_count: uint32 
-      schema_url: string_dictionary | string
-      scope_metrics: 
-        - scope: 
-            name: string_dictionary | string
-            version: string_dictionary | string 
-            attributes: *attributes
-            dropped_attributes_count: uint32
-          schema_url: string_dictionary | string
-          # This section represents the standard OTLP metrics as defined in OTel v1 
-          # specifications.
-          #
-          # Named univariate metrics as their representation allow to represent each
-          # metric as independent measurement with their own specific timestamps and
-          # attributes.
-          #
-          # Shared attributes and timestamps are optional and only used for optimization
-          # purposes.
-          univariate_metrics:                               # arrow type = list                            
-            - name: string_dictionary | string              # required, arrow type = struct
-              description: string_dictionary | string
-              unit: string_dictionary | string 
-              shared_attributes: *attributes                # attributes inherited by data points if not defined locally 
-              shared_start_time_unix_nano: timestamp        # start time inherited by data points if not defined locally
-              shared_time_unix_nano: timestamp              # required if not defined in data points
-              data:                                         # arrow type = sparse union
-                gauge:                                      # arrow type = struct 
-                    data_points: 
-                      - attributes: *attributes
-                        start_time_unix_nano: timestamp     # arrow type = timestamp (time unit nanoseconds)
-                        time_unix_nano: timestamp           # required if not defined as a shared field in the metric
-                        value:                              # arrow type = sparse union
-                          i64: int64 
-                          f64: float64 
-                        exemplars: *exemplars
-                        flags: uint32                       # each flag defined in this enum is a bit-mask
-                sum:                                        # arrow type = struct
-                    data_points: 
-                      - attributes: *attributes
-                        start_time_unix_nano: timestamp   
-                        time_unix_nano: timestamp           # required
-                        value:                              # arrow type = sparse union
-                          i64: int64
-                          f64: float64
-                        exemplars: *exemplars
-                        flags: uint32                         # each flag defined in this enum is a bit-mask
-                    aggregation_temporality: uint8_dictionary # OTLP enum with 3 variants
-                    is_monotonic: bool
-                summary:                                    # arrow type = struct
-                    data_points: 
-                      - attributes: *attributes
-                        start_time_unix_nano: timestamp
-                        time_unix_nano: timestamp           # required
-                        count: uint64
-                        sum: float64
-                        quantile:                           # arrow type = list of struct
-                          - quantile: float64
-                            value: float64
-                        flags: uint32                       # each flag defined in this enum is a bit-mask
-                histogram:                                  # arrow type = struct
-                    data_points:
-                      - attributes: *attributes
-                        start_time_unix_nano: timestamp
-                        time_unix_nano: timestamp
-                        count: uint64
-                        sum: float64
-                        bucket_counts: []uint64
-                        explicit_bounds: []float64
-                        min: float64
-                        max: float64
-                        exemplars: *exemplars
-                        flags: uint32                       # each flag defined in this enum is a bit-mask
-                    aggregation_temporality: int32
-                exp_histogram:                              # arrow type = struct
-                    data_points:
-                      - attributes: *attributes
-                        start_time_unix_nano: timestamp
-                        time_unix_nano: timestamp
-                        count: uint64
-                        sum: float64
-                        scale: int32
-                        zero_count: uint64
-                        positive:
-                          offset: int32
-                          bucket_counts: []uint64
-                        negative:
-                          offset: int32
-                          bucket_counts: []uint64
-                        min: float64
-                        max: float64
-                        exemplars: *exemplars
-                        flags: uint32                         # each flag defined in this enum is a bit-mask
-                    aggregation_temporality: uint8_dictionary # OTLP enum with 3 variants
-```
-
-`Gauge`, `Sum`, `Histogram`, `Exponential Histogram`, and `Summary` are represented as Arrow Sparse Union of structs.
-Additional variants can be added in the future.
-
 > Note: `aggregation_temporality` is represented as an Arrow dictionary with a dictionary index of type int8. This OTLP
-> enum has current 3 variants, and we don't expect to have in the future more than 2^8 variants.
-
-The Arrow Schema for the native multivariate metrics is the following:
-
-```yaml
-resource_metrics:
-    - resource: 
-        attributes: *attributes
-        dropped_attributes_count: uint32 
-      schema_url: string | string_dictionary
-      scope_metrics: 
-        - scope: 
-            name: string | string_dictionary 
-            version: string | string_dictionary 
-            attributes: *attributes
-            dropped_attributes_count: uint32
-          schema_url: string | string_dictionary
-          # Native support of multivariate metrics (not yet implemented)
-          #
-          # Multivariate metrics are related metrics sharing the same context, i.e. the same
-          # attributes and timestamps.
-          #
-          # Each metrics is defined by a name, a set of data points, and optionally a description
-          # and a unit.
-          multivariate_metrics:                       
-            attributes: *attributes                         # All multivariate metrics shared the same attributes
-            start_time_unix_nano: timestamp                 # All multivariate metrics shared the same timestamps
-            time_unix_nano: timestamp                       # required
-            metrics:                                        # arrow type = list of sparse union
-              - gauge:                                      # arrow type = struct
-                  name: string | string_dictionary          # required
-                  description: string | string_dictionary
-                  unit: string | string_dictionary 
-                  value:                                    # arrow type = dense union
-                    i64: int64 
-                    f64: float64
-                  exemplars: *exemplars
-                  flags: uint32  
-                sum:                                        # arrow type = struct
-                  name: string | string_dictionary          # required
-                  description: string | string_dictionary
-                  unit: string | string_dictionary
-                  value:                                    # arrow type = dense union
-                    i64: int64
-                    f64: float64
-                  exemplars: *exemplars
-                  flags: uint32
-                  aggregation_temporality: uint8_dictionary # OTLP enum with 3 variants
-                  is_monotonic: bool
-                summary:                                    # arrow type = struct
-                  name: string | string_dictionary          # required
-                  description: string | string_dictionary
-                  unit: string | string_dictionary
-                  count: uint64 
-                  sum: float64
-                  quantile: 
-                    - quantile: float64
-                      value: float64
-                  flags: uint32
-                histogram:                                  # arrow type = struct
-                  name: string | string_dictionary          # required
-                  description: string | string_dictionary
-                  unit: string | string_dictionary
-                  count: uint64
-                  sum: float64
-                  bucket_counts: []uint64
-                  explicit_bounds: []float64
-                  exemplars: *exemplars
-                  flags: uint32
-                  min: float64
-                  max: float64
-                  aggregation_temporality: int32
-                exp_histogram:                              # arrow type = struct
-                  name: string | string_dictionary          # required
-                  description: string | string_dictionary
-                  unit: string | string_dictionary
-                  count: uint64
-                  sum: float64
-                  scale: int32
-                  zero_count: uint64
-                  positive:
-                    offset: int32
-                    bucket_counts: []uint64
-                  negative:
-                    offset: int32
-                    bucket_counts: []uint64
-                  exemplars: *exemplars
-                  flags: uint32
-                  min: float64
-                  max: float64
-                  aggregation_temporality: uint8_dictionary # OTLP enum with 3 variants
-```
+> enum has currently 3 variants, and we don't expect to have in the future more than 2^8 variants.
 
 ## Implementation Recommendations
 
