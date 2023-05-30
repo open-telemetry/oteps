@@ -227,7 +227,7 @@ Implementing an end-to-end column-oriented pipeline will provide many benefits s
 
 ## Protocol Details
 
-The protocol specifications are composed of two parts. The first section describes the new gRPC service supporting
+The protocol specifications are composed of two parts. The first section describes the new gRPC services supporting
 column-oriented telemetry data. The second section presents the mapping between the OTLP entities and their Apache
 Arrow counterpart.
 
@@ -240,16 +240,17 @@ encoding of the telemetry data.
 OTLP and OTel Arrow protocols can be used together and can use the same TCP port. To do so, in addition to the 3
 existing
 services (`MetricsService`, `LogsService` and `TraceService`), we introduce the service `ArrowStreamService`
-(see [this protobuf specification](#appendix-a---protocol-buffer-definitions) for more details) exposing a single API endpoint named `ArrowStream`.
-This endpoint is based on a bidirectional streaming protocol. The client message is a `BatchArrowRecords` stream encoding a
-batch of Apache Arrow buffers (more specifically [Arrow IPC format](#arrow-ipc-format)). The server message
-side is a `BatchStatus` stream reporting asynchronously the status of each `BatchArrowRecords` previously sent.
+(see [this protobuf specification](#appendix-a---protocol-buffer-definitions) for more details) exposing a single API 
+endpoint named `ArrowStream`. This endpoint is based on a bidirectional streaming protocol. The client message is a
+`BatchArrowRecords` stream encoding a batch of Apache Arrow buffers (more specifically [Arrow IPC format](#arrow-ipc-format)).
+The server message side is a `BatchStatus` stream reporting asynchronously the status of each `BatchArrowRecords`
+previously sent. In addition to this endpoint, the OTel Arrow protocol offers three additional services to facilitate
+intricate load-balancing routing rules, tailored to the specific nature of the OTLP entities - namely Metrics, Logs,
+and Traces.
 
 After establishing the underlying transport the client starts sending telemetry data using the `ArrowStream` request.
-The
-client continuously sends `BatchArrowRecords`'s messages over the opened stream to the server and expects to receive
-continuously
-`BatchStatus`'s messages from the server as illustrated by the following sequence diagram:
+The client continuously sends `BatchArrowRecords`'s messages over the opened stream to the server and expects to receive
+continuously `BatchStatus`'s messages from the server as illustrated by the following sequence diagram:
 
 ![Sequence diagram](img/0156_OTEL%20-%20ProtocolSeqDiagram.png)
 
@@ -314,15 +315,17 @@ message BatchArrowRecords {
 ```
 
 The `batch_id` attribute is a unique identifier for the batch inside the scope of the current stream. It is used to
-uniquely
-identify the batch in the server message `BatchStatus` stream. See the [Batch Id generation](#batch-id-generation) section for
-more information on the implementation of this identifier.
+uniquely identify the batch in the server message `BatchStatus` stream. See the [Batch Id generation](#batch-id-generation)
+section for more information on the implementation of this identifier.
 
 The `otlp_arrow_payloads` attribute is a list of `OtlpArrowPayload` messages. Each `OtlpArrowPayload` message represents
-a table of data encoded in a columnar format (e.g. metrics, logs, traces, and future OTLP entities). Several correlated
-IPC Arrow messages of different nature and with different schemas can be sent in the same OTLP batch identified by
-`batch_id` and thus be processed as one unit without complex logic in the collector or any other processing systems.
+a table of data encoded in a columnar format (e.g. metrics, logs, traces, attributes, events, links, exemplars, ...). 
+Several correlated IPC Arrow messages of different nature and with different schemas can be sent in the same OTLP batch
+identified by `batch_id` and thus be processed as one unit without complex logic in the collector or any other processing systems.
 More details on the `OtlpArrowPayload` columns in the section [Mapping OTel entities to Arrow records](#mapping-otel-entities-to-arrow-records).
+
+The `headers` attribute is optional and used to send additional HTTP headers associated with the batch and encoded with
+hpack.
 
 More specifically, an `OtlpArrowPayload` protobuf message is defined as:
 
@@ -382,12 +385,9 @@ message OtlpArrowPayload {
 ```
 
 The `sub_stream_id` attribute is a unique identifier for a sub-stream of `BatchArrowRecords` sharing the same schema inside
-the
-scope of the current stream. This id will be used receiver side to keep track of the schema and dictionaries for a
-specific
-type of Arrow Records. See the [Substream Id generation](#substream-id-generation) section for more information on the
-implementation
-of this identifier.
+the scope of the current stream. This id will be used receiver side to keep track of the schema and dictionaries for a
+specific type of Arrow Records. See the [Substream Id generation](#substream-id-generation) section for more information
+on the implementation of this identifier.
 
 The `OtlpArrowPayloadType` enum specifies the `type` of the payload.
 
