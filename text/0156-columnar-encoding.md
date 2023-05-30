@@ -106,16 +106,16 @@ basis for columnar support in OTLP.
 A series of tests were conducted to compare compression ratios between OTLP and a columnar version of OTLP called OTel
 Arrow. The key results are:
 
-* For univariate time series, OTel Arrow is **2 to 3.5 better in terms of bandwidth reduction while having an
+* For univariate time series, OTel Arrow is **2 to 2.5 better in terms of bandwidth reduction while having an
   end-to-end speed (including conversion to/from OTLP) 1.2 to 1.5 times slower in phase 1**. In **phase 2** the conversion
   OTLP to/from Arrow is gone and the end-to-end speed is **3.1 to 11.2 times faster by our estimates**.
-* For multivariate time series, OTel Arrow is **4 times better in terms of bandwidth reduction while having an
+* For multivariate time series, OTel Arrow is **3 to 7 times better in terms of bandwidth reduction while having an
   end-to-end speed (including conversion to/from OTLP) similar to the univariate time series scenario phase 1**. Phase 2
   has been yet estimated but similar results are expected.
-* For logs, OTel Arrow is **2 to 3 times better in terms of bandwidth reduction while having an end-to-end speed
+* For logs, OTel Arrow is **1.6 to 2 times better in terms of bandwidth reduction while having an end-to-end speed
   (including conversion to/from OTLP) 1.3 to 2 times slower in phase 1**. In **phase 2** the conversion
   OTLP to/from Arrow is gone and the end-to-end speed is **2.3 to 4.86 times faster** by our estimates.
-* For traces, OTel Arrow is **3 to 5 times better in terms of bandwidth reduction while having an end-to-end speed
+* For traces, OTel Arrow is **1.7 to 2.8 times better in terms of bandwidth reduction while having an end-to-end speed
   (including conversion to/from OTLP) 1.5 to 2.1 times slower in phase 1**. In **phase 2** the conversion
   OTLP to/from Arrow is gone and the end-to-end speed is **3.37 to 6.16 times faster** by our estimates.
 
@@ -172,7 +172,7 @@ integration of the OpenTelemetry protocol while expanding its scope of applicati
 Adapting the OTLP data format to the Arrow world (see below) is only part of the problem this proposal aims to describe.
 Many other design choices and trade-offs have been made, such as:
 
-- the organization of the data (i.e. schema) and the selection of the compression algorithm to optimize the compression ratio.
+- the organization of the data (i.e. schema and sorting) and the selection of the compression algorithm to optimize the compression ratio.
 - the way to serialize the Arrow data, the metadata, the dictionaries, and the selection of the transfer mode (reply/reply vs. bi-dir stream).
 - optimization of many parameters introduced in the system.
 
