@@ -25,10 +25,9 @@ expose the new gRPC endpoint and to provide OTel Arrow support via the previous 
 * [Protocol Details](#protocol-details)
   * [ArrowStreamService](#arrowstreamservice)
   * [Mapping OTel Entities to Arrow Records](#mapping-otel-entities-to-arrow-records)
-    * [Attribute Representation](#attribute-representation)
+    * [Logs Arrow Mapping](#logs-arrow-mapping)
+    * [Spans Arrow Mapping](#spans-arrow-mapping)
     * [Metrics Payload](#metrics-payload)
-    * [Logs Payload](#logs-payload)
-    * [Spans Payload](#spans-payload)
 * [Implementation Recommendations](#implementation-recommendations)
   * [Protocol Extension and Fallback Mechanism](#protocol-extension-and-fallback-mechanism)
   * [Batch ID Generation](#batch-id-generation)
@@ -551,10 +550,10 @@ receiver.
 > non-dictionary form when the cardinality of the corresponding column exceeds a certain threshold (usually 2^16).
 > YAML alias and anchor are used to avoid duplication of the same schema definition.
 
-#### Logs Payload
+#### Logs Arrow Mapping
 
 We begin with the logs payload as it is the most straightforward to map onto Arrow. The following Entity Relationship
-Diagram succinctly describes the schema of the four Arrow schemas utilized to represent a batch of OTLP logs.
+Diagram succinctly describes the schemas of the four Arrow record utilized to represent a batch of OTLP logs.
 
 The `LOGS` entity contains a flattened representation of the `LogRecord`, merged with `ResourceLogs` and `ScopeLogs`. 
 The `id` column functions as a primary key, linking the `LogRecord` with their corresponding attributes, which are
@@ -585,6 +584,22 @@ engines.
 ecosystem.
 
 > Note: Complex attribute values could also be encoded in protobuf once the `pdata` library provides support for it.
+
+#### Spans Arrow Mapping
+
+The approach for OTLP traces is similar to that used for logs. The primary `SPANS` entity (i.e., Arrow record)
+encompasses a flattened representation of `ResourceSpans`, `ScopeSpans`, and `Spans`. Beyond the standard set of
+attributes (i.e., resource, scope, and span attributes), this mapping represents span events and span links as distinct
+entities (`SPAN_EVENTS` and `SPAN_LINKS` respectively). These have a 1-to-many relationship with the `SPANS` entity.
+Each of these entities is also associated with dedicated attribute entities (i.e. `SPAN_EVENT_ATTRS` and
+`SPAN_LINK_ATTRS`).
+
+![Traces Arrow Schema](img/0156_traces_schema.png)
+
+Similarly, each of the Arrow records is sorted by specific columns to optimize the compression ratio.
+
+The `end_time_unix_nano` is represented as a duration (`end_time_unix_nano` - `start_time_unix_nano`) to reduce the
+number of bits required to represent the timestamp.
 
 #### Metrics Payload
 
@@ -807,54 +822,6 @@ resource_metrics:
                   min: float64
                   max: float64
                   aggregation_temporality: uint8_dictionary # OTLP enum with 3 variants
-```
-
-#### Spans Payload
-
-The set of possible columns for a span payload is summarized in the following yaml description.
-
-![Traces Arrow Schema](img/0156_traces_schema.png)
-
-```yaml
-resource_spans:
-  - resource: 
-      attributes: *attributes
-      dropped_attributes_count: uint32
-    schema_url: string | string_dictionary 
-    scope_spans: 
-      - scope: 
-          name: string | string_dictionary 
-          version: string | string_dictionary 
-          attributes: *attributes
-          dropped_attributes_count: uint32
-        schema_url: string | string_dictionary 
-        spans:                                                            # arrow type = list of struct
-          - start_time_unix_nano: timestamp                               # required 
-            end_time_unix_nano: timestamp                                 # required
-            trace_id: 16_bytes_binary | 16_bytes_binary_dictionary        # required, arrow fixed size binary array
-            span_id: 8_bytes_binary | 8_bytes_binary_dictionary           # required, arrow fixed size binary array
-            trace_state: string | string_dictionary 
-            parent_span_id: 8_bytes_binary | 8_bytes_binary_dictionary    # arrow fixed size binary array
-            name: string | string_dictionary                              # required
-            kind: uint8_dictionary                                        # OTLP enum with 6 variants 
-            attributes: *attributes
-            dropped_attributes_count: uint32 
-            events: 
-              - time_unix_nano: timestamp 
-                name: string | string_dictionary 
-                attributes: *attributes
-                dropped_attributes_count: uint32
-            dropped_events_count: uint32 
-            links: 
-              - trace_id: 16_bytes_binary | 16_bytes_binary_dictionary    # arrow fixed size binary array
-                span_id: 8_bytes_binary | 8_bytes_binary_dictionary       # arrow fixed size binary array
-                trace_state: string | string_dictionary 
-                attributes: *attributes
-                dropped_attributes_count: uint32 
-            dropped_links_count: uint32
-            status: 
-              code: uint8_dictionary                                      # OTLP enum with 4 variants 
-              status_message: string | string_dictionary
 ```
 
 ## Implementation Recommendations
