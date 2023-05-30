@@ -476,9 +476,9 @@ An Apache Arrow schema can define columns of different [types](https://arrow.apa
 and with or without nullability property. For more details on the Arrow Memory Layout see this
 [document](https://arrow.apache.org/docs/format/Columnar.html).
 
-A specific and well-defined Arrow Schema is used for each OTel entity type (metrics, logs, traces).
+A set of specific and well-defined Arrow Schemas is used for each OTel entity type (metrics, logs, traces).
 
-The current metric model can be summarized by this UML diagram:
+The current OTel metric model can be summarized by this UML diagram:
 
 ![OTel Metrics Model](img/0156_OTEL-Metric-Model.png)
 
@@ -488,67 +488,30 @@ relationship between the metric and instrumentation scope nodes is also a many-t
 
 Several approaches have been explored to transform this row-oriented representation into a column-oriented
 representation (see the section [Design optimization](#appendix-c---parameter-tuning-and-design-optimization)).
-The selected approach is to use nested lists of structures to represent the general hierarchy and to use sparse unions
-to represent the highly dynamic attributes of the different levels. As the [benchmarks](#appendix-b---performance-benchmarks)
-show, this representation offers a good compromise between speed and compression ratio.
 
-> Note: Historically this specification used a representation that flattened these three groups of fields (i.e. resource,
-instrumentation scope, and metrics) into a single entity. Although efficient when compressed, this representation had
-the drawback, on real production data, of significantly duplicating the first levels of the hierarchy implying a higher
-CPU and memory consumption during the batch construction phase.
+The approach chosen for this proposal involves dividing the OTel entities into multiple Arrow RecordBatches. Each of
+these RecordBatches will possess a specific schema and will be linked to other RecordBatches through a combination of
+primary and foreign keys. This methodology offers an optimal balance between compression ratio, queryability, and ease
+of integration with existing Arrow-based tools.
 
-More specifically for the metrics, it is possible to perform an additional transformation to significantly increase the
-compression
-ratio. The current version of OTLP does not allow to represent multivariate time-series, which leads to an important
-duplication of data (the same attributes are repeated for each univariate time-series). This type of time-series is
-nevertheless more common than one might think. The CPU and Memory system metrics are a good example of such multivariate
-time-series.
-
-`system.memory.usage` is currently separated into several univariate time-series, the attribute `state` is used to
-qualify each metric.
-
-* state = used
-* state = free
-* state = inactive
-* ...
-
-For each of these states, the metrics share the same attributes, timestamp, ... Taken individually, these metrics don't
-make much sense. Knowing the free memory without knowing the used memory or the total memory is not very informative.
-
-OTel Arrow proposes to support multivariate time series in two different ways depending on the context of use:
-
-* For standard OTLP streams containing univariate metrics that follow a model equivalent to that used by `system.memory.usage`,
-an automatic deduplication of data point attributes is performed. These shared data point attributes are moved to the
-definition of the metric itself.
-* For native Arrow OTLP streams issued by client SDKs supporting multivariate metrics declaration, a more optimal native
-representation is used (see the arrow schema for multivariate metrics).
-
-To take full advantage of this columnar representation, OTel Arrow can optionally sort a subset of the text or binary columns to
-optimize the locality of identical data, thus increasing the compression ratio. More details on this aspect in the
+To maximize the benefits of this columnar representation, OTel Arrow sorts a subset of columns to enhance the locality
+of identical data, thereby amplifying the compression ratio. More details on this aspect in the
 [Parameter tuning and Design optimization section](#appendix-c---parameter-tuning-and-design-optimization).
-
-Span objects require a more complex model to represent links and events. Apache Arrow allows to represent lists of
-structures. We use this capability to represent links and events.
 
 Finally, to mitigate the overhead of defining schemas and dictionaries, we use the Arrow IPC format. RecordBatches sharing the
 same schema are grouped in a homogeneous stream. The first message sent contains in addition to the columns data,
 the schema definition and the dictionaries. The following messages will not need to define the schema anymore.
 The dictionaries will only be sent again when their content change. The following diagram illustrates this process.
 
+> Note: The approach of using a single Arrow record per OTel entity, which employs list, struct, and union Arrow data
+> types, was not adopted mainly due to the inability to sort each level of the OTel hierarchy independently. The mapping
+> delineated in this document, on average, provides a superior compression ratio. 
+
 ![Arrow IPC](img/0156_OTEL%20-%20Arrow%20IPC.png)
 
-The next sections describe the schema of each type of `ArrowPayload`. We start with a description of the
-attribute-to-column mapping because the concept of attribute is common to all payload types. The mapping of OTLP entities
+The next sections describe the schema of each type of `ArrowPayload`. The mapping of OTLP entities
 to `ArrowPayload` has been designed to be reversible in order to be able to implement an OTel Arrow -> OTLP
 receiver.
-
-> **Interpretation of the Arrow Schema representation** used in the next section: As there is no standard textual
-> representation of schema arrows, we use a relatively simple YAML representation. The name of the Arrow columns are
-> represented as a YAML key. The value of the YAML key represents the Arrow data type. Complex types are specified
-> as comments (e.g. arrow map, sparse union). The notation `string_dictionary | string` or `binary_dictionary | binary`
-> represents columns which are by default of dictionary type (string or binary) and which can evolve dynamically in
-> non-dictionary form when the cardinality of the corresponding column exceeds a certain threshold (usually 2^16).
-> YAML alias and anchor are used to avoid duplication of the same schema definition.
 
 #### Logs Arrow Mapping
 
