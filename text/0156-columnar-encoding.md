@@ -551,44 +551,40 @@ receiver.
 > non-dictionary form when the cardinality of the corresponding column exceeds a certain threshold (usually 2^16).
 > YAML alias and anchor are used to avoid duplication of the same schema definition.
 
-#### Attribute Representation
+#### Logs Payload
 
-Most attributes are simply key-value pairs with values having a primitive data type (i.e. int64, double, bool, string,
-bytes). The representation of these attributes is done using a map (arrow data type) having for key a string (i.e. the
-name of the attribute, also represented as string dictionary), and for value a sparse union of all the possible primitive data types. To support more complex
-cases (supposedly rare), a specific variant is added to the sparse union. This variant named `cbor` contains a binary
-representation of complex attribute values in the form of a cbor encoding. This choice of representation defines a single
-Arrow schema that is known in advance and independent of the OTLP stream. This trade-off implements a simple and efficient
-mapping for the vast majority of cases and switches to CBOR encoding for more complex minority cases.
+We begin with the logs payload as it is the most straightforward to map onto Arrow. The following Entity Relationship
+Diagram succinctly describes the schema of the four Arrow schemas utilized to represent a batch of OTLP logs.
 
-> A more structured approach has been studied and implemented based on Arrow lists, maps and structs. Although slightly
-more efficient in terms of compression rate, this approach requires a much higher level of complexity. The number of
-Arrow schemas to be dynamically generated depends directly on the telemetry flows. It has been observed that on real
-production data, the number of different schemas to be maintained can be in the order of several hundred due to the
-high variability of the nature of the attributes within the OTLP entities.
+The `LOGS` entity contains a flattened representation of the `LogRecord`, merged with `ResourceLogs` and `ScopeLogs`. 
+The `id` column functions as a primary key, linking the `LogRecord` with their corresponding attributes, which are
+stored in the `LOG_ATTRS` entity. The `resource_id` column serves as a key, associating each `ResourceLogs` instance
+with their respective attributes stored in the `RESOURCE_ATTRS` entity. Likewise, the `scope_id` column acts as a key
+to link each `ScopeLogs` instance with their corresponding attributes found in the `SCOPE_ATTRS` entity.
 
-```yaml
-# Attributes Arrow Schema (declaration used in other schemas)
-attributes: &attributes                                 # arrow type = map
-  - key: string_dictionary | string                     # string dictionary by default, fallback to a string column when the cardinality is too high
-    value:                                              # arrow type = sparse union
-      str: string_dictionary | string 
-      i64: int64
-      f64: float64
-      bool: bool 
-      binary: binary_dictionary | binary
-      cbor: binary                                      # cbor encoded complex attribute values
-```
+![Logs Arrow Schema](img/0156_logs_schema.png)
 
-> Note: **Dense vs Sparse union**: Apache Arrow supports two types of union: dense and sparse. Dense unions are more efficient
-> in memory usage but are less efficient in terms of processing speed (and also in terms of compression ratio according
-> to some tests). The memory consumed by a sparse union depends directly on the number of variants present in the union
-> definition. It is therefore important to keep the number of variants low. The `cbor` variant groups all complex
-> attribute values that cannot be represented with the other available variants. This representation aims to minimize
-> the memory overhead related to the number of variants in the union. The current tradeoff optimizes the processing
-> speed and, to some extent, the compression ratio.
-> Optimizations on memory consumption are theoretically possible at the level of the Arrow Go library in order to
-> minimize the overhead of sparse unions in the future.
+Each of these Arrow records is sorted by specific columns to optimize the compression ratio. The `id`, `resource_id`,
+and `scope_id` are stored with delta encoding to minimize their size post-compression. `parent_id` is also stored with a
+variant of delta encoding, known as "delta group encoding" (more details will follow).
+
+Attributes are represented as a triad of columns: `key`, `type`, and one of the following columns: `str`, `int`,
+`double`, `bool`, `bytes`, `ser`. The `key` column is a string dictionary, the `type` column is an enum with six
+variants, and the value column depends on the type of the attribute. The `ser` column is a binary column containing the
+CBOR encoding of the attribute value when the attribute type is complex (e.g., map, or array). Unused value columns are
+filled with null values.
+
+The `body` is represented with the tuple `body_type` and one of the following columns: `body_str`, `body_int`,
+`body_double`, `body_bool`, `body_bytes`, `body_ser`. 
+
+This representation offers several advantages:
+- Each record can be sorted independently to better arrange the data for compression.
+- Primary keys and foreign keys can be used to connect the different Arrow records, and they easily integrate with SQL
+engines.
+- The avoidance of complex Arrow data types (like union, list of struct) optimizes compatibility with the Arrow
+ecosystem.
+
+> Note: Complex attribute values could also be encoded in protobuf once the `pdata` library provides support for it.
 
 #### Metrics Payload
 
@@ -812,46 +808,6 @@ resource_metrics:
                   max: float64
                   aggregation_temporality: uint8_dictionary # OTLP enum with 3 variants
 ```
-
-#### Logs Payload
-
-Although simpler, a logs 'ArrowPayload' takes a similar approach.
-
-![Logs Arrow Schema](img/0156_logs_schema.png)
-
-```yaml
-resource_logs: 
-  - resource: 
-      attributes: *attributes
-      dropped_attributes_count: uint32
-    schema_url: string | string_dictionary 
-    scope_logs: 
-      - scope:
-          name: string | string_dictionary 
-          version: string | string_dictionary 
-          attributes: *attributes
-          dropped_attributes_count: uint32
-        schema_url: string | string_dictionary 
-        logs: 
-          - time_unix_nano: timestamp 
-            observed_time_unix_nano: timestamp 
-            trace_id: 16_bytes_binary | 16_bytes_binary_dictionary  # arrow fixed size binary array
-            span_id: 8_bytes_binary | 8_bytes_binary_dictionary     # arrow fixed size binary array
-            severity_number: uint8_dictionary                       # OTLP enum with 25 variants 
-            severity_text: string | string_dictionary 
-            body:                                                   # arrow type: sparse union
-              str: string | string_dictionary 
-              i64: int64 
-              f64: float64 
-              bool: bool 
-              binary: binary | binary_dictionary
-              cbor: binary                                          # cbor encoded complex body value
-            attributes: *attributes
-            dropped_attributes_count: uint32 
-            flags: uint32
-```
-
-The type of the column `body` depends on the OTLP type and follows the same transformation rules used in the [attributes](#attribute-representation).
 
 #### Spans Payload
 
