@@ -1,4 +1,4 @@
-# OTLP Arrow Protocol Specification
+# OTel Arrow Protocol Specification
 
 **Author**: Laurent Querel, F5 Inc.
 
@@ -10,10 +10,10 @@ with a **generic columnar representation for metrics, logs and traces**. This ex
 efficiency of the protocol for scenarios involving the transmission of large batches of metrics, logs, traces, and also
 provides a better representation for [multivariate time-series](#multivariate-time-series).
 
-**Reference implementation**: The [OTEL Arrow Adapter](https://github.com/f5/otel-arrow-adapter) Go library specifies
-the protobuf spec, and implements the OTLP Arrow Encoder/Decoder (main contributor [Laurent Querel](https://github.com/lquerel)).
-An [experimental OTEL Collector](https://github.com/open-telemetry/experimental-arrow-collector) has been implemented to
-expose the new gRPC endpoint and to provide OTLP Arrow support via the previous library (main contributor [Joshua MacDonald](https://github.com/jmacd)).
+**Reference implementation**: The [OTel Arrow Adapter](https://github.com/f5/otel-arrow-adapter) Go library specifies
+the protobuf spec, and implements the OTel Arrow Encoder/Decoder (main contributor [Laurent Querel](https://github.com/lquerel)).
+An [experimental OTel Collector](https://github.com/open-telemetry/experimental-arrow-collector) has been implemented to
+expose the new gRPC endpoint and to provide OTel Arrow support via the previous library (main contributor [Joshua MacDonald](https://github.com/jmacd)).
 
 ## Table of contents
 
@@ -24,7 +24,7 @@ expose the new gRPC endpoint and to provide OTLP Arrow support via the previous 
   * [Integration Strategy and Phasing](#integration-strategy-and-phasing)
 * [Protocol Details](#protocol-details)
   * [ArrowStreamService](#arrowstreamservice)
-  * [Mapping OTEL Entities to Arrow Records](#mapping-otel-entities-to-arrow-records)
+  * [Mapping OTel Entities to Arrow Records](#mapping-otel-entities-to-arrow-records)
     * [Attribute Representation](#attribute-representation)
     * [Metrics Payload](#metrics-payload)
     * [Logs Payload](#logs-payload)
@@ -59,7 +59,7 @@ As telemetry data becomes more widely available and volumes increase, new uses a
 ecosystem: cost-effectiveness, advanced data processing, data minimization. This OTEP aims to extend the OTLP
 protocol to better address them while maintaining the compatibility with the existing ecosystem.
 
-Currently, the OTLP protocol uses a "row-oriented" format to represent all the OTEL entities. This representation works
+Currently, the OTLP protocol uses a "row-oriented" format to represent all the OTel entities. This representation works
 well for small batches (<50 entries) but, as the analytical database industry has shown, a "column-oriented"
 representation is more optimal for the transfer and processing of *large batches* of entities. The term "row-oriented"
 is used when data is organized into a series of records, keeping all data associated with a record next to each other in
@@ -97,7 +97,7 @@ to use it. On the other side of the spectrum, sources and collectors generating 
 telemetry data will benefit from adopting this extension to optimize the resources involved in the transfer and
 processing of this data. This adoption can be done incrementally.**
 
-Before detailing the specifications of the OTLP Arrow protocol, the following two sections present: 1) a validation of
+Before detailing the specifications of the OTel Arrow protocol, the following two sections present: 1) a validation of
 the value of a columnar approach based on a set of benchmarks, 2) a discussion of the value of using Apache Arrow as a
 basis for columnar support in OTLP.
 
@@ -106,16 +106,16 @@ basis for columnar support in OTLP.
 A series of tests were conducted to compare compression ratios between OTLP and a columnar version of OTLP called OTLP
 Arrow. The key results are:
 
-* For univariate time series, OTLP Arrow is **2 to 3.5 better in terms of bandwidth reduction while having an
+* For univariate time series, OTel Arrow is **2 to 3.5 better in terms of bandwidth reduction while having an
   end-to-end speed (including conversion to/from OTLP) 1.2 to 1.5 times slower in phase 1**. In **phase 2** the conversion
   OTLP to/from Arrow is gone and the end-to-end speed is **3.1 to 11.2 times faster by our estimates**.
-* For multivariate time series, OTLP Arrow is **4 times better in terms of bandwidth reduction while having an
+* For multivariate time series, OTel Arrow is **4 times better in terms of bandwidth reduction while having an
   end-to-end speed (including conversion to/from OTLP) similar to the univariate time series scenario phase 1**. Phase 2
   has been yet estimated but similar results are expected.
-* For logs, OTLP Arrow is **2 to 3 times better in terms of bandwidth reduction while having an end-to-end speed
+* For logs, OTel Arrow is **2 to 3 times better in terms of bandwidth reduction while having an end-to-end speed
   (including conversion to/from OTLP) 1.3 to 2 times slower in phase 1**. In **phase 2** the conversion
   OTLP to/from Arrow is gone and the end-to-end speed is **2.3 to 4.86 times faster** by our estimates.
-* For traces, OTLP Arrow is **3 to 5 times better in terms of bandwidth reduction while having an end-to-end speed
+* For traces, OTel Arrow is **3 to 5 times better in terms of bandwidth reduction while having an end-to-end speed
   (including conversion to/from OTLP) 1.5 to 2.1 times slower in phase 1**. In **phase 2** the conversion
   OTLP to/from Arrow is gone and the end-to-end speed is **3.37 to 6.16 times faster** by our estimates.
 
@@ -123,7 +123,7 @@ Arrow. The key results are:
 
 For both protocols, the baseline is the size of the uncompressed OTLP messages. The reduction factor is the ratio
 between this baseline and the compressed message size for each protocol. The compression algorithm used is ZSTD for
-OTLP and OTLP Arrow.
+OTLP and OTel Arrow.
 
 The following stacked bar graphs compare side-by-side the distribution of time spent for each step and for each
 version of the protocol.
@@ -143,7 +143,7 @@ version of the protocol.
 ![Summary of the time spent](img/0156_traces_step_times_phase1.png)
 [Zoom on the chart](https://raw.githubusercontent.com/lquerel/oteps/main/text/img/0156_traces_step_times_phase1.png)
 
-A more detailed presentation of the benchmarks comparing *OTLP* and *OTLP Arrow* can be found in the following
+A more detailed presentation of the benchmarks comparing *OTLP* and *OTel Arrow* can be found in the following
 sections:
 
 * [Performance benchmark](#appendix-b---performance-benchmarks)
@@ -182,7 +182,7 @@ For a more detailed presentation of the approach used, please refer to this sect
 
 ### Integration Strategy and Phasing
 
-This OTEP enhances the existing OTEL eco-system with an additional representation of telemetry data in columnar form to
+This OTEP enhances the existing OTel eco-system with an additional representation of telemetry data in columnar form to
 better support certain scenarios (e.g. cost-effectiveness to transmit large batch, multivariate time-series, advanced
 data processing, data minimization). All existing components will continue to be compatible and operational.
 
@@ -195,7 +195,7 @@ following diagram, a new OTLP-Arrow to OTLP receiver will be responsible for tra
 existing protocol. Similarly, a new exporter will be responsible for translating the OTLP messages into this new Arrow-based
 format.
 
-![OTEL Collector](img/0156_OTEL%20-%20OTEL%20Collector.png)
+![OTel Collector](img/0156_OTEL%20-%20OTEL%20Collector.png)
 
 This first step is intended to address the specific use cases of **traffic reduction** and native support of
 **multivariate time-series**. Based on community feedback, many companies want to reduce the cost of transferring
@@ -212,11 +212,11 @@ the compression ratio. This is illustrated in the following diagram.
 
 Phase 2 aims to extend the support of Apache Arrow end-to-end and more specifically inside the collector to better
 support the following scenarios: cost efficiency, advanced data processing, data minimization. New receivers, processors,
-and exporters supporting Apache Arrow natively will be developed. A bidirectional adaptation layer OTLP / OTLP Arrow
+and exporters supporting Apache Arrow natively will be developed. A bidirectional adaptation layer OTLP / OTel Arrow
 will be developed within the collector to continue supporting the existing ecosystem. The following diagram is an
-overview of a collector supporting both OTLP and an end-to-end OTLP Arrow pipeline.
+overview of a collector supporting both OTLP and an end-to-end OTel Arrow pipeline.
 
-![OTEL Arrow Collector](img/0156_OTEL%20-%20OTELArrowCollector.png)
+![OTel Arrow Collector](img/0156_OTEL%20-%20OTELArrowCollector.png)
 
 Implementing an end-to-end column-oriented pipeline will provide many benefits such as:
 
@@ -233,11 +233,11 @@ Arrow counterpart.
 
 ### ArrowStreamService
 
-OTLP Arrow defines the columnar encoding of telemetry data and the gRPC-based protocol used to exchange data between
-the client and the server. OTLP Arrow is a bi-directional stream oriented protocol leveraging Apache Arrow for the
+OTel Arrow defines the columnar encoding of telemetry data and the gRPC-based protocol used to exchange data between
+the client and the server. OTel Arrow is a bi-directional stream oriented protocol leveraging Apache Arrow for the
 encoding of the telemetry data.
 
-OTLP and OTLP Arrow protocols can be used together and can use the same TCP port. To do so, in addition to the 3
+OTLP and OTel Arrow protocols can be used together and can use the same TCP port. To do so, in addition to the 3
 existing
 services (`MetricsService`, `LogsService` and `TraceService`), we introduce the service `ArrowStreamService`
 (see [this protobuf specification](#appendix-a---protocol-buffer-definitions) for more details) exposing a single API endpoint named `ArrowStream`.
@@ -300,7 +300,7 @@ The `otlp_arrow_payloads` attribute is a list of `OtlpArrowPayload` messages. Ea
 a table of data encoded in a columnar format (e.g. metrics, logs, traces, and future OTLP entities). Several correlated
 IPC Arrow messages of different nature and with different schemas can be sent in the same OTLP batch identified by
 `batch_id` and thus be processed as one unit without complex logic in the collector or any other processing systems.
-More details on the `OtlpArrowPayload` columns in the section [Mapping OTEL entities to Arrow records](#mapping-otel-entities-to-arrow-records).
+More details on the `OtlpArrowPayload` columns in the section [Mapping OTel entities to Arrow records](#mapping-otel-entities-to-arrow-records).
 
 More specifically, an `OtlpArrowPayload` protobuf message is defined as:
 
@@ -309,7 +309,7 @@ message OtlpArrowPayload {
   // [mandatory] A unique id assigned to a sub-stream of the batch sharing the same schema, and dictionaries.
   string sub_stream_id = 1;
 
-  // [mandatory] Type of the OTLP Arrow payload.
+  // [mandatory] Type of the OTel Arrow payload.
   OtlpArrowPayloadType type = 2;
 
   // [mandatory] Serialized Arrow Record Batch
@@ -400,9 +400,9 @@ via `error_message`.
 
 > Note: [Appendix A](#appendix-a---protocol-buffer-definitions) contains the full protobuf definition.
 
-### Mapping OTEL Entities to Arrow Records
+### Mapping OTel Entities to Arrow Records
 
-OTEL entities are batched into Apache Arrow RecordBatch. An Apache Arrow RecordBatch is a combination of two things:
+OTel entities are batched into Apache Arrow RecordBatch. An Apache Arrow RecordBatch is a combination of two things:
 a schema and a collection of Arrow Arrays. Individual Arrow Arrays or their nested children may be dictionary encoded,
 in which case the Array that is dictionary encoded contains a reference to its dictionary. The Arrow IPC
 implementations, in general, will recognize when one dictionary is referenced by multiple Arrays and only send it
@@ -414,11 +414,11 @@ An Apache Arrow schema can define columns of different [types](https://arrow.apa
 and with or without nullability property. For more details on the Arrow Memory Layout see this
 [document](https://arrow.apache.org/docs/format/Columnar.html).
 
-A specific and well-defined Arrow Schema is used for each OTEL entity type (metrics, logs, traces).
+A specific and well-defined Arrow Schema is used for each OTel entity type (metrics, logs, traces).
 
 The current metric model can be summarized by this UML diagram:
 
-![OTEL Metrics Model](img/0156_OTEL-Metric-Model.png)
+![OTel Metrics Model](img/0156_OTEL-Metric-Model.png)
 
 The leaf nodes (in green in this diagram) are where the data are actually defined as list of attributes and metrics.
 Basically the relationship between the metric and resource nodes is a many-to-one relationship. Similarly, the
@@ -453,7 +453,7 @@ qualify each metric.
 For each of these states, the metrics share the same attributes, timestamp, ... Taken individually, these metrics don't
 make much sense. Knowing the free memory without knowing the used memory or the total memory is not very informative.
 
-OTLP Arrow proposes to support multivariate time series in two different ways depending on the context of use:
+OTel Arrow proposes to support multivariate time series in two different ways depending on the context of use:
 
 * For standard OTLP streams containing univariate metrics that follow a model equivalent to that used by `system.memory.usage`,
 an automatic deduplication of data point attributes is performed. These shared data point attributes are moved to the
@@ -461,7 +461,7 @@ definition of the metric itself.
 * For native Arrow OTLP streams issued by client SDKs supporting multivariate metrics declaration, a more optimal native
 representation is used (see the arrow schema for multivariate metrics).
 
-To take full advantage of this columnar representation, OTLP Arrow can optionally sort a subset of the text or binary columns to
+To take full advantage of this columnar representation, OTel Arrow can optionally sort a subset of the text or binary columns to
 optimize the locality of identical data, thus increasing the compression ratio. More details on this aspect in the
 [Parameter tuning and Design optimization section](#appendix-c---parameter-tuning-and-design-optimization).
 
@@ -477,7 +477,7 @@ The dictionaries will only be sent again when their content change. The followin
 
 The next sections describe the schema of each type of `OtlpArrowPayload`. We start with a description of the
 attribute-to-column mapping because the concept of attribute is common to all payload types. The mapping of OTLP entities
-to `OtlpArrowPayload` has been designed to be reversible in order to be able to implement an OTLP Arrow -> OTLP
+to `OtlpArrowPayload` has been designed to be reversible in order to be able to implement an OTel Arrow -> OTLP
 receiver.
 
 > **Interpretation of the Arrow Schema representation** used in the next section: As there is no standard textual
@@ -565,7 +565,7 @@ resource_metrics:
             attributes: *attributes
             dropped_attributes_count: uint32
           schema_url: string_dictionary | string
-          # This section represents the standard OTLP metrics as defined in OTEL v1 
+          # This section represents the standard OTLP metrics as defined in OTel v1 
           # specifications.
           #
           # Named univariate metrics as their representation allow to represent each
@@ -839,7 +839,7 @@ resource_spans:
 The support of this new protocol can only be progressive, so implementers are advised to follow the following
 implementation recommendations in phase 1:
 
-* OTLP Receiver: Listen on a single TCP port for both OTLP and OTLP Arrow. The goal is to make the support of this
+* OTLP Receiver: Listen on a single TCP port for both OTLP and OTel Arrow. The goal is to make the support of this
   protocol extension
   transparent and automatic. This can be achieved by adding the `ArrowStreamService` to the same gRPC listener. A
   configuration
@@ -850,7 +850,7 @@ implementation recommendations in phase 1:
   disable this default behavior.
 
 The implementation of these two rules should allow a seamless and
-adaptive integration of OTLP Arrow into the current ecosystem
+adaptive integration of OTel Arrow into the current ecosystem
 generally.
 
 For the prototype specifically, which is a fork of the OpenTelemetry
@@ -950,11 +950,11 @@ These parameters must be exposed in a configuration file and be tuned according 
 
 ### Throttling
 
-OTLP Arrow allows backpressure signaling. If the server is unable to keep up with the pace of data it receives from the
+OTel Arrow allows backpressure signaling. If the server is unable to keep up with the pace of data it receives from the
 client then it should signal that fact to the client. The client must then throttle itself to avoid overwhelming the
 server.
 
-To signal backpressure when using OTLP Arrow, the server should return an error with code UNAVAILABLE and may supply
+To signal backpressure when using OTel Arrow, the server should return an error with code UNAVAILABLE and may supply
 additional details via the `retry_info` attribute.
 
 When the client receives this signal it should follow the recommendations outlined in documentation for RetryInfo:
@@ -1013,7 +1013,7 @@ univariate time-series and operate as usual.
 
 A columnar-oriented protocol is not necessarily desirable for all scenarios (e.g. devices that do not have the resources
 to accumulate data in batches). This protocol extension allows to better respond to these different scenarios by letting
-the client select between OTLP or OTLP Arrow protocol depending on the nature of its telemetry traffic.
+the client select between OTLP or OTel Arrow protocol depending on the nature of its telemetry traffic.
 
 ## Future Versions and Interoperability
 
@@ -1050,7 +1050,7 @@ in order to include OTLP-Arrow in standard regression testing of the Collector.
 A SQL support for telemetry data processing remains an open question in the current Go collector. The main OTLP query
 engine [Datafusion](https://github.com/apache/arrow-datafusion) is implemented in Rust. Several solutions can be
 considered: 1) create a Go wrapper on top of Datafusion, 2) implement a Rust collector dedicated to the end-to-end
-support of OTLP Arrow, 3) implement a SQL/Arrow engine in Go (big project). A proof of concept using Datafusion has been
+support of OTel Arrow, 3) implement a SQL/Arrow engine in Go (big project). A proof of concept using Datafusion has been
 implemented in Rust and has shown very good results.
 
 We believe that because the Arrow IPC mechanism and data format is intended for zero-copy use, we believe it is possible
@@ -1061,11 +1061,11 @@ to use Arrow libraries written in other languages, for example within the Golang
 ZSTD offers a training mode, which can be used to tune the algorithm for a selected type of data. The result of this
 training is a dictionary that can be used to compress the data. Using this [dictionary](http://facebook.github.io/zstd/#small-data)
 can dramatically improve the compression rate for small batches. This future development will build on both the gRPC
-stream approach used in this proposal and the ability to send a ZSTD dictionary over the OTLP Arrow stateful protocol,
+stream approach used in this proposal and the ability to send a ZSTD dictionary over the OTel Arrow stateful protocol,
 allowing us to train the ZSTD algorithm on the first batches and then update the configuration of the ZSTD
 encoder/decoder with an optimized dictionary.
 
-More advanced lightweight compression algorithms on a per column basis could be integrated to the OTLP Arrow
+More advanced lightweight compression algorithms on a per column basis could be integrated to the OTel Arrow
 protocol (e.g. delta delta encoding for numerical columns)
 
 ### Choosing row-oriented transport when it is more efficient
@@ -1111,7 +1111,7 @@ message BatchArrowRecords {
   repeated OtlpArrowPayload otlp_arrow_payloads = 2;
 }
 
-// Enumeration of all the OTLP Arrow payload types currently supported by the OTLP Arrow protocol.
+// Enumeration of all the OTel Arrow payload types currently supported by the OTel Arrow protocol.
 enum OtlpArrowPayloadType {
   // A payload representing a collection of metrics.
   METRICS = 0;
@@ -1121,12 +1121,12 @@ enum OtlpArrowPayloadType {
   SPANS = 2;
 }
 
-// Represents a batch of OTLP Arrow entities.
+// Represents a batch of OTel Arrow entities.
 message OtlpArrowPayload {
   // [mandatory] A unique id assigned to a sub-stream of the batch sharing the same schema, and dictionaries.
   string sub_stream_id = 1;
 
-  // [mandatory] Type of the OTLP Arrow payload.
+  // [mandatory] Type of the OTel Arrow payload.
   OtlpArrowPayloadType type = 2;
 
   // [mandatory] Serialized Arrow Record Batch
@@ -1167,7 +1167,7 @@ message RetryInfo {
 > An update of this section will be provided soon. However, the results are summarized at the beginning of this
 > document in the [validation](#validation) section.
 
-This section compares the performance of the OTLP protocol with the OTLP Arrow extension for sending batches of
+This section compares the performance of the OTLP protocol with the OTel Arrow extension for sending batches of
 telemetry data. The main metrics compared are:
 
 - The size of the batches once compressed to evaluate the bandwidth gain.
@@ -1194,32 +1194,32 @@ In the dataset used, each measurement point is composed of a timestamp, 9 metric
 contains 200K measurement points. To transmit this dataset with OTLP, we must first convert this dataset into a stream
 of univariate
 metrics (i.e. one metric per data point). The special attribute 'state' is added to specify the nature of the metric.
-This format follows the same convention as the cpu or memory system metrics issued by the OTEL collector.
+This format follows the same convention as the cpu or memory system metrics issued by the OTel collector.
 
-The following multi-line plot shows for different batch sizes, representation modes (OTLP or OTLP Arrow) and compression
+The following multi-line plot shows for different batch sizes, representation modes (OTLP or OTel Arrow) and compression
 algorithms the batch size in bytes once compressed. In this test, the data are not transformed into multivariate
-time-series for OTLP Arrow. This will be the subject of the next plot.
+time-series for OTel Arrow. This will be the subject of the next plot.
 
 ![Univariate metrics bytes](img/0156_univariate_metrics_bytes.png)
 
 3 compression algorithms have been evaluated for OTLP batches (Zlib, Lz4, and Zstd) in order to compare their efficiency
 on a "row-oriented" representation. According to our results Zlib and Zstd are the two best compression algorithms for
 OTLP data with a very slight advantage for Zlib. The same compression algorithms have been tested on our new
-"column-oriented" representation. Zlib and Zstd are the two best compression algorithms for OTLP Arrow.
+"column-oriented" representation. Zlib and Zstd are the two best compression algorithms for OTel Arrow.
 
 > As this plot shows, the columnar representation is almost twice as efficient in terms of bandwidth gain. However, it
 > is
-> possible to do much better by taking advantage of the native support for multivariate time-series in OTLP Arrow.
+> possible to do much better by taking advantage of the native support for multivariate time-series in OTel Arrow.
 
-The following graph compares the best OTLP compression algorithm (Zlib) with OTLP Arrow + Zstd + multivariate time-series
+The following graph compares the best OTLP compression algorithm (Zlib) with OTel Arrow + Zstd + multivariate time-series
 support.
 
 ![Multivariate metrics bytes](img/0156_multivariate_metrics_bytes.png)
 
-> With this optimization, OTLP Arrow is a little over 4 times more efficient than OTLP. The zstd compression algorithm
+> With this optimization, OTel Arrow is a little over 4 times more efficient than OTLP. The zstd compression algorithm
 > stands out for columnar data.
 
-Even for small batches of metrics, the OTLP Arrow representation is more efficient than the OTLP representation in a
+Even for small batches of metrics, the OTel Arrow representation is more efficient than the OTLP representation in a
 *multivariate time-series context* (see table below).
 
 ![Metrics small batches](img/0156_metrics_small_batches.png)
@@ -1227,7 +1227,7 @@ Even for small batches of metrics, the OTLP Arrow representation is more efficie
 #### Serialization/Compression Time Analysis
 
 This section compares the time spent creating, serializing, compressing, decompressing and deserializing batches of
-metrics with OTLP and OTLP Arrow while looking to optimize message size (Zlib for OTLP and Zstd for OTLP Arrow). In both
+metrics with OTLP and OTel Arrow while looking to optimize message size (Zlib for OTLP and Zstd for OTel Arrow). In both
 cases, the data producer delivers the metrics in a row-oriented approach. The Arrow OTLP implementation therefore
 integrate the
 row-to-column conversion time.
@@ -1237,17 +1237,17 @@ of the protocol.
 
 ![Breakdown of time per step for each batch size and each protocol](img/0156_metrics_step_times.png)
 
-When cumulating the times of all steps, OTLP Arrow (with multivariate time-series encoding) is 3 times faster than
+When cumulating the times of all steps, OTel Arrow (with multivariate time-series encoding) is 3 times faster than
 standard OTLP.
 
-The batch creation phase for OTLP Arrow represents almost all the time spent. Serialization and deserialization times
+The batch creation phase for OTel Arrow represents almost all the time spent. Serialization and deserialization times
 are
 almost zero due to the use of Flatbuffer by Apache Arrow (ser/deser without parsing/unpacking). Compression and
 decompression
 times are extremely low due to the fact that the size of the Arrow OTLP message before compression is more than 30 times
 smaller than an OTLP message with the same content (see previous table).
 
-> It should be possible to significantly optimize the creation of OTLP Arrow batches for contexts where the structure
+> It should be possible to significantly optimize the creation of OTel Arrow batches for contexts where the structure
 > of the metrics to be sent is known in advance.
 
 ### Logs
@@ -1260,25 +1260,25 @@ fields).
 The following multi-line plot show the compressed batch size in bytes for different protocols and combination of
 parameters:
 
-* protocol (OTLP or OTLP Arrow)
+* protocol (OTLP or OTel Arrow)
 * batch size (5000, 10000, 25000, 50000, 100000)
 * compression algorithms (Zlib, Lz4, Zstd)
-* Sorted vs unsorted columns (only for OTLP Arrow)
+* Sorted vs unsorted columns (only for OTel Arrow)
 
 ![Metrics bytes](img/0156_logs_bytes.png)
 
-The best results are obtained with OTLP Arrow + text column sorting + Zstd. This corroborates the results in the
+The best results are obtained with OTel Arrow + text column sorting + Zstd. This corroborates the results in the
 columnar
 database domain. The compression algorithm is much better on columns that are sorted or partially sorted.
 
-In the case of logs, the Zstd compression algorithm is the best for both OTLP and OTLP Arrow.
+In the case of logs, the Zstd compression algorithm is the best for both OTLP and OTel Arrow.
 
-> The compression ratio for OTLP Arrow is about twice that of OTLP.
+> The compression ratio for OTel Arrow is about twice that of OTLP.
 
 #### Serialization/Compression Time Analysis
 
 This section compares the time spent creating, serializing, compressing, decompressing and deserializing batches of
-metrics with OTLP and OTLP Arrow while looking to optimize message size. In both cases, the data producer delivers the
+metrics with OTLP and OTel Arrow while looking to optimize message size. In both cases, the data producer delivers the
 logs in a row-oriented approach. The Arrow OTLPs therefore integrate the row-to-column conversion time.
 
 The following stacked bar plot compares side by side the distribution of time spent for each step and for each version
@@ -1286,21 +1286,21 @@ of the protocol.
 
 ![Breakdown of time per step for each batch size and each protocol](img/0156_logs_step_times.png)
 
-When cumulating the times of all steps, OTLP Arrow (with sorted columns) is ~0.90 slower than standard OTLP. This is
-mainly due to the ordering of the text columns. Without column sorting, OTLP Arrow is 1.3 times
+When cumulating the times of all steps, OTel Arrow (with sorted columns) is ~0.90 slower than standard OTLP. This is
+mainly due to the ordering of the text columns. Without column sorting, OTel Arrow is 1.3 times
 faster than OTLP. For bandwidth optimization it is therefore recommended, at the cost of a slight processing slowdown,
 to activate column sorting (see
 appendix [Parameter tuning and design optimization](#appendix-c---parameter-tuning-and-design-optimization)
 for more details on the parameters to select the columns to sort).
 
-The batch creation+sorting phase for OTLP Arrow represents almost all the time spent. Serialization and deserialization
+The batch creation+sorting phase for OTel Arrow represents almost all the time spent. Serialization and deserialization
 times are
 almost zero due to the use of Flatbuffer by Apache Arrow (ser/deser without parsing/unpacking). Compression and
 decompression
 times are low due to the fact that the size of the Arrow OTLP message before compression is more than 7 times
 smaller than an OTLP message with the same content.
 
-> It should be possible to significantly optimize the creation of OTLP Arrow batches for contexts where the structure
+> It should be possible to significantly optimize the creation of OTel Arrow batches for contexts where the structure
 > of the logs to be sent is known in advance.
 
 ### Traces
@@ -1347,7 +1347,7 @@ optimize the compression ratio per batch.
 ![All trials](img/0156_All%20trials.png)
 
 By selecting the highest value range for the compression ratio, it is possible to get a more precise idea of the optimal
-parameters for the log system in OTLP Arrow. This is represented by the following diagram:
+parameters for the log system in OTel Arrow. This is represented by the following diagram:
 
 ![Best trials](img/0156_Best%20trials.png)
 
@@ -1388,7 +1388,7 @@ interrelated metrics sharing the same attributes are all common examples of mult
 ## Acknowledgements
 
 Special thanks to [Joshua MacDonald](https://github.com/jmacd) for his contribution in integrating the reference
-implementation into the OTEL collector, to [Tigran Najaryan](https://github.com/tigrannajaryan) for helping to define
+implementation into the OTel collector, to [Tigran Najaryan](https://github.com/tigrannajaryan) for helping to define
 the integration strategy with the existing OTLP protocol, and to [Sébastien Soudan](https://github.com/ssoudan) for the
 numerous exchanges and advice on the representation of the data charts.
 
