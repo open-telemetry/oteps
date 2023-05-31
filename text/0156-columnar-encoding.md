@@ -118,11 +118,19 @@ Arrow. The key results are:
   (including conversion to/from OTLP) 1.5 to 2.1 times slower in phase 1**. In **phase 2** the conversion
   OTLP to/from Arrow is gone and the end-to-end speed is **3.37 to 6.16 times faster** by our estimates.
 
-![Summary](img/0156_compression_ratio_summary.png)
+The following 3 columns charts show the results of the benchmarks for the univariate metrics, logs and traces. For both
+protocols, the baseline is the size of the uncompressed OTLP messages. The reduction factor is the ratio between this
+baseline and the compressed message size for each protocol. The compression algorithm used is ZSTD for OTLP and OTel
+Arrow.
 
-For both protocols, the baseline is the size of the uncompressed OTLP messages. The reduction factor is the ratio
-between this baseline and the compressed message size for each protocol. The compression algorithm used is ZSTD for
-OTLP and OTel Arrow.
+![Summary (standard metrics)](img/0156_compression_ratio_summary_std_metrics.png)
+
+In the following 3-columns charts, the only difference with the previous ones is that the metrics are multivariate. The
+benchmarks show that the compression ratio is much better for OTel Arrow than for OTLP. This is due to the fact that
+OTel Arrow is able to leverage the columnar representation to compress the data more efficiently in a multivariate
+scenario.
+
+![Summary (multivariate metrics)](img/0156_compression_ratio_summary_multivariate_metrics.png)
 
 The following stacked bar graphs compare side-by-side the distribution of time spent for each step and for each
 version of the protocol.
