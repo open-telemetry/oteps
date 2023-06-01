@@ -5,7 +5,13 @@
 The existing, experimental [specification for probability sampling using TraceState](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/tracestate-probability-sampling.md)
 supporting Span-to-Metrics pipelines is limited to powers-of-two
 probabilities and is designed to work without making assumptions about 
-TraceID randomness.
+TraceID randomness. The existing mechanism could only achieve non-power-of-two sampling using interpolation between powers of two, which was only possible at the head sampling time.  It could not be used with non-power-of-two sampling probabilities for span sampling in the rest of the collection path. This proposal aims to address the above two limitations due to a couple of reasons: 
+
+1) Certain customers want support for non-powers-of-two probabilities (e.g., 10% sampling rate or 75% sampling rate) and it should be possible to do it cleanly irrespective of where the sampling is happening.
+
+2) There is a need for consistent sampling in the collection path (outside of the head-sampling paths) and using the inherent randomness in the traceID is a cleaner solution than referencing a custom "r-value" from the tracestate in every span. 
+
+In this proposal, we will cover how this new mechanism can be used in both head-based sampling and different forms of tail-based sampling.
 
 The term "Tail sampling" is in common use to describe _various_ forms
 of sampling that take place after a span starts.  The term "Tail" in
