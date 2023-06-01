@@ -45,8 +45,6 @@ expose the new gRPC endpoint and to provide OTel Arrow support via the previous 
 * [Prior Art and Alternatives](#prior-art-and-alternatives)
 * [Open Questions](#open-questions)
 * [Appendix A - Protocol Buffer Definitions](#appendix-a---protocol-buffer-definitions)
-* [Appendix B - Performance Benchmarks [wip]](#appendix-b---performance-benchmarks)
-* [Appendix C - Parameter Tuning and Design Optimization](#appendix-c---parameter-tuning-and-design-optimization)
 * [Glossary](#glossary)
 * [Acknowledgements](#acknowledgements)
 
@@ -138,12 +136,6 @@ version of the protocol.
 ![Summary of the time spent](img/0156_summary_time_spent.png)
 [Zoom on the chart](https://raw.githubusercontent.com/lquerel/oteps/main/text/img/0156_summary_time_spent.png)
 
-A more detailed presentation of the benchmarks comparing *OTLP* and *OTel Arrow* can be found in the following
-sections:
-
-* [Performance benchmark](#appendix-b---performance-benchmarks)
-* [Parameter tuning and design optimization](#appendix-c---parameter-tuning-and-design-optimization)
-
 > In conclusion, these benchmarks demonstrate the interest of integrating a column-oriented telemetry data protocol to
 > optimize bandwidth and processing speed in a batch processing context.
 
@@ -172,8 +164,6 @@ Many other design choices and trade-offs have been made, such as:
 - optimization of many parameters introduced in the system.
 
 ![In-memory Apache Arrow RecordBatch](img/0156_OTEL%20-%20HowToUseArrow.png)
-
-For a more detailed presentation of the approach used, please refer to this section ["Parameter tuning and design optimization"](#appendix-c---parameter-tuning-and-design-optimization).
 
 ### Integration Strategy and Phasing
 
@@ -482,17 +472,13 @@ The leaf nodes (in green in this diagram) are where the data are actually define
 Basically the relationship between the metric and resource nodes is a many-to-one relationship. Similarly, the
 relationship between the metric and instrumentation scope nodes is also a many-to-one relationship.
 
-Several approaches have been explored to transform this row-oriented representation into a column-oriented
-representation (see the section [Design optimization](#appendix-c---parameter-tuning-and-design-optimization)).
-
 The approach chosen for this proposal involves dividing the OTel entities into multiple Arrow RecordBatches. Each of
 these RecordBatches will possess a specific schema and will be linked to other RecordBatches through a combination of
 primary and foreign keys. This methodology offers an optimal balance between compression ratio, queryability, and ease
 of integration with existing Arrow-based tools.
 
 To maximize the benefits of this columnar representation, OTel Arrow sorts a subset of columns to enhance the locality
-of identical data, thereby amplifying the compression ratio. More details on this aspect in the
-[Parameter tuning and Design optimization section](#appendix-c---parameter-tuning-and-design-optimization).
+of identical data, thereby amplifying the compression ratio. 
 
 Finally, to mitigate the overhead of defining schemas and dictionaries, we use the Arrow IPC format. RecordBatches sharing the
 same schema are grouped in a homogeneous stream. The first message sent contains in addition to the columns data,
@@ -1007,205 +993,6 @@ message RetryInfo {
   int64 retry_delay = 1;
 }
 ```
-
-## Appendix B - Performance Benchmarks [Warning not up to date]
-
-> An update of this section will be provided soon. However, the results are summarized at the beginning of this
-> document in the [validation](#validation) section.
-
-This section compares the performance of the OTLP protocol with the OTel Arrow extension for sending batches of
-telemetry data. The main metrics compared are:
-
-- The size of the batches once compressed to evaluate the bandwidth gain.
-- The time spent to create, serialize, compress, decompress, and deserialize the event batches to evaluate the gain in
-  processing time.
-
-The telemetry data used for these tests comes from production environments.
-
-- 200K metric data points (9 types of metrics, see examples [1](#example-of-schema-for-a-univariate-time-series) and
-  [2](#example-of-schema-for-a-multivariate-time-series)).
-- 200K log entries (43 different log structures, see examples [1](#example-of-schema-for-a-gcp-log-with-json-payload),
-  [2](#example-of-schema-for-a-gcp-log-with-proto-payload), and [3](#example-of-schema-for-a-gcp-log-with-text-payload)).
-
-> Note: These benchmarks were performed on the basis of a Rust implementation of Apache Arrow. The message sizes for the
-> different protocols and configurations should not vary between a Rust and Go implementation. However, the measurement
-> times might be a bit different with a Go implementation. A Go implementation is under development, the results will be
-> integrated in this document as soon as possible.
-
-### Metrics
-
-#### Batch Size Analysis
-
-In the dataset used, each measurement point is composed of a timestamp, 9 metrics sharing 10 attributes. The dataset
-contains 200K measurement points. To transmit this dataset with OTLP, we must first convert this dataset into a stream
-of univariate
-metrics (i.e. one metric per data point). The special attribute 'state' is added to specify the nature of the metric.
-This format follows the same convention as the cpu or memory system metrics issued by the OTel collector.
-
-The following multi-line plot shows for different batch sizes, representation modes (OTLP or OTel Arrow) and compression
-algorithms the batch size in bytes once compressed. In this test, the data are not transformed into multivariate
-time-series for OTel Arrow. This will be the subject of the next plot.
-
-![Univariate metrics bytes](img/0156_univariate_metrics_bytes.png)
-
-3 compression algorithms have been evaluated for OTLP batches (Zlib, Lz4, and Zstd) in order to compare their efficiency
-on a "row-oriented" representation. According to our results Zlib and Zstd are the two best compression algorithms for
-OTLP data with a very slight advantage for Zlib. The same compression algorithms have been tested on our new
-"column-oriented" representation. Zlib and Zstd are the two best compression algorithms for OTel Arrow.
-
-> As this plot shows, the columnar representation is almost twice as efficient in terms of bandwidth gain. However, it
-> is
-> possible to do much better by taking advantage of the native support for multivariate time-series in OTel Arrow.
-
-The following graph compares the best OTLP compression algorithm (Zlib) with OTel Arrow + Zstd + multivariate time-series
-support.
-
-![Multivariate metrics bytes](img/0156_multivariate_metrics_bytes.png)
-
-> With this optimization, OTel Arrow is a little over 4 times more efficient than OTLP. The zstd compression algorithm
-> stands out for columnar data.
-
-Even for small batches of metrics, the OTel Arrow representation is more efficient than the OTLP representation in a
-*multivariate time-series context* (see table below).
-
-![Metrics small batches](img/0156_metrics_small_batches.png)
-
-#### Serialization/Compression Time Analysis
-
-This section compares the time spent creating, serializing, compressing, decompressing and deserializing batches of
-metrics with OTLP and OTel Arrow while looking to optimize message size (Zlib for OTLP and Zstd for OTel Arrow). In both
-cases, the data producer delivers the metrics in a row-oriented approach. The Arrow OTLP implementation therefore
-integrate the
-row-to-column conversion time.
-
-The following stacked bar plot compares side by side the distribution of time spent for each step and for each version
-of the protocol.
-
-![Breakdown of time per step for each batch size and each protocol](img/0156_metrics_step_times.png)
-
-When cumulating the times of all steps, OTel Arrow (with multivariate time-series encoding) is 3 times faster than
-standard OTLP.
-
-The batch creation phase for OTel Arrow represents almost all the time spent. Serialization and deserialization times
-are
-almost zero due to the use of Flatbuffer by Apache Arrow (ser/deser without parsing/unpacking). Compression and
-decompression
-times are extremely low due to the fact that the size of the Arrow OTLP message before compression is more than 30 times
-smaller than an OTLP message with the same content (see previous table).
-
-> It should be possible to significantly optimize the creation of OTel Arrow batches for contexts where the structure
-> of the metrics to be sent is known in advance.
-
-### Logs
-
-#### Batch Size Analysis
-
-The dataset used for this benchmark contains 200K logs with 43 different structures (i.e. combination of different
-fields).
-
-The following multi-line plot show the compressed batch size in bytes for different protocols and combination of
-parameters:
-
-* protocol (OTLP or OTel Arrow)
-* batch size (5000, 10000, 25000, 50000, 100000)
-* compression algorithms (Zlib, Lz4, Zstd)
-* Sorted vs unsorted columns (only for OTel Arrow)
-
-![Metrics bytes](img/0156_logs_bytes.png)
-
-The best results are obtained with OTel Arrow + text column sorting + Zstd. This corroborates the results in the
-columnar
-database domain. The compression algorithm is much better on columns that are sorted or partially sorted.
-
-In the case of logs, the Zstd compression algorithm is the best for both OTLP and OTel Arrow.
-
-> The compression ratio for OTel Arrow is about twice that of OTLP.
-
-#### Serialization/Compression Time Analysis
-
-This section compares the time spent creating, serializing, compressing, decompressing and deserializing batches of
-metrics with OTLP and OTel Arrow while looking to optimize message size. In both cases, the data producer delivers the
-logs in a row-oriented approach. The Arrow OTLPs therefore integrate the row-to-column conversion time.
-
-The following stacked bar plot compares side by side the distribution of time spent for each step and for each version
-of the protocol.
-
-![Breakdown of time per step for each batch size and each protocol](img/0156_logs_step_times.png)
-
-When cumulating the times of all steps, OTel Arrow (with sorted columns) is ~0.90 slower than standard OTLP. This is
-mainly due to the ordering of the text columns. Without column sorting, OTel Arrow is 1.3 times
-faster than OTLP. For bandwidth optimization it is therefore recommended, at the cost of a slight processing slowdown,
-to activate column sorting (see
-appendix [Parameter tuning and design optimization](#appendix-c---parameter-tuning-and-design-optimization)
-for more details on the parameters to select the columns to sort).
-
-The batch creation+sorting phase for OTel Arrow represents almost all the time spent. Serialization and deserialization
-times are
-almost zero due to the use of Flatbuffer by Apache Arrow (ser/deser without parsing/unpacking). Compression and
-decompression
-times are low due to the fact that the size of the OTel Arrow message before compression is more than 7 times
-smaller than an OTLP message with the same content.
-
-> It should be possible to significantly optimize the creation of OTel Arrow batches for contexts where the structure
-> of the logs to be sent is known in advance.
-
-### Traces
-
-No benchmark has been conducted for traces due to lack of a dataset containing traces with links and events.
-
-Please feel free to share a dataset with such characteristics to complete this document.
-
-Please check this [open issue](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/13626) for more
-details on a solution to facilitate data sharing.
-
-## Appendix C - Parameter Tuning and Design Optimization
-
-This section describes the systematic approach used to optimize the OTel Arrow design and its parameters. The approach
-is
-based on an optimization technique called "blackbox optimization" which allows to describe the system to be optimized as
-a black box with a set of input parameters and an output corresponding to the value of a function to be optimized
-(maximize or minimize). This technique is described in detail in the
-article [Optimize your applications using Google Vertex AI Vizier](https://cloud.google.com/blog/products/ai-machine-learning/optimize-your-applications-using-google-vertex-ai-vizier)
-.
-
-In this analysis, the function to optimize is the compression ratio for a set of parameters. We will focus on optimizing
-the protocol design for logs (the same approach has been applied for metrics). The parameters explored are:
-
-* compression algorithm (Zlib, Zstd, and Lz4)
-* serialization mode
-  * normalized: resources, instrumentation libraries, metrics, logs, traces, events, and links are mapped in a
-  dedicated
-  RecordBatch. A set of primary and secondary keys are used to recreate the relationships between these different
-  entities.
-  * denormalized: resource, instrumentation library, event, and link fields are replicated for every metrics, logs,
-  and traces.
-* dictionary configuration
-  * min_row_count: The creation of a dictionary will be performed only on columns with more than `min_row_count`
-  elements.
-  * max_card: The creation of a dictionary will be performed only on columns with a cardinality lower than `max_card`.
-  * max_card_ratio: The creation of a dictionary will only be performed on columns with a ratio `card` / `size` <= `max_card_ratio`.
-  * max_sorted: Maximum number of sorted dictionaries (based on cardinality/total_size and avg_data_length).
-* batch_size: Size of the batch before serialization and compression.
-
-The following parallel coordinates chart represents the execution of 200 trials selected by Google AI Vizier in order to
-optimize the compression ratio per batch.
-
-![All trials](img/0156_All%20trials.png)
-
-By selecting the highest value range for the compression ratio, it is possible to get a more precise idea of the optimal
-parameters for the log system in OTel Arrow. This is represented by the following diagram:
-
-![Best trials](img/0156_Best%20trials.png)
-
-From this analysis, we can conclude that for the tested data, the best parameters are:
-
-* compression_algorithm -> Zstd
-* serialization_mode -> Denormalized (mode used in the benchmark appendix)
-* min_row_count -> 25 logs
-* max_card -> 255 distinct values
-* max_card_ratio -> 0.22
-* max_sorted -> 13 sorted dictionaries
-* batch size -> 50K logs
 
 ## Glossary
 
