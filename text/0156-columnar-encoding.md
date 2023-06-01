@@ -190,7 +190,7 @@ following diagram, a new OTel Arrow to OTLP receiver will be responsible for tra
 existing protocol. Similarly, a new exporter will be responsible for translating the OTLP messages into this new Arrow-based
 format.
 
-![OTel Collector](img/0156_OTEL%20-%20OTEL%20Collector.png)
+![OTel Collector](img/0156_collector_internal_overview.png)
 
 This first step is intended to address the specific use cases of **traffic reduction** and native support of
 **multivariate time-series**. Based on community feedback, many companies want to reduce the cost of transferring
@@ -198,7 +198,7 @@ telemetry data over the Internet. By adding a collector that acts as a point of 
 the edge of a client environment, we can take advantage of the columnar format to eliminate redundant data and optimize
 the compression ratio. This is illustrated in the following diagram.
 
-![Traffic reduction](img/0156_OTEL%20-%20InternetTrafficReduction.png)
+![Traffic reduction](img/0156_traffic_reduction_use_case.png)
 
 > Note 1: A fallback mechanism can be used to handle the case where the new protocol is not supported by the target.
 > More on this mechanism in this [section](#protocol-extension-and-fallback-mechanism).
@@ -211,7 +211,7 @@ and exporters supporting Apache Arrow natively will be developed. A bidirectiona
 will be developed within the collector to continue supporting the existing ecosystem. The following diagram is an
 overview of a collector supporting both OTLP and an end-to-end OTel Arrow pipeline.
 
-![OTel Arrow Collector](img/0156_OTEL%20-%20OTELArrowCollector.png)
+![OTel Arrow Collector](img/0156_collector_phase_2.png)
 
 Implementing an end-to-end column-oriented pipeline will provide many benefits such as:
 
