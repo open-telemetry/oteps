@@ -207,20 +207,19 @@ operations in the same trace can greatly improve the user experience.
 
 #### Settlement
 
-Messages can be settled in a variety of different ways. Different settlement
-strategies result in different delivery guarantees:
+Messages can be settled in a variety of different ways:
 
-* _At-most-once_: the intermediary settles the messages as it is sent to the
-  consumer. No settlement operations happen on the consumer.
-* _At-least-once_: the consumer settles a message without awaiting an
-  acknowledgment from the intermediary.
-* _Exactly-once_: the consumer settles a message and awaits an acknowledgment
-  from the intermediary. This involves a round-trip exchange between the
-  consumer and the intermediary.
+* The intermediary settles the messages as it is sent to the consumer. No
+  settlement operations happen on the consumer.
+* The consumer settles a message without awaiting an acknowledgment from the
+  intermediary.
+* The consumer settles a message and awaits an acknowledgment from the
+  intermediary. This involves a round-trip exchange between the consumer and
+  the intermediary.
 
-At-least-once and exactly-once settlement operations on the consumer can either
-be triggered manually by the user, or can be triggered automatically by
-messaging SDKs based on return values of callbacks.
+Settlement operations on the consumer can either be triggered manually by the
+user, or can be triggered automatically by messaging SDKs based on return
+values of callbacks.
 
 A "Settle" span should be created for every settlement operation that happens
 on the consumer (at-least-once and exactly-once). SDKs will, in some cases,
@@ -231,8 +230,8 @@ callbacks. In cases where it is possible, it is recommended to create the
 "Settle" spans should link to creation context of the messages that are
 settled, when possible.
 
-No settlement span should be created for at-most-once settlement scenarios, as
-those do not involve any settlement operations on the consumer side.
+No settlement span should be created for settlement scenarios that do not
+involve any settlement operations on the consumer side.
 
 ## Proposed changes and additions to the messaging semantic conventions
 
