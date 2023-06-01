@@ -110,7 +110,7 @@ Arrow. The key results are:
   end-to-end speed (including conversion to/from OTLP) similar to the univariate time series scenario phase 1**. Phase 2
   has been yet estimated but similar results are expected.
 * For logs, OTel Arrow is **1.6 to 2 times better in terms of bandwidth reduction while having an end-to-end speed
-  (including conversion to/from OTLP) 2.5 to 3.5 times slower in phase 1**. In **phase 2** the conversion
+  (including conversion to/from OTLP) 2.0 to 3.5 times slower in phase 1**. In **phase 2** the conversion
   OTLP to/from Arrow is gone and the end-to-end speed is **2.3 to 4.86 times faster** by our estimates.
 * For traces, OTel Arrow is **1.7 to 2.8 times better in terms of bandwidth reduction while having an end-to-end speed
   (including conversion to/from OTLP) 1.5 to 2.1 times slower in phase 1**. In **phase 2** the conversion
