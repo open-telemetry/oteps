@@ -225,7 +225,7 @@ encoding of the telemetry data.
 OTLP and OTel Arrow protocols can be used together and can use the same TCP port. To do so, in addition to the 3
 existing
 services (`MetricsService`, `LogsService` and `TraceService`), we introduce the service `ArrowStreamService`
-(see [this protobuf specification](#appendix-a---protocol-buffer-definitions) for more details) exposing a single API 
+(see [this protobuf specification](#appendix-a---protocol-buffer-definitions) for more details) exposing a single API
 endpoint named `ArrowStream`. This endpoint is based on a bidirectional streaming protocol. The client message is a
 `BatchArrowRecords` stream encoding a batch of Apache Arrow buffers (more specifically [Arrow IPC format](#arrow-ipc-format)).
 The server message side is a `BatchStatus` stream reporting asynchronously the status of each `BatchArrowRecords`
@@ -306,7 +306,7 @@ uniquely identify the batch in the server message `BatchStatus` stream. See the 
 section for more information on the implementation of this identifier.
 
 The `arrow_payloads` attribute is a list of `ArrowPayload` messages. Each `ArrowPayload` message represents
-a table of data encoded in a columnar format (e.g. metrics, logs, traces, attributes, events, links, exemplars, ...). 
+a table of data encoded in a columnar format (e.g. metrics, logs, traces, attributes, events, links, exemplars, ...).
 Several correlated IPC Arrow messages of different nature and with different schemas can be sent in the same OTLP batch
 identified by `batch_id` and thus be processed as one unit without complex logic in the collector or any other processing systems.
 More details on the `ArrowPayload` columns in the section [Mapping OTel entities to Arrow records](#mapping-otel-entities-to-arrow-records).
@@ -478,7 +478,7 @@ primary and foreign keys. This methodology offers an optimal balance between com
 of integration with existing Arrow-based tools.
 
 To maximize the benefits of this columnar representation, OTel Arrow sorts a subset of columns to enhance the locality
-of identical data, thereby amplifying the compression ratio. 
+of identical data, thereby amplifying the compression ratio.
 
 Finally, to mitigate the overhead of defining schemas and dictionaries, we use the Arrow IPC format. RecordBatches sharing the
 same schema are grouped in a homogeneous stream. The first message sent contains in addition to the columns data,
@@ -487,7 +487,7 @@ The dictionaries will only be sent again when their content change. The followin
 
 > Note: The approach of using a single Arrow record per OTel entity, which employs list, struct, and union Arrow data
 > types, was not adopted mainly due to the inability to sort each level of the OTel hierarchy independently. The mapping
-> delineated in this document, on average, provides a superior compression ratio. 
+> delineated in this document, on average, provides a superior compression ratio.
 
 ![Arrow IPC](img/0156_OTEL%20-%20Arrow%20IPC.png)
 
@@ -500,7 +500,7 @@ receiver.
 We begin with the logs payload as it is the most straightforward to map onto Arrow. The following Entity Relationship
 Diagram succinctly describes the schemas of the four Arrow record utilized to represent a batch of OTLP logs.
 
-The `LOGS` entity contains a flattened representation of the `LogRecord`, merged with `ResourceLogs` and `ScopeLogs`. 
+The `LOGS` entity contains a flattened representation of the `LogRecord`, merged with `ResourceLogs` and `ScopeLogs`.
 The `id` column functions as a primary key, linking the `LogRecord` with their corresponding attributes, which are
 stored in the `LOG_ATTRS` entity. The `resource_id` column serves as a key, associating each `ResourceLogs` instance
 with their respective attributes stored in the `RESOURCE_ATTRS` entity. Likewise, the `scope_id` column acts as a key
@@ -519,9 +519,10 @@ CBOR encoding of the attribute value when the attribute type is complex (e.g., m
 filled with null values.
 
 The `body` is represented with the tuple `body_type` and one of the following columns: `body_str`, `body_int`,
-`body_double`, `body_bool`, `body_bytes`, `body_ser`. 
+`body_double`, `body_bool`, `body_bytes`, `body_ser`.
 
 This representation offers several advantages:
+
 - Each record can be sorted independently to better arrange the data for compression.
 - Primary keys and foreign keys can be used to connect the different Arrow records, and they easily integrate with SQL
 engines.
@@ -579,7 +580,7 @@ compressible (multivariate time-series scenario).
 > simplify the integration with the rest of the Arrow ecosystem (numerous time/date functions are supported in
 > DataFusion for example).
 
-> Note: `aggregation_temporality` is represented as an Arrow dictionary with a dictionary index of type int8. This OTLP
+> Note: aggregation_temporality is represented as an Arrow dictionary with a dictionary index of type int8. This OTLP
 > enum has currently 3 variants, and we don't expect to have in the future more than 2^8 variants.
 
 ## Implementation Recommendations
