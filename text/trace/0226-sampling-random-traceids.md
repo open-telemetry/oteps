@@ -56,7 +56,7 @@ This proposal makes use of the [draft-standard W3C tracecontext
 `random`
 flag](https://w3c.github.io/trace-context/#random-trace-id-flag),
 which is an indicator that 56 bits of true randomness are available
-for probability sampler decisions.  As an added benefit, we find that
+for probability sampler decisions.  The benefit of this is that this inherently random value can be used by intermediate span samplers to make _consistent_ sampling decisions. It would be a cleaner solution than the earlier proposal of looking up the r-value from the tracestate of each span. As an added benefit, we find that
 this proposal _also works for Head sampling_.
 
 This proposes to create a specification with support for 56-bit
