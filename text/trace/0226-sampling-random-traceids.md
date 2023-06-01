@@ -38,9 +38,7 @@ This proposal makes use of the [draft-standard W3C tracecontext
 flag](https://w3c.github.io/trace-context/#random-trace-id-flag),
 which is an indicator that 56 bits of true randomness are available
 for probability sampler decisions.  As an added benefit, we find that
-this proposal _also works for Head sampling_, and that when 56 bits of
-definite randomness are available in the TraceID we can use simpler
-sampling logic compared with the p-value, r-value approach.
+this proposal _also works for Head sampling_.
 
 This proposes to create a specification with support for 56-bit
 precision consistent Head and Intermediate Span sampling.  Because
@@ -55,25 +53,54 @@ with equivalent use and interpretation as the (W3C trace-context)
 TraceState field.  It would be appropriate to name this field
 `LogState`.
 
+This proposal does makes r-value an optional 56-bit number as opposed
+to a required 6-bit number.  When the r-value is supplied, it acts as
+an alternative source of randomness which allows tail-samplers to
+support versions of tracecontext without the `random` bit as well as
+more advanced use-cases.  For example, independent traces can be
+consistently sampled by starting them with identical r-values.
+
+This proposal deprecates the experimental p-value.  For existing
+stored data, the specification may recommend replacing `p:X` with an
+equivalent t-value; for example, `p:2` can be replaced by `t:4` and
+`p:20` can be replaced by `t:0x1p-20`.
+
 ## Explanation
 
-This document recommends deprecating the experimental p-value, r-value
-specification.
+The syntax of the r-value changes in this proposal, as it contains 56
+bits of information.  The recommended syntax is to use 14 hexadecimal
+characters (e.g., `r:1a2b3c4d5e6f78`).  The specification will
+recommend samplers drop invalid r-values, so that existing
+implementations of r-value are not mistakenly sampled.
+
+Like the existing specification, r-values will be synthesized as
+necessary.  However, the specification will recommend that r-values
+not be synthesized automatically when the W3C tracecontext `random`
+flag is set.  To achieve the advanced use-case involving multiple
+traces with the same r-value, users should set the `r-value` in the
+tracestate before starting correlated trace root spans.
 
 ### Detailed design
 
 This proposal defines the sampling "threshold" as a 7-byte string used
 to make consistent sampling decisions, as follows.
 
-1. Bytes 9-16 of the TraceID are interpreted as a 56-bit random
-   value in big-endian byte order.
+1. When the r-value is present and parses as a 56-bit random value,
+   use it, otherwise bytes 9-16 of the TraceID are interpreted as a
+   56-bit random value in big-endian byte order
 2. The sampling probability (range `[0x1p-56, 1]`) is multipled by
    `0x1p+56`, yielding a unsigned Threshold value in the range `[1,
    0x1p+56]`.
 3. If the unsigned TraceID random value (range `[0, 0x1p+56)`) is
    less-than the sampling Threshold, the span is sampled, otherwise it
    is discarded.
-   
+
+For head samplers, there is an opportunity to synthesize a new r-value
+when the tracecontext does not set the `random` bit (as the existing
+specification recommends synthesizing r-values for head samplers
+whenever there is none).  However, this opportunity is not available
+to tail samplers.
+
 To calculate the Sampling threshold, we began with an IEEE-754
 standard double-precision floating point number.  With 52-bits of
 significand and a floating exponent, the probability value used to
@@ -166,25 +193,48 @@ threshold and compared against the new threshold.  These are two cases:
   Sampler's threshold, the span passes through with the current
   sampler's t-value, otherwise the span is discarded.
 
+## S-value encoding for non-consistent adjusted counts
+
+There are cases where sampling does not need to be consistent or is
+intentionally not consistent.  Existing samplers often apply a simple
+probability test, for example.  This specification recommends
+introducing a new tracestate member `s-value` for conveying the
+accumulation of adjusted count due to independent sampling stages.
+
+Unlike resampling with `t-value`, independent non-consistent samplers
+will multiply the effect of their sampling into `s-value`.
+
 ## Examples
 
-### 90% Intermediate Span sampling
+### 90% consistent intermediate span sampling
 
 A span that has been sampled at 90% by an intermediate processor will
 have `ot=t:0.9` added to its TraceState field in the Span record.  The
 sampling threshold is `0.9 * 0x1p+56`.
 
-### 90% Head sampling
+### 90% head consistent sampling
 
 A span that has been sampled at 90% by a head sampler will add
 `ot=t:0.9` to the TraceState context propagated to its children and
 record the same in its Span record.  The sampling threshold is `0.9 *
 0x1p+56`.
 
-### 1-in-3 sampling
+### 1-in-3 consistent sampling
 
 The tracestate value `ot=t:3` corresponds with 1-in-3 sampling.  The
 sampling threshold is `1/3 * 0x1p+56`.
+
+### 30% simple probability sampling
+
+The tracestate value `ot=s:0.3` corresponds with 30% sampling by one
+or more sampling stages.  This would be the tracestate recorded by
+`probabilisticsampler` when using a `HashSeed` configuration instead
+of the consistent approach.
+
+### 10% probability sampling twice
+
+The tracestate value `ot=s:0.01` corresponds with 10% sampling by one
+stage and then 10% sampling by a second stage.
 
 ## Trade-offs and mitigations
 
