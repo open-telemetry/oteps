@@ -106,13 +106,13 @@ A series of tests were conducted to compare compression ratios between OTLP and 
 Arrow. The key results are:
 
 * For univariate time series, OTel Arrow is **2 to 2.5 better in terms of bandwidth reduction while having an
-  end-to-end speed (including conversion to/from OTLP) 1.2 to 1.5 times slower in phase 1**. In **phase 2** the conversion
+  end-to-end speed (including conversion to/from OTLP) 1.5 to 2 times slower in phase 1**. In **phase 2** the conversion
   OTLP to/from Arrow is gone and the end-to-end speed is **3.1 to 11.2 times faster by our estimates**.
 * For multivariate time series, OTel Arrow is **3 to 7 times better in terms of bandwidth reduction while having an
   end-to-end speed (including conversion to/from OTLP) similar to the univariate time series scenario phase 1**. Phase 2
   has been yet estimated but similar results are expected.
 * For logs, OTel Arrow is **1.6 to 2 times better in terms of bandwidth reduction while having an end-to-end speed
-  (including conversion to/from OTLP) 1.3 to 2 times slower in phase 1**. In **phase 2** the conversion
+  (including conversion to/from OTLP) 2.5 to 3.5 times slower in phase 1**. In **phase 2** the conversion
   OTLP to/from Arrow is gone and the end-to-end speed is **2.3 to 4.86 times faster** by our estimates.
 * For traces, OTel Arrow is **1.7 to 2.8 times better in terms of bandwidth reduction while having an end-to-end speed
   (including conversion to/from OTLP) 1.5 to 2.1 times slower in phase 1**. In **phase 2** the conversion
@@ -135,20 +135,8 @@ scenario.
 The following stacked bar graphs compare side-by-side the distribution of time spent for each step and for each
 version of the protocol.
 
-#### Benchmark for the univariate time series (batch size: {10, 100, 1000, 2000, 4000})
-
-![Summary of the time spent](img/0156_metrics_step_times_phase1.png)
-[Zoom on the chart](https://raw.githubusercontent.com/lquerel/oteps/main/text/img/0156_metrics_step_times_phase1.png)
-
-#### Benchmark for the logs (batch size: {10, 100, 1000, 2000, 5000, 10000})
-
-![Summary of the time spent](img/0156_logs_step_times_phase1.png)
-[Zoom on the chart](https://raw.githubusercontent.com/lquerel/oteps/main/text/img/0156_logs_step_times_phase1.png)
-
-### Benchmark for the traces (batch size: {10, 100, 1000, 2000, 5000, 10000})
-
-![Summary of the time spent](img/0156_traces_step_times_phase1.png)
-[Zoom on the chart](https://raw.githubusercontent.com/lquerel/oteps/main/text/img/0156_traces_step_times_phase1.png)
+![Summary of the time spent](img/0156_summary_time_spent.png)
+[Zoom on the chart](https://raw.githubusercontent.com/lquerel/oteps/main/text/img/0156_summary_time_spent.png)
 
 A more detailed presentation of the benchmarks comparing *OTLP* and *OTel Arrow* can be found in the following
 sections:
