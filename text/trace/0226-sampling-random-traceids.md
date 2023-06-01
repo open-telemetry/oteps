@@ -56,8 +56,11 @@ This proposal makes use of the [draft-standard W3C tracecontext
 `random`
 flag](https://w3c.github.io/trace-context/#random-trace-id-flag),
 which is an indicator that 56 bits of true randomness are available
-for probability sampler decisions.  The benefit of this is that this inherently random value can be used by intermediate span samplers to make _consistent_ sampling decisions. It would be a cleaner solution than the earlier proposal of looking up the r-value from the tracestate of each span. As an added benefit, we find that
-this proposal _also works for Head sampling_.
+for probability sampler decisions.  The benefit of this is that this
+inherently random value can be used by intermediate span samplers to
+make _consistent_ sampling decisions. It would be a less-expensive
+solution than the earlier proposal of looking up the r-value from the
+tracestate of each span.
 
 This proposes to create a specification with support for 56-bit
 precision consistent Head and Intermediate Span sampling.  Because
@@ -86,6 +89,14 @@ equivalent t-value; for example, `p:2` can be replaced by `t:4` and
 
 ## Explanation
 
+This document proposes a new OpenTelemetry specific tracestate value
+called t-value.  This t-value encodes either the sampling probability
+(a floating point value) directly or the "adjusted count" of a span
+(an integer).  The letter "t" here is a shorthand for "threshold". The
+value encoded here can be mapped to a threshold value that a sampler
+can compare to a value formed using the rightmost 7 bytes of the
+traceID.
+
 The syntax of the r-value changes in this proposal, as it contains 56
 bits of information.  The recommended syntax is to use 14 hexadecimal
 characters (e.g., `r:1a2b3c4d5e6f78`).  The specification will
@@ -101,13 +112,14 @@ tracestate before starting correlated trace root spans.
 
 ### Detailed design
 
+Let's look at the details of how this threshold can be calculated.
 This proposal defines the sampling "threshold" as a 7-byte string used
 to make consistent sampling decisions, as follows.
 
 1. When the r-value is present and parses as a 56-bit random value,
-   use it, otherwise bytes 9-16 of the TraceID are interpreted as a
+   use it, otherwise bytes 10-16 of the TraceID are interpreted as a
    56-bit random value in big-endian byte order
-2. The sampling probability (range `[0x1p-56, 1]`) is multipled by
+2. The sampling probability (range `[0x1p-56, 1]`) is multiplied by
    `0x1p+56`, yielding a unsigned Threshold value in the range `[1,
    0x1p+56]`.
 3. If the unsigned TraceID random value (range `[0, 0x1p+56)`) is
@@ -141,7 +153,7 @@ to machine precision) the adjusted count of each span.  For example,
 given a sampling probability encoded as "0.1", we first compute the
 nearest base-2 floating point, which is exactly 0x1.999999999999ap-04,
 which is approximately 0.10000000000000000555.  The exact quantity in
-this example, 0x1.999999999999ap-04, is multipled by `0x1p+56` and
+this example, 0x1.999999999999ap-04, is multiplied by `0x1p+56` and
 rounded to an unsigned integer (7205759403792794).  This specification
 says that to carry out sampling probability "0.1", we should keep
 Traces whose least-significant 56 bits form an unsigned value less
