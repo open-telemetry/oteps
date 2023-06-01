@@ -556,6 +556,7 @@ spans. The primary 'METRICS' entity encapsulates a flattened representation of `
 crafted to represent data points for each type of metrics, with their columns being specific to the respective metric
 type. For instance, the `SUMMARY_DATA_POINTS` entity includes columns `id`, `parent_id`, `start_time_unix_nano`,
 `time_unix_nano`, `count`, `sum`, and `flags`. Each of these "data points" entities is linked to:
+
 - A set of data point attributes (following a one-to-many relationship).
 - A set of data points exemplars (also adhering to a one-to-many relationship).
 
@@ -579,7 +580,6 @@ compressible (multivariate time-series scenario).
 > Note: every OTLP timestamps are represented as Arrow timestamps with nanoseconds time unit. This representation will
 > simplify the integration with the rest of the Arrow ecosystem (numerous time/date functions are supported in
 > DataFusion for example).
-
 > Note: aggregation_temporality is represented as an Arrow dictionary with a dictionary index of type int8. This OTLP
 > enum has currently 3 variants, and we don't expect to have in the future more than 2^8 variants.
 
