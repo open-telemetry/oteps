@@ -92,7 +92,7 @@ To this, I submit the following points:
   [otel-desktop-viewer](https://github.com/open-telemetry/community/issues/1515))
   as a starting point for this proposal?
 - Do we have maintainers and leaders that can step up to drive this?
-- What does success look like? 
+- What does success look like?
 - Are we signing up for a long-term maintenance problem by taking this on?
 
 ## Future possibilities
