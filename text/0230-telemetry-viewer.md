@@ -36,8 +36,9 @@ problem. Ultimately, the vision is that a developer would be able to use a
 collector extension to view the following:
 
 - Metrics, Trace, and Log Data collected over the last X minutes.
-- The current configuration, pipelines, and operating telemetry (logs, metrics, traces) of the collector.
-- A list of instrumentation libraries, agents, or other ecosystem components in
+- The current configuration, pipelines, and operating telemetry
+  (logs, metrics, traces) of the collector.
+- A list of instrumentation libraries, or other ecosystem components in
   use by the pipelines.
 - All attribute and resource keys seen by the collector over the last X minutes.
 
@@ -47,6 +48,18 @@ Broadly, the implementation of this viewer should be a collector extension that
 exposes a simple web portal for viewing data along with some sort of data store
 to hold the data emitted. This extension could be bundled with specific
 collector releases, or brought in via the collector builder.
+
+There should be a few options for distribution of the extension -
+
+1. A 'default' collector distribution from the project that includes a basic
+   collector configuration and the viewer extension.
+2. Using the collector builder to create a custom image that includes this
+   extension as well as other custom components.
+3. A standalone binary that can be installed on a local machine or in a
+   codespace or other development environment.
+
+These are not an exhaustive list of deployment options, and I posit that the
+community will create other strategies as well.
 
 ## Trade-offs and mitigations
 
@@ -85,6 +98,19 @@ To this, I submit the following points:
 3. There is a difference in effort requireed for a developer to add a local
    observability stack vs. swapping out a collector binary, and it's a pretty
    significant difference.
+
+In general, both commercial tools and extant open source observability tools are
+not designed for the specific use case of allowing a developer to quickly get
+feedback on their instrumentation code, or their observability configuration and
+pipeline.
+
+Another example of this pattern in the cloud-native ecosystem is the Kubernetes
+Dashboard. The dashboard is not a default part of a Kubernetes install, and it's
+often superseded in production deployments by managed solutions or other tools
+(for example, GKE provides a management UI, and command line tools like k9s
+exist). However, by providing this component, Kubernetes is able to provide a
+solution for developers and operators who need a simple GUI to diagnose and
+visualize their cluster, its pods, etc.
 
 ## Open questions
 
