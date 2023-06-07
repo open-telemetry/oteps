@@ -36,7 +36,7 @@ problem. Ultimately, the vision is that a developer would be able to use a
 collector extension to view the following:
 
 - Metrics, Trace, and Log Data collected over the last X minutes.
-- The current configuration, pipelines, and operating metrics of the collector.
+- The current configuration, pipelines, and operating telemetry (logs, metrics, traces) of the collector.
 - A list of instrumentation libraries, agents, or other ecosystem components in
   use by the pipelines.
 - All attribute and resource keys seen by the collector over the last X minutes.
