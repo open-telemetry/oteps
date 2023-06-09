@@ -4,7 +4,7 @@ The OpenTelemetry Sandbox is a place under OpenTelemetry's governance where the 
 
 ## Motivation
 
-Over the history of OpenTelemetry, there have been situations where people came to our community proposing interesting ideas to be adopted. There has also been vendors offering code donations to the project, some of which are now mostly unmaintained. 
+Over the history of OpenTelemetry, there have been situations where people came to our community proposing interesting ideas to be adopted. There has also been vendors offering code donations to the project, some of which are now mostly unmaintained.
 
 As a possible solution to this, this OTEP proposes a new GitHub organization, [opentelemetry-sandbox](https://github.com/opentelemetry-sandbox). This organization will host projects until there's confidence that they have a healthy community behind them. They would also serve as a neutral place for the community to conduct experiments.
 
@@ -23,32 +23,32 @@ This OTEP is inspired by [CNCF’s sandbox projects](https://www.cncf.io/sandbox
 A low barrier to entry would be desired for the sandbox. While the process can be refined based on our experience, my initial proposal for the process is the following:
 
 1. Proposals should be written following the template below and have one Technical Committee (TC) and/or Governance Committee (GC) sponsor, who will regularly provide the TC and GC information about the state of the project.
-1. Once a sponsor is found, the TC and GC will vote on accepting this new project on the Slack channel #opentelemetry-gc-tc. 
+2. Once a sponsor is found, the TC and GC will vote on accepting this new project on the Slack channel #opentelemetry-gc-tc.
     1. After one week, the voting closes automatically, with the proposal being accepted if it has received at least one :thumbs-up: (that of the sponsor, presumably).
-    1. If at least one :thumbs-down: is given, or a TC/GC member has restrictions about the project but hasn’t given a :thumbs-down:, the voting continues until a majority is reached or the restrictions are cleared.
-    1. The voting closes automatically once a simple majority of the TC/GC electorate has chosen one side.
-1. Proponents should abide by OpenTelemetry’s Code of Conduct (currently the same as CNCF’s).
-1. There’s no expectation that small sandbox projects will have regular calls, but there is an expectation that all decisions will be made in public and transparently.
-1. Sandbox projects do NOT have the right to feature OpenTelemetry’s name on their websites. 
+    2. If at least one :thumbs-down: is given, or a TC/GC member has restrictions about the project but hasn’t given a :thumbs-down:, the voting continues until a majority is reached or the restrictions are cleared.
+    3. The voting closes automatically once a simple majority of the TC/GC electorate has chosen one side.
+3. Proponents should abide by OpenTelemetry’s Code of Conduct (currently the same as CNCF’s).
+4. There’s no expectation that small sandbox projects will have regular calls, but there is an expectation that all decisions will be made in public and transparently.
+5. Sandbox projects do NOT have the right to feature OpenTelemetry’s name on their websites.
 
 #### Template
 
 > Project name:
-> 
+>
 > Repository name:
->  
+>
 > Motivation:
-> 
+>
 > Zoom room requested?
 
 ##### Example
 
 > Project name: OpenTelemetry Collector Community Distributions
-> 
+>
 > Repository name: opentelemetry-collector-distributions
->  
+>
 > Motivation: The OpenTelemetry Collector Builder allows people to create their own distributions, and while the OpenTelemetry Collector project has no intentions (yet) on hosting other more specialized distributions, some community members are interested in providing those distributions, along with best practices on building and managing such distributions, especially around the CI/CD requirements.
-> 
+>
 > Zoom room requested? No
 
 ### Periodic reports
