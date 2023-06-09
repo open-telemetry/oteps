@@ -4,31 +4,31 @@ On 08 Mar 2023, the OpenTelemetry GC and TC held an OpenTelemetry Leadership sum
 
 This OTEP builds on what was previously communicated by the project, especially on the following page: https://opentelemetry.io/docs/reference/specification/versioning-and-stability.
 
-The Collector’s [stability levels](https://github.com/open-telemetry/opentelemetry-collector#stability-levels) inspired the maturity levels.
+The Collector's [stability levels](https://github.com/open-telemetry/opentelemetry-collector#stability-levels) inspired the maturity levels.
 
 ## Motivation
 
 Quite often, the community is faced with the question of the quality and maturity expectations of its diverse set of components. This OTEP aims to bring clarity by establishing a framework to communicate the project's maturity. As the OpenTelemetry project comprises a multitude of SIGs, and each SIG has several components of varying quality, having this framework will help set the right expectations for OpenTelemetry users.
 
-Only once we reach the “stable” level at the project level will we be ready to consider graduating OpenTelemetry at the CNCF, with all of the Tier-1 SIGs being in the context of the graduation, including their Tier-1 Components. This OTEP provides a framework for describing project maturity as a whole.
+Only once we reach the "stable" level at the project level will we be ready to consider graduating OpenTelemetry at the CNCF, with all of the Tier-1 SIGs being in the context of the graduation, including their Tier-1 Components. This OTEP provides a framework for describing project maturity as a whole.
 
 ## Glossary
 
 * *SIG:* an official SIG within the OpenTelemetry project, like the Collector or Java. Some WGs are temporarily accepted, given they should be SIGs instead of WGs, like the Semantic Conventions WG.
 * *Tier-1 SIG:* a SIG within the OpenTelemetry project deemed critical by the GC/TC.
-* *Candidate Tier-1 SIG:* a SIG that is deemed as critical for the future of the project, but might not be of the same maturity level yet. It’s expected to reach that level eventually, and other Tier-1 SIGs should be prepared to accommodate the new component as needed.
+* *Candidate Tier-1 SIG:* a SIG that is deemed as critical for the future of the project, but might not be of the same maturity level yet. It's expected to reach that level eventually, and other Tier-1 SIGs should be prepared to accommodate the new component as needed.
 * *Component:* module maintained by a SIG like a Collector exporter or an SDK sampler.
 * *Tier-1 Component:* a component selected by project maintainers as critical for the SIG. For instance, the OTLP receiver will likely be selected as a Tier-1 Component of the Collector. See Tier-1 Components for more details.
-* *Candidate Tier-1 Component:* similar to “Candidate Tier-1 SIG”, but for a component within a SIG.
-* *Dependency:* an OpenTelemetry SIG or component that is required by another SIG or component. For instance, the OTLP Logs Data Model from the Spec is required for the Collector’s Logging support.  
+* *Candidate Tier-1 Component:* similar to "Candidate Tier-1 SIG", but for a component within a SIG.
+* *Dependency:* an OpenTelemetry SIG or component that is required by another SIG or component. For instance, the OTLP Logs Data Model from the Spec is required for the Collector's Logging support.  
 
 ## Explanation
 
 ### Maturity levels
 
-SIGs and components of a project MUST have a declared maturity level established by SIG maintainers (SIGs). The maturity level for a SIG or component is, at most, the lowest level of its dependencies or priority components. For instance, if the Collector SIG maintainers declare the “otlpreceiver” component as a tier-1 component of the Collector core distribution, and the “otlpreceiver” declares a dependency on the OpenTelemetry Collector API “config” package which is marked with a maturity level of “beta”, the “otlpreceiver” can be at most “beta”. The OpenTelemetry Collector “core” distribution is also affected so that it can be at most “beta”.
+SIGs and components of a project MUST have a declared maturity level established by SIG maintainers (SIGs). The maturity level for a SIG or component is, at most, the lowest level of its dependencies or priority components. For instance, if the Collector SIG maintainers declare the "otlpreceiver" component as a tier-1 component of the Collector core distribution, and the "otlpreceiver" declares a dependency on the OpenTelemetry Collector API "config" package which is marked with a maturity level of "beta", the "otlpreceiver" can be at most "beta". The OpenTelemetry Collector "core" distribution is also affected so that it can be at most "beta".
 
-Only once all dependencies are marked as “stable” MAY a component be marked as “stable”. Only once all Tier-1 Components of a SIG are “stable” MAY that SIG be marked as “stable”.
+Only once all dependencies are marked as "stable" MAY a component be marked as "stable". Only once all Tier-1 Components of a SIG are "stable" MAY that SIG be marked as "stable".
 
 #### Development
 
@@ -36,7 +36,7 @@ Not all pieces of the component are in place yet, and it might not be available 
 
 #### Alpha
 
-This is the default level: any components with no explicit maturity level should be assumed to be “Alpha”. The component is ready to be used for limited non-critical production workloads, and the authors of this component welcome user feedback. Bugs and performance problems are encouraged to be reported, but component owners might not work on them immediately. The configuration options might often change without backward compatibility guarantees.
+This is the default level: any components with no explicit maturity level should be assumed to be "Alpha". The component is ready to be used for limited non-critical production workloads, and the authors of this component welcome user feedback. Bugs and performance problems are encouraged to be reported, but component owners might not work on them immediately. The configuration options might often change without backward compatibility guarantees.
 
 #### Beta
 
@@ -70,15 +70,15 @@ This OTEP recommends the following SIGs to be included as part of the Tier-1 SIG
 * .Net
 * JavaScript
 
-Once this OTEP is approved, the TC and GC members will vote on the individual SIGs from the list above and are free to make further suggestions. A final list of Tier-1 SIGs shall be in the “community” repository.
+Once this OTEP is approved, the TC and GC members will vote on the individual SIGs from the list above and are free to make further suggestions. A final list of Tier-1 SIGs shall be in the "community" repository.
 
 ### Tier-1 Components
 
-When discussing the components' maturity, we often debate what should be included in the evaluation criteria. To help clarify that, we introduce the concept of “Tier-1 SIGs” and “Tier-1 Components”. Tier-1 Components are critical for a specific SIG: only when all Tier-1 Components are stable can a project be evaluated as stable. For instance, the “OTLP receiver” for the OpenTelemetry Collector could potentially be a “Tier-1 Component”. Only after this component is declared stable may the Collector be declared stable, provided all other Tier-1 Components are also stable.
+When discussing the components' maturity, we often debate what should be included in the evaluation criteria. To help clarify that, we introduce the concept of "Tier-1 SIGs" and "Tier-1 Components". Tier-1 Components are critical for a specific SIG: only when all Tier-1 Components are stable can a project be evaluated as stable. For instance, the "OTLP receiver" for the OpenTelemetry Collector could potentially be a "Tier-1 Component". Only after this component is declared stable may the Collector be declared stable, provided all other Tier-1 Components are also stable.
 
-Projects MUST list their Tier-1 Components in the main readme file. A Tier-1 Component MAY be hosted under the project’s “contrib” repository. Not all components under the main repository (sometimes called the “core” repository) are automatically Tier-1 Components.
+Projects MUST list their Tier-1 Components in the main readme file. A Tier-1 Component MAY be hosted under the project's "contrib" repository. Not all components under the main repository (sometimes called the "core" repository) are automatically Tier-1 Components.
 
-A component can be declared “Tier-1” only if they have the following characteristics:
+A component can be declared "Tier-1" only if they have the following characteristics:
 * The component has at least the same maturity level as the SIG
 * The component has a clear code owner
 * The code owner is active within the project
@@ -109,25 +109,25 @@ List of Tier-1 signals and their capabilities:
   * SDK specification
   * Instrumentation SDKs
 
-The lifecycle of a signal is defined in the following document: https://opentelemetry.io/docs/specs/otel/versioning-and-stability/ . While the stability and versioning of the signals may relate to this OTEP, the previously linked document specifies the details on how to reach the “stable” level mentioned in this OTEP.
+The lifecycle of a signal is defined in the following document: https://opentelemetry.io/docs/specs/otel/versioning-and-stability/ . While the stability and versioning of the signals may relate to this OTEP, the previously linked document specifies the details on how to reach the "stable" level mentioned in this OTEP.
 
-The “experimental” level from the signal versioning and stability document relates to the “alpha” and “beta” levels from this OTEP, “stable” and “deprecated” are equivalent to their counterparts on this document, and “removed” is non-existent here.
+The "experimental" level from the signal versioning and stability document relates to the "alpha" and "beta" levels from this OTEP, "stable" and "deprecated" are equivalent to their counterparts on this document, and "removed" is non-existent here.
 
-When a new signal reaches the “stable” level, OpenTelemetry TC and GC will ultimately decide whether to include it as part of OpenTelemetry’s priority components, using the process described in [Promoting SIGs and components](#promoting-sigs-and-components).
+When a new signal reaches the "stable" level, OpenTelemetry TC and GC will ultimately decide whether to include it as part of OpenTelemetry's priority components, using the process described in [Promoting SIGs and components](#promoting-sigs-and-components).
 
 ### Promoting SIGs and components
 
-SIGs can request to be included in the Tier-1 List by contacting a TC or GC member. The TC/GC member will bring the request to the TC/GC via Slack or Zoom call, who will vote on the matter. A simple majority suffices for including the SIG. The SIG needs to have at least equal maturity as the project. For instance, if OpenTelemetry’s maturity is set to Beta, the coming SIG has to be at least Beta as well, so that it doesn’t downgrade the main project’s maturity.
+SIGs can request to be included in the Tier-1 List by contacting a TC or GC member. The TC/GC member will bring the request to the TC/GC via Slack or Zoom call, who will vote on the matter. A simple majority suffices for including the SIG. The SIG needs to have at least equal maturity as the project. For instance, if OpenTelemetry's maturity is set to Beta, the coming SIG has to be at least Beta as well, so that it doesn't downgrade the main project's maturity.
 
-Components can request project maintainers to be included in the Tier-1 list via a GitHub issue created on the main repository of the SIG. The SIG maintainers will then vote on the matter. A simple majority suffices for including the component. The component needs to have at least equal maturity as the SIG so that it doesn’t downgrade the SIG’s maturity. If SIG maintainers have strong reasons to include a component with a lower status, they can request an exception with the GC/TC. A supermajority vote is required to accept the request until the project reaches the “Stable” level so the project’s scope doesn’t continuously grow. After we reach the “Stable” level, a simple majority decision will be sufficient.
+Components can request project maintainers to be included in the Tier-1 list via a GitHub issue created on the main repository of the SIG. The SIG maintainers will then vote on the matter. A simple majority suffices for including the component. The component needs to have at least equal maturity as the SIG so that it doesn't downgrade the SIG's maturity. If SIG maintainers have strong reasons to include a component with a lower status, they can request an exception with the GC/TC. A supermajority vote is required to accept the request until the project reaches the "Stable" level so the project's scope doesn't continuously grow. After we reach the "Stable" level, a simple majority decision will be sufficient.
 
 SIGs or components that are seen by the maintainers as critical for the future of the project, like a new signal, are added to the Candidate Tier-1 List. Once this happens, the other Tier-1 SIGs or components need to evaluate whether they need to be changed to accommodate the new candidate.
 
 ### Downgrading SIGs and components
 
-While we don’t expect SIGs and components to be downgraded, there may be situations where the evolution of the project or SIG is affected by the inaction of specific SIGs or components. For instance, if a new signal is added to the Candidate Tier-1 List and a SIG fails to adopt this new signal within a reasonable time, the GC/TC may choose to remove the SIG from the project’s Tier-1 List. To do that, two TC/GC members must sponsor the removal proposal, and a supermajority vote (two-thirds) is required to accept the proposal.
+While we don't expect SIGs and components to be downgraded, there may be situations where the evolution of the project or SIG is affected by the inaction of specific SIGs or components. For instance, if a new signal is added to the Candidate Tier-1 List and a SIG fails to adopt this new signal within a reasonable time, the GC/TC may choose to remove the SIG from the project's Tier-1 List. To do that, two TC/GC members must sponsor the removal proposal, and a supermajority vote (two-thirds) is required to accept the proposal.
 
-Similarly, if a component becomes unmaintained or isn’t of interest to the SIG maintainers anymore, it can be removed from the Tier-1 List. A simple majority vote by the SIG maintainers is required to accept the proposal.
+Similarly, if a component becomes unmaintained or isn't of interest to the SIG maintainers anymore, it can be removed from the Tier-1 List. A simple majority vote by the SIG maintainers is required to accept the proposal.
 
 ## Trade-offs and mitigations
 
