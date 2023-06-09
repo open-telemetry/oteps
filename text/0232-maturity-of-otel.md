@@ -2,7 +2,7 @@
 
 On 08 Mar 2023, the OpenTelemetry GC and TC held an OpenTelemetry Leadership summit, discussing various topics. One of the themes we discussed was establishing standard rules for describing the maturity of the OpenTelemetry project. This OTEP summarizes what was discussed there and is intended to have the wider community provide feedback.
 
-This OTEP builds on what was previously communicated by the project, especially on the following page: https://opentelemetry.io/docs/reference/specification/versioning-and-stability.
+This OTEP builds on what was previously communicated by the project, especially the [Versioning and stability for OpenTelemetry clients](https://opentelemetry.io/docs/reference/specification/versioning-and-stability).
 
 The Collector's [stability levels](https://github.com/open-telemetry/opentelemetry-collector#stability-levels) inspired the maturity levels.
 
@@ -79,6 +79,7 @@ When discussing the components' maturity, we often debate what should be include
 Projects MUST list their Tier-1 Components in the main readme file. A Tier-1 Component MAY be hosted under the project's "contrib" repository. Not all components under the main repository (sometimes called the "core" repository) are automatically Tier-1 Components.
 
 A component can be declared "Tier-1" only if they have the following characteristics:
+
 * The component has at least the same maturity level as the SIG
 * The component has a clear code owner
 * The code owner is active within the project
@@ -91,6 +92,7 @@ Similar to a Tier-1 Component, a Tier-1 Signal must have stable support in order
 Not all signals will have the same requirements. For instance, Logs might not provide an instrumentation API specification.
 
 List of Tier-1 signals and their capabilities:
+
 * Logs
   * Data model
   * SDK specification
@@ -109,7 +111,7 @@ List of Tier-1 signals and their capabilities:
   * SDK specification
   * Instrumentation SDKs
 
-The lifecycle of a signal is defined in the following document: https://opentelemetry.io/docs/specs/otel/versioning-and-stability/ . While the stability and versioning of the signals may relate to this OTEP, the previously linked document specifies the details on how to reach the "stable" level mentioned in this OTEP.
+The lifecycle of a signal is defined in the [Versioning and stability for OpenTelemetry clients](https://opentelemetry.io/docs/reference/specification/versioning-and-stability). While the stability and versioning of the signals may relate to this OTEP, the previously linked document specifies the details on how to reach the "stable" level mentioned in this OTEP.
 
 The "experimental" level from the signal versioning and stability document relates to the "alpha" and "beta" levels from this OTEP, "stable" and "deprecated" are equivalent to their counterparts on this document, and "removed" is non-existent here.
 
@@ -135,7 +137,7 @@ This approach gives both a top-down and a bottom-up approaches, allowing the GC/
 
 ## Prior art and alternatives
 
-* The specification status has a ["Component Lifecycle"](https://opentelemetry.io/docs/specs/status/) description, with definitions that might overlap with some of the levels listed in this OTEP. 
+* The specification status has a ["Component Lifecycle"](https://opentelemetry.io/docs/specs/status/) description, with definitions that might overlap with some of the levels listed in this OTEP.
 * The same page lists the status of the different parts of the spec
 * The ["Versioning and stability for OpenTelemetry clients"](https://opentelemetry.io/docs/specs/otel/versioning-and-stability/#signal-lifecycle) page has a detailed view on the lifecycle of a signal and which general stability guarantees should be expected by OpenTelemetry clients. Notably, it lacks information about maturity of the Collector. This OTEP could be seen as clashing with the last section of that page, "OpenTelemetry GA". But while that page established a point where both OpenTracing and OpenCensus would be considered deprecated, this OTEP here defines the criteria for calling OpenTelemetry "stable" and making that a requirement for a future graduation. This would also make it clear to end-users which parts of the project they can rely on.
 * The OpenTelemetry Collector has its own [stability levels](https://github.com/open-telemetry/opentelemetry-collector#stability-levels), which served as inspiration to the ones here.
