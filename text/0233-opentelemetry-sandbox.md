@@ -51,7 +51,7 @@ A low barrier to entry would be desired for the sandbox. While the process can b
 >
 > Problems the project will solve: The OpenTelemetry Collector Builder allows people to create their own distributions, and while the OpenTelemetry Collector project has no intentions (yet) on hosting other more specialized distributions, some community members are interested in providing those distributions, along with best practices on building and managing such distributions, especially around the CI/CD requirements.
 >
-> Motivation for joining the sandbox: I would love to have more community members to contribute with their own distributions. I would also appreciate broader help in keeping them in sync with the upstream Collector. 
+> Motivation for joining the sandbox: I would love to have more community members to contribute with their own distributions. I would also appreciate broader help in keeping them in sync with the upstream Collector.
 >
 > Zoom room requested? No
 
@@ -86,7 +86,7 @@ None.
 
 ## Open questions
 
-N/A.
+* Should the Technical Committee arbitrate technical disagreements?
 
 ## Future possibilities
 
