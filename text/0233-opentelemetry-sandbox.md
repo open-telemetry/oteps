@@ -10,7 +10,7 @@ As a possible solution to this, this OTEP proposes a new GitHub organization, [o
 
 The advantage of a sandbox organization is that OpenTelemetry's governance rules can be applied, making sure it’s an inclusive place for people to collaborate while keeping the reputation of the OpenTelemetry project as a whole untouched, given that it would be clear that OpenTelemetry doesn’t officially support projects within the sandbox.
 
-There is a desire, but not an expectation, that projects will be moved from the sandbox as an official SIG or incorporated into an existing SIG. There’s also no expectation that the OpenTelemetry project will provide resources to the sandbox project, like extra GitHub CI minutes or Zoom meeting rooms, although we might evaluate individual requests.
+There is a desire, but not an expectation, that projects will be moved from the sandbox as an official SIG or incorporated into an existing SIG. Realistically, we know that experiments might get dropped. There’s also no expectation that the OpenTelemetry project will provide resources to the sandbox project, like extra GitHub CI minutes or Zoom meeting rooms, although we might evaluate individual requests.
 
 Projects in the sandbox should leave it within one year, either by being merged into existing SIGs, being accepted as independent SIGs, or by being archived.
 
@@ -37,7 +37,9 @@ A low barrier to entry would be desired for the sandbox. While the process can b
 >
 > Repository name:
 >
-> Motivation:
+> Problems the project will solve:
+>
+> Motivation for joining the sandbox:
 >
 > Zoom room requested?
 
@@ -47,7 +49,9 @@ A low barrier to entry would be desired for the sandbox. While the process can b
 >
 > Repository name: opentelemetry-collector-distributions
 >
-> Motivation: The OpenTelemetry Collector Builder allows people to create their own distributions, and while the OpenTelemetry Collector project has no intentions (yet) on hosting other more specialized distributions, some community members are interested in providing those distributions, along with best practices on building and managing such distributions, especially around the CI/CD requirements.
+> Problems the project will solve: The OpenTelemetry Collector Builder allows people to create their own distributions, and while the OpenTelemetry Collector project has no intentions (yet) on hosting other more specialized distributions, some community members are interested in providing those distributions, along with best practices on building and managing such distributions, especially around the CI/CD requirements.
+>
+> Motivation for joining the sandbox: I would love to have more community members to contribute with their own distributions. I would also appreciate broader help in keeping them in sync with the upstream Collector. 
 >
 > Zoom room requested? No
 
