@@ -4,11 +4,11 @@
 
 **Keywords**: OTLP, Arrow Columnar Format, Bandwidth Reduction, Multivariate Time-series, Logs, Traces.
 
-**Abstract**: This OTEP extends, in a compatible way,
-the [OpenTelemetry protocol (OTEP 0035)](https://github.com/open-telemetry/oteps/blob/main/text/0035-opentelemetry-protocol.md)
-with a **generic columnar representation for metrics, logs and traces**. This extension significantly improves the
-efficiency of the protocol for scenarios involving the transmission of large batches of metrics, logs, traces, and also
-provides a better representation for [multivariate time-series](#multivariate-time-series).
+**Abstract**: This OTEP describes a new protocol, the OTelArrow protocol, which is based on a **generic columnar representation
+for metrics, logs and traces**.  This protocol significantly improves efficiency in scenarios involving the transmission
+of large batches of metrics, logs, traces. Moreover, it provides a better representation for [multivariate time-series](#multivariate-time-series). 
+The OTelArrow protocol also supports a fallback mechanism to the [OpenTelemetry protocol (OTEP 0035)](https://github.com/open-telemetry/oteps/blob/main/text/0035-opentelemetry-protocol.md)
+in instances when one the endpoints does not support the OTelArrow protocol.
 
 **Reference implementation**: The [OTel Arrow Adapter](https://github.com/f5/otel-arrow-adapter) Go library specifies
 the protobuf spec, and implements the OTel Arrow Encoder/Decoder (main contributor [Laurent Querel](https://github.com/lquerel)).
@@ -53,7 +53,7 @@ expose the new gRPC endpoint and to provide OTel Arrow support via the previous 
 ### Motivation
 
 As telemetry data becomes more widely available and volumes increase, new uses and needs are emerging for the OTLP
-ecosystem: cost-effectiveness, advanced data processing, data minimization. This OTEP aims to extend the OTLP
+ecosystem: cost-effectiveness, advanced data processing, data minimization. This OTEP aims to improve the OTLP
 protocol to better address them while maintaining the compatibility with the existing ecosystem.
 
 Currently, the OTLP protocol uses a "row-oriented" format to represent all the OTel entities. This representation works
@@ -70,7 +70,7 @@ other in memory. The main benefits of a columnar approach are:
 
 ![row vs column-oriented](img/0156_OTEL%20-%20Row%20vs%20Column.png)
 
-This OTEP proposes to extend the [OpenTelemetry protocol (OTEP 0035)](https://github.com/open-telemetry/oteps/blob/main/text/0035-opentelemetry-protocol.md)
+This OTEP proposes to improve the [OpenTelemetry protocol (OTEP 0035)](https://github.com/open-telemetry/oteps/blob/main/text/0035-opentelemetry-protocol.md)
 with a **generic columnar representation for metrics, logs and traces based on Apache Arrow**. Compared to the existing
 OpenTelemetry protocol this compatible extension has the following improvements:
 
@@ -175,7 +175,7 @@ A two-phase integration is proposed to allow incremental benefits.
 
 #### Phase 1
 
-This proposal is designed as a protocol extension compatible with the existing OTLP protocol. As illustrated in the
+This proposal is designed as a new protocol compatible with the OTLP protocol. As illustrated in the
 following diagram, a new OTel Arrow to OTLP receiver will be responsible for translating the protocol extension to the
 existing protocol. Similarly, a new exporter will be responsible for translating the OTLP messages into this new Arrow-based
 format.
@@ -286,7 +286,7 @@ service ArrowMetricsService {
 A `BatchArrowRecords` message is composed of 3 attributes. The protobuf definition is:
 
 ```protobuf
-// Enumeration of all the OTLP Arrow payload types currently supported by the OTel Arrow protocol.
+// Enumeration of all the OTelArrow payload types currently supported by the OTel Arrow protocol.
 // A message sent by an exporter to a collector containing a batch of Arrow
 // records.
 message BatchArrowRecords {
@@ -307,7 +307,7 @@ section for more information on the implementation of this identifier.
 
 The `arrow_payloads` attribute is a list of `ArrowPayload` messages. Each `ArrowPayload` message represents
 a table of data encoded in a columnar format (e.g. metrics, logs, traces, attributes, events, links, exemplars, ...).
-Several correlated IPC Arrow messages of different nature and with different schemas can be sent in the same OTLP batch
+Several correlated IPC Arrow messages of different nature and with different schemas can be sent in the same OTelArrow batch
 identified by `batch_id` and thus be processed as one unit without complex logic in the collector or any other processing systems.
 More details on the `ArrowPayload` columns in the section [Mapping OTel entities to Arrow records](#mapping-otel-entities-to-arrow-records).
 
@@ -590,22 +590,21 @@ compressible (multivariate time-series scenario).
 The support of this new protocol can only be progressive, so implementers are advised to follow the following
 implementation recommendations in phase 1:
 
-* OTLP Receiver: Listen on a single TCP port for both OTLP and OTel Arrow. The goal is to make the support of this
-  protocol extension
-  transparent and automatic. This can be achieved by adding the `ArrowStreamService` to the same gRPC listener. A
-  configuration
-  parameter will be added to the OTLP receiver to disable this default behavior to support specific uses.
-* OTLP Exporter: By default the OTLP exporter should initiate a connection to the `ArrowStreamService` endpoint of the target
-  receiver. If this connection fails because the `ArrowStreamService` is not implemented by the target, the exporter
-  must automatically fall back on the behavior of the classic OTLP protocol. A configuration parameter could be added to
-  disable this default behavior.
+* `OTelArrow Receiver`: Listen on a single TCP port for both OTLP and OTel Arrow protocols. The goal is to make the
+  support of this protocol extension transparent and automatic. This can be achieved by adding the `ArrowStreamService`
+  to the same gRPC listener. A configuration parameter will be added to the OTelArrow receiver to disable this default
+  behavior to support specific uses.
+* `OTelArrow Exporter`: By default the OTelArrow exporter should initiate a connection to the `ArrowStreamService`
+  endpoint of the target receiver. If this connection fails because the `ArrowStreamService` is not implemented by the
+  target, the exporter must automatically fall back on the behavior of the OTLP protocol. A configuration parameter
+  could be added to disable this default behavior.
 
 The implementation of these two rules should allow a seamless and
 adaptive integration of OTel Arrow into the current ecosystem
 generally.
 
 For the prototype specifically, which is a fork of the OpenTelemetry
-collector codebase, we have derived the OTLP/gRPC-Arrow exporter and
+collector codebase, we have derived the OTelArrow exporter and
 receiver as set of changes directly to the `receiver/otlpreceiver` and
 `exporter/otlpexporter` components, with new `internal/arrow` packages
 in both.  With every collector release we merge the OTel Arrow changes
@@ -617,16 +616,16 @@ encoded using [hpack](https://datatracker.ietf.org/doc/rfc7541/) like a typical 
 
 Specifically:
 
-#### OTLP/gRPC Receiver
+#### OTelArrow/gRPC Receiver
 
-When Arrow is enabled, the OTLP receiver listens for both the standard unary gRPC service OTLP and OTel Arrow stream
+When Arrow is enabled, the OTelArrow receiver listens for both the standard unary gRPC service OTLP and OTel Arrow stream
 services.  Each stream uses an instance of the OTel-Arrow-Adapter's
 [Consumer](https://pkg.go.dev/github.com/f5/otel-arrow-adapter@v0.0.0-20230112224802-dafb6df21c97/pkg/otel/arrow_record#Consumer). Sets
 `client.Metadata` in the Context.
 
-#### OTLP/gRPC Exporter
+#### OTelArrow/gRPC Exporter
 
-When Arrow is enabled, the OTLP exporter starts a fixed number of streams and repeatedly sends one `plog.Logs`,
+When Arrow is enabled, the OTelArrow exporter starts a fixed number of streams and repeatedly sends one `plog.Logs`,
 `ptrace.Traces`, or `pmetric.Metrics` item per stream request.  The `exporterhelper` callback first tries to get an
 available stream, blocking when none are available (or until the connection is downgraded), and then falls back to the
 standard unary gRPC path.  The stream-sending mechanism internally handles retries when failures are caused by streams
@@ -638,7 +637,7 @@ Each stream uses an instance of the OTel-Arrow-Adapter's
 
 When a stream fails specifically because the server does not recognize the Arrow service, it will not restart.  When all
 streams have failed in this manner, the connection downgrades by closing a channel, at which point the exporter behaves
-exactly as the standard OTLP exporter.
+exactly as the OTLP exporter.
 
 The mechanism as described is vulnerable to partial failure scenarios.  When some of the streams are succeeding but some
 have failed with Arrow unsupported, the collector performance will be degraded because callers are blocked waiting for
@@ -741,8 +740,8 @@ processed by the various stages of the collector.
 
 ## Risks and Mitigations
 
-An authentication mechanism is highly recommended to protect against malicious traffic. Without authentication, an OTLP
-receiver can be attacked in multiple ways ranging from DoS, traffic amplification to sending sensitive data. This
+An authentication mechanism is highly recommended to protect against malicious traffic. Without authentication, an OTel
+Arrow receiver can be attacked in multiple ways ranging from DoS, traffic amplification to sending sensitive data. This
 specification reuses the authentication mechanisms already in place in the collector.
 
 ## Trade-offs and Mitigations
@@ -786,19 +785,19 @@ in this document). Although a Parquet representation offers some additional enco
 ratio, Parquet is not designed as an in-memory format optimized for online data processing. Apache Arrow is optimized for
 this type of scenario and offers the best trade-off of compression ratio, processing speed, and serialization/deserialization speed.
 
-## Monitoring OTLP-Arrow performance
+## Monitoring OTel-Arrow performance
 
 [OpenTelemetry Collector users would benefit from standard ways to monitor the number of network bytes sent and received.](https://github.com/open-telemetry/opentelemetry-collector/issues/6638).  [We have proposed the use of dedicated `obsreport` metrics in the Collector.](https://github.com/open-telemetry/opentelemetry-collector/pull/6712).
 
 In connection with these proposals, [we also propose corresponding improvements in the OpenTelemetry
 Collector-Contrib's `testbed` framework](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/16835),
-in order to include OTLP-Arrow in standard regression testing of the Collector.
+in order to include OTel-Arrow in standard regression testing of the Collector.
 
 ## Open Questions
 
 ### Extending into other parts of the Arrow ecosystem
 
-A SQL support for telemetry data processing remains an open question in the current Go collector. The main OTLP query
+A SQL support for telemetry data processing remains an open question in the current Go collector. The main OTelArrow query
 engine [Datafusion](https://github.com/apache/arrow-datafusion) is implemented in Rust. Several solutions can be
 considered: 1) create a Go wrapper on top of Datafusion, 2) implement a Rust collector dedicated to the end-to-end
 support of OTel Arrow, 3) implement a SQL/Arrow engine in Go (big project). A proof of concept using Datafusion has been
@@ -851,10 +850,10 @@ Protobuf specification for an Arrow-based OpenTelemetry event.
 // limitations under the License.
 
 // This protocol specifies the services and messages utilized by the OTel Arrow
-// Protocol. It extends the OTLP protocol by representing OTLP entities in a
-// columnar manner using Apache Arrow. The primary objective of this new
-// protocol is to optimize transport efficiency in terms of compression (phase 1),
-// memory, and CPU usage (phase 2).
+// Protocol. OTelArrow represents OTLP entities in a columnar manner using
+// Apache Arrow. The primary objective of this new protocol is to optimize
+// transport efficiency in terms of compression (phase 1), memory, and CPU usage
+// (phase 2).
 //
 // Note: This protocol is still experimental and subject to change.
 
@@ -1023,7 +1022,7 @@ interrelated metrics sharing the same attributes are all common examples of mult
 
 Special thanks to [Joshua MacDonald](https://github.com/jmacd) for his contribution in integrating the reference
 implementation into the OTel collector, to [Tigran Najaryan](https://github.com/tigrannajaryan) for helping to define
-the integration strategy with the existing OTLP protocol, and to [Sébastien Soudan](https://github.com/ssoudan) for the
+the integration strategy with the OTLP protocol, and to [Sébastien Soudan](https://github.com/ssoudan) for the
 numerous exchanges and advice on the representation of the data charts.
 
 Thanks to all reviewers who participated in the review and validation of this [PR](https://github.com/open-telemetry/oteps/pull/171).
