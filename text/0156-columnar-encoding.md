@@ -590,7 +590,7 @@ compressible (multivariate time-series scenario).
 The support of this new protocol can only be progressive, so implementers are advised to follow the following
 implementation recommendations in phase 1:
 
-* OTLP Receiver: Listen on a single TCP port for both OTLP and OTel Arrow. The goal is to make the support of this
+* `otelarrow` Receiver: Listen on a single TCP port for both OTLP and OTel Arrow. The goal is to make the support of this
   protocol extension
   transparent and automatic. This can be achieved by adding the `ArrowStreamService` to the same gRPC listener. A
   configuration
