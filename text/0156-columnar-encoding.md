@@ -176,8 +176,8 @@ A two-phase integration is proposed to allow incremental benefits.
 #### Phase 1
 
 This proposal is designed as a new protocol compatible with the OTLP protocol. As illustrated in the
-following diagram, a new OTel Arrow to OTLP receiver will be responsible for translating the protocol extension to the
-existing protocol. Similarly, a new exporter will be responsible for translating the OTLP messages into this new Arrow-based
+following diagram, a new OTel Arrow receiver will be responsible for translating this new protocol to the
+OTLP protocol. Similarly, a new exporter will be responsible for translating the OTLP messages into this new Arrow-based
 format.
 
 ![OTel Collector](img/0156_collector_internal_overview.png)
@@ -605,8 +605,8 @@ generally.
 
 For the prototype specifically, which is a fork of the OpenTelemetry
 collector codebase, we have derived the OTelArrow exporter and
-receiver as set of changes directly to the `receiver/otlpreceiver` and
-`exporter/otlpexporter` components, with new `internal/arrow` packages
+receiver as set of changes directly to the `receiver/otelarrowreceiver` and
+`exporter/otelarrowexporter` components, with new `internal/arrow` packages
 in both.  With every collector release we merge the OTel Arrow changes
 with the mainline components to maintain this promise of
 compatibility.
