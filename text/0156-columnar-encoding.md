@@ -595,7 +595,7 @@ implementation recommendations in phase 1:
   transparent and automatic. This can be achieved by adding the `ArrowStreamService` to the same gRPC listener. A
   configuration
   parameter will be added to the `otelarrow` receiver to disable this default behavior to support specific uses.
-* OTLP Exporter: By default the OTLP exporter should initiate a connection to the `ArrowStreamService` endpoint of the target
+* `otelarrow` Exporter: By default the `otelarrow` exporter should initiate a connection to the `ArrowStreamService` endpoint of the target
   receiver. If this connection fails because the `ArrowStreamService` is not implemented by the target, the exporter
   must automatically fall back on the behavior of the classic OTLP protocol. A configuration parameter could be added to
   disable this default behavior.
