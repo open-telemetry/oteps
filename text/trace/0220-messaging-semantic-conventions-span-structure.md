@@ -224,7 +224,7 @@ values of callbacks.
 A "Settle" span should be created for every settlement operation that happens
 on the consumer (at-least-once and exactly-once). SDKs will, in some cases,
 auto-settle messages in push-scenarios when messages are delivered via
-callbacks. 
+callbacks.
 
 "Settle" spans should link to creation context of the messages that are
 settled, when possible.
