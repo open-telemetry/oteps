@@ -17,34 +17,35 @@ Tracing companies like Epsagon (now part of Cisco), and Aspecto (now part of Sma
 This capability was leveraged by many customers, including big companies that enabled it in production (and testing) environments.
 It was implemented in multiple runtimes (NodeJS, Python, Go, and others) and instrumentations (e.g. HTTP, AWS SDK, and many DB SDKs).
 
-
 What do we mean by payload data? While it’s hard to precisely define, the general guidelines are:
+
 - It includes the content of a message, rather than metadata or headers
 - It includes information from the “data plane”, rather than the “control plane”
-Some example of payload data includes HTTP bodies, database queries (including items read or written), and messages produced or consumed from a queue.
+  Some example of payload data includes HTTP bodies, database queries (including items read or written), and messages produced or consumed from a queue.
 
 Currently, the support in OpenTelemetry for collecting such data is quite limited. We propose in this OTEP to add an API that will define a standard and extendable way for collecting payloads in traces.
-The implmentation of this API is based on existing attributes, with proper semantic conventions.
+The implementation of this API is based on existing attributes, with proper semantic conventions.
 
 The possible value from collecting payloads is substantial. Using payload data, OpenTelemetry users can troubleshoot applications much more effectively in many cases - they can use that to understand exact data flows in their systems, reproduce problematic requests, or search for traces by specific payload information.
-Paylod data could also be used to create ad-hoc analytics which helps monitoring the system.
+Payload data could also be used to create ad-hoc analytics which helps monitoring the system.
 
 As many could argue, there are many challenges for effieciently collecting payloads from production applications in a generic way: handling sensitive data, performance implications, telemetry vendors support and others. Nevertheless, we think that this should not block OpenTelemetry users from manually collecting payload data already, whenever it fits their requirements.
 
 Having a standard semantic conventions for payload data can allow monitoring tools and others to use them OOTB (if they exist), without relying on custom attribute names.
 
-Ultimatly, it could be beneficial if OpenTelemetry instrumentation SDKs will have OOTB optional payload collection as well, though this OTEP does NOT propose that, or takes into account that it will be added in the future. 
+Ultimately, it could be beneficial if OpenTelemetry instrumentation SDKs will have OOTB optional payload collection as well, though this OTEP does NOT propose that, or takes into account that it will be added in the future.
 
 ## Explanation
 
-While payload data can just be a binary buffer, most of the times it has a defined structure. 
+While payload data can just be a binary buffer, most of the times it has a defined structure.
 For modern applications and APIs, the payload data is usually encoded as one of:
-* JSON
-* YAML
-* Protobuf
-* Avro
-* Plain strings
-* Blob
+
+- JSON
+- YAML
+- Protobuf
+- Avro
+- Plain strings
+- Blob
 
 Whenever the payload data has some meaningful structure (everything except a blob), that structure will be reflected in the semantic attribute of the relevant span. That way, processors downstream can easily access and manipulate the payload data.
 
@@ -56,40 +57,42 @@ We propose specifying a consistent naming for payload content attributes, and it
 related metadata. These conventions could help processors, backends and users to
 handle this kind of data.
 
-In this OTEP we only give ideas and recommondations for it, though
+In this OTEP we only give ideas and recommendations for it, though
 a further discussion will be required for choosing the ideal naming when
 writing the actual specifications.
 
 The conventions we propose are added as a postfix to the base attribute name
 (for example, `http.request.body`):
+
 - **Data attribute**: `<attribute>.content`. Holds the decoded content of the payload data. Alternatives: `.data`, `.payload`.
 - **Length attribute**: `<attribute>.length`. Holds the bytes length of the encoded payload data. Alternatives: `.size`, `.bytes`.
 - **Encoding attribute**: `<attribute>.encoding`. Holds the original attribute encoding type.
-Predefined values should be declared (though users may decide using custom values as well).
-For example - `json`, `protobuf`, `avro`, `utf-8`.
+  Predefined values should be declared (though users may decide using custom values as well).
+  For example - `json`, `protobuf`, `avro`, `utf-8`.
 
 Adding each attribute should not be dependent on the others in any way.
 
 ### API
 
 We propose specifying APIs the will abstract the handling and capturing of
-payload data, to allow customizing this functionallity and evolving it over time.
+payload data, to allow customizing this functionality and evolving it over time.
 
-This functionallity includes:
-* Adding attributes with enforced semantics
-* Enforcing limits - e.g. shortening long strings
-* Applying central configuration over the general functionallity
-* Parsing raw payload buffers - converting payload data from bytes to OTel attributes, for
-supported encodings, in an extendable fashion.
-* Aggregating multiple data chunks (to assist with handling asyncrhonous buffers)
+This functionality includes:
 
-The APIs given here are only a draft to describe general charecteristics.
-Like in the semantics, a further disucssion will be required before creating actual specifications.
+- Adding attributes with enforced semantics
+- Enforcing limits - e.g. shortening long strings
+- Applying central configuration over the general functionality
+- Parsing raw payload buffers - converting payload data from bytes to OTel attributes, for
+  supported encodings, in an extendable fashion.
+- Aggregating multiple data chunks (to assist with handling asynchronous buffers)
+
+The APIs given here are only a draft to describe general characteristics.
+Like in the semantics, a further discussion will be required before creating actual specifications.
 
 #### `Payload` class
 
 We propose adding a class that will provide the related functionality for handling payload data.
-Both traces and logs could use instances of this class, which will assist sharing related functionallity.
+Both traces and logs could use instances of this class, which will assist sharing related functionality.
 
 For simplicity, we will show a basic example of this class in Python. In reality, an API and its implementation should be separated.
 
@@ -103,7 +106,7 @@ class Payload:
     @staticmethod
     def _parse_payload_content(content: Any) -> Any:
         # Potentially altering of the content could be added, such as
-        #  format conversion, shortenning, filtering, etc.
+        #  format conversion, shortening, filtering, etc.
         return content
 
     @classmethod
@@ -146,7 +149,7 @@ def add_payload(self, key: str, payload: Payload):
 
 ### Payload attributes in Logs
 
-The payload content could be techinically collected both as the the log record body, or as an attribute.
+The payload content could be technically collected both as the the log record body, or as an attribute.
 We think that it's needed to specify the preferred way following a discussion in the logs SIG.
 [This](https://github.com/open-telemetry/opentelemetry-specification/pull/2926) PR references this issue as well.
 
@@ -163,7 +166,7 @@ in OTel proto schema it is already supported).
 As payloads are saved as regular attributes, they must follow the defined [limits](https://github.com/alanwest/opentelemetry-specification/blob/eb551bc9cf50d93463f20585686194d62887e044/specification/common/README.md#attribute-limits).
 
 Capturing payloads using appropriate APIs could assist in specifying different limits in the future (either
-more are less strict than of 'regular' attributes), and mechanisms for shortenning large payloads as well. 
+more are less strict than of 'regular' attributes), and mechanisms for shortening large payloads as well.
 
 ### Handling sensitive data
 
@@ -173,7 +176,6 @@ does not change the current state where users can already manually collect sensi
 
 In this regard, it also worth mentioning the proposals on handling sensitive data (<https://github.com/open-telemetry/oteps/pull/100> and
 <https://github.com/open-telemetry/oteps/pull/187>), which may prove much useful for users collecting payloads.
-
 
 ## Alternatives
 
@@ -218,7 +220,7 @@ message Value {
     int64 original_length = 7;
 
     // Set only for MapValue, in case some of the keys were dropped
-    repeated string dropped_keys = 8; 
+    repeated string dropped_keys = 8;
 }
 
 message MapValue {
@@ -260,12 +262,12 @@ Now let's see how we can define and use an API to set payload attributes
 # Added method to `Span` class
 def add_payload_attribute(
     key: str,
-    # JSON-like object, supports types int/double/string/bool/None, and nested 
+    # JSON-like object, supports types int/double/string/bool/None, and nested
     # Iterables or Mappings
     value,
 
     # Optional - the original bytes encoding type of this value
-    original_encoding=None, 
+    original_encoding=None,
 
     # Optional - the size of the value as encoded to bytes (using `original_encoding`),
     # including dropped data
