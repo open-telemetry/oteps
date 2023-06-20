@@ -616,7 +616,7 @@ in both.  With every collector release we merge the OTel Arrow changes
 with the mainline components to maintain this promise of
 compatibility.
 
-OTel Arrow supports conveying the gRPC metadta (i.e., http2 headers) using a dedicated `bytes` field.  Metadata is
+OTel Arrow supports conveying the gRPC metadata (i.e., http2 headers) using a dedicated `bytes` field.  Metadata is
 encoded using [hpack](https://datatracker.ietf.org/doc/rfc7541/) like a typical unary gRPC request.
 
 Specifically:
