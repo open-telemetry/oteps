@@ -139,7 +139,7 @@ There are three different scenarios for injecting a creation context into a mess
    created independently of the "Publish" operation, e. g. in cases where messages
    are created before they are passed to a "Publish" operation. In this case, the
    "Publish" span should link to the "Create" spans.
-3. For single-message scenarios and when large number of spans are a problem,
+3. For single-message scenarios or when large number of spans are a problem,
    the context of the "Publish" span can be injected into the message, thus
    acting as the creation context. In this case, no other spans besides the
    "Publish" span should be created.
