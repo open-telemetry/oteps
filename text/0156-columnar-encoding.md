@@ -31,7 +31,6 @@ expose the new gRPC endpoint and to provide OTel Arrow support via the previous 
 * [Implementation Recommendations](#implementation-recommendations)
   * [Protocol Extension and Fallback Mechanism](#protocol-extension-and-fallback-mechanism)
   * [Batch ID Generation](#batch-id-generation)
-  * [Substream ID Generation](#substream-id-generation)
   * [Schema ID Generation](#schema-id-generation)
   * [Traffic Balancing Optimization](#traffic-balancing-optimization)
   * [Throttling](#throttling)
@@ -359,9 +358,14 @@ enum ArrowPayloadType {
 
 // Represents a batch of OTel Arrow entities.
 message ArrowPayload {
-  // [mandatory] A unique id assigned to a sub-stream of the batch sharing the
-  // same schema, and dictionaries.
-  string sub_stream_id = 1;
+  // [mandatory] A canonical ID representing the schema of the Arrow Record.
+  // This ID is used on the consumer side to determine the IPC reader to use
+  // for interpreting the corresponding record. For any NEW `schema_id`, the
+  // consumer must:
+  // 1) close the current IPC reader,
+  // 2) create a new IPC reader in order to interpret the new schema,
+  // dictionaries, and corresponding data.
+  string schema_id = 1;
 
   // [mandatory] Type of the OTel Arrow payload.
   ArrowPayloadType type = 2;
@@ -374,9 +378,9 @@ message ArrowPayload {
 
 ```
 
-The `sub_stream_id` attribute is a unique identifier for a sub-stream of `BatchArrowRecords` sharing the same schema inside
-the scope of the current stream. This id will be used receiver side to keep track of the schema and dictionaries for a
-specific type of Arrow Records. See the [Substream Id generation](#substream-id-generation) section for more information
+The `schema_id` attribute is a unique identifier representing the schema of the Arrow Record present in the
+`ArrowPayload`. This id will be used receiver side to keep track of the schema and dictionaries for a
+specific type of Arrow Records. See the [Schema Id generation](#schema-id-generation) section for more information
 on the implementation of this identifier.
 
 The `ArrowPayloadType` enum specifies the `type` of the payload.
@@ -652,37 +656,13 @@ This `batch_id` will be used in the `BatchStatus` object to acknowledge receipt 
 batch.
 A numeric counter is used to implement this batch_id, the goal being to use the most concise id possible.
 
-### Substream ID Generation
-
-The `sub_stream_id` attribute is used to identify a sub-stream of `BatchArrowRecords` that share the same characteristics.
-The life cycle of a substream is as follows:
-
-* In addition to the data, the first `BatchArrowRecords` will contain its schema and an optional set of dictionaries.
-  A `sub_stream_id` is created and associated to this `BatchArrowRecords`.
-* The following `BatchArrowRecords` sharing the same characteristics then refer to the `sub_stream_id` to avoid the
-  retransmission of the schema and the dictionaries. Concerning the dictionaries, it is however possible to transmit an
-  updated version with this mechanism (i.e. delta dictionaries).
-
-Multiple approaches are possible to create this `sub_stream_id` depending on the producer and the way the telemetry data
-is generated. Depending on the context, certain approaches are more appropriate:
-
-* When the producer is already organized to produce uniform streams then a simple numeric counter can be used.
-* A more generic (but less efficient) approach is to generate a hash from the columns names and types (sorted
-  lexicographically)
-  and use this hash as `sub_stream_id`. This allows all schema-compatible telemetry data to be sent on the same
-  substream. Although collisions at this scale will be extremely rare, it is advisable to implement a strategy to avoid
-  hash collisions (e.g. keep a map of hash -> [(suffix, schema_id), ...])
-
 ### Schema ID Generation
 
-Within the collector, batching, filtering, exporting, ... operations require to group the `BatchArrowRecords` having a
-compatible schema. A synthetic identifier (or `schema_id`) must be computed for each `BatchArrowRecords` to perform this
+Within the collector, batching, filtering, exporting, ... operations require to group the Arrow Records having a
+compatible schema. A synthetic identifier (or `schema_id`) must be computed for each `ArrowPayload` to perform this
 grouping.
 
-Since batch events come from multiple and uncontrolled sources, it is not possible to generalize the use of
-the `sub_stream_id`
-outside the connection between the source and the collector. There is no guarantee that all sources encode the
-`sub_stream_id` in the same way. Therefore, we recommend calculating the schema id in the following way:
+We recommend calculating the schema id in the following way:
 
 * for each Arrow Schema create a list of triples (name, type, metadata) for each column.
 * sort these triples according to a lexicographic order.
@@ -953,9 +933,14 @@ enum ArrowPayloadType {
 
 // Represents a batch of OTel Arrow entities.
 message ArrowPayload {
-  // [mandatory] A unique id assigned to a sub-stream of the batch sharing the
-  // same schema, and dictionaries.
-  string sub_stream_id = 1;
+  // [mandatory] A canonical ID representing the schema of the Arrow Record.
+  // This ID is used on the consumer side to determine the IPC reader to use
+  // for interpreting the corresponding record. For any NEW `schema_id`, the
+  // consumer must:
+  // 1) close the current IPC reader,
+  // 2) create a new IPC reader in order to interpret the new schema,
+  // dictionaries, and corresponding data.
+  string schema_id = 1;
 
   // [mandatory] Type of the OTel Arrow payload.
   ArrowPayloadType type = 2;
