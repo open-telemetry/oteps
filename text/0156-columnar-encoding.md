@@ -43,6 +43,7 @@ expose the new gRPC endpoint and to provide OTel Arrow support via the previous 
 * [Future Versions and Interoperability](#future-versions-and-interoperability)
 * [Prior Art and Alternatives](#prior-art-and-alternatives)
 * [Open Questions](#open-questions)
+* [Future Possibilities](#future-possibilities)
 * [Appendix A - Protocol Buffer Definitions](#appendix-a---protocol-buffer-definitions)
 * [Glossary](#glossary)
 * [Acknowledgements](#acknowledgements)
@@ -786,18 +787,6 @@ implemented in Rust and has shown very good results.
 We believe that because the Arrow IPC mechanism and data format is intended for zero-copy use, we believe it is possible
 to use Arrow libraries written in other languages, for example within the Golang-based OpenTelemetry Collector.
 
-### Further-integrated compression techniques
-
-ZSTD offers a training mode, which can be used to tune the algorithm for a selected type of data. The result of this
-training is a dictionary that can be used to compress the data. Using this [dictionary](http://facebook.github.io/zstd/#small-data)
-can dramatically improve the compression rate for small batches. This future development will build on both the gRPC
-stream approach used in this proposal and the ability to send a ZSTD dictionary over the OTel Arrow stateful protocol,
-allowing us to train the ZSTD algorithm on the first batches and then update the configuration of the ZSTD
-encoder/decoder with an optimized dictionary.
-
-More advanced lightweight compression algorithms on a per column basis could be integrated to the OTel Arrow
-protocol (e.g. delta delta encoding for numerical columns)
-
 ### Choosing row-oriented transport when it is more efficient
 
 The columnar representation is more efficient for transporting large homogeneous batches. The support of a mixed approach
@@ -809,6 +798,20 @@ a strategy to automatically select the best data representation mode is an open 
 The design currently calls for the use of gRPC streams to benefit from OTel Arrow transport.  We believe that some of
 this benefit can be had even for unary gRPC and HTTP requests with large request batches to amortize sending of
 dictionary and schema information.  This remains an area for study.
+
+## Future possibilities
+
+### Further-integrated compression techniques
+
+ZSTD offers a training mode, which can be used to tune the algorithm for a selected type of data. The result of this
+training is a dictionary that can be used to compress the data. Using this [dictionary](http://facebook.github.io/zstd/#small-data)
+can dramatically improve the compression rate for small batches. This future development will build on both the gRPC
+stream approach used in this proposal and the ability to send a ZSTD dictionary over the OTel Arrow stateful protocol,
+allowing us to train the ZSTD algorithm on the first batches and then update the configuration of the ZSTD
+encoder/decoder with an optimized dictionary.
+
+More advanced lightweight compression algorithms on a per column basis could be integrated to the OTel Arrow
+protocol (e.g. delta delta encoding for numerical columns)
 
 ## Appendix A - Protocol Buffer Definitions
 
