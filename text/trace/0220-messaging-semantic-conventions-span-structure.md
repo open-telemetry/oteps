@@ -128,7 +128,7 @@ There are four different scenarios for injecting a creation context into a messa
 2. If no custom creation context is provided for a message, it is recommended
    to create a "Create" span for every single message and inject its context
    into the message.  "Create" spans can be created during the "Publish" operation
-   as children of the "Publish" span.  
+   as children of the "Publish" span.
 3. As a variation of the scenario above, "Create" spans can be created
    independently of the "Publish" operation, e. g.  in cases where messages are
    created before they are passed to a "Publish" operation. In this case, the
