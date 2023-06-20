@@ -322,7 +322,7 @@ context of the message.
 
 Fully integrating the changes proposed in this document into messaging semantic
 conventions requires some additions and clarifications in the specification,
-which are listed in this section.
+which are listed in this section:
 
 * [open-telemetry/opentelemetry-specification#454](https://github.com/open-telemetry/opentelemetry-specification/issues/454)
   To instrument pull-based "Receive" operations as described in this document,
