@@ -174,7 +174,7 @@ call.
 
 #### Instrumenting pull-based scenarios
 
-In pull-based consumer scenarios, the delivery of messages is requested by the
+In pull-based consumer scenarios, the message is actively requested by the
 application code. This usually involves a blocking call, which returns zero or
 more messages on completion.
 
