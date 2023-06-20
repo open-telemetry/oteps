@@ -100,8 +100,7 @@ flowchart LR;
    message was processed. In some cases (fire-and-forget scenarios, or when
    settlement happens on the broker), the settlement stage does not exist.
 
-The semantic conventions described below define how to model those stages with
-spans.
+The semantic conventions below define how to model those stages with spans.
 
 ## Trace structure
 
