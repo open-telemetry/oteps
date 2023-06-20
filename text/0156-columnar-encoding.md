@@ -291,7 +291,7 @@ A `BatchArrowRecords` message is composed of 3 attributes. The protobuf definiti
 // records.
 message BatchArrowRecords {
   // [mandatory] Batch ID. Must be unique in the context of the stream.
-  string batch_id = 1;
+  int_64 batch_id = 1;
 
   // [mandatory] A collection of payloads containing the data of the batch.
   repeated ArrowPayload arrow_payloads = 2;
@@ -401,7 +401,7 @@ message BatchStatus {
 }
 
 message StatusMessage {
-  string batch_id = 1;
+  int64 batch_id = 1;
   StatusCode status_code = 2;
   ErrorCode error_code = 3;
   string error_message = 4;
@@ -650,7 +650,7 @@ The `batch_id` attribute is used by the message delivery mechanism. Each `BatchA
 unique `batch_id`. Uniqueness must be ensured in the scope of the stream opened by the call to the `ArrowStreamService`.
 This `batch_id` will be used in the `BatchStatus` object to acknowledge receipt and processing of the corresponding
 batch.
-A simple numeric counter can be used to implement this batch_id, the goal being to use the most concise id possible.
+A numeric counter is used to implement this batch_id, the goal being to use the most concise id possible.
 
 ### Substream ID Generation
 
@@ -902,7 +902,7 @@ service ArrowMetricsService {
 // records.
 message BatchArrowRecords {
   // [mandatory] Batch ID. Must be unique in the context of the stream.
-  string batch_id = 1;
+  int64 batch_id = 1;
 
   // [mandatory] A collection of payloads containing the data of the batch.
   repeated ArrowPayload arrow_payloads = 2;
@@ -972,7 +972,7 @@ message BatchStatus {
 }
 
 message StatusMessage {
-  string batch_id = 1;
+  int_64 batch_id = 1;
   StatusCode status_code = 2;
   ErrorCode error_code = 3;
   string error_message = 4;
