@@ -1,27 +1,16 @@
 # Span structure for messaging scenarios
 
-The existing semantic conventions for messaging contain a [list of examples](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#examples),
-each specifying the spans with their attributes and relationships that should
-be created for a given messaging scenario.
-
-Many users writing instrumentation for messaging systems expressed confusion
-about those examples. The relationships between spans defined in the examples
-don't follow a well-documented and consistent pattern, which creates confusion
-for users whose use cases don't fit any of the given examples.
-
 This OTEP aims at defining consistent conventions about what spans to create
 for messaging scenarios, and at defining how those spans relate to each other.
-Instrumentors should be able to rely on a consistent set of conventions, as
-opposed to deducing conventions from a set of examples.
 
 This OTEP is based on [OTEP 0173](0173-messaging-semantic-conventions.md),
 which defines basic terms and describes messaging scenarios that should be
 supported by messaging semantic conventions. It also relies on context
-propagation requirements put forth in the [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/28d02cc310d9c789b5faac58f9939bf735adadb5/specification/trace/semantic_conventions/messaging.md#context-propagation)
+propagation requirements put forth in the existing [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/specification/trace/semantic_conventions/messaging.md#context-propagation)
 and detailed in [OTEP 0205](0205-messaging-semantic-conventions-context-propagation).
 
-* [Motivation](#motivation)
 * [Terminology](#terminology)
+* [Motivation](#motivation)
 * [Stages of producing and consuming messages](#stages-of-producing-and-consuming-messages)
 * [Trace structure](#trace-structure)
 * [Proposed changes and additions to the messaging semantic conventions](proposed-changes-and-additions-to-the-messaging-semantic-conventions)
@@ -29,9 +18,14 @@ and detailed in [OTEP 0205](0205-messaging-semantic-conventions-context-propagat
   - [Span kind](span-kind)
   - [Span relationships](span-relationships)
 * [Open issues](#open-issues)
-* [Examples](#examples)
 * [Future possibilities](#future-possibilities)
   - [Intermediary instrumentation](#intermediary-instrumentation)
+* [Prior art](#prior-art)
+* [Examples](#examples)
+
+## Terminology
+
+For terms used in this document, refer to [OTEP 173](#0173-messaging-semantic-conventions.md#terminology).
 
 ## Motivation
 
@@ -65,13 +59,10 @@ the stages of the messaging flow, and correlating those in a way so that the
 requirements sketched above can be met in a consistent way across messaging
 scenarios and different messaging systems.
 
-## Terminology
-
-For terms used in this document, refer to [OTEP 173](#0173-messaging-semantic-conventions.md#terminology).
-
 ## Stages of producing and consuming messages
 
-Producing and consuming a message involves five stages:
+As previously described in [OTEP 173](https://github.com/open-telemetry/oteps/blob/main/text/trace/0173-messaging-semantic-conventions.md#scenarios.),
+producing and consuming a message involves five stages:
 
 ```mermaid
 flowchart LR;
@@ -109,7 +100,9 @@ The semantic conventions below define how to model those stages with spans.
 Producers are responsible for injecting a creation context into a message.
 Subsequent consumers will use this context to link consumer traces to producer
 traces. Ideally, each message gets a unique and distinct creation context
-assigned. However, as a context must refer to a span this would require the
+assigned.
+
+However, as a context must refer to a span this would require the
 creation of a distinct span for each message, which is not feasible in all
 scenarios. In certain batching scenarios where many messages are created and
 published in large batches, creating a span for every single message would
@@ -125,7 +118,7 @@ sending or publishing to an intermediary. This call or operation (and the
 related "Publish" span) can either refer to a single message or to a batch of
 multiple messages.
 
-There are three different scenarios for injecting a creation context into a message:
+There are four different scenarios for injecting a creation context into a message:
 
 1. A user provides custom creation contexts for the messages that are published, which don't refer
    to any spans described in this document. This provides flexibility to users
@@ -135,26 +128,29 @@ There are three different scenarios for injecting a creation context into a mess
 2. If no custom creation context is provided for a message, it is recommended
    to create a "Create" span for every single message and inject its context
    into the message.  "Create" spans can be created during the "Publish" operation
-   as children of the "Publish" span.  Alternatively, "Create" spans can be
-   created independently of the "Publish" operation, e. g. in cases where messages
-   are created before they are passed to a "Publish" operation. In this case, the
+   as children of the "Publish" span.  
+3. As a variation of the scenario above, "Create" spans can be created
+   independently of the "Publish" operation, e. g.  in cases where messages are
+   created before they are passed to a "Publish" operation. In this case, the
    "Publish" span should link to the "Create" spans.
-3. For single-message scenarios or when large number of spans are a problem,
+4. For single-message scenarios or when large number of spans are a problem,
    the context of the "Publish" span can be injected into the message, thus
    acting as the creation context. In this case, no other spans besides the
    "Publish" span should be created.
 
 ### Consumer
 
-For many use cases, it is not possible to rely on the presence of "Process"
-spans for correlating producer with consumer traces: there are cases where a
-dedicated processing operation cannot be identified, or where processing
-happens in a different trace. Furthermore, processing operations are not often
-covered by messaging libraries and SDKs, but take place in application code.
-Consistently creating spans for "Processing" operations would require either
-effort from the application owner to correctly instrument those operations, or
-additional capabilities of messaging libraries and SDKs (e. g. hooks for
-processing callbacks, which can then be instrumented by the libraries or SDKs).
+Existing semantic conventions [prescribe the use of "Process" spans](https://github.com/open-telemetry/semantic-conventions/blob/main/specification/trace/semantic_conventions/messaging.md#operation-names)
+for correlating producer with consumer traces.  However, for many use cases, it
+is not possible to rely on the presence of "Process" spans: there are cases
+where a dedicated processing operation cannot be identified, or where
+processing happens in a different trace than receiving or delivering.
+Furthermore, processing operations are not often covered by messaging libraries
+and SDKs, but take place in application code.  Consistently creating spans for
+"Processing" operations would require either effort from the application owner
+to correctly instrument those operations, or additional capabilities of
+messaging libraries and SDKs (e. g. hooks for processing callbacks, which can
+then be instrumented by the libraries or SDKs).
 
 While it is possible to create "Process" spans and correlate those with
 consumer traces in certain cases, this is not something that can be generally
@@ -179,7 +175,9 @@ application code. This usually involves a blocking call, which returns zero or
 more messages on completion.
 
 A "Receive" span covers such calls and should link to the creation context of
-all messages that are forwarded via the respective call.
+all messages that are forwarded via the respective call. To achieve this in an
+idiomatic manner, it must be possible to add links after span creation, which
+is not currently supported (see [open issues](#open-issues)).
 
 #### General considerations for both push-based and pull-based scenarios
 
@@ -259,6 +257,7 @@ SHOULD be set according to the following table, based on the operation a span de
 | `create`       | `PRODUCER` |
 | `receive`      | `CONSUMER` |
 | `deliver`      | `CONSUMER` |
+| `settle`       | (see below) |
 
 The kind of `settle` spans should be set according to the [generic specification about span kinds](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#spankind),
 e. g. it should be set to `CLIENT` if the `settle` spans models a synchronous call
@@ -342,6 +341,78 @@ which are listed in this section:
   producer and consumer spans can be modelled via links, the wording suggests
   that it should be a parent/child relationship. The wording in the specification
   needs to make it clear that this can be a link too.
+
+## Future possibilities
+
+### Intermediary instrumentation
+
+While intermediary instrumentation is not directly covered by the conventions
+in this document, it certainly is necessary to keep the proposed conventions
+extensible so that intermediary instrumentation can be easily added in a way
+that integrates well with producer and consumer instrumentation.
+
+The diagram below gives an example of how intermediary instrumentation can be
+added. The fact that producers and consumers are consistently correlated by
+links across all scenarios provides maximal flexibility for adding intermediary
+instrumentation.
+
+```mermaid
+flowchart LR;
+  subgraph PRODUCER
+  direction TB
+  PM1[Publish m1]
+  PM2[Publish m2]
+  end
+  subgraph CONSUMER
+  direction TB
+  D[Deliver]-.-PRM1[Process m1]
+  D-.-PRM2[Process m2]
+  end
+  PM1-. link .-D;
+  PM2-. link .-D;
+  PM1-- parent -->INTERMEDIARY;
+  PM2-- parent -->INTERMEDIARY;
+  INTERMEDIARY-- parent -->D;
+
+  classDef normal fill:green
+  class PM1,PM2,D normal
+  classDef additional opacity:0.4
+  class INTERMEDIARY,PRM1,PRM2 additional
+  linkStyle 0,1,4,5,6 opacity:0.4
+  linkStyle 2,3 color:green,stroke:green
+```
+
+### Instrumentation of "Process" operations
+
+This OTEP focuses on a consistent set of conventions that can be applied across
+all messaging scenarios, which in one form or another cover "Publish" and/or
+"Create", "Deliver" or "Receive", and "Settle" operations. Those operations
+share common characteristics across all messaging scenarios.
+
+Characteristics of "Process" operations on the other hand vary considerable
+across messaging scenarios. Furthermore it is often hard or even impossible to
+provide auto-instrumentation for such operations. For those reasons,
+conventions for "Process" operations were declared as out-of-scope for this
+OTEP.
+
+However, interest was expressed from many sides to also achieve some
+consistency for the instrumentation of "Process" operations. Therefore,
+[#3395](https://github.com/open-telemetry/opentelemetry-specification/issues/3395)
+covers the effort to define conventions for "Process" operations, which will
+build on the foundation that this OTEP lays.
+
+## Prior art
+
+The existing semantic conventions for messaging contain a [list of examples](https://github.com/open-telemetry/semantic-conventions/blob/main/specification/trace/semantic_conventions/messaging.md#examples),
+each specifying the spans with their attributes and relationships that should
+be created for a given messaging scenario.
+
+Many users writing instrumentation for messaging systems expressed confusion
+about those examples. The relationships between spans defined in the examples
+don't follow a well-documented and consistent pattern, which creates confusion
+for users whose use cases don't fit any of the given examples. Instrumentors
+should be able to rely on a consistent set of conventions, as opposed to
+deducing conventions from a set of examples.
 
 ## Examples
 
@@ -594,62 +665,3 @@ flowchart LR;
   linkStyle 0,1,2 opacity:0.4
   linkStyle 3,4,5,6 color:green,stroke:green
 ```
-
-## Future possibilities
-
-### Intermediary instrumentation
-
-While intermediary instrumentation is not directly covered by the conventions
-in this document, it certainly is necessary to keep the proposed conventions
-extensible so that intermediary instrumentation can be easily added in a way
-that integrates well with producer and consumer instrumentation.
-
-The diagram below gives an example of how intermediary instrumentation can be
-added. The fact that producers and consumers are consistently correlated by
-links across all scenarios provides maximal flexibility for adding intermediary
-instrumentation.
-
-```mermaid
-flowchart LR;
-  subgraph PRODUCER
-  direction TB
-  PM1[Publish m1]
-  PM2[Publish m2]
-  end
-  subgraph CONSUMER
-  direction TB
-  D[Deliver]-.-PRM1[Process m1]
-  D-.-PRM2[Process m2]
-  end
-  PM1-. link .-D;
-  PM2-. link .-D;
-  PM1-- parent -->INTERMEDIARY;
-  PM2-- parent -->INTERMEDIARY;
-  INTERMEDIARY-- parent -->D;
-
-  classDef normal fill:green
-  class PM1,PM2,D normal
-  classDef additional opacity:0.4
-  class INTERMEDIARY,PRM1,PRM2 additional
-  linkStyle 0,1,4,5,6 opacity:0.4
-  linkStyle 2,3 color:green,stroke:green
-```
-
-### Instrumentation of "Process" operations
-
-This OTEP focuses on a consistent set of conventions that can be applied across
-all messaging scenarios, which in one form or another cover "Publish" and/or
-"Create", "Deliver" or "Receive", and "Settle" operations. Those operations
-share common characteristics across all messaging scenarios.
-
-Characteristics of "Process" operations on the other hand vary considerable
-across messaging scenarios. Furthermore it is often hard or even impossible to
-provide auto-instrumentation for such operations. For those reasons,
-conventions for "Process" operations were declared as out-of-scope for this
-OTEP.
-
-However, interest was expressed from many sides to also achieve some
-consistency for the instrumentation of "Process" operations. Therefore,
-[#3395](https://github.com/open-telemetry/opentelemetry-specification/issues/3395)
-covers the effort to define conventions for "Process" operations, which will
-build on the foundation that this OTEP lays.
