@@ -233,7 +233,7 @@ previously sent. In addition to this endpoint, the OTel Arrow protocol offers th
 intricate load-balancing routing rules, tailored to the specific nature of the OTLP entities - namely Metrics, Logs,
 and Traces.
 
-After establishing the underlying transport the client starts sending telemetry data using the `ArrowStream` request.
+After establishing the underlying transport the client starts sending telemetry data using the `ArrowStream` service.
 The client continuously sends `BatchArrowRecords`'s messages over the opened stream to the server and expects to receive
 continuously `BatchStatus`'s messages from the server as illustrated by the following sequence diagram:
 
