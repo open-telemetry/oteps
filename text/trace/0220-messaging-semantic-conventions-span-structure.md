@@ -127,11 +127,11 @@ multiple messages.
 
 There are three different scenarios for injecting a creation context into a message:
 
-1. A user provides a custom creation context for a message, which doesn't refer
-   to any span described in this document. This provides flexibility to users
-   to model custom scenarios. In this case, no other spans besides the "Publish"
+1. A user provides custom creation contexts for the messages that are published, which don't refer
+   to any spans described in this document. This provides flexibility to users
+   to model custom scenarios. In this case, no other additional spans besides the "Publish"
    span should be created. The "Publish" span should link to the provided
-   creation context.
+   creation contexts.
 2. If no custom creation context is provided for a message, it is recommended
    to create a "Create" span for every single message and inject its context
    into the message.  "Create" spans can be created during the "Publish" operation
