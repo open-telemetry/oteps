@@ -65,7 +65,7 @@ The conventions we propose are added as a postfix to the base attribute name
 (for example, `http.request.body`):
 
 - **Data attribute**: `<attribute>.content`. Holds the decoded content of the payload data. Alternatives: `.data`, `.payload`.
-- **Length attribute**: `<attribute>.length`. Holds the bytes length of the encoded payload data. Alternatives: `.size`, `.bytes`.
+- **Size attribute**: `<attribute>.size`. Holds the number of bytes of the encoded payload data. Alternatives: `.length`, `.bytes`.
 - **Encoding attribute**: `<attribute>.encoding`. Holds the original attribute encoding type.
   Predefined values should be declared (though users may decide using custom values as well).
   For example - `json`, `protobuf`, `avro`, `utf-8`.
@@ -142,7 +142,7 @@ def add_payload(self, key: str, payload: Payload):
     {
       f"{key}.content": payload.content,
       f"{key}.encoding": payload.encoding,
-      f"{key}.length": payload.length
+      f"{key}.size": payload.size
     }
   )
 ```
@@ -217,7 +217,7 @@ message Value {
     // > string: original number of characters
     // > ListValue: original number of items
     // > MapValue: original number of keys
-    int64 original_length = 7;
+    int64 original_size = 7;
 
     // Set only for MapValue, in case some of the keys were dropped
     repeated string dropped_keys = 8;
@@ -275,7 +275,7 @@ def add_payload_attribute(
 
     # Optional - set only when collecting a shortened value of type string/array/map.
     # Supports nesting (see example).
-    original_length=None,
+    original_size=None,
 
     # Optional - set only for mapping type (or array of mappings), when some of
     # the original keys are dropped.
@@ -298,20 +298,20 @@ span.add_payload_attribute(
     'unicode_string',
     '∑∫µ',
     original_encoding='utf-16',
-    original_length=4; # Collected payload shortened to 3 chars
+    original_size=4; # Collected payload shortened to 3 chars
     encoded_size=8, # Of the non-shortened payload
 )
 
 span.add_payload_attribute(
     'very_long_string',
     1024 * 'x',
-    original_length=2048,
+    original_size=2048,
 )
 
 span.add_payload_attribute(
     'long_mapping',
     {'x': 1024 * 'x', 'y': 1024 * [0], 'z': 'short'},
-    original_length={'x': 2048, 'y': 2048},
+    original_size={'x': 2048, 'y': 2048},
     encoded_size=4128,
 )
 
