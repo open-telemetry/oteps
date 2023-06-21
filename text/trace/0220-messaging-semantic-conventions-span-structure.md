@@ -231,6 +231,12 @@ involve any settlement operations on the consumer side.
 
 ## Proposed changes and additions to the messaging semantic conventions
 
+This section contains a concise and normative definition of what was outlined
+in the [Trace structure](#trace-structure) section. The following subsections
+are supposed to be merged into the semantic conventions, whereas the detailed
+description in the [Trace structure](#trace-structure) section in this OTEP will
+serve as explanation and future reference.
+
 ### Operation name
 
 The following operations related to messages are covered by these semantic
