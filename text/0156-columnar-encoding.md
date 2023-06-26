@@ -757,7 +757,7 @@ outlined in the OTLP spec.
 We considered using a purely protobuf-based columnar encoding for this protocol extension. The realization of a
 prototype and its comparison with [Apache Arrow](https://arrow.apache.org/) dissuaded us to continue in this direction.
 
-We also considered using [ZST](https://zed.brimdata.io/docs/formats/zst/) from the Zed project as a columnar coding
+We also considered using [VNG](https://zed.brimdata.io/docs/formats/vng) from the Zed project as a columnar coding
 technology. Although this format has interesting properties, this project has not yet reached a sufficient level of
 maturity comparable to Apache Arrow.
 
