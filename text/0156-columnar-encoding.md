@@ -1003,7 +1003,7 @@ updated.
 A multivariate time series has more than one time-dependent variable. Each variable depends not only on
 its past values but also has some dependency on other variables. A 3 axis accelerometer reporting 3 metrics
 simultaneously; a mouse move that simultaneously reports the values of x and y, a meteorological weather station
-reporting temperature, cloud cover, dew point, humidity and wind speed; an http transaction chararterized by many
+reporting temperature, cloud cover, dew point, humidity and wind speed; an http transaction characterized by many
 interrelated metrics sharing the same attributes are all common examples of multivariate time-series.
 
 ## Acknowledgements
