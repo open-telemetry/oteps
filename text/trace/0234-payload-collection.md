@@ -156,8 +156,7 @@ We think that it's needed to specify the preferred way following a discussion in
 ### Null value
 
 Representing Null values in payload contents is required, as it part of JSON and many other formats
-like Protobuf and Avro. Therefore we propose supporting it by spans and logs attributes APIs (while
-in OTel proto schema it is already supported).
+like Protobuf and Avro. Null values are explictly specified as the `kind` property of each value (see below).
 
 ## Trade-offs and mitigations
 
