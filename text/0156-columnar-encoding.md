@@ -8,7 +8,7 @@
 for metrics, logs and traces**.  This protocol significantly improves efficiency in scenarios involving the transmission
 of large batches of metrics, logs, traces. Moreover, it provides a better representation for [multivariate time-series](#multivariate-time-series).
 The OTelArrow protocol also supports a fallback mechanism to the [OpenTelemetry protocol (OTEP 0035)](https://github.com/open-telemetry/oteps/blob/main/text/0035-opentelemetry-protocol.md)
-in instances when one the endpoints does not support the OTelArrow protocol.
+in instances when one of the endpoints does not support the OTelArrow protocol.
 
 **Reference implementation**: The [OTel Arrow Adapter](https://github.com/f5/otel-arrow-adapter) Go library specifies
 the protobuf spec, and implements the OTel Arrow Encoder/Decoder (main contributor [Laurent Querel](https://github.com/lquerel)).
