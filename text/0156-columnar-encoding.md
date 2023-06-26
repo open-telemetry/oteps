@@ -220,7 +220,7 @@ Arrow counterpart.
 
 OTel Arrow defines the columnar encoding of telemetry data and the gRPC-based protocol used to exchange data between
 the client and the server. OTel Arrow is a bi-directional stream oriented protocol leveraging Apache Arrow for the
-encoding of the telemetry data.
+encoding of telemetry data.
 
 OTLP and OTel Arrow protocols can be used together and can use the same TCP port. To do so, in addition to the 3
 existing
