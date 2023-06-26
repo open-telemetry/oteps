@@ -582,7 +582,7 @@ As usual, each of these Arrow records is sorted by specific columns to optimize 
 batch of metrics containing a large number of data points sharing the same attributes and timestamp will be highly
 compressible (multivariate time-series scenario).
 
-> Note: every OTLP timestamps are represented as Arrow timestamps with nanoseconds time unit. This representation will
+> Note: every OTLP timestamps are represented as Arrow timestamps as Epoch timestamps with nanosecond precision. This representation will
 > simplify the integration with the rest of the Arrow ecosystem (numerous time/date functions are supported in
 > DataFusion for example).
 > Note: aggregation_temporality is represented as an Arrow dictionary with a dictionary index of type int8. This OTLP
