@@ -706,7 +706,7 @@ When the client receives this signal it should follow the recommendations outlin
 // reached.
 ```
 
-The value of retry_delay is determined by the server and is implementation dependant. The server should choose a
+The value of retry_delay is determined by the server and is implementation dependent. The server should choose a
 retry_delay value that is big enough to give the server time to recover, yet is not too big to cause the client to drop
 data while it is throttled.
 
