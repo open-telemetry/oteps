@@ -34,7 +34,7 @@ expose the new gRPC endpoint and to provide OTel Arrow support via the previous 
   * [Schema ID Generation](#schema-id-generation)
   * [Traffic Balancing Optimization](#traffic-balancing-optimization)
   * [Throttling](#throttling)
-  * [Best Effort Delivery Guarantee](#best-effort-delivery-guarantee)
+  * [Delivery Guarantee](#delivery-guarantee)
 * [Risks and Mitigation](#risks-and-mitigations)
 * [Trade-offs and Mitigations](#trade-offs-and-mitigations)
   * [Duplicate Data](#duplicate-data)
@@ -242,10 +242,9 @@ continuously `BatchStatus`'s messages from the server as illustrated by the foll
 > Multiple streams can be simultaneously opened between a client and a server to increase the maximum achievable
 throughput.
 
-If the client is shutting down (e.g. when the containing process wants to exit) the client will optionally wait until
+If the client is shutting down (e.g. when the containing process wants to exit) the client will wait until
 all pending acknowledgements are received or until an implementation specific timeout expires. This ensures reliable
-delivery of telemetry data. The client implementation should expose an option to turn on and off the waiting during shutdown.
-This behavior is described in more details in the section [Best effort delivery guarantee](#best-effort-delivery-guarantee).
+delivery of telemetry data.
 
 The protobuf definition of this service is:
 
@@ -714,8 +713,9 @@ Throttling is important for implementing reliable multi-hop telemetry data deliv
 destination via intermediate nodes, each having different processing capacity and thus requiring different data transfer
 rates.
 
-### Best Effort Delivery Guarantee
+### Delivery Guarantee
 
+The OTel Arrow protocol adheres to the OpenTelemetry Protocol (OTLP) specification, particularly in terms of delivery guarantee.
 The collector ensures that messages received will only receive a positive acknowledgement if they have been properly
 processed by the various stages of the collector.
 
