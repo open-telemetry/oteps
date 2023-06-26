@@ -54,7 +54,7 @@ expose the new gRPC endpoint and to provide OTel Arrow support via the previous 
 
 As telemetry data becomes more widely available and volumes increase, new uses and needs are emerging for the OTLP
 ecosystem: cost-effectiveness, advanced data processing, data minimization. This OTEP aims to improve the OTLP
-protocol to better address them while maintaining the compatibility with the existing ecosystem.
+protocol to better address them while maintaining compatibility with the existing ecosystem.
 
 Currently, the OTLP protocol uses a "row-oriented" format to represent all the OTel entities. This representation works
 well for small batches (<50 entries) but, as the analytical database industry has shown, a "column-oriented"
