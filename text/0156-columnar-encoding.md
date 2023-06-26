@@ -461,7 +461,7 @@ in which case the Array that is dictionary encoded contains a reference to its d
 implementations, in general, will recognize when one dictionary is referenced by multiple Arrays and only send it
 across the wire once, allowing the receiving end to maintain the memory usage benefits of reusing a dictionary. In this
 proposal dictionary encoded arrays are used to encode string (or binary) columns that have low cardinality. The
-stream-oriented API is leverage to amortize the schema and dictionary overheads across multiple batches.
+stream-oriented API is leveraged to amortize the schema and dictionary overheads across multiple batches.
 
 An Apache Arrow schema can define columns of different [types](https://arrow.apache.org/docs/python/api/datatypes.html)
 and with or without nullability property. For more details on the Arrow Memory Layout see this
