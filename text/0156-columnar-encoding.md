@@ -811,7 +811,7 @@ allowing us to train the ZSTD algorithm on the first batches and then update the
 encoder/decoder with an optimized dictionary.
 
 More advanced lightweight compression algorithms on a per column basis could be integrated to the OTel Arrow
-protocol (e.g. delta delta encoding for numerical columns)
+protocol (e.g. [delta delta encoding](https://www.vldb.org/pvldb/vol8/p1816-teller.pdf) for numerical columns)
 
 ## Appendix A - Protocol Buffer Definitions
 
