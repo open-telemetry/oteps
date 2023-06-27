@@ -347,6 +347,12 @@ which are listed in this section:
   producer and consumer spans can be modelled via links, the wording suggests
   that it should be a parent/child relationship. The wording in the specification
   needs to make it clear that this can be a link too.
+* This OTEP allows the creation of parent/child relationships between producer
+  and consumer spans in addition to the required creation of links. However,
+  in some instances, adding this parent/child relationship might lead to
+  undesired consequences, e. g. to large traces in scenarios where batches are
+  published. Some further attention needs to be paid to those scenarios when
+  the changes proposed in this OTEP are merged into the semantic conventions.
 
 ## Future possibilities
 
