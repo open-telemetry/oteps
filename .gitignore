@@ -8,3 +8,8 @@
 
 # Text formatting and spelling tools.
 .tools
+
+
+# Added by cargo
+
+/target
