@@ -8,13 +8,13 @@ The Collector's [stability levels](https://github.com/open-telemetry/opentelemet
 
 ## Motivation
 
-Quite often, the community is faced with the question of the quality and maturity expectations of its diverse set of components. This OTEP aims to bring clarity by establishing a framework to communicate the project's maturity. As the OpenTelemetry project comprises a multitude of SIGs, and each SIG has several components of varying quality, having this framework will help set the right expectations for OpenTelemetry users.
+Quite often, the community is faced with the question of the quality and maturity expectations of its diverse set of components. This OTEP aims to bring clarity by establishing a framework to communicate the project's maturity. As the OpenTelemetry project comprises a multitude of SIGs, and each SIG has several components of varying quality, having this framework will help set the right expectations for OpenTelemetry users. The public message we want to convey by stating that a SIG is a tier-1 SIG is that the SIG has both a healthy community and is seen as critical to the project as a whole.
 
 Only once we reach the "stable" level at the project level will we be ready to consider graduating OpenTelemetry at the CNCF, with all of the Tier-1 SIGs being in the context of the graduation, including their Tier-1 Components. This OTEP provides a framework for describing project maturity as a whole.
 
 ## Glossary
 
-* *SIG:* an official SIG within the OpenTelemetry project, like the Collector or Java. Some WGs are temporarily accepted, given they should be SIGs instead of WGs, like the Semantic Conventions WG.
+* *SIG:* an official SIG within the OpenTelemetry project, like the Collector or Java. Given that some Working Groups (WGs) are effectively SIGs, like the Semantic Conventions WG, WGs will be accepted on an individual basis.
 * *Tier-1 SIG:* a SIG within the OpenTelemetry project deemed critical by the GC/TC.
 * *Candidate Tier-1 SIG:* a SIG that is deemed as critical for the future of the project, but might not be of the same maturity level yet. It's expected to reach that level eventually, and other Tier-1 SIGs should be prepared to accommodate the new component as needed.
 * *Component:* module maintained by a SIG like a Collector exporter or an SDK sampler.
@@ -26,7 +26,7 @@ Only once we reach the "stable" level at the project level will we be ready to c
 
 ### Maturity levels
 
-SIGs and components of a project MUST have a declared maturity level established by SIG maintainers (SIGs). The maturity level for a SIG or component is, at most, the lowest level of its dependencies or priority components. For instance, if the Collector SIG maintainers declare the "otlpreceiver" component as a tier-1 component of the Collector core distribution, and the "otlpreceiver" declares a dependency on the OpenTelemetry Collector API "config" package which is marked with a maturity level of "beta", the "otlpreceiver" can be at most "beta". The OpenTelemetry Collector "core" distribution is also affected so that it can be at most "beta".
+SIGs and components of a project MUST have a declared maturity level established by SIG maintainers (SIGs). The maturity of the SIG is assessed by its maintainers, while the maturity of the components might be delegated by the maintainers to code owners. The maturity level for a SIG or component is, at most, the lowest level of its dependencies or priority components. For instance, if the Collector SIG maintainers declare the "otlpreceiver" component as a tier-1 component of the Collector core distribution, and the "otlpreceiver" declares a dependency on the OpenTelemetry Collector API "config" package which is marked with a maturity level of "beta", the "otlpreceiver" can be at most "beta". The OpenTelemetry Collector "core" distribution is also affected so that it can be at most "beta".
 
 Only once all dependencies are marked as "stable" MAY a component be marked as "stable". Only once all Tier-1 Components of a SIG are "stable" MAY that SIG be marked as "stable".
 
@@ -64,17 +64,19 @@ This OTEP recommends the following SIGs to be included as part of the Tier-1 SIG
 
 * Spec General
 * Semantic Conventions (WG)
+* Collector
 * Java
-* Java auto-instrumentation
 * Go
-* .Net
+* .NET
 * JavaScript
 
 Once this OTEP is approved, the TC and GC members will vote on the individual SIGs from the list above and are free to make further suggestions. A final list of Tier-1 SIGs shall be in the "community" repository.
 
 ### Tier-1 Components
 
-When discussing the components' maturity, we often debate what should be included in the evaluation criteria. To help clarify that, we introduce the concept of "Tier-1 SIGs" and "Tier-1 Components". Tier-1 Components are critical for a specific SIG: only when all Tier-1 Components are stable can a project be evaluated as stable. For instance, the "OTLP receiver" for the OpenTelemetry Collector could potentially be a "Tier-1 Component". Only after this component is declared stable may the Collector be declared stable, provided all other Tier-1 Components are also stable.
+When discussing the components' maturity, we often debate what should be included in the evaluation criteria. To help clarify that, we introduce the concept of "Tier-1 SIGs" and "Tier-1 Components". Tier-1 Components are critical for a specific SIG: only when all Tier-1 Components are stable can a project be evaluated as stable. Example:
+
+* The "OTLP receiver" for the OpenTelemetry Collector could potentially be a "Tier-1 Component". Only after this component is declared stable may the Collector be declared stable, provided all other Tier-1 Components are also stable.
 
 Projects MUST list their Tier-1 Components in the main readme file. A Tier-1 Component MAY be hosted under the project's "contrib" repository. Not all components under the main repository (sometimes called the "core" repository) are automatically Tier-1 Components.
 
