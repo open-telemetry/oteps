@@ -117,7 +117,7 @@ The lifecycle of a signal is defined in the [Versioning and stability for OpenTe
 
 The "experimental" level from the signal versioning and stability document relates to the "alpha" and "beta" levels from this OTEP, "stable" and "deprecated" are equivalent to their counterparts on this document, and "removed" is non-existent here.
 
-When a new signal reaches the "stable" level, OpenTelemetry TC and GC will ultimately decide whether to include it as part of OpenTelemetry's priority components, using the process described in [Promoting SIGs and components](#promoting-sigs-and-components).
+When a new signal reaches the "stable" level, OpenTelemetry TC and GC will ultimately decide whether to include it as part of OpenTelemetry's Tier-1 components, using the process described in [Promoting SIGs and components](#promoting-sigs-and-components).
 
 ### Promoting SIGs and components
 
