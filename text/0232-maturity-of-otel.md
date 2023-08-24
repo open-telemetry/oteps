@@ -14,7 +14,11 @@ Quite often, the community is faced with the question of the quality and maturit
 
 ### Maturity levels
 
-Deliverables of a SIG MUST have a declared maturity level, established by SIG maintainers (SIGs), likely with the input of the code owners. The maturity level of a deliverable is, at most, the lowest level of the user-visible dependencies. For instance, if the Collector's component "otlpreceiver" declares a dependency on the OpenTelemetry Collector API "config" package which is marked with a maturity level of "beta", the "otlpreceiver" can be at most "beta". The OpenTelemetry Collector "core" distribution is also affected so that it can be at most "beta". Only once all dependencies are marked as "stable" MAY a component be marked as "stable".
+Deliverables of a SIG MUST have a declared maturity level, established by SIG maintainers (SIGs), likely with the input of the code owners. While the main deliverable can have a specific maturity level, individual components might have a different one. Examples:
+* the Collector core distribution might declare itself stable and include a receiver that is not stable. In that case, the receiver has to be clearly marked as such
+* the Java Agent might be declared stable, while individual instrumentation packages are not
+
+It is recommended that components should not be marked as stable if their user-visible interfaces are not stable. For instance, if the Collector's component "otlpreceiver" declares a dependency on the OpenTelemetry Collector API "config" package which is marked with a maturity level of "beta", the "otlpreceiver" should be at most "beta". Maintainers are free to deviate from this recommendation if they believe users are not going to be affected by future changes.
 
 #### Development
 
@@ -22,11 +26,15 @@ Not all pieces of the component are in place yet, and it might not be available 
 
 #### Alpha
 
-This is the default level: any components with no explicit maturity level should be assumed to be "Alpha". The component is ready to be used for limited non-critical production workloads, and the authors of this component welcome user feedback. Bugs and performance problems are encouraged to be reported, but component owners might not work on them immediately. The configuration options might often change without backward compatibility guarantees.
+This is the default level: any components with no explicit maturity level should be assumed to be "Alpha". The component is ready to be used for limited non-critical production workloads, and the authors of this component welcome user feedback. Bugs and performance problems are encouraged to be reported, but component owners might not work on them immediately. The component's interface and configuration options might often change without backward compatibility guarantees. Components at this stage might be dropped at any time without notice.
 
 #### Beta
 
 Same as Alpha, but the interfaces (API, configuration, generated telemetry) are treated as stable whenever possible. While there might be breaking changes between releases, component owners should try to minimize them. A component at this stage is expected to have had exposure to non-critical production workloads already during its Alpha phase, making it suitable for broader usage.
+
+#### Feature freeze
+
+The component is feature-complete and ready for broader usage. The component is ready to be declared stable, it might just need to be tested in more production environments before that can happen. Bugs and performance problems are expected to be reported, and there's an expectation that the component owners will work on them. Breaking changes, including configuration options and the component's output, are not expected to happen without prior notice unless under special circumstances.
 
 #### Stable
 
@@ -53,8 +61,7 @@ This OTEP allows SIG maintainers to declare the maturity of the SIG's deliverabl
 
 ## Open questions
 
-* Deliverables such as the Collector Contrib binary and the Java Agent ship with more components than what the SIGs might be comfortable marking as stable. Despite this, there's a desire to mark the deliverables as stable. Would it be sufficient require the SIGs to mark which components are stable?
-* Should SDKs be required to fully implement the specification before they can be marked as stable?
+* Should SDKs be required to fully implement the specification before they can be marked as stable? See [open-telemetry/opentelemetry-specification#3673](https://github.com/open-telemetry/opentelemetry-specification/issues/3673)
 * Should this OTEP define a file name to be adopted by all repositories to declare their deliverables and their maturity levels?
 
 ## Future possibilities
