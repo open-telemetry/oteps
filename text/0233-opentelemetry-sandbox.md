@@ -4,15 +4,13 @@ The OpenTelemetry Sandbox is a place under OpenTelemetry's governance where the 
 
 ## Motivation
 
-Over the history of OpenTelemetry, there have been situations where people came to our community proposing interesting ideas to be adopted. There has also been vendors offering code donations to the project, some of which are now mostly unmaintained.
+Over the history of OpenTelemetry, there have been situations where people came to our community proposing interesting ideas to be adopted. There have also been vendors offering code donations to the project, some of which are now mostly unmaintained.
 
 As a possible solution to this, this OTEP proposes a new GitHub organization, [opentelemetry-sandbox](https://github.com/opentelemetry-sandbox). This organization will host projects until there's confidence that they have a healthy community behind them. They would also serve as a neutral place for the community to conduct experiments.
 
-The advantage of a sandbox organization is that OpenTelemetry's governance rules can be applied, making sure it’s an inclusive place for people to collaborate while keeping the reputation of the OpenTelemetry project as a whole untouched, given that it would be clear that OpenTelemetry doesn’t officially support projects within the sandbox.
+The advantage of a sandbox organization is that OpenTelemetry's governance can be used, including Governance Committee (GC) and Technical Committee (TC) intermediation of conflicts, making sure it’s an inclusive place for people to collaborate while keeping the reputation of the OpenTelemetry project as a whole untouched, given that it would be clear that OpenTelemetry doesn’t officially support projects within the sandbox.
 
 There is a desire, but not an expectation, that projects will be moved from the sandbox as an official SIG or incorporated into an existing SIG. Realistically, we know that experiments might get dropped. There’s also no expectation that the OpenTelemetry project will provide resources to the sandbox project, like extra GitHub CI minutes or Zoom meeting rooms, although we might evaluate individual requests.
-
-Projects in the sandbox should leave it within one year, either by being merged into existing SIGs, being accepted as independent SIGs, or by being archived.
 
 This OTEP is inspired by [CNCF’s sandbox projects](https://www.cncf.io/sandbox-projects/), but the process is significantly different.
 
@@ -20,9 +18,9 @@ This OTEP is inspired by [CNCF’s sandbox projects](https://www.cncf.io/sandbox
 
 ### Acceptance criteria
 
-A low barrier to entry would be desired for the sandbox. While the process can be refined based on our experience, my initial proposal for the process is the following:
+A low barrier to entry would be desired for the sandbox. While the process can be refined based on our experience, the initial proposal for the process is the following:
 
-1. Proposals should be written following the template below and have one Technical Committee (TC) and/or Governance Committee (GC) sponsor, who will regularly provide the TC and GC information about the state of the project.
+1. Proposals should be written following the template below and have one TC and/or GC sponsor, who will regularly provide the TC and GC information about the state of the project.
 2. Once a sponsor is found, the TC and GC will vote on accepting this new project on the Slack channel #opentelemetry-gc-tc.
     1. After one week, the voting closes automatically, with the proposal being accepted if it has received at least one :thumbs-up: (that of the sponsor, presumably).
     2. If at least one :thumbs-down: is given, or a TC/GC member has restrictions about the project but hasn’t given a :thumbs-down:, the voting continues until a majority is reached or the restrictions are cleared.
@@ -30,6 +28,8 @@ A low barrier to entry would be desired for the sandbox. While the process can b
 3. Proponents should abide by OpenTelemetry’s Code of Conduct (currently the same as CNCF’s).
 4. There’s no expectation that small sandbox projects will have regular calls, but there is an expectation that all decisions will be made in public and transparently.
 5. Sandbox projects do NOT have the right to feature OpenTelemetry’s name on their websites.
+
+Initially, there are three slots for sandbox projects available. The GC and TC might vote to increase this number based on the experience with the first projects.
 
 #### Template
 
@@ -57,17 +57,16 @@ A low barrier to entry would be desired for the sandbox. While the process can b
 
 ### Periodic reports
 
-On the first [GC/TC joint call](https://docs.google.com/document/d/1jylE5uZCKV9mrPw8Qrc5ExGyRVbBdqcbWPwni-hB5dE) of the calendar quarter (Jan, Apr, Jul, Oct), the TC/GC sponsors for the sandbox projects MUST provide an update about their sponsored project. Should the sponsor not be able to join the call, a short written report MUST be provided as part of the meeting notes.
+On the second [GC/TC joint call](https://docs.google.com/document/d/1jylE5uZCKV9mrPw8Qrc5ExGyRVbBdqcbWPwni-hB5dE) of the calendar year (likely in February), the TC/GC sponsors for the sandbox projects MUST provide an update about their sponsored project. Should the sponsor not be able to join the call, a short written report MUST be provided as part of the meeting notes. The sponsor is not expected to write the report themselves, but rather, relay the report produced by the sandbox project to the group. The sponsor is encouraged to follow the sandbox project's developments and provide feedback, improving its chance of success.
 
 ### Exiting the sandbox
 
-Projects can be hosted for at most 12 months and are expected to exit before that, with one of the following outcomes:
+Projects in the sandbox are evaluated annually. The evaluation is done by the Governance and Technical Committees based on the report produced by the sandbox project and presented by the sponsor to the TC/GC, which will then decide on one of the following possible outcomes:
 
-- incorporation as part of an existing SIG
-- acceptance as a new SIG
-- archival
-
-When the sandbox project cannot get accepted as its own SIG nor incorporated as part of an existing SIG, it's automatically archived after 12 months.
+* continue as a sandbox project for another year
+* incorporation as part of an existing SIG
+* acceptance as a new SIG
+* archival
 
 ### Further details
 
@@ -81,12 +80,12 @@ None.
 
 ## Prior art and alternatives
 
-* One obvious alternative is to let users collaborate on their own accounts and organizations, as some are doing today. There are two problems with that: the first is that those projects usually lack clear governance rules, so that external contributors aren't sure what's going to happen with their code contributions. The second problem is lack of visibility: most of the current experiments and initiatives aren't listed in the [OpenTelemetry's registry](https://opentelemetry.io/ecosystem/registry/), and being under an OpenTelemetry organization would make those projects more visible while still at early stages.
+* One obvious alternative is to let users collaborate on their own accounts and organizations, as some are doing today. There are two problems with that: the first is that those projects usually lack clear neutral governance, so that external contributors aren't sure what's going to happen with their code contributions. The second problem is lack of visibility: most of the current experiments and initiatives aren't listed in the [OpenTelemetry's registry](https://opentelemetry.io/ecosystem/registry/), and being under an OpenTelemetry organization would make those projects more visible while still at early stages. There's also a certain feeling of legitimacy to the project when it's accepted as a sandbox project.
 * Another alternative is to direct users to CNCF's sandbox, but at this moment, the queue of projects applying for that is huge and there's no expectations that a project applying today would be considered within the next few months. Besides, the CNCF Sandbox implies that projects are standalone projects, while OpenTelemetry Sandbox projects would often be incorporated as part of an existing SIG.
 
 ## Open questions
 
-* Should the Technical Committee arbitrate technical disagreements?
+* None
 
 ## Future possibilities
 
