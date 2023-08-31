@@ -44,6 +44,7 @@ Examples:
 `th=0` -- equivalent to `th=00000000000000`, which means Always Sample; this is outside of probabalistic sampling.
 
 The `T` value SHALL be derived as follows:
+
 * If the `th` key is not present in the Tracestate header, then `T` is effectively 2^56 (which doesn't fit in 56 bits).
 * Else the value corresponding to the `th` key should be interpreted as above.
 
