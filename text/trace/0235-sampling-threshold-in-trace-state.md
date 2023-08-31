@@ -13,19 +13,20 @@ There is also a need for consistent sampling in the collection path (outside of 
 This proposal allows for the continued expression of randomness using `r-value` as specified there using the key `r`.
 However, that value is limited to powers of two, while this proposal is not; to distinguish the cases, this proposal uses the key `rv`.
 
-
 In order to make consistent sampling decisions across the entire path of the trace, two values SHOULD be propagated with the trace:
 
 1. A random (or pseudo-random) value of at least 56 bits, called `R` below.
 2. A 56-bit trace threshold as expressed in the TraceState, called `T` below.
 
 The sampling decision is propagated with the following algorithm:
+
 * If the `th` key is not specified, Always Sample.
 * Else derive `T` by parsing the `th` key as a hex value as described below.
 * If `T` is 0, Always Sample. This implies that non-probabalistic sampling is taking place.
 * Compare the 56 bits of `T` with the 56 bits of `R`. If `T <= R`, then do not sample.
 
 The `R` value SHALL be derived as follows:
+
 * If the key `rv` is present in the Tracestate header, then `R = rv`.
 * Else if the Random Trace ID Flag is `true` in the traceparent header, then `R` is the lowest-order 56 bits of the trace-id.
 * Else `R` SHALL be generated as a random value in the range `(0, (2**56)-1)` and added to the Tracestate header with key `rv`.
@@ -45,7 +46,6 @@ Examples:
 The `T` value SHALL be derived as follows:
 * If the `th` key is not present in the Tracestate header, then `T` is effectively 2^56 (which doesn't fit in 56 bits).
 * Else the value corresponding to the `th` key should be interpreted as above.
-
 
 Sampling Decisions SHOULD be propagated by setting the value of the `th` key in the Tracestate header according to the above.
 
