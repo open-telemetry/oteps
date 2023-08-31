@@ -20,38 +20,39 @@ In order to make consistent sampling decisions across the entire path of the tra
 2. A 56-bit trace threshold as expressed in the TraceState, called `T` below.
 
 The sampling decision is propagated with the following algorithm:
-* If the `th` key is not specified, then no previous sampling decision has been made.
-* If the value of the `th` key is `!`, always sample.
-* Else parse the `th` key as a hex value as described below.
+* If the `th` key is not specified, Always Sample.
+* Else derive `T` by parsing the `th` key as a hex value as described below.
+* If `T` is 0, Always Sample. This implies that non-probabalistic sampling is taking place.
 * Compare the 56 bits of `T` with the 56 bits of `R`. If `T <= R`, then do not sample.
-* This implies that if `T` is 0, then never sample.
 
-The `R` value MUST be derived as follows:
-* If the Random Trace ID Flag is `true` in the traceparent header, then `R` is the lowest-order 56 bits of the trace-id.
-* Else if the key `rv` is present in the Tracestate header, then `R = rv`.
-* Else if the key `r` is present in the Tracestate header, then `R = 2**(56-r)`.
-* Else `R` should be generated as a random value in the range `(0, (2**56)-1)` and added to the Tracestate header with key `rv`.
+The `R` value SHALL be derived as follows:
+* If the key `rv` is present in the Tracestate header, then `R = rv`.
+* Else if the Random Trace ID Flag is `true` in the traceparent header, then `R` is the lowest-order 56 bits of the trace-id.
+* Else `R` SHALL be generated as a random value in the range `(0, (2**56)-1)` and added to the Tracestate header with key `rv`.
 
-The preferred way to propagate this value is as the lowest 56 bits of the trace-id. If these bits are in fact random, the `random` trace-flag SHOULD be set as specified in [the W3C trace context specification](https://w3c.github.io/trace-context/#trace-id).
+The preferred way to propagate the `R` value is as the lowest 56 bits of the trace-id.
+If these bits are in fact random, the `random` trace-flag SHOULD be set as specified in [the W3C trace context specification](https://w3c.github.io/trace-context/#trace-id).
+There are circumstances where trace-id randomness is inadequate (for example, sampling a group of traces together); in these cases, an `rv` value is required.
 
-The value of the `rv` and `th` keys MUST be expressed as up to 14 hexadecimal characters from the set `[0-9a-f]`. Trailing zeros (but not leading zeros) may be omitted. _Question: should we permit [A-F] as well, or instead?_
+The value of the `rv` and `th` keys SHALL be expressed as up to 14 hexadecimal characters from the set `[0-9a-f]`. Trailing zeros (but not leading zeros) may be omitted. _Question: should we permit [A-F] as well, or instead?_
 
 Examples:
-`th=!` -- "Always Sample".
+`th` value is missing: Always Sample (probability = 100%). The AlwaysSample sampler in the OTel SDK should do this.
 `th=8` -- equivalent to `th=80000000000000`, which is 50% probability.
 `th=08` -- equivalent to `th=08000000000000`, which is 3.125% probability.
-`th=0` -- equivalent to `th=00000000000000`, which means "Never Sample".
+`th=0` -- equivalent to `th=00000000000000`, which means Always Sample; this is outside of probabalistic sampling.
 
-The `T` value MUST be derived as follows:
+The `T` value SHALL be derived as follows:
 * If the `th` key is not present in the Tracestate header, then `T` is effectively 2^56 (which doesn't fit in 56 bits).
 * Else the value corresponding to the `th` key should be interpreted as above.
 
 
-Sampling Decisions, once made, SHOULD be propagated by setting the value of the `th` key in the Tracestate header according to the above.
+Sampling Decisions SHOULD be propagated by setting the value of the `th` key in the Tracestate header according to the above.
 
 In the case of a downstream sampler that is attempting to reduce the volume of traffic, the sampler MAY modify the `th` header.
+Note that the `T` value may be reduced by a downstream sampler, but should never be increased.
 
-A sampler MAY introduce an R value to a trace that does not include one. It SHOULD use `rv` for this purpose. A sampler MAY NOT modify an existing R value or trace-id.
+A sampler SHALL introduce an R value to a trace that does not include one and does not have the `Random` trace-id flag set. It SHALL use the `rv` key for this purpose. A sampler SHALL NOT modify an existing R value or trace-id.
 
 ## Internal details
 
