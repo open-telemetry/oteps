@@ -27,7 +27,7 @@ A low barrier to entry would be desired for the sandbox. While the process can b
     3. The voting closes automatically once a simple majority of the TC/GC electorate has chosen one side.
 3. Proponents should abide by OpenTelemetry’s Code of Conduct (currently the same as CNCF’s).
 4. There’s no expectation that small sandbox projects will have regular calls, but there is an expectation that all decisions will be made in public and transparently.
-5. Sandbox projects do NOT have the right to feature OpenTelemetry’s name on their websites.
+5. Sandbox projects MAY mention being part of OpenTelemetry, and in doing so, they MUST explicitly state they are in the sandbox.
 
 Initially, there are three slots for sandbox projects available. The GC and TC might vote to increase this number based on the experience with the first projects.
 
@@ -41,6 +41,8 @@ Initially, there are three slots for sandbox projects available. The GC and TC m
 >
 > Motivation for joining the sandbox:
 >
+> Exit criteria (optional):
+>
 > Zoom room requested?
 
 ##### Example
@@ -52,6 +54,8 @@ Initially, there are three slots for sandbox projects available. The GC and TC m
 > Problems the project will solve: The OpenTelemetry Collector Builder allows people to create their own distributions, and while the OpenTelemetry Collector project has no intentions (yet) on hosting other more specialized distributions, some community members are interested in providing those distributions, along with best practices on building and managing such distributions, especially around the CI/CD requirements.
 >
 > Motivation for joining the sandbox: I would love to have more community members to contribute with their own distributions. I would also appreciate broader help in keeping them in sync with the upstream Collector.
+>
+> Exit criteria: it's not 100% clear at the moment, but once we learn how much maintenance this will require, we might decide to bring this to the Collector SIG and be part of it. Otherwise, we might archive or fork the project under another organization.
 >
 > Zoom room requested? No
 
