@@ -38,7 +38,7 @@ The preferred way to propagate the `R` value is as the lowest 56 bits of the tra
 If these bits are in fact random, the `random` trace-flag SHOULD be set as specified in [the W3C trace context specification](https://w3c.github.io/trace-context/#trace-id).
 There are circumstances where trace-id randomness is inadequate (for example, sampling a group of traces together); in these cases, an `rv` value is required.
 
-The value of the `rv` and `th` keys MUST be expressed as up to 14 hexadecimal characters from the set `[0-9a-f]`. Trailing zeros (but not leading zeros) may be omitted. _Question: should we permit [A-F] as well, or instead?_
+The value of the `rv` and `th` keys MUST be expressed as up to 14 hexadecimal characters from the set `[0-9a-f]`. Trailing zeros (but not leading zeros) may be omitted.
 
 Examples:
 `th` value is missing: Always Sample (probability = 100%). The AlwaysSample sampler in the OTel SDK should do this.
