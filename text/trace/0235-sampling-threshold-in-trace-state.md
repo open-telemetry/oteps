@@ -25,7 +25,7 @@ The sampling decision is propagated with the following algorithm:
 
 * If the `th` key is not specified, Always Sample.
 * Else derive `T` by parsing the `th` key as a hex value as described below.
-* If `T` is 0, Always Sample. This implies that non-probabilistic sampling is taking place.
+* If `T` is 0 and the _sampled_ flag is set, Always Sample. This implies that non-probabilistic sampling is taking place.
 * Compare the 56 bits of `T` with the 56 bits of `R`. If `T <= R`, then do not sample.
 
 The `R` value MUST be derived as follows:
