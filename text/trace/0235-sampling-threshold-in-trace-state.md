@@ -2,7 +2,8 @@
 
 ## Motivation
 
-Sampling can theoretically take place at nearly any point in a distributed tracing system. If sampling is to be performed at multiple points in the process, the only way to reason about it effectively is to make sure that the sampling decisions are **consistent**. In this context consistency is the property that allows different points in the sampling chain to make the same sampling decisions, based on information included with the trace.
+Sampling can theoretically take place at nearly any point in a distributed tracing system. If sampling is to be performed at multiple points in the process, the only way to reason about it effectively is to make sure that the sampling decisions are **consistent**.
+In this context, consistency means that a positive sampling decision made at a particular point with probability p1 implies a positive sampling decision made at another point that samples a different piece of information from the same trace with probability p2 >= p1.
 
 ## Explanation
 
@@ -10,32 +11,34 @@ The existing, experimental [specification for probability sampling using TraceSt
 This system can only achieve non-power-of-two sampling using interpolation between powers of two, which is unnecessarily restrictive.
 In existing sampling systems, sampling probabilities like 1%, 10%, and 75% are common, and it should be possible to express these without interpolation.
 There is also a need for consistent sampling in the collection path (outside of the head-sampling paths) and using inherent randomness in the traceID is a less-expensive solution than referencing a custom `r-value` from the tracestate in every span.
-This proposal allows for the continued expression of randomness using `r-value` as specified there using the key `r`.
-However, that value is limited to powers of two, while this proposal is not; to distinguish the cases, this proposal uses the key `rv`.
+This proposal introduces a new value with the key `th` as a replacement for the `p` value in the previous specification.
+The `p` value is limited to powers of two, while this proposal is not.
+This allows for the continued expression of randomness using `r-value` as specified there using the key `r`.
+To distinguish the cases, this proposal uses the key `rv`.
 
 In order to make consistent sampling decisions across the entire path of the trace, two values SHOULD be propagated with the trace:
 
-1. A random (or pseudo-random) value of at least 56 bits, called `R` below.
-2. A 56-bit trace threshold as expressed in the TraceState, called `T` below.
+1. A _random_ (or pseudo-random) 56-bit value, called `R` below.
+2. A 56-bit trace _threshold_ as expressed in the TraceState, called `T` below.
 
 The sampling decision is propagated with the following algorithm:
 
 * If the `th` key is not specified, Always Sample.
 * Else derive `T` by parsing the `th` key as a hex value as described below.
-* If `T` is 0, Always Sample. This implies that non-probabalistic sampling is taking place.
+* If `T` is 0, Always Sample. This implies that non-probabilistic sampling is taking place.
 * Compare the 56 bits of `T` with the 56 bits of `R`. If `T <= R`, then do not sample.
 
-The `R` value SHALL be derived as follows:
+The `R` value MUST be derived as follows:
 
 * If the key `rv` is present in the Tracestate header, then `R = rv`.
 * Else if the Random Trace ID Flag is `true` in the traceparent header, then `R` is the lowest-order 56 bits of the trace-id.
-* Else `R` SHALL be generated as a random value in the range `(0, (2**56)-1)` and added to the Tracestate header with key `rv`.
+* Else `R` MUST be generated as a random value in the range `(0, (2**56)-1)` and added to the Tracestate header with key `rv`.
 
 The preferred way to propagate the `R` value is as the lowest 56 bits of the trace-id.
 If these bits are in fact random, the `random` trace-flag SHOULD be set as specified in [the W3C trace context specification](https://w3c.github.io/trace-context/#trace-id).
 There are circumstances where trace-id randomness is inadequate (for example, sampling a group of traces together); in these cases, an `rv` value is required.
 
-The value of the `rv` and `th` keys SHALL be expressed as up to 14 hexadecimal characters from the set `[0-9a-f]`. Trailing zeros (but not leading zeros) may be omitted. _Question: should we permit [A-F] as well, or instead?_
+The value of the `rv` and `th` keys MUST be expressed as up to 14 hexadecimal characters from the set `[0-9a-f]`. Trailing zeros (but not leading zeros) may be omitted. _Question: should we permit [A-F] as well, or instead?_
 
 Examples:
 `th` value is missing: Always Sample (probability = 100%). The AlwaysSample sampler in the OTel SDK should do this.
@@ -43,17 +46,24 @@ Examples:
 `th=08` -- equivalent to `th=08000000000000`, which is 3.125% probability.
 `th=0` -- equivalent to `th=00000000000000`, which means Always Sample; this is outside of probabalistic sampling.
 
-The `T` value SHALL be derived as follows:
+The `T` value MUST be derived as follows:
 
 * If the `th` key is not present in the Tracestate header, then `T` is effectively 2^56 (which doesn't fit in 56 bits).
 * Else the value corresponding to the `th` key should be interpreted as above.
 
 Sampling Decisions SHOULD be propagated by setting the value of the `th` key in the Tracestate header according to the above.
 
-In the case of a downstream sampler that is attempting to reduce the volume of traffic, the sampler MAY modify the `th` header.
-Note that the `T` value may be reduced by a downstream sampler, but should never be increased.
+## Changing T and R values
 
-A sampler SHALL introduce an R value to a trace that does not include one and does not have the `Random` trace-id flag set. It SHALL use the `rv` key for this purpose. A sampler SHALL NOT modify an existing R value or trace-id.
+The T value MAY be modified.
+
+In the case of a downstream sampler -- a tail sampler on the collection path that is attempting to reduce the volume of traffic -- the sampler MAY modify the `th` header by reducing its value.
+It MAY NOT increase it, as it is not possible to retroactively adjust the sampling probability upward.
+
+A non-root head sampler MAY raise or lower the T value.
+Note that changing the probability of a trace in flight introduces inconsistency and may cause the trace to be incomplete.
+
+A sampler MUST introduce an R value to a trace that does not include one and does not have the `Random` trace-id flag set. It MUST use the `rv` key for this purpose. A sampler MUST NOT modify an existing R value or trace-id.
 
 ## Internal details
 
@@ -84,4 +94,6 @@ We also know that some implementations prefer to use a sampling probability (in 
 
 ## Future possibilities
 
-This permits sampling systems to propagate consistent sampling information downstream where it can be compensated for. For example, this will enable the tail-sampling processor in the OTel Collector to propagate its sampling decisions to backends in a standard way.
+This permits sampling systems to propagate consistent sampling information downstream where it can be compensated for.
+For example, this will enable the tail-sampling processor in the OTel Collector to propagate its sampling decisions to backends in a standard way.
+This permits backend systems to use the effective sampling probability in data presentations.
