@@ -665,4 +665,13 @@ Client implementations are out of scope for this OTEP. At the time of writing th
 
 ## Future possibilities
 
-<!-- What are some future changes that this proposal would enable? -->
+This OTEP enables us to start working on various parts of [OTEL Specification](https://github.com/open-telemetry/opentelemetry-specification):
+
+* Profiles Data Model
+* Profiles API
+* Profiles SDK
+
+That in turn would enable us to start working on:
+
+* [OTEL Collector](https://github.com/open-telemetry/opentelemetry-collector)
+* Client SDK implementations in various languages (e.g Go and Java)
