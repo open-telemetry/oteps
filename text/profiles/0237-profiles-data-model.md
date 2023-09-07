@@ -141,7 +141,7 @@ Profile embeds one or more ProfileType messages — this allows to represent mul
 ##### Field `profile_id`
 
 A unique identifier for a profile. The ID is a 16-byte array. An ID with
-all zeroes is considered invalid.
+all zeroes is considered invalid. Profile ID can be used by other signals to uniquely identify a profile.
 This field is required.
 
 ##### Field `start_time_unix_nano`
