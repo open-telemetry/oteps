@@ -34,6 +34,8 @@ Introduces Data Model for Profiles signal to OpenTelemetry.
     * [Ruby profile with very deep stacktraces](#ruby-profile-with-very-deep-stacktraces)
     * [Large profile](#large-profile)
   * [Semantic Conventions](#semantic-conventions)
+    * [Profile Types](#profile-types)
+    * [Profile Units](#profile-units)
   * [Decision Log](#decision-log)
 * [Open questions](#open-questions)
 * [Future possibilities](#future-possibilities)
@@ -625,7 +627,33 @@ The source for this test is an aggregated pprof profile collected from a Go appl
 
 ### Semantic Conventions
 
-TODO: describe things like profile types and units
+This is a list of semantic conventions that are used in data model.
+
+#### Profile Types
+
+Here's a list of possible profile types. It is not exhaustive, and it is expected that more profile types will be added in the future:
+
+* `cpu`
+* `wall`
+* `goroutines`
+* `alloc_objects`
+* `alloc_space`
+* `inuse_objects`
+* `inuse_space`
+* `mutex_contentions`
+* `mutex_delay`
+* `block_contentions`
+* `block_delay`
+
+#### Profile Units
+
+Here's a list of possible profile units. It is not exhaustive, and it is expected that more units will be added in the future:
+
+* `bytes`
+* `samples`
+* `nanoseconds`
+* `milliseconds`
+* `count`
 
 ### Decision Log
 
