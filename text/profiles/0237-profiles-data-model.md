@@ -2,9 +2,6 @@
 
 Introduces Data Model for Profiles signal to OpenTelemetry.
 
-*This document is a DRAFT*
-
-
 <!-- toc -->
 * [Motivation](#motivation)
 * [Design Notes](#design-notes)
@@ -86,9 +83,6 @@ OTLP protocol.
 When new fields are added into this message, the OTLP request MUST be updated
 as well.
 
-
-
-
 #### Message `ResourceProfiles`
 
 A collection of ScopeProfiles from a Resource.
@@ -101,18 +95,15 @@ A collection of ScopeProfiles from a Resource.
 The resource for the profiles in this message.
 If this field is not set then no resource info is known.
 
-
 ##### Field `scope_profiles`
 
 A list of ScopeProfiles that originate from a resource.
-
 
 ##### Field `schema_url`
 
 This schema_url applies to the data in the "resource" field. It does not apply
 to the data in the "scope_profiles" field which have their own schema_url field.
 </details>
-
 
 #### Message `ScopeProfiles`
 
@@ -127,17 +118,14 @@ The instrumentation scope information for the profiles in this message.
 Semantically when InstrumentationScope isn't set, it is equivalent with
 an empty instrumentation scope name (unknown).
 
-
 ##### Field `profiles`
 
 A list of Profiles that originate from an instrumentation scope.
-
 
 ##### Field `schema_url`
 
 This schema_url applies to all profiles and profile events in the "profiles" field.
 </details>
-
 
 #### Message `Profile`
 
@@ -154,13 +142,11 @@ A unique identifier for a profile. The ID is a 16-byte array. An ID with
 all zeroes is considered invalid.
 This field is required.
 
-
 ##### Field `start_time_unix_nano`
 
 start_time_unix_nano is the start time of the profile.
 Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
 This field is semantically required and it is expected that end_time >= start_time.
-
 
 ##### Field `end_time_unix_nano`
 
@@ -168,12 +154,10 @@ end_time_unix_nano is the end time of the profile.
 Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
 This field is semantically required and it is expected that end_time >= start_time.
 
-
 ##### Field `attributes`
 
 attributes is a collection of key/value pairs. Note, global attributes
 like server name can be set using the resource API.
-
 
 ##### Field `dropped_attributes_count`
 
@@ -181,54 +165,44 @@ dropped_attributes_count is the number of attributes that were discarded. Attrib
 can be discarded because their keys are too long or because there are too many
 attributes. If this value is 0, then no attributes were dropped.
 
-
 ##### Field `original_payload`
 
 This is the original profile as retrieved from the profiler. For example, this can be a pprof or jfr encoded profile. The reason users might want to include these is because some formats are very generic and can not be easily converted to a more structured format.
 TODO: add a field that indicates the format of the original payload?
 
-
 ##### Field `stacktraces`
 
 A lookup table of Stacktraces. Other messages refer to Stacktraces in this table by index.
-
 
 ##### Field `mappings`
 
 A lookup table of Mappings. Other messages refer to Mappings in this table by index.
 
-
 ##### Field `locations`
 
 A lookup table of Locations. Other messages refer to Locations in this table by index.
-
 
 ##### Field `functions`
 
 A lookup table of Functions. Other messages refer to Functions in this table by index.
 
-
 ##### Field `links`
 
 A lookup table of Links to trace spans associated with this profile. Other messages refer to Links in this table by index. The first message must be an empty Link — this represents a null Link.
 
-
 ##### Field `attribute_sets`
 
 A lookup table of AttributeSets. Other messages refer to AttributeSets in this table by index. The first message must be an empty AttributeSet — this represents a null AttributeSet.
-
 
 ##### Field `string_table`
 
 A lookup table of strings. Other messages refer to strings in this table by index.
 The 0-th element must be an empty string ("").
 
-
 ##### Field `profile_types`
 
 List of profile types included in this profile. The first item in the list is considered to be the "default" profile type. Example profile types are allocated objects or allocated bytes.
 </details>
-
 
 #### Message `ProfileType`
 
@@ -242,59 +216,46 @@ Represents a single profile type. It implicitly creates a connection between Sta
 aggregation_temporality describes if the aggregator reports delta changes
 since last report time, or cumulative changes since a fixed start time.
 
-
 ##### Field `sample_rate`
 
 Profiler sample rate in Hz. This parameter indicates the frequency at which samples are collected, specifically for CPU profiles. Common values are 99 or 100. [Optional].
-
 
 ##### Field `type_index`
 
 Index into the string table for the type of the sample. Example values are "cpu", "alloc_objects", "alloc_bytes", "block_contentions". Full list is defined in https://github.com/open-telemetry/semantic-conventions
 
-
 ##### Field `unit_index`
 
 Index into the string table for the unit of the sample. Example values are "ms", "ns", "samples", "bytes". Full list is defined in https://github.com/open-telemetry/semantic-conventions
-
 
 ##### Field `stacktrace_indices`
 
 List of indices referring to Stacktraces in the Profile's stacktrace table.
 
-
 ##### Field `link_indices`
 
 List of indices referring to Links in the Profile's link table. Each link corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length. [Optional]
-
 
 ##### Field `attribute_set_indices`
 
 List of indices referring to AttributeSets in the Profile's attribute set table. Each attribute set corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length. [Optional]
 
-
 ##### Field `values`
 
 List of values. Each value corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length.
-
 
 ##### Field `timestamps`
 
 List of timestamps. Each timestamp corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length.
 </details>
 
-
 #### Message `Sample`
 
 Sample is an ephemeral structure. It is not explicitly represented as a protobuf message, instead it is represented by stacktraces, links, attribute sets, values and timestamps tables in `ProfileType` message. The connection is based on the order of the elements in the corresponding tables. For example, AttributeSet with index 1 corresponds to a Stacktrace located at index 1 in stacktraces table, and a Value located at index 1 in values table. Together they form a Sample.
 
-
 #### Message `Stacktrace`
 
 A stacktrace is a sequence of locations. Order of locations goes from callers to callees. Many stacktraces will point to the same locations. The link between stacktraces, attribute sets, links, values and timestamps is implicit and is based on the order of the elements in the corresponding tables in ProfileType message.
-
-
-
 
 #### Message `AttributeSet`
 
@@ -309,14 +270,12 @@ Attributes associated with a specific Sample, Location or a Mapping.
 attributes is a collection of key/value pairs. Note, global attributes
 like server name can be set using the resource API.
 
-
 ##### Field `dropped_attributes_count`
 
 dropped_attributes_count is the number of attributes that were discarded. Attributes
 can be discarded because their keys are too long or because there are too many
 attributes. If this value is 0, then no attributes were dropped.
 </details>
-
 
 #### Message `Link`
 
@@ -330,12 +289,10 @@ Represents a relationship between a Sample (ephemeral structure represented by r
 A unique identifier of a trace that this linked span is part of. The ID is a
 16-byte array.
 
-
 ##### Field `span_id`
 
 A unique identifier for the linked span. The ID is an 8-byte array.
 </details>
-
 
 #### Message `Location`
 
@@ -350,7 +307,6 @@ The id of the corresponding profile.Mapping for this location.
 It can be unset if the mapping is unknown or not applicable for
 this profile type.
 
-
 ##### Field `address`
 
 The instruction address for this location, if available.  It
@@ -358,7 +314,6 @@ should be within [Mapping.memory_start...Mapping.memory_limit]
 for the corresponding mapping. A non-leaf address may be in the
 middle of a call instruction. It is up to display tools to find
 the beginning of the instruction if necessary.
-
 
 ##### Field `line`
 
@@ -369,12 +324,10 @@ E.g., if memcpy() is inlined into printf:
 line[0].function_name == "memcpy"
 line[1].function_name == "printf"
 
-
 ##### Field `attribute_set_indices`
 
 Reference to an attribute set from the Profile's attribute set table.
 </details>
-
 
 #### Message `Mapping`
 
@@ -387,16 +340,13 @@ Describes the mapping from a binary to its original source code. These are store
 
 Address at which the binary (or DLL) is loaded into memory.
 
-
 ##### Field `memory_limit`
 
 The limit of the address range occupied by this mapping.
 
-
 ##### Field `file_offset`
 
 Offset in the binary that corresponds to the first mapped address.
-
 
 ##### Field `filename_index`
 
@@ -404,19 +354,16 @@ The object this entry is loaded from.  This can be a filename on
 disk for the main binary and shared libraries, or virtual
 abstractions like "[vdso]". Index into string table
 
-
 ##### Field `build_id_index`
 
 A string that uniquely identifies a particular program version
 with high probability. E.g., for binaries generated by GNU tools,
 it could be the contents of the .note.gnu.build-id field. Index into string table
 
-
 ##### Field `attribute_set_indices`
 
 Reference to an attribute set from the Profile's attribute set table.
 </details>
-
 
 #### Message `Function`
 
@@ -429,23 +376,19 @@ Represents a function in a source file. These are stored in a lookup table in a 
 
 Name of the function, in human-readable form if available. Index into string table
 
-
 ##### Field `system_name_index`
 
 Name of the function, as identified by the system.
 For instance, it can be a C++ mangled name. Index into string table
 
-
 ##### Field `filename_index`
 
 Source file containing the function. Index into string table
-
 
 ##### Field `start_line`
 
 Line number in source file.
 </details>
-
 
 <!-- messages -->
 
@@ -529,7 +472,6 @@ resource_profiles:
           attributes: null
 ```
 
-
 ### Notable differences compared to other signals
 
 Due to the increased performance requirements associated with profiles signal, here are some notable differences between profiles signal and other signals.
@@ -608,8 +550,6 @@ Explanation: in `normalized` representation samples are a collection of referenc
 
 Benchmarking shows that this approach is significantly more efficient in terms of CPU utilization, memory consumption and size of the resulting protobuf payload. See [Prior art and alternatives](#prior-art-and-alternatives) for more details.
 
-
-
 ## Trade-offs and mitigations
 
 The biggest trade-off was made between the performance characteristics of the format and it's simplicity. The emphasis was made on the performance characteristics, which resulted in a cognitively more complex format.
@@ -679,7 +619,6 @@ The source for this test is an aggregated pprof profile collected from a Go appl
 
 TODO: describe things like profile types and units
 
-
 ### Decision Log
 
 There were many other alternatives considered during the design process. See [Decision Log](https://github.com/open-telemetry/opentelemetry-proto-profile/blob/54bba7a86d839b9d29488de8e22d8c567d283e7b/opentelemetry/proto/profiles/v1/decision-log.md#L0-L1) for more information about various decisions that were made during the design process.
@@ -691,5 +630,4 @@ Client implementations are out of scope for this OTEP. At the time of writing th
 ## Future possibilities
 
 <!-- What are some future changes that this proposal would enable? -->
-
 
