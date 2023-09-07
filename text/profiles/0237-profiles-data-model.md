@@ -67,7 +67,7 @@ The following diagram shows the relationships between the messages. Relationship
 
 In addition to that, relationship between `stacktraces`, `attribute_sets` and `links` is implicit and based on the order of references to these objects in corresponding reference lists within a `ProfileType` message. The relationship between these messages creates an ephemeral structure called "Sample". More on that in [Arrays of Integers vs Arrays of Structures](#arrays-of-integers-vs-arrays-of-structures) section below.
 
-![diagram of data relationships](./images/otep0000/profiles-data-model.png)
+![diagram of data relationships](./images/otep0237/profiles-data-model.png)
 
 ### Message Descriptions
 
@@ -222,11 +222,11 @@ Profiler sample rate in Hz. This parameter indicates the frequency at which samp
 
 ##### Field `type_index`
 
-Index into the string table for the type of the sample. Example values are "cpu", "alloc_objects", "alloc_bytes", "block_contentions". Full list is defined in https://github.com/open-telemetry/semantic-conventions
+Index into the string table for the type of the sample. Example values are "cpu", "alloc_objects", "alloc_bytes", "block_contentions". Full list is defined in [semantic-conventions](https://github.com/open-telemetry/semantic-conventions)
 
 ##### Field `unit_index`
 
-Index into the string table for the unit of the sample. Example values are "ms", "ns", "samples", "bytes". Full list is defined in https://github.com/open-telemetry/semantic-conventions
+Index into the string table for the unit of the sample. Example values are "ms", "ns", "samples", "bytes". Full list is defined in [semantic-conventions](https://github.com/open-telemetry/semantic-conventions)
 
 ##### Field `stacktrace_indices`
 
@@ -397,16 +397,19 @@ Line number in source file.
 #### Simple example
 
 Considering the following example presented in a modified collapsed format:
+
 ```
 foo;bar;baz 100 region=us,trace_id=0x01020304010203040102030401020304,span_id=0x9999999999999999 1687841528000000
 foo;bar 200 region=us
 ```
 
 It represents 2 samples:
+
 * one for stacktrace `foo;bar;baz` with value `100`, attributes `region=us`, linked to trace `0x01020304010203040102030401020304` and span `0x9999999999999999`, and timestamp `1687841528000000`
 * one for stacktrace `foo;bar` with value `200`, attributes `region=us`, no link, no timestamp
 
 The resulting profile in OTLP format would look like this (in YAML format):
+
 ```
 resource_profiles:
   - resource:
@@ -479,12 +482,14 @@ Due to the increased performance requirements associated with profiles signal, h
 #### Relationships between messages
 
 There are two main ways relationships between messages are represented:
+
 * by embedding a message into another message (standard protobuf way)
 * by referencing a message by index (similar to how it's done in pprof)
 
 Profiling signal is different from most other ones in that we use the referencing technique a lot to represent relationships between messages where there is a lot of duplication happening. This allows to reduce the size of the resulting protobuf payload and the number of objects that need to be allocated to parse such payload.
 
 This pseudocode illustrates the conceptual difference between the two approaches. Note that this example is simplified for the sake of clarity:
+
 ```
 // denormalized
 "samples": [
@@ -529,6 +534,7 @@ Benchmarking shows that this approach is significantly more efficient in terms o
 #### Arrays of Integers vs Arrays of Structures
 
 Another optimization technique that we use to reduce the size of the resulting protobuf payload and the number of objects that need to be allocated to parse such payload is using arrays of integers instead of arrays of structures to represent messages. This technique is used in conjunction with the referencing technique described above. Here's pseudocode that illustrates the approach. Note that this example is simplified for the sake of clarity:
+
 ```
 // normalized
 "samples": [
@@ -555,6 +561,7 @@ Benchmarking shows that this approach is significantly more efficient in terms o
 The biggest trade-off was made between the performance characteristics of the format and it's simplicity. The emphasis was made on the performance characteristics, which resulted in a cognitively more complex format.
 
 Authors feel like the complexity is justified for the following reasons:
+
 * as presented in [Design Goals](#design-goals) section, the performance characteristics of the format are very important for the profiling signal
 * the format is not intended to be used directly by the end users, but rather by the developers of profiling systems that are used to and are expected to be able to handle the complexity. It is not more complex than other existing formats
 
@@ -563,6 +570,7 @@ Alternative formats that are simpler to understand were considered, but they wer
 ## Prior art and alternatives
 
 The specification presented here was heavily inspired by pprof. Multiple alternative representations were considered, including:
+
 * `denormalized` representation, where all messages are embedded and no references by index are used. This is the simplest representation, but it is also the least efficient (by a huge margin) in terms of CPU utilization, memory consumption and size of the resulting protobuf payload.
 * `normalized` representation, where messages that repeat often are stored in separate tables and are referenced by indices. See [this chapter](#relationships-between-messages) for more details. This technique reduces the size of the resulting protobuf payload and the number of objects that need to be allocated to parse such payload.
 * `arrays` representation, which is based on `normalized` representation, but uses arrays of integers instead of arrays of structures to represent messages. See [this chapter](#arrays-of-integers-vs-arrays-of-structures) for more details. It further reduces the number of allocations, and the size of the resulting protobuf payload.
@@ -630,4 +638,3 @@ Client implementations are out of scope for this OTEP. At the time of writing th
 ## Future possibilities
 
 <!-- What are some future changes that this proposal would enable? -->
-
