@@ -491,8 +491,8 @@ This field is semantically required and it is expected that end_time >= start_ti
 
 ##### Field `attributes`
 
-attributes is a collection of key/value pairs. Note, global attributes
-like server name can be set using the resource API.
+attributes is a collection of key/value pairs. Attributes that are not specific to a particular profile
+(like server name) MUST be specified in Resource attributes instead.
 
 ##### Field `dropped_attributes_count`
 
