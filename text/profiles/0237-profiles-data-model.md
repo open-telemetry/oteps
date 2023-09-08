@@ -776,7 +776,11 @@ resource_profiles:
               - line:
                   - function_index: 2
             profile_types:
-              - attribute_set_indices:
+              - aggregation_temporality: 1
+                sample_rate: 100
+                type_index: 4
+                unit_index: 5
+                attribute_set_indices:
                   - 1
                   - 1
                 link_indices:
@@ -804,6 +808,8 @@ resource_profiles:
               - foo
               - bar
               - baz
+              - cpu
+              - samples
             attributes: null
             profile_id: 0102030405060708090a0b0c0d0e0f10
         scope:
