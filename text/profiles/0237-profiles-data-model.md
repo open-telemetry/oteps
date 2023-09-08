@@ -960,7 +960,7 @@ The source for this test is an aggregated pprof profile collected from a Go appl
 
 ### Semantic Conventions
 
-This is a list of semantic conventions that are used in data model.
+We plan to leverage OTEL Semantic Conventions for various enums such as profile types or units. Here's a non-exhaustive list of semantic conventions that are used in data model. It is expected to be extended in the future.
 
 #### Profile Types
 
