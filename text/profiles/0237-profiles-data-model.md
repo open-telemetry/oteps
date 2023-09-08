@@ -944,7 +944,7 @@ The source is the same as in the previous example, but this time there were time
 
 #### Ruby profile with very deep stacktraces
 
-The source for this test is an aggregated pprof profile collected from a Ruby application that has very deep stacktraces. You can see that the `arrays` representation is the most efficient in terms of memory allocations and size of the resulting protobuf payload (``).
+The source for this test is an aggregated pprof profile collected from a Ruby application that has very deep stacktraces. You can see that the `arrays` representation is the most efficient in terms of memory allocations and size of the resulting protobuf payload.
 
 |name|bytes|gzipped_bytes|retained_objects|unique_label_sets|bytes_allocated|allocs|
 |---|---|---|---|---|---|---|
