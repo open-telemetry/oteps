@@ -584,7 +584,7 @@ List of values. Each value corresponds to a Stacktrace in stacktrace_indices lis
 List of timestamps. Each timestamp corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length.
 </details>
 
-#### Message `Sample`
+#### `Sample` structure
 
 Sample is an ephemeral structure. It is not explicitly represented as a protobuf message, instead it is represented by stacktraces, links, attribute sets, values and timestamps tables in `ProfileType` message. The connection is based on the order of the elements in the corresponding tables. For example, AttributeSet with index 1 corresponds to a Stacktrace located at index 1 in stacktraces table, and a Value located at index 1 in values table. Together they form a Sample.
 
