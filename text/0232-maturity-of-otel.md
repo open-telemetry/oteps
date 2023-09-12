@@ -8,21 +8,22 @@ The Collector's [stability levels](https://github.com/open-telemetry/opentelemet
 
 ## Motivation
 
-Quite often, the community is faced with the question of the quality and maturity expectations of its diverse set of components. This OTEP aims to bring clarity by establishing a framework to communicate the maturity for components delivered by SIGs in the name of the project. As the OpenTelemetry project comprises a multitude of SIGs, and each SIG has several components of varying quality, having this framework will help set the right expectations for OpenTelemetry users using a unified nomenclature.
+Quite often, the community is faced with the question of the quality and maturity expectations of its diverse set of components. This OTEP aims to bring clarity by establishing a framework to communicate the maturity for SIG deliverables in the name of the project. As the OpenTelemetry project comprises a multitude of SIGs, and each SIG has several components of varying quality, having this framework will help set the right expectations for OpenTelemetry users using a unified nomenclature.
 
 ## Explanation
 
 ### Maturity levels
 
 Deliverables of a SIG MUST have a declared maturity level, established by SIG maintainers (SIGs), likely with the input of the code owners. While the main deliverable can have a specific maturity level, individual components might have a different one. Examples:
+
 * the Collector core distribution might declare itself stable and include a receiver that is not stable. In that case, the receiver has to be clearly marked as such
 * the Java Agent might be declared stable, while individual instrumentation packages are not
 
-It is recommended that components should not be marked as stable if their user-visible interfaces are not stable. For instance, if the Collector's component "otlpreceiver" declares a dependency on the OpenTelemetry Collector API "config" package which is marked with a maturity level of "beta", the "otlpreceiver" should be at most "beta". Maintainers are free to deviate from this recommendation if they believe users are not going to be affected by future changes.
+Components should not be marked as stable if their user-visible interfaces are not stable. For instance, if the Collector's component "otlpreceiver" declares a dependency on the OpenTelemetry Collector API "config" package which is marked with a maturity level of "beta", the "otlpreceiver" should be at most "beta". Maintainers are free to deviate from this recommendation if they believe users are not going to be affected by future changes.
 
 #### Development
 
-Not all pieces of the component are in place yet, and it might not be available for users yet. Bugs and performance issues are expected to be reported. User feedback is desired, especially regarding the user experience (configuration options, component observability, technical implementation details, ...). Configuration options might break often depending on how things evolve. The component SHOULD NOT be used in production. The component MAY be removed without prior notice.
+Not all pieces of the component are in place yet, and it might not be available for users yet. Bugs and performance issues are expected to be reported. User feedback is desired, especially regarding the user experience (configuration options, component observability, technical implementation details, and so on). Configuration options might break often depending on how things evolve. The component SHOULD NOT be used in production. The component MAY be removed without prior notice.
 
 #### Alpha
 
@@ -42,7 +43,7 @@ The component is ready for general availability. Bugs and performance problems s
 
 #### Deprecated
 
-Development of this component is halted, and no further support will be provided. No new versions are planned, and the component might be removed from its included distributions. Note that new issues will likely not be worked on except for critical security issues. Components that are included in distributions are expected to exist for at least two minor releases or six months, whichever happens later. They also MUST communicate in which version they will be removed.
+Development of this component is halted, and no further support will be provided. No new versions are planned, and the component might be removed from its included distributions. Note that new issues will likely not be worked on except for critical security issues. Components that are included in distributions are expected to exist for at least two minor releases or six months, whichever happens later. They also MUST communicate in which version they will be removed, either in terms of a concrete version number or the date of a release, like: "the first release after 2023-08-01".
 
 #### Unmaintained
 
