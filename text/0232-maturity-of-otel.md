@@ -8,7 +8,7 @@ The Collector's [stability levels](https://github.com/open-telemetry/opentelemet
 
 ## Motivation
 
-Quite often, the community is faced with the question of the quality and maturity expectations of its diverse set of components. This OTEP aims to bring clarity by establishing a framework to communicate the maturity for SIG deliverables in the name of the project. As the OpenTelemetry project comprises a multitude of SIGs, and each SIG has several components of varying quality, having this framework will help set the right expectations for OpenTelemetry users using a unified nomenclature.
+Quite often, the community is faced with the question of the quality and maturity expectations of its diverse set of components. This OTEP aims to bring clarity by establishing a framework to communicate the maturity for SIG deliverables and components in the name of the project. As the OpenTelemetry project comprises a multitude of SIGs, and each SIG has several components of varying quality, having this framework will help set the right expectations for OpenTelemetry users using a unified nomenclature.
 
 ## Explanation
 
