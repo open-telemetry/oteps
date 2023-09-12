@@ -32,6 +32,13 @@ Introduces Data Model for Profiles signal to OpenTelemetry.
     * [Arrays of Integers vs Arrays of Structures](#arrays-of-integers-vs-arrays-of-structures)
 * [Trade-offs and mitigations](#trade-offs-and-mitigations)
 * [Prior art and alternatives](#prior-art-and-alternatives)
+  * [pprof](#pprof)
+    * [Divergence of Objectives](#divergence-of-objectives)
+    * [Technical Reasons](#technical-reasons)
+    * [Non-Technical Reasons](#non-technical-reasons)
+    * [Additional Considerations](#additional-considerations)
+      * [Interoperability between OTLP and pprof](#interoperability-between-otlp-and-pprof)
+      * [Performance implications in Go ecosystem](#performance-implications-in-go-ecosystem)
   * [Benchmarking](#benchmarking)
     * [Average profile](#average-profile)
     * [Average profile with timestamps added to each sample](#average-profile-with-timestamps-added-to-each-sample)
@@ -914,6 +921,51 @@ The specification presented here was heavily inspired by pprof. Multiple alterna
 * `denormalized` representation, where all messages are embedded and no references by index are used. This is the simplest representation, but it is also the least efficient (by a huge margin) in terms of CPU utilization, memory consumption and size of the resulting protobuf payload.
 * `normalized` representation, where messages that repeat often are stored in separate tables and are referenced by indices. See [this chapter](#relationships-between-messages) for more details. This technique reduces the size of the resulting protobuf payload and the number of objects that need to be allocated to parse such payload.
 * `arrays` representation, which is based on `normalized` representation, but uses arrays of integers instead of arrays of structures to represent messages. See [this chapter](#arrays-of-integers-vs-arrays-of-structures) for more details. It further reduces the number of allocations, and the size of the resulting protobuf payload.
+* `pprof` itself. More on that in the next section
+
+### pprof
+
+pprof itself was also considered as one of the options. It is a very efficient and very popular format, but it is not a good fit for OTLP for the combination of technical and non-technical reasons:
+
+#### Divergence of Objectives
+
+Before we dive into the actual reasons, it's important to recognize the differing objectives between the pprof format and the proposed OTLP profiles format:
+
+* The pprof format, well-established in the Go ecosystem, primarily serves as a means to visualize and analyze profiling data. Users often share pprof files and use various tools for visualization. Interoperability is a key feature, given the extensive ecosystem that produces and consumes pprof files.
+
+* On the other hand, OpenTelemetry has a broader mission, encompassing the collection and management of telemetry data across various languages and platforms. This mission emphasizes cross-linking between various signals (traces, metrics, logs, profiles), vendor-neutrality, and extensibility. OpenTelemetry aims to provide not only the wire format and a reference implementation for one runtime but also comprehensive tooling for various languages and runtimes, including client SDKs and collectors.
+
+* It's important to note that pprof primarily serves as a file format, with users directly interacting with pprof files. In contrast, OTLP serves as a wire format, and users don't interact directly with OTLP data. Moreover, OTLP format may evolve over time without affecting user experience.
+
+* OTLP profiles are not intended to replace pprof. Instead, they serve as a means to transport profiling data, linked to other signals, across the wire.
+
+#### Technical Reasons
+
+**Support for Linking Between Signals**: While it is possible to express links between signals in pprof using labels, the format is not optimized for this use-case within the broader telemetry ecosystem.
+
+**Support for Timestamps**: Similar to the previous point, pprof can handle timestamps, but doing so efficiently would require representing each timestamp as a separate Sample, which is inefficient due to the format's lack of optimization for this use-case. For more context, see [this PR from @felixge](https://github.com/google/pprof/pull/728).
+
+**Miscellaneous Improvements**: The OTLP profiles format introduces several improvements, such as the use of arrays-of-integers instead of arrays-of-structs representation (which reduces memory allocations), the use of indices instead of IDs to refer to structs (eliminating confusion and reducing payload size), and the use of semantic conventions to define profile types and units, among others.
+
+#### Non-Technical Reasons
+
+There are also non-technical considerations at play:
+
+**Interoperability and Backwards Compatibility**: Interoperability is a key strength of pprof. Tools that read pprof files from a decade ago still work with files generated today and vice versa. Introducing changes to pprof to align with OTLP's objectives could disrupt this longstanding interoperability.
+
+**Ability to Make Changes to the Format**: While using the same format would be ideal, the divergence in objectives between pprof and OTLP profiles could hinder effective collaboration and progress in introducing profiling support to OpenTelemetry.
+
+#### Additional Considerations
+
+##### Interoperability between OTLP and pprof
+
+One of the stated requirements in this OTEP is that existing profiling formats (pprof) can be unambiguously mapped to this data model. This means that existing tools that generate pprof files are automatically compatible with any OTLP backend.
+
+It works in the opposite direction as well — any OTLP backend should be able to generate pprof files, albeit some functionality (like timestamps support) may be limited. This is important because it allows users to use existing tools to visualize profiles generated by OpenTelemetry.
+
+##### Performance implications in Go ecosystem
+
+There are concerns that using OTLP profiles will have a negative impact on performance in the Go ecosystem. We discussed this with Go runtime team in one of the meetings and the direction we landed on is that the Go runtime could provide lower level APIs that would allow us to avoid the overhead of parsing pprof and encoding it into OTLP. FWIW There's already APIs like that for memory profiles.
 
 ### Benchmarking
 
