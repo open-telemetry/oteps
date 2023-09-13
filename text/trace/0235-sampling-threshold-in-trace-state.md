@@ -58,9 +58,10 @@ Sampling Decisions SHOULD be propagated by setting the value of the `th` key in 
 The T value MAY be modified.
 
 In the case of a downstream sampler -- a tail sampler on the collection path that is attempting to reduce the volume of traffic -- the sampler MAY modify the `th` header by reducing its value.
-It MAY NOT increase it, as it is not possible to retroactively adjust the sampling probability upward.
+It MUST NOT increase it, as it is not possible to retroactively adjust the sampling probability upward.
 
 A non-root head sampler MAY raise or lower the T value.
+This may be necessary in situations where a non-root sampler wishes to ensure that the remainder of the trace is sampled due to some exceptional occurrence.
 Note that changing the probability of a trace in flight introduces inconsistency and may cause the trace to be incomplete.
 
 A sampler MUST introduce an R value to a trace that does not include one and does not have the `Random` trace-id flag set. It MUST use the `rv` key for this purpose. A sampler MUST NOT modify an existing R value or trace-id.
@@ -69,14 +70,6 @@ A sampler MUST introduce an R value to a trace that does not include one and doe
 
 The trace state header SHOULD contain a field with the key `rv`, and a value that corresponds to a 56-bit sampling threshold.
 This value will be compared to the 56-bit random value associated with the trace.
-
-From a technical perspective, how do you propose accomplishing the proposal? In particular, please explain:
-
-* How the change would impact and interact with existing functionality
-* Likely error modes (and how to handle them)
-* Corner cases (and how to handle them)
-
-While you do not need to prescribe a particular implementation - indeed, OTEPs should be about **behaviour**, not implementation! - it may be useful to provide at least one suggestion as to how the proposal *could* be implemented. This helps reassure reviewers that implementation is at least possible, and often helps them inspire them to think more deeply about trade-offs, alternatives, etc.
 
 ## Trade-offs and mitigations
 
