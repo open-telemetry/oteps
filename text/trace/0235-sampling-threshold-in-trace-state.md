@@ -71,6 +71,58 @@ A sampler MUST introduce an R value to a trace that does not include one and doe
 The trace state header SHOULD contain a field with the key `rv`, and a value that corresponds to a 56-bit sampling threshold.
 This value will be compared to the 56-bit random value associated with the trace.
 
+## Algorithms
+
+The `th` and `rv` values may be represented and manipulated in a variety of forms depending on the capabilities of the processor and needs of the implementation. As 56-bit values, they are compatible with byte arrays and 64-bit integers, and can also be manipulated with 64-bit floating point with a truly negligible loss of precision.
+
+The following examples are in Python3. They are intended as examples only for clarity, and not as a suggested implementation.
+
+### Converting t-value to a 56-bit integer threshold
+
+To convert a t-value string to a 56-bit integer threshold, pad it on the right with 0s so that it is 14 digits in length, and then parse it as a hexadecimal value.
+
+```py
+padded = (tvalue + "00000000000000")[:14]
+threshold = int('0x' + padded, 16)
+```
+
+### Converting integer threshold to a t-value
+
+To convert a 56-bit integer threshold value to the t-value representation, emit it as a hexidecimal value (without a leading '0x'), optionally with trailing zeros omitted:
+
+```py
+h = hex(tvalue).rstrip('0')
+# remove leading 0x
+tv = 'tv='+h[2:]
+```
+
+### Testing rv vs threshold
+
+Given rv and threshold as 64-bit integers, a sample should be taken if rv is strictly less than the threshold.
+
+```
+shouldSample = (rv < threshold)
+```
+
+### Converting threshold to a sampling probability
+
+The sampling probability is a value from 0.0 to 1.0, which can be calculated using floating point by dividing by 2^56:
+
+```py
+# embedded _ in numbers for clarity (permitted by Python3)
+maxth = 0x100_0000_0000_0000  # 2^56
+prob = float(threshold) / maxth
+```
+
+### Converting threshold to an adjusted count (sampling rate)
+
+The adjusted count is an integer value, indicating the quantity of items from the population that this sample represents. It is 1/probability converted to an integer.
+
+```py
+maxth = 0x100_0000_0000_0000  # 2^56
+adjcount = int((maxth / float(threshold)) + 0.5)
+```
+
 ## Trade-offs and mitigations
 
 This proposal is the result of long negotiations on the Sampling SIG over what is required and various alternative forms of expressing it. [This issue](https://github.com/open-telemetry/opentelemetry-specification/issues/3602) exhaustively covers the various formats that were discussed and their pros and cons. This proposal is the result of that decision.
