@@ -21,6 +21,8 @@ Deliverables of a SIG MUST have a declared maturity level, established by SIG ma
 
 Components should not be marked as stable if their user-visible interfaces are not stable. For instance, if the Collector's component "otlpreceiver" declares a dependency on the OpenTelemetry Collector API "config" package which is marked with a maturity level of "beta", the "otlpreceiver" should be at most "beta". Maintainers are free to deviate from this recommendation if they believe users are not going to be affected by future changes.
 
+For the purposes of this document, a breaking change is defined as a change that may require consumers of our components to adapt themselves in order to avoid disruption to their usage of our components.
+
 #### Development
 
 Not all pieces of the component are in place yet, and it might not be available for users yet. Bugs and performance issues are expected to be reported. User feedback is desired, especially regarding the user experience (configuration options, component observability, technical implementation details, and so on). Configuration options might break often depending on how things evolve. The component SHOULD NOT be used in production. The component MAY be removed without prior notice.
@@ -33,7 +35,7 @@ This is the default level: any components with no explicit maturity level should
 
 Same as Alpha, but the interfaces (API, configuration, generated telemetry) are treated as stable whenever possible. While there might be breaking changes between releases, component owners should try to minimize them. A component at this stage is expected to have had exposure to non-critical production workloads already during its Alpha phase, making it suitable for broader usage.
 
-#### Feature freeze
+#### Release Candidate
 
 The component is feature-complete and ready for broader usage. The component is ready to be declared stable, it might just need to be tested in more production environments before that can happen. Bugs and performance problems are expected to be reported, and there's an expectation that the component owners will work on them. Breaking changes, including configuration options and the component's output, are not expected to happen without prior notice unless under special circumstances.
 
