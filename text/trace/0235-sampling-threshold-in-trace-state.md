@@ -3,7 +3,7 @@
 ## Motivation
 
 Sampling can theoretically take place at nearly any point in a distributed tracing system. If sampling is to be performed at multiple points in the process, the only way to reason about it effectively is to make sure that the sampling decisions are **consistent**.
-In this context, consistency means that a positive sampling decision made at a particular point with probability p1 implies a positive sampling decision made at another point that samples a different piece of information from the same trace with probability p2 >= p1.
+In this context, consistency means that a positive sampling decision made for a particular span with probability p1 implies a positive sampling decision for any span belonging to the same trace, if it is made with probability p2 >= p1.
 
 ## Explanation
 
@@ -19,7 +19,11 @@ To distinguish the cases, this proposal uses the key `rv`.
 In order to make consistent sampling decisions across the entire path of the trace, two values SHOULD be propagated with the trace:
 
 1. A _random_ (or pseudo-random) 56-bit value, called `R` below.
-2. A 56-bit trace _threshold_ as expressed in the TraceState, called `T` below.
+2. A 56-bit trace _threshold_ as expressed in the TraceState, called `T` below. `T` represents the minimum threshold that was applied in all previous consistent sampling stages. If the current sampling stage applies a lower threshold than any stage before, it has to update (decrease) the threshold correspondingly.
+
+The system has the following invariant:
+
+`(T=0) OR ((R < T) = sampled flag)`
 
 The sampling decision is propagated with the following algorithm:
 
@@ -32,7 +36,7 @@ The `R` value MUST be derived as follows:
 
 * If the key `rv` is present in the Tracestate header, then `R = rv`.
 * Else if the Random Trace ID Flag is `true` in the traceparent header, then `R` is the lowest-order 56 bits of the trace-id.
-* Else `R` MUST be generated as a random value in the range `(0, (2**56)-1)` and added to the Tracestate header with key `rv`.
+* Else `R` MUST be generated as a random value in the range `[0, (2**56)-1]` and added to the Tracestate header with key `rv`.
 
 The preferred way to propagate the `R` value is as the lowest 56 bits of the trace-id.
 If these bits are in fact random, the `random` trace-flag SHOULD be set as specified in [the W3C trace context specification](https://w3c.github.io/trace-context/#trace-id).
@@ -51,7 +55,7 @@ The `T` value MUST be derived as follows:
 * If the `th` key is not present in the Tracestate header, then `T` is effectively 2^56 (which doesn't fit in 56 bits).
 * Else the value corresponding to the `th` key should be interpreted as above.
 
-Sampling Decisions SHOULD be propagated by setting the value of the `th` key in the Tracestate header according to the above.
+Sampling Decisions MUST be propagated by setting the value of the `th` key in the Tracestate header according to the above.
 
 ## Changing T and R values
 
@@ -60,9 +64,8 @@ The T value MAY be modified.
 In the case of a downstream sampler -- a tail sampler on the collection path that is attempting to reduce the volume of traffic -- the sampler MAY modify the `th` header by reducing its value.
 It MUST NOT increase it, as it is not possible to retroactively adjust the sampling probability upward.
 
-A non-root head sampler MAY raise or lower the T value.
-This may be necessary in situations where a non-root sampler wishes to ensure that the remainder of the trace is sampled due to some exceptional occurrence.
-Note that changing the probability of a trace in flight introduces inconsistency and may cause the trace to be incomplete.
+A consistent head sampler MUST set the T value corresponding to the sampling probability it actually uses. If it samples a non-root span, it MAY use the sampling probability of the parent span and use its T value.
+Using different sampling probabilities for spans belonging to the same trace will lead to incomplete traces.
 
 A sampler MUST introduce an R value to a trace that does not include one and does not have the `Random` trace-id flag set. It MUST use the `rv` key for this purpose. A sampler MUST NOT modify an existing R value or trace-id.
 
@@ -80,6 +83,10 @@ The following examples are in Python3. They are intended as examples only for cl
 ### Converting t-value to a 56-bit integer threshold
 
 To convert a t-value string to a 56-bit integer threshold, pad it on the right with 0s so that it is 14 digits in length, and then parse it as a hexadecimal value.
+
+NOTES
+**** INTERMEDIATE SPAN SAMPLING might be a useful term to explain "in the process of..." ****
+
 
 ```py
 padded = (tvalue + "00000000000000")[:14]
