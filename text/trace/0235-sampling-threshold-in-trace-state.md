@@ -84,10 +84,6 @@ The following examples are in Python3. They are intended as examples only for cl
 
 To convert a t-value string to a 56-bit integer threshold, pad it on the right with 0s so that it is 14 digits in length, and then parse it as a hexadecimal value.
 
-NOTES
-**** INTERMEDIATE SPAN SAMPLING might be a useful term to explain "in the process of..." ****
-
-
 ```py
 padded = (tvalue + "00000000000000")[:14]
 threshold = int('0x' + padded, 16)
@@ -95,7 +91,7 @@ threshold = int('0x' + padded, 16)
 
 ### Converting integer threshold to a t-value
 
-To convert a 56-bit integer threshold value to the t-value representation, emit it as a hexidecimal value (without a leading '0x'), optionally with trailing zeros omitted:
+To convert a 56-bit integer threshold value to the t-value representation, emit it as a hexadecimal value (without a leading '0x'), optionally with trailing zeros omitted:
 
 ```py
 h = hex(tvalue).rstrip('0')
