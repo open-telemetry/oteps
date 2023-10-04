@@ -74,6 +74,10 @@ A sampler MUST introduce an R value to a trace that does not include one and doe
 The trace state header SHOULD contain a field with the key `rv`, and a value that corresponds to a 56-bit sampling threshold.
 This value will be compared to the 56-bit random value associated with the trace.
 
+## Visual
+
+![Sampling decision flow](../img/0235-sampling-threshold-calculation.png)
+
 ## Algorithms
 
 The `th` and `rv` values may be represented and manipulated in a variety of forms depending on the capabilities of the processor and needs of the implementation. As 56-bit values, they are compatible with byte arrays and 64-bit integers, and can also be manipulated with 64-bit floating point with a truly negligible loss of precision.
