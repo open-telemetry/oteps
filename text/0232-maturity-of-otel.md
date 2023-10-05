@@ -37,11 +37,11 @@ Same as Alpha, but the interfaces (API, configuration, generated telemetry) are 
 
 #### Release Candidate
 
-The component is feature-complete and ready for broader usage. The component is ready to be declared stable, it might just need to be tested in more production environments before that can happen. Bugs and performance problems are expected to be reported, and there's an expectation that the component owners will work on them. Breaking changes, including configuration options and the component's output, are not expected to happen without prior notice unless under special circumstances.
+The component is feature-complete and ready for broader usage. The component is ready to be declared stable, it might just need to be tested in more production environments before that can happen. Bugs and performance problems are expected to be reported, and there's an expectation that the component owners will work on them. Breaking changes, including configuration options and the component's output, are only allowed under special circumstances. Whenever possible, users should be given prior notice of the breaking changes.
 
 #### Stable
 
-The component is ready for general availability. Bugs and performance problems should be reported, and there's an expectation that the component owners will work on them. Breaking changes, including configuration options and the component's output, are not expected to happen without prior notice unless under special circumstances.
+The component is ready for general availability. Bugs and performance problems should be reported, and there's an expectation that the component owners will work on them. Breaking changes, including configuration options and the component's output, are only allowed under special circumstances. Whenever possible, users should be given prior notice of the breaking changes.
 
 #### Deprecated
 
