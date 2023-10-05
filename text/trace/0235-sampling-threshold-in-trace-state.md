@@ -2,7 +2,7 @@
 
 ## Motivation
 
-Sampling can theoretically take place at nearly any point in a distributed tracing system. If sampling is to be performed at multiple points in the process, the only way to reason about it effectively is to make sure that the sampling decisions are **consistent**.
+Sampling is a broad topic; here it refers to the independent decisions made at points in a distributed tracing system of whether to collect a span or not. Multiple sampling decisions can be made before a span is finally consumed. When sampling is to be performed at multiple points in the process, the only way to reason about it effectively is to make sure that the sampling decisions are **consistent**.
 In this context, consistency means that a positive sampling decision made for a particular span with probability p1 implies a positive sampling decision for any span belonging to the same trace, if it is made with probability p2 >= p1.
 
 ## Explanation
