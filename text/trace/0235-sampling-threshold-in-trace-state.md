@@ -12,14 +12,33 @@ This system can only achieve non-power-of-two sampling using interpolation betwe
 In existing sampling systems, sampling probabilities like 1%, 10%, and 75% are common, and it should be possible to express these without interpolation.
 There is also a need for consistent sampling in the collection path (outside of the head-sampling paths) and using inherent randomness in the traceID is a less-expensive solution than referencing a custom `r-value` from the tracestate in every span.
 This proposal introduces a new value with the key `th` as a replacement for the `p` value in the previous specification.
-The `p` value is limited to powers of two, while this proposal is not.
-This allows for the continued expression of randomness using `r-value` as specified there using the key `r`.
+The `p` value is limited to powers of two, while the `th` value in this proposal supports a large range of values.
+This proposal allows for the continued expression of randomness using `r-value` as specified there using the key `r`.
 To distinguish the cases, this proposal uses the key `rv`.
 
 In order to make consistent sampling decisions across the entire path of the trace, two values SHOULD be propagated with the trace:
 
 1. A _random_ (or pseudo-random) 56-bit value, called `R` below.
 2. A 56-bit trace _threshold_ as expressed in the TraceState, called `T` below. `T` represents the minimum threshold that was applied in all previous consistent sampling stages. If the current sampling stage applies a lower threshold than any stage before, it has to update (decrease) the threshold correspondingly.
+
+Here is an example involving three participants A, B, and C:
+
+A -> B -> C
+
+where -> indicates a parent -> child relationship.
+
+A uses consistent probability sampling with a sampling rate of 0.25.
+B uses consistent probability sampling with a sampling rate of 0.5.
+C uses a parent-based sampler.
+
+When A samples a span, its outgoing traceparent will have the 'sampled' flag SET and the 'th' in its outgoing tracestate will be set to 0x40 0000 0000 0000.
+When A does not sample a span, its outgoing traceparent will have the 'sampled' flag UNSET but the 'th' in its outgoing tracestate will still be set to 0x40 0000 0000 0000.
+When B samples a span, its outgoing traceparent will have the 'sampled' flag SET and the 'th' in its outgoing tracestate will be set to 0x80 0000 0000 0000.
+C (being a parent based sampler) samples a span purely based on its parent (B in this case), it will use the sampled flag to make the decision. Its outgoing 'th' value will continue to reflect what it got from B (0x80 0000 0000 0000), and this is useful to understand its adjusted count.
+
+This design requires that as a given span progresses along its collection path, `th` is non-increasing (and, in particular, must be decreased at stages that apply lower sampling probabilities).
+It does not, however, restrict a span's initial `th` in any way (e.g., relating it to that of its parent, if it has one).
+It is acceptable for B to have a greater initial `th` than A has. It would not be ok if some later-stage sampler increased A's `th`.
 
 The system has the following invariant:
 
@@ -42,10 +61,10 @@ The preferred way to propagate the `R` value is as the lowest 56 bits of the tra
 If these bits are in fact random, the `random` trace-flag SHOULD be set as specified in [the W3C trace context specification](https://w3c.github.io/trace-context/#trace-id).
 There are circumstances where trace-id randomness is inadequate (for example, sampling a group of traces together); in these cases, an `rv` value is required.
 
-The value of the `rv` and `th` keys MUST be expressed as up to 14 hexadecimal characters from the set `[0-9a-f]`. Trailing zeros (but not leading zeros) may be omitted.
+The value of the `rv` and `th` keys MUST be expressed as up to 14 hexadecimal digits from the set `[0-9a-f]`. For `th` keys only, trailing zeros (but not leading zeros) may be omitted. `rv` keys MUST always be exactly 14 hex digits.
 
 Examples:
-`th` value is missing: Always Sample (probability = 100%). The AlwaysSample sampler in the OTel SDK should do this.
+`th` value is missing: Always Sample (probability = 100%). The AlwaysOn sampler in the OTel SDK should do this.
 `th=8` -- equivalent to `th=80000000000000`, which is 50% probability.
 `th=08` -- equivalent to `th=08000000000000`, which is 3.125% probability.
 `th=0` -- equivalent to `th=00000000000000`, which means Always Sample; this is outside of probabalistic sampling.
