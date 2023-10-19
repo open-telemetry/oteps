@@ -25,7 +25,7 @@ For the purposes of this document, a breaking change is defined as a change that
 
 #### Development
 
-Not all pieces of the component are in place yet, and it might not be available for users yet. Bugs and performance issues are expected to be reported. User feedback is desired, especially regarding the user experience (configuration options, component observability, technical implementation details, and so on). Configuration options might break often depending on how things evolve. The component SHOULD NOT be used in production. The component MAY be removed without prior notice.
+Not all pieces of the component are in place yet, and it might not be available for users yet. Bugs and performance issues are expected to be reported. User feedback around the UX of the component is desired, such as for configuration options, component observability, technical implementation details, and planned use-cases for the component. Configuration options might break often depending on how things evolve. The component SHOULD NOT be used in production. The component MAY be removed without prior notice.
 
 #### Alpha
 
