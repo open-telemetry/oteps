@@ -16,35 +16,35 @@ Introduces Data Model for Profiles signal to OpenTelemetry.
     * [Message `ProfilesData`](#message-profilesdata)
     * [Message `ResourceProfiles`](#message-resourceprofiles)
     * [Message `ScopeProfiles`](#message-scopeprofiles)
+    * [Message `ProfileContainer`](#message-profilecontainer)
     * [Message `Profile`](#message-profile)
-    * [Message `ProfileType`](#message-profiletype)
-    * [`Sample` structure](#sample-structure)
-    * [Message `Stacktrace`](#message-stacktrace)
-    * [Message `AttributeSet`](#message-attributeset)
-    * [Message `Link`](#message-link)
+    * [Message `ValueType`](#message-valuetype)
+    * [Message `Sample`](#message-sample)
     * [Message `Location`](#message-location)
+    * [Message `Line`](#message-line)
     * [Message `Mapping`](#message-mapping)
     * [Message `Function`](#message-function)
   * [Example Payloads](#example-payloads)
     * [Simple example](#simple-example)
   * [Notable differences compared to other signals](#notable-differences-compared-to-other-signals)
-    * [Relationships between messages](#relationships-between-messages)
-    * [Arrays of Integers vs Arrays of Structures](#arrays-of-integers-vs-arrays-of-structures)
-* [Trade-offs and mitigations](#trade-offs-and-mitigations)
-* [Prior art and alternatives](#prior-art-and-alternatives)
-  * [pprof](#pprof)
-    * [Divergence of Objectives](#divergence-of-objectives)
-    * [Technical Reasons](#technical-reasons)
-    * [Non-Technical Reasons](#non-technical-reasons)
-    * [Additional Considerations](#additional-considerations)
-      * [Interoperability between OTLP and pprof](#interoperability-between-otlp-and-pprof)
-      * [Performance implications in Go ecosystem](#performance-implications-in-go-ecosystem)
+    * [Relationships Between Messages](#relationships-between-messages)
+    * [Relationship Between Samples and Locations](#relationship-between-samples-and-locations)
+* [Trade-offs and Mitigations](#trade-offs-and-mitigations)
+* [Prior Art and Alternatives](#prior-art-and-alternatives)
+  * [Other Popular Formats](#other-popular-formats)
+    * [Folded Stacks](#folded-stacks)
+    * [Chromium's Trace Event Format](#chromiums-trace-event-format)
+    * [Linux perf.data](#linux-perfdata)
+    * [Java Flight Recorder (JFR)](#java-flight-recorder-jfr)
+  * [Alternative Representations](#alternative-representations)
   * [Benchmarking](#benchmarking)
-    * [Average profile](#average-profile)
-    * [Average profile with timestamps added to each sample](#average-profile-with-timestamps-added-to-each-sample)
-    * [Ruby profile with very deep stacktraces](#ruby-profile-with-very-deep-stacktraces)
-    * [Large profile](#large-profile)
+    * ["average" profile](#average-profile)
+    * ["average" profile with timestamps added to each sample](#average-profile-with-timestamps-added-to-each-sample)
+    * ["ruby" profile with very deep stacktraces](#ruby-profile-with-very-deep-stacktraces)
+    * ["large" profile](#large-profile)
+    * [Conclusions](#conclusions)
   * [Semantic Conventions](#semantic-conventions)
+    * [Attributes](#attributes)
     * [Profile Types](#profile-types)
     * [Profile Units](#profile-units)
   * [Decision Log](#decision-log)
@@ -76,9 +76,9 @@ This section describes various protobuf messages that are used to represent prof
 
 ### Relationships Diagram
 
-The following diagram shows the relationships between the messages. Relationships between messages are represented by either embedding one message in another (red arrows), or by referencing a message by index in a lookup table (blue arrows). More on that in [Relationships between messages](#relationships-between-messages) section below.
+The following diagram shows the relationships between the messages. Relationships between messages are represented by either embedding one message in another (red arrows), or by referencing a message by index in a lookup table (blue arrows). More on that in [Relationships Between Messages](#relationships-between-messages) section below.
 
-In addition to that, relationship between `stacktraces`, `attribute_sets` and `links` is implicit and based on the order of references to these objects in corresponding reference lists within a `ProfileType` message. The relationship between these messages creates an ephemeral structure called "Sample". More on that in [Arrays of Integers vs Arrays of Structures](#arrays-of-integers-vs-arrays-of-structures) section below.
+In addition to that, relationship between `samples` and `locations` is further optimized for better performance. More on that in [Relationship Between Samples and Locations](#relationship-between-samples-and-locations) section below.
 
 ![diagram of data relationships](./images/otep0000/profiles-data-model.png)
 
@@ -91,7 +91,7 @@ There are two types of relationships between profiles and other signals:
 
 #### From profiles to other signals
 
-[Link](#message-link) is a message that is used to represent connections between profile [Samples](#sample-structure) and trace spans. It uses `trace_id` and `span_id` as identifiers.
+`trace_id` and `span_id` (semantic convention) attributes attached to a Sample are used to represent connections between profile [Samples](#message-sample) and trace spans.
 
 For other signals, such as logs or metrics, because other signals use the same way of linking between such signals and traces (`trace_id` and `span_id`), it is possible to correlate profiles with other signals using this same information.
 
@@ -99,29 +99,34 @@ For other signals, such as logs or metrics, because other signals use the same w
 
 Other signals can use `profile_id` to reference a profile. For example, a log record can reference a profile that was collected at the time when the log record was generated by using `profile_id` as one of the attributes. This allows to correlate logs with profiles.
 
-Additionally, `trace_id`, `span_id` can be used to reference specific [Samples](#sample-structure) in a Profile, since [Samples](#sample-structure) are linked to traces with these same identifiers using [Links](#message-link).
+Additionally, `trace_id`, `span_id` can be used to reference specific [Samples](#message-sample) in a Profile, since [Samples](#message-sample) are linked to traces with these same identifiers.
 
-The exact details of such linking are out of scope for this OTEP. It is expected that other OTEPs will define how such linking is done.
+The exact details of such linking are out of scope for this OTEP. It is expected that the exact details will be defined in Profiles part of [opentelemetry-specification](https://github.com/open-telemetry/opentelemetry-specification).
 
 ### Proto Definition
 
-<!-- proto -->
+Proto definition is based on [pprof format](https://github.com/google/pprof/blob/main/proto/profile.proto).
+
+In the landscape of performance profiling tools, pprof's data format stands as a clear industry standard. Its evolution and enduring relevance are a reflection of its effectiveness in addressing diverse and complex performance profiling needs. Major technology firms and open-source projects alike routinely employ pprof, underscoring its universal applicability and reliability.
+
+According to the [data from Profilerpedia](https://docs.google.com/spreadsheets/d/1UM-WFQhNf4GcyXmluSUGnMbOenvN-TqP2HQC9-Y50Lc/edit?usp=sharing), it's one of the most widely used formats. Compared to other formats it has the highest number of profilers, UIs, formats it can be converted to and from.
+
+The original pprof data model underwent enhancements to more effectively manage profiling data within the scope of OpenTelemetry, and certain upgrades were implemented to overcome a few of the original format's constraints.
+
+Here's a [link to a diff between original pprof and modified pprof](https://github.com/open-telemetry/opentelemetry-proto-profile/compare/2cf711b3cfcc1edd4e46f9b82d19d016d6d0aa2a...petethepig:opentelemetry-proto:pprof-experiments#diff-9cb689ea05ecfd2edffc39869eca3282a3f2f45a8e1aa21624b452fa5362d1d2) and here's a list of main differences between pprof and OTLP profiles:
+
+* Sharing of the call stacks between samples.
+* Sharing of labels (now called attributes) between samples.
+* Reuse of OpenTelemetry conventions and message types.
+* Semantic conventions for linking to other signals via `trace_id`s and `span_id`s.
+* First-class timestamp support.
+
+Below you will find the proto for the new Profiles signal. It is split into two parts: the first part is the OpenTelemetry specific part, and the second part is the modified pprof proto. Intention here is to make it easier to compare modified pprof proto to the original pprof proto.
+
+OpenTelemetry specific part:
+<!-- proto1 -->
 
 ```proto
-// Copyright 2023, OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 syntax = "proto3";
 
 package opentelemetry.proto.profiles.v1;
@@ -134,6 +139,61 @@ option java_multiple_files = true;
 option java_package = "io.opentelemetry.proto.profiles.v1";
 option java_outer_classname = "ProfilesProto";
 option go_package = "go.opentelemetry.io/proto/otlp/profiles/v1";
+
+//                Relationships Diagram
+//
+// ┌──────────────────┐                LEGEND
+// │   ProfilesData   │
+// └──────────────────┘            ─────▶ embedded
+//   │
+//   │ 1-n                         ─────▷ referenced by index
+//   ▼
+// ┌──────────────────┐
+// │ ResourceProfiles │
+// └──────────────────┘
+//   │
+//   │ 1-n
+//   ▼
+// ┌──────────────────┐
+// │  ScopeProfiles   │
+// └──────────────────┘
+//   │
+//   │ 1-n
+//   ▼
+// ┌──────────────────┐
+// │ ProfileContainer │
+// └──────────────────┘
+//   │
+//   │ 1-1
+//   ▼
+// ┌──────────────────┐
+// │      Profile     │
+// └──────────────────┘
+//   │
+//   │ 1-n
+//   ▼
+// ┌──────────────────┐   1-n   ┌──────────────┐
+// │      Sample      │ ──────▷ │   KeyValue   │
+// └──────────────────┘         └──────────────┘
+//   │                    1-n       △      △
+//   │ 1-n        ┌─────────────────┘      │ 1-n
+//   ▽            │                        │
+// ┌──────────────────┐   1-1   ┌──────────────┐
+// │     Location     │ ──────▷ │   Mapping    │
+// └──────────────────┘         └──────────────┘
+//   │
+//   │ 1-n
+//   ▼
+// ┌──────────────────┐
+// │       Line       │
+// └──────────────────┘
+//   │
+//   │ 1-1
+//   ▽
+// ┌──────────────────┐
+// │     Function     │
+// └──────────────────┘
+//
 
 // ProfilesData represents the profiles data that can be stored in a persistent storage,
 // OR can be embedded by other protocols that transfer OTLP profiles data but do not
@@ -177,19 +237,17 @@ message ScopeProfiles {
   // an empty instrumentation scope name (unknown).
   opentelemetry.proto.common.v1.InstrumentationScope scope = 1;
 
-  // A list of Profiles that originate from an instrumentation scope.
-  repeated Profile profiles = 2;
+  // A list of ProfileContainers that originate from an instrumentation scope.
+  repeated ProfileContainer profiles = 2;
 
   // This schema_url applies to all profiles and profile events in the "profiles" field.
   string schema_url = 3;
 }
 
-// A Profile represents a single profile generated by a profiler. It has an ID and it has a start time and end time. Profile contains lookup tables for Stacktraces, Mappings, Locations, Functions, Links, AttributeSets, and strings.
-
-// Profile embeds one or more ProfileType messages — this allows to represent multiple profile types (e.g allocated objects and allocated bytes) in a single Profile message.
-message Profile {
+// A ProfileContainer represents a single profile. It wraps pprof profile with OpenTelemetry specific metadata.
+message ProfileContainer {
   // A unique identifier for a profile. The ID is a 16-byte array. An ID with
-  // all zeroes is considered invalid. Profile ID can be used by other signals to uniquely identify a profile.
+  // all zeroes is considered invalid.
   //
   // This field is required.
   bytes profile_id = 1;
@@ -206,7 +264,8 @@ message Profile {
   // This field is semantically required and it is expected that end_time >= start_time.
   fixed64 end_time_unix_nano = 3;
 
-  // attributes is a collection of key/value pairs. Attributes that are not specific to a particular profile (like server name) MUST be specified in Resource attributes instead. Examples of attributes:
+  // attributes is a collection of key/value pairs. Note, global attributes
+  // like server name can be set using the resource API. Examples of attributes:
   //
   //     "/http/user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
   //     "/http/server_latency": 300
@@ -224,154 +283,294 @@ message Profile {
   // attributes. If this value is 0, then no attributes were dropped.
   uint32 dropped_attributes_count = 5;
 
-  // This is the original profile as retrieved from the profiler. For example, this can be a pprof or jfr encoded profile. The reason users might want to include these is because some formats are very generic and can not be easily converted to a more structured format.
-  // TODO: add a field that indicates the format of the original payload?
-  bytes original_payload = 6;
+  // Specifies format of the original payload. Common values are defined in semantic conventions. [required if original_payload is present]
+  string original_payload_format = 6;
 
-  // A lookup table of Stacktraces. Other messages refer to Stacktraces in this table by index.
-  repeated Stacktrace stacktraces = 7;
+  // Original payload can be stored in this field. This can be useful for users who want to get the original payload.
+  // Formats such as JFR are highly extensible and can contain more information than what is defined in this spec.
+  // Inclusion of original payload should be configurable by the user. Default behavior should be to not include the original payload.
+  // If the original payload is in pprof format, it SHOULD not be included in this field.
+  // The field is optional, however if it is present `profile` MUST be present and contain the same profiling information.
+  bytes original_payload = 7;
 
-  // A lookup table of Mappings. Other messages refer to Mappings in this table by index.
-  repeated Mapping mappings = 8;
+  // This is a reference to a pprof profile. Required, even when original_payload is present.
+  opentelemetry.proto.profiles.v1.alternatives.pprofextended.Profile profile = 8;
+}
+```
 
-  // A lookup table of Locations. Other messages refer to Locations in this table by index.
-  repeated Location locations = 9;
+<!-- proto1 -->
 
-  // A lookup table of Functions. Other messages refer to Functions in this table by index.
-  repeated Function functions = 10;
+Modified pprof:
 
-  // A lookup table of Links to trace spans associated with this profile. Other messages refer to Links in this table by index. The first message must be an empty Link — this represents a null Link.
-  repeated Link links = 11;
+<!-- proto2 -->
 
-  // A lookup table of AttributeSets. Other messages refer to AttributeSets in this table by index. The first message must be an empty AttributeSet — this represents a null AttributeSet.
-  repeated AttributeSet attribute_sets = 12;
+```proto
+// Profile is a common stacktrace profile format.
+//
+// Measurements represented with this format should follow the
+// following conventions:
+//
+// - Consumers should treat unset optional fields as if they had been
+//   set with their default value.
+//
+// - When possible, measurements should be stored in "unsampled" form
+//   that is most useful to humans.  There should be enough
+//   information present to determine the original sampled values.
+//
+// - On-disk, the serialized proto must be gzip-compressed.
+//
+// - The profile is represented as a set of samples, where each sample
+//   references a sequence of locations, and where each location belongs
+//   to a mapping.
+// - There is a N->1 relationship from sample.location_id entries to
+//   locations. For every sample.location_id entry there must be a
+//   unique Location with that id.
+// - There is an optional N->1 relationship from locations to
+//   mappings. For every nonzero Location.mapping_id there must be a
+//   unique Mapping with that id.
 
-  // A lookup table of strings. Other messages refer to strings in this table by index.
-  // The 0-th element must be an empty string ("").
-  repeated string string_table = 13;
+syntax = "proto3";
 
-  // List of profile types included in this profile. The first item in the list is considered to be the "default" profile type. Example profile types are allocated objects or allocated bytes.
-  repeated ProfileType profile_types = 14;
+package opentelemetry.proto.profiles.v1.alternatives.pprofextended;
+
+import "opentelemetry/proto/common/v1/common.proto";
+
+option go_package = "go.opentelemetry.io/proto/otlp/profiles/v1/alternatives/pprofextended";
+
+message Profile {
+  // A description of the samples associated with each Sample.value.
+  // For a cpu profile this might be:
+  //   [["cpu","nanoseconds"]] or [["wall","seconds"]] or [["syscall","count"]]
+  // For a heap profile, this might be:
+  //   [["allocations","count"], ["space","bytes"]],
+  // If one of the values represents the number of events represented
+  // by the sample, by convention it should be at index 0 and use
+  // sample_type.unit == "count".
+  repeated ValueType sample_type = 1;
+  // The set of samples recorded in this profile.
+  repeated Sample sample = 2;
+  // Mapping from address ranges to the image/binary/library mapped
+  // into that address range.  mapping[0] will be the main binary.
+  repeated Mapping mapping = 3;
+  // Locations referenced by samples via location_indices.
+  repeated Location location = 4;
+  // Functions referenced by locations.
+  repeated Function function = 5;
+  // A common table for strings referenced by various messages.
+  // string_table[0] must always be "".
+  repeated string string_table = 6;
+  // frames with Function.function_name fully matching the following
+  // regexp will be dropped from the samples, along with their successors.
+  int64 drop_frames = 7;   // Index into string table.
+  // frames with Function.function_name fully matching the following
+  // regexp will be kept, even if it matches drop_frames.
+  int64 keep_frames = 8;  // Index into string table.
+
+  // The following fields are informational, do not affect
+  // interpretation of results.
+
+  // Time of collection (UTC) represented as nanoseconds past the epoch.
+  int64 time_nanos = 9;
+  // Duration of the profile, if a duration makes sense.
+  int64 duration_nanos = 10;
+  // The kind of events between sampled occurrences.
+  // e.g [ "cpu","cycles" ] or [ "heap","bytes" ]
+  ValueType period_type = 11;
+  // The number of events between sampled occurrences.
+  int64 period = 12;
+  // Free-form text associated with the profile. The text is displayed as is
+  // to the user by the tools that read profiles (e.g. by pprof). This field
+  // should not be used to store any machine-readable information, it is only
+  // for human-friendly content. The profile must stay functional if this field
+  // is cleaned.
+  repeated int64 comment = 13; // Indices into string table.
+  // Index into the string table of the type of the preferred sample
+  // value. If unset, clients should default to the last sample value.
+  int64 default_sample_type = 14;
+  // Array of locations referenced by samples.
+  repeated int64 location_indices = 15;
+  // Lookup table for attributes.
+  repeated opentelemetry.proto.common.v1.KeyValue attribute_table = 16;
 }
 
-// Represents a relationship between a Sample (ephemeral structure represented by references to a Stacktrace, AttributeSet, Link + value and a timestamp) and a trace span. This allows for linking between specific Samples within a profile and traces.
-message Link {
-  // A unique identifier of a trace that this linked span is part of. The ID is a
-  // 16-byte array.
-  bytes trace_id = 1;
-  // A unique identifier for the linked span. The ID is an 8-byte array.
-  bytes span_id = 2;
-}
-
-// AttributeSet represents a set of attributes. Multiple Samples, Locations and Mappings may have the same attributes and that's why this is a separate message. These are stored in a lookup table in a Profile. These are referenced by index from other messages.
-message AttributeSet {
-  // Attributes associated with a specific Sample, Location or a Mapping.
-  // attributes is a collection of key/value pairs. Note, global attributes
-  // like server name can be set using the resource API. Examples of attributes:
-  //
-  //     "/http/user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
-  //     "/http/server_latency": 300
-  //     "abc.com/myattribute": true
-  //     "abc.com/score": 10.239
-  //
-  // The OpenTelemetry API specification further restricts the allowed value types:
-  // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/README.md#attribute
-  // Attribute keys MUST be unique (it is not allowed to have more than one
-  // attribute with the same key).
-  repeated opentelemetry.proto.common.v1.KeyValue attributes = 1;
-
-  // dropped_attributes_count is the number of attributes that were discarded. Attributes
-  // can be discarded because their keys are too long or because there are too many
-  // attributes. If this value is 0, then no attributes were dropped.
-  uint32 dropped_attributes_count = 2;
-}
-
-// A stacktrace is a sequence of locations. Order of locations goes from callers to callees. Many stacktraces will point to the same locations. The link between stacktraces, attribute sets, links, values and timestamps is implicit and is based on the order of the elements in the corresponding tables in ProfileType message.
-message Stacktrace {
-  repeated uint32 location_indices = 1;
-}
-
-// AggregationTemporality defines how a profile aggregator reports aggregated
-// values. It describes how those values relate to the time interval over
-// which they are aggregated.
 enum AggregationTemporality {
-  AGGREGATION_TEMPORALITY_UNSPECIFIED = 0; // Temporality unspecified.
-  AGGREGATION_TEMPORALITY_DELTA = 1;       // Delta aggregation over time.
-  AGGREGATION_TEMPORALITY_CUMULATIVE = 2;  // Cumulative aggregation over time.
+  /* UNSPECIFIED is the default AggregationTemporality, it MUST not be used. */
+  AGGREGATION_TEMPORALITY_UNSPECIFIED = 0;
+
+  /** DELTA is an AggregationTemporality for a profiler which reports
+  changes since last report time. Successive metrics contain aggregation of
+  values from continuous and non-overlapping intervals.
+
+  The values for a DELTA metric are based only on the time interval
+  associated with one measurement cycle. There is no dependency on
+  previous measurements like is the case for CUMULATIVE metrics.
+
+  For example, consider a system measuring the number of requests that
+  it receives and reports the sum of these requests every second as a
+  DELTA metric:
+
+  1. The system starts receiving at time=t_0.
+  2. A request is received, the system measures 1 request.
+  3. A request is received, the system measures 1 request.
+  4. A request is received, the system measures 1 request.
+  5. The 1 second collection cycle ends. A metric is exported for the
+      number of requests received over the interval of time t_0 to
+      t_0+1 with a value of 3.
+  6. A request is received, the system measures 1 request.
+  7. A request is received, the system measures 1 request.
+  8. The 1 second collection cycle ends. A metric is exported for the
+      number of requests received over the interval of time t_0+1 to
+      t_0+2 with a value of 2. */
+  AGGREGATION_TEMPORALITY_DELTA = 1;
+
+  /** CUMULATIVE is an AggregationTemporality for a profiler which
+  reports changes since a fixed start time. This means that current values
+  of a CUMULATIVE metric depend on all previous measurements since the
+  start time. Because of this, the sender is required to retain this state
+  in some form. If this state is lost or invalidated, the CUMULATIVE metric
+  values MUST be reset and a new fixed start time following the last
+  reported measurement time sent MUST be used.
+
+  For example, consider a system measuring the number of requests that
+  it receives and reports the sum of these requests every second as a
+  CUMULATIVE metric:
+
+  1. The system starts receiving at time=t_0.
+  2. A request is received, the system measures 1 request.
+  3. A request is received, the system measures 1 request.
+  4. A request is received, the system measures 1 request.
+  5. The 1 second collection cycle ends. A metric is exported for the
+      number of requests received over the interval of time t_0 to
+      t_0+1 with a value of 3.
+  6. A request is received, the system measures 1 request.
+  7. A request is received, the system measures 1 request.
+  8. The 1 second collection cycle ends. A metric is exported for the
+      number of requests received over the interval of time t_0 to
+      t_0+2 with a value of 5.
+  9. The system experiences a fault and loses state.
+  10. The system recovers and resumes receiving at time=t_1.
+  11. A request is received, the system measures 1 request.
+  12. The 1 second collection cycle ends. A metric is exported for the
+      number of requests received over the interval of time t_1 to
+      t_0+1 with a value of 1.
+
+  Note: Even though, when reporting changes since last report time, using
+  CUMULATIVE is valid, it is not recommended. */
+  AGGREGATION_TEMPORALITY_CUMULATIVE = 2;
 }
 
-// Represents a single profile type. It implicitly creates a connection between Stacktraces, Links, AttributeSets, values and timestamps. The connection is based on the order of the elements in the corresponding lists. This implicit connection creates an ephemeral structure called Sample. The length of reference lists must be the same. It is acceptable however for timestamps, links and attribute set lists to be empty. It is not acceptable for stacktrace or values lists to be empty.
-message ProfileType {
-  // aggregation_temporality describes if the aggregator reports delta changes
-  // since last report time, or cumulative changes since a fixed start time.
-  AggregationTemporality aggregation_temporality = 1;
+// ValueType describes the semantics and measurement units of a value.
+message ValueType {
+  int64 type = 1; // Index into string table.
+  int64 unit = 2; // Index into string table.
 
-  // Profiler sample rate in Hz. This parameter indicates the frequency at which samples are collected, specifically for CPU profiles. Common values are 99 or 100. [Optional].
-  uint64 sample_rate = 2;
-
-  // Index into the string table for the type of the sample. Example values are "cpu", "alloc_objects", "alloc_bytes", "block_contentions". Full list is defined in https://github.com/open-telemetry/semantic-conventions
-  uint32 type_index = 3;
-
-  // Index into the string table for the unit of the sample. Example values are "ms", "ns", "samples", "bytes". Full list is defined in https://github.com/open-telemetry/semantic-conventions
-  uint32 unit_index = 4;
-
-  // List of indices referring to Stacktraces in the Profile's stacktrace table.
-  repeated uint32 stacktrace_indices = 10;
-
-  // List of indices referring to Links in the Profile's link table. Each link corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length. [Optional]
-  repeated uint32 link_indices = 11;
-
-  // List of indices referring to AttributeSets in the Profile's attribute set table. Each attribute set corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length. [Optional]
-  repeated uint32 attribute_set_indices = 12;
-
-  // List of values. Each value corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length.
-  repeated int64 values = 13;
-
-  // List of timestamps. Each timestamp corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length.
-  repeated uint64 timestamps = 14;
+  AggregationTemporality aggregation_temporality = 3;
 }
 
-// SymbolFidelity enumerates the level of fidelity for symbol information in a profile.
-enum SymbolFidelity {
-  SYMBOL_FIDELITY_UNSPECIFIED = 0; // The symbol fidelity level is unspecified.
-  SYMBOL_FIDELITY_FULL = 1;        // The symbol fidelity is at its fullest level of detail.
+// Each Sample records values encountered in some program
+// context. The program context is typically a stack trace, perhaps
+// augmented with auxiliary information like the thread-id, some
+// indicator of a higher level request being handled etc.
+message Sample {
+  // The indices recorded here correspond to locations in Profile.location.
+  // The leaf is at location_index[0]. [deprecated]
+  repeated uint64 location_index = 1;
+  // The type and unit of each value is defined by the corresponding
+  // entry in Profile.sample_type. All samples must have the same
+  // number of values, the same as the length of Profile.sample_type.
+  // When aggregating multiple samples into a single sample, the
+  // result has a list of values that is the element-wise sum of the
+  // lists of the originals.
+  repeated int64 value = 2;
+  // label includes additional context for this sample. It can include
+  // things like a thread id, allocation size, etc.
+  //
+  // NOTE: While possible, having multiple values for the same label key is
+  // strongly discouraged and should never be used. Most tools (e.g. pprof) do
+  // not have good (or any) support for multi-value labels. And an even more
+  // discouraged case is having a string label and a numeric label of the same
+  // name on a sample.  Again, possible to express, but should not be used.
+  // [deprecated, superseded by attributes]
+  repeated Label label = 3;
+
+  // locations_start_index along with locations_length refers to to a slice of locations in Profile.location. Supersedes location_index.
+  uint64 locations_start_index = 4;
+
+  // locations_length along with locations_start_index refers to a slice of locations in Profile.location. Supersedes location_index.
+  uint64 locations_length = 5;
+
+  // Timestamps associated with Sample represented in ms. These timestamps are expected to fall within the Profile's time range. [optional]
+  repeated uint64 timestamps = 6;
+
+  // References to attributes in Profile.attribute_table. [optional]
+  repeated uint64 attributes = 7;
 }
 
-// Describes the mapping from a binary to its original source code. These are stored in a lookup table in a Profile. These are referenced by index from other messages.
+message Label {
+  int64 key = 1;   // Index into string table
+
+  // At most one of the following must be present
+  int64 str = 2;   // Index into string table
+  int64 num = 3;
+
+  // Should only be present when num is present.
+  // Specifies the units of num.
+  // Use arbitrary string (for example, "requests") as a custom count unit.
+  // If no unit is specified, consumer may apply heuristic to deduce the unit.
+  // Consumers may also  interpret units like "bytes" and "kilobytes" as memory
+  // units and units like "seconds" and "nanoseconds" as time units,
+  // and apply appropriate unit conversions to these.
+  int64 num_unit = 4;  // Index into string table
+}
+
 message Mapping {
+  // Unique nonzero id for the mapping. [deprecated]
+  uint64 id = 1;
   // Address at which the binary (or DLL) is loaded into memory.
-  uint64 memory_start = 1;
+  uint64 memory_start = 2;
   // The limit of the address range occupied by this mapping.
-  uint64 memory_limit = 2;
+  uint64 memory_limit = 3;
   // Offset in the binary that corresponds to the first mapped address.
-  uint64 file_offset = 3;
+  uint64 file_offset = 4;
   // The object this entry is loaded from.  This can be a filename on
   // disk for the main binary and shared libraries, or virtual
-  // abstractions like "[vdso]". Index into string table
-  uint32 filename_index = 4;
+  // abstractions like "[vdso]".
+  int64 filename = 5;  // Index into string table
   // A string that uniquely identifies a particular program version
   // with high probability. E.g., for binaries generated by GNU tools,
-  // it could be the contents of the .note.gnu.build-id field. Index into string table
-  uint32 build_id_index = 5;
+  // it could be the contents of the .note.gnu.build-id field.
+  int64 build_id = 6;  // Index into string table
 
-  SymbolFidelity symbolic_info = 6;
+  // The following fields indicate the resolution of symbolic info.
+  bool has_functions = 7;
+  bool has_filenames = 8;
+  bool has_line_numbers = 9;
+  bool has_inline_frames = 10;
 
-  // Reference to an attribute set from the Profile's attribute set table.
-  uint32 attribute_set_index = 7;
+  // A string that uniquely identifies a particular binary with high probability.
+  // It is meant to work around deficiencies in the GNU Build ID that may compromise
+  // uniqueness / correlatability. Index into string table.
+  uint32 file_id_index = 11;
+
+  // References to attributes in Profile.attribute_table. [optional]
+  repeated uint64 attributes = 12;
 }
 
-// Describes function and line table debug information. These are stored in a lookup table in a Profile. These are referenced by index from other messages.
+// Describes function and line table debug information.
 message Location {
-  // The id of the corresponding profile.Mapping for this location.
+  // Unique nonzero id for the location.  A profile could use
+  // instruction addresses or any integer sequence as ids. [deprecated]
+  uint64 id = 1;
+  // The index of the corresponding profile.Mapping for this location.
   // It can be unset if the mapping is unknown or not applicable for
   // this profile type.
-  uint32 mapping_index = 1;
+  uint64 mapping_index = 2;
   // The instruction address for this location, if available.  It
   // should be within [Mapping.memory_start...Mapping.memory_limit]
   // for the corresponding mapping. A non-leaf address may be in the
   // middle of a call instruction. It is up to display tools to find
   // the beginning of the instruction if necessary.
-  uint64 address = 2;
+  uint64 address = 3;
   // Multiple line indicates this location has inlined functions,
   // where the last entry represents the caller into which the
   // preceding entries were inlined.
@@ -379,35 +578,44 @@ message Location {
   // E.g., if memcpy() is inlined into printf:
   //    line[0].function_name == "memcpy"
   //    line[1].function_name == "printf"
-  repeated Line line = 3;
+  repeated Line line = 4;
+  // Provides an indication that multiple symbols map to this location's
+  // address, for example due to identical code folding by the linker. In that
+  // case the line information above represents one of the multiple
+  // symbols. This field must be recomputed when the symbolization state of the
+  // profile changes.
+  bool is_folded = 5;
 
-  // Reference to an attribute set from the Profile's attribute set table.
-  uint32 attribute_set_index = 4;
+  // Type of frame (e.g. kernel, native, python, hotspot, php). Index into string table.
+  uint32 type_index = 6;
+
+  // References to attributes in Profile.attribute_table. [optional]
+  repeated uint64 attributes = 7;
 }
 
-// Represents a line in a source file. These are embedded within a Location message.
 message Line {
-  // The id of the corresponding profile.Function for this line.
-  uint32 function_index = 1;
+  // The index of the corresponding profile.Function for this line.
+  uint64 function_index = 1;
   // Line number in source code.
-  uint32 line = 2;
+  int64 line = 2;
 }
 
-// Represents a function in a source file. These are stored in a lookup table in a Profile. These are referenced by index from other messages.
 message Function {
-  // Name of the function, in human-readable form if available. Index into string table
-  uint32 name_index = 1;
+  // Unique nonzero id for the function. [deprecated]
+  uint64 id = 1;
+  // Name of the function, in human-readable form if available.
+  int64 name = 2; // Index into string table
   // Name of the function, as identified by the system.
-  // For instance, it can be a C++ mangled name. Index into string table
-  uint32 system_name_index = 2;
-  // Source file containing the function. Index into string table
-  uint32 filename_index = 3;
+  // For instance, it can be a C++ mangled name.
+  int64 system_name = 3; // Index into string table
+  // Source file containing the function.
+  int64 filename = 4; // Index into string table
   // Line number in source file.
-  uint32 start_line = 4;
+  int64 start_line = 5;
 }
 ```
 
-<!-- proto -->
+<!-- proto2 -->
 
 ### Message Descriptions
 
@@ -462,18 +670,16 @@ an empty instrumentation scope name (unknown).
 
 ##### Field `profiles`
 
-A list of Profiles that originate from an instrumentation scope.
+A list of ProfileContainers that originate from an instrumentation scope.
 
 ##### Field `schema_url`
 
 This schema_url applies to all profiles and profile events in the "profiles" field.
 </details>
 
-#### Message `Profile`
+#### Message `ProfileContainer`
 
-A Profile represents a single profile generated by a profiler. It has an ID and it has a start time and end time. Profile contains lookup tables for Stacktraces, Mappings, Locations, Functions, Links, AttributeSets, and strings.
-
-Profile embeds one or more ProfileType messages — this allows to represent multiple profile types (e.g allocated objects and allocated bytes) in a single Profile message.
+A ProfileContainer represents a single profile. It wraps pprof profile with OpenTelemetry specific metadata.
 
 <details>
 <summary>Field Descriptions</summary>
@@ -481,7 +687,7 @@ Profile embeds one or more ProfileType messages — this allows to represent mul
 ##### Field `profile_id`
 
 A unique identifier for a profile. The ID is a 16-byte array. An ID with
-all zeroes is considered invalid. Profile ID can be used by other signals to uniquely identify a profile.
+all zeroes is considered invalid.
 This field is required.
 
 ##### Field `start_time_unix_nano`
@@ -498,116 +704,6 @@ This field is semantically required and it is expected that end_time >= start_ti
 
 ##### Field `attributes`
 
-attributes is a collection of key/value pairs. Attributes that are not specific to a particular profile (like server name) MUST be specified in Resource attributes instead.
-
-##### Field `dropped_attributes_count`
-
-dropped_attributes_count is the number of attributes that were discarded. Attributes
-can be discarded because their keys are too long or because there are too many
-attributes. If this value is 0, then no attributes were dropped.
-
-##### Field `original_payload`
-
-This is the original profile as retrieved from the profiler. For example, this can be a pprof or jfr encoded profile. The reason users might want to include these is because some formats are very generic and can not be easily converted to a more structured format.
-TODO: add a field that indicates the format of the original payload?
-
-##### Field `stacktraces`
-
-A lookup table of Stacktraces. Other messages refer to Stacktraces in this table by index.
-
-##### Field `mappings`
-
-A lookup table of Mappings. Other messages refer to Mappings in this table by index.
-
-##### Field `locations`
-
-A lookup table of Locations. Other messages refer to Locations in this table by index.
-
-##### Field `functions`
-
-A lookup table of Functions. Other messages refer to Functions in this table by index.
-
-##### Field `links`
-
-A lookup table of Links to trace spans associated with this profile. Other messages refer to Links in this table by index. The first message must be an empty Link — this represents a null Link.
-
-##### Field `attribute_sets`
-
-A lookup table of AttributeSets. Other messages refer to AttributeSets in this table by index. The first message must be an empty AttributeSet — this represents a null AttributeSet.
-
-##### Field `string_table`
-
-A lookup table of strings. Other messages refer to strings in this table by index.
-The 0-th element must be an empty string ("").
-
-##### Field `profile_types`
-
-List of profile types included in this profile. The first item in the list is considered to be the "default" profile type. Example profile types are allocated objects or allocated bytes.
-</details>
-
-#### Message `ProfileType`
-
-Represents a single profile type. It implicitly creates a connection between Stacktraces, Links, AttributeSets, values and timestamps. The connection is based on the order of the elements in the corresponding lists. This implicit connection creates an ephemeral structure called Sample. The length of reference lists must be the same. It is acceptable however for timestamps, links and attribute set lists to be empty. It is not acceptable for stacktrace or values lists to be empty.
-
-<details>
-<summary>Field Descriptions</summary>
-
-##### Field `aggregation_temporality`
-
-aggregation_temporality describes if the aggregator reports delta changes
-since last report time, or cumulative changes since a fixed start time.
-
-##### Field `sample_rate`
-
-Profiler sample rate in Hz. This parameter indicates the frequency at which samples are collected, specifically for CPU profiles. Common values are 99 or 100. [Optional].
-
-##### Field `type_index`
-
-Index into the string table for the type of the sample. Example values are "cpu", "alloc_objects", "alloc_bytes", "block_contentions". Full list is defined in [semantic-conventions](https://github.com/open-telemetry/semantic-conventions)
-
-##### Field `unit_index`
-
-Index into the string table for the unit of the sample. Example values are "ms", "ns", "samples", "bytes". Full list is defined in [semantic-conventions](https://github.com/open-telemetry/semantic-conventions)
-
-##### Field `stacktrace_indices`
-
-List of indices referring to Stacktraces in the Profile's stacktrace table.
-
-##### Field `link_indices`
-
-List of indices referring to Links in the Profile's link table. Each link corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length. [Optional]
-
-##### Field `attribute_set_indices`
-
-List of indices referring to AttributeSets in the Profile's attribute set table. Each attribute set corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length. [Optional]
-
-##### Field `values`
-
-List of values. Each value corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length.
-
-##### Field `timestamps`
-
-List of timestamps. Each timestamp corresponds to a Stacktrace in stacktrace_indices list. Length must match stacktrace_indices length.
-</details>
-
-#### `Sample` structure
-
-Sample is an ephemeral structure. It is not explicitly represented as a protobuf message, instead it is represented by stacktraces, links, attribute sets, values and timestamps tables in `ProfileType` message. The connection is based on the order of the elements in the corresponding tables. For example, AttributeSet with index 1 corresponds to a Stacktrace located at index 1 in stacktraces table, and a Value located at index 1 in values table. Together they form a Sample.
-
-#### Message `Stacktrace`
-
-A stacktrace is a sequence of locations. Order of locations goes from callers to callees. Many stacktraces will point to the same locations. The link between stacktraces, attribute sets, links, values and timestamps is implicit and is based on the order of the elements in the corresponding tables in ProfileType message.
-
-#### Message `AttributeSet`
-
-AttributeSet represents a set of attributes. Multiple Samples, Locations and Mappings may have the same attributes and that's why this is a separate message. These are stored in a lookup table in a Profile. These are referenced by index from other messages.
-
-<details>
-<summary>Field Descriptions</summary>
-
-##### Field `attributes`
-
-Attributes associated with a specific Sample, Location or a Mapping.
 attributes is a collection of key/value pairs. Note, global attributes
 like server name can be set using the resource API.
 
@@ -616,35 +712,219 @@ like server name can be set using the resource API.
 dropped_attributes_count is the number of attributes that were discarded. Attributes
 can be discarded because their keys are too long or because there are too many
 attributes. If this value is 0, then no attributes were dropped.
+
+##### Field `original_payload_format`
+
+Specifies format of the original payload. Common values are defined in semantic conventions. [required if original_payload is present]
+
+##### Field `original_payload`
+
+Original payload can be stored in this field. This can be useful for users who want to get the original payload.
+Formats such as JFR are highly extensible and can contain more information than what is defined in this spec.
+Inclusion of original payload should be configurable by the user. Default behavior should be to not include the original payload.
+If the original payload is in pprof format, it SHOULD not be included in this field.
+The field is optional, however if it is present `profile` MUST be present and contain the same profiling information.
+
+##### Field `profile`
+
+This is a reference to a pprof profile. Required, even when original_payload is present.
 </details>
 
-#### Message `Link`
+#### Message `Profile`
 
-Represents a relationship between a Sample (ephemeral structure represented by references to a Stacktrace, AttributeSet, Link + value and a timestamp) and a trace span. This allows for linking between specific Samples within a profile and traces.
+Profile is a common stacktrace profile format.
+Measurements represented with this format should follow the
+following conventions:
+
+- Consumers should treat unset optional fields as if they had been
+  set with their default value.
+- When possible, measurements should be stored in "unsampled" form
+  that is most useful to humans.  There should be enough
+  information present to determine the original sampled values.
+- On-disk, the serialized proto must be gzip-compressed.
+- The profile is represented as a set of samples, where each sample
+  references a sequence of locations, and where each location belongs
+  to a mapping.
+- There is a N->1 relationship from sample.location_id entries to
+  locations. For every sample.location_id entry there must be a
+  unique Location with that id.
+- There is an optional N->1 relationship from locations to
+  mappings. For every nonzero Location.mapping_id there must be a
+  unique Mapping with that id.
 
 <details>
 <summary>Field Descriptions</summary>
 
-##### Field `trace_id`
+##### Field `sample_type`
 
-A unique identifier of a trace that this linked span is part of. The ID is a
-16-byte array.
+A description of the samples associated with each Sample.value.
+For a cpu profile this might be:
+[["cpu","nanoseconds"]] or [["wall","seconds"]] or [["syscall","count"]]
+For a heap profile, this might be:
+[["allocations","count"], ["space","bytes"]],
+If one of the values represents the number of events represented
+by the sample, by convention it should be at index 0 and use
+sample_type.unit == "count".
 
-##### Field `span_id`
+##### Field `sample`
 
-A unique identifier for the linked span. The ID is an 8-byte array.
+The set of samples recorded in this profile.
+
+##### Field `mapping`
+
+Mapping from address ranges to the image/binary/library mapped
+into that address range.  mapping[0] will be the main binary.
+
+##### Field `location`
+
+Locations referenced by samples via location_indices.
+
+##### Field `function`
+
+Functions referenced by locations.
+
+##### Field `string_table`
+
+A common table for strings referenced by various messages.
+string_table[0] must always be "".
+
+##### Field `drop_frames`
+
+frames with Function.function_name fully matching the following
+regexp will be dropped from the samples, along with their successors.
+
+##### Field `keep_frames`
+
+Index into string table.
+frames with Function.function_name fully matching the following
+regexp will be kept, even if it matches drop_frames.
+
+##### Field `time_nanos`
+
+Index into string table.
+The following fields are informational, do not affect
+interpretation of results.
+Time of collection (UTC) represented as nanoseconds past the epoch.
+
+##### Field `duration_nanos`
+
+Duration of the profile, if a duration makes sense.
+
+##### Field `period_type`
+
+The kind of events between sampled occurrences.
+e.g [ "cpu","cycles" ] or [ "heap","bytes" ]
+
+##### Field `period`
+
+The number of events between sampled occurrences.
+
+##### Field `comment`
+
+Free-form text associated with the profile. The text is displayed as is
+to the user by the tools that read profiles (e.g. by pprof). This field
+should not be used to store any machine-readable information, it is only
+for human-friendly content. The profile must stay functional if this field
+is cleaned.
+
+##### Field `default_sample_type`
+
+Indices into string table.
+Index into the string table of the type of the preferred sample
+value. If unset, clients should default to the last sample value.
+
+##### Field `location_indices`
+
+Array of locations referenced by samples.
+
+##### Field `attribute_table`
+
+Lookup table for attributes.
+</details>
+
+#### Message `ValueType`
+
+ValueType describes the semantics and measurement units of a value.
+
+<details>
+<summary>Field Descriptions</summary>
+
+##### Field `unit`
+
+Index into string table.
+
+##### Field `aggregation_temporality`
+
+Index into string table.
+</details>
+
+#### Message `Sample`
+
+Each Sample records values encountered in some program
+context. The program context is typically a stack trace, perhaps
+augmented with auxiliary information like the thread-id, some
+indicator of a higher level request being handled etc.
+
+<details>
+<summary>Field Descriptions</summary>
+
+##### Field `location_index`
+
+The indices recorded here correspond to locations in Profile.location.
+The leaf is at location_index[0]. [deprecated]
+
+##### Field `value`
+
+The type and unit of each value is defined by the corresponding
+entry in Profile.sample_type. All samples must have the same
+number of values, the same as the length of Profile.sample_type.
+When aggregating multiple samples into a single sample, the
+result has a list of values that is the element-wise sum of the
+lists of the originals.
+
+##### Field `label`
+
+label includes additional context for this sample. It can include
+things like a thread id, allocation size, etc.
+NOTE: While possible, having multiple values for the same label key is
+strongly discouraged and should never be used. Most tools (e.g. pprof) do
+not have good (or any) support for multi-value labels. And an even more
+discouraged case is having a string label and a numeric label of the same
+name on a sample.  Again, possible to express, but should not be used.
+[deprecated, superseded by attributes]
+
+##### Field `locations_start_index`
+
+locations_start_index along with locations_length refers to to a slice of locations in Profile.location. Supersedes location_index.
+
+##### Field `locations_length`
+
+locations_length along with locations_start_index refers to a slice of locations in Profile.location. Supersedes location_index.
+
+##### Field `timestamps`
+
+Timestamps associated with Sample represented in ms. These timestamps are expected to fall within the Profile's time range. [optional]
+
+##### Field `attributes`
+
+References to attributes in Profile.attribute_table. [optional]
 </details>
 
 #### Message `Location`
 
-Describes function and line table debug information. These are stored in a lookup table in a Profile. These are referenced by index from other messages.
+Describes function and line table debug information.
 
 <details>
 <summary>Field Descriptions</summary>
 
+##### Field `id`
+
+Unique nonzero id for the location.  A profile could use
+instruction addresses or any integer sequence as ids. [deprecated]
+
 ##### Field `mapping_index`
 
-The id of the corresponding profile.Mapping for this location.
+The index of the corresponding profile.Mapping for this location.
 It can be unset if the mapping is unknown or not applicable for
 this profile type.
 
@@ -665,17 +945,45 @@ E.g., if memcpy() is inlined into printf:
 line[0].function_name == "memcpy"
 line[1].function_name == "printf"
 
-##### Field `attribute_set_index`
+##### Field `is_folded`
 
-Reference to an attribute set from the Profile's attribute set table.
+Provides an indication that multiple symbols map to this location's
+address, for example due to identical code folding by the linker. In that
+case the line information above represents one of the multiple
+symbols. This field must be recomputed when the symbolization state of the
+profile changes.
+
+##### Field `type_index`
+
+Type of frame (e.g. kernel, native, python, hotspot, php). Index into string table.
+
+##### Field `attributes`
+
+References to attributes in Profile.attribute_table. [optional]
+</details>
+
+#### Message `Line`
+
+<details>
+<summary>Field Descriptions</summary>
+
+##### Field `function_index`
+
+The index of the corresponding profile.Function for this line.
+
+##### Field `line`
+
+Line number in source code.
 </details>
 
 #### Message `Mapping`
 
-Describes the mapping from a binary to its original source code. These are stored in a lookup table in a Profile. These are referenced by index from other messages.
-
 <details>
 <summary>Field Descriptions</summary>
+
+##### Field `id`
+
+Unique nonzero id for the mapping. [deprecated]
 
 ##### Field `memory_start`
 
@@ -689,45 +997,62 @@ The limit of the address range occupied by this mapping.
 
 Offset in the binary that corresponds to the first mapped address.
 
-##### Field `filename_index`
+##### Field `filename`
 
 The object this entry is loaded from.  This can be a filename on
 disk for the main binary and shared libraries, or virtual
-abstractions like "[vdso]". Index into string table
+abstractions like "[vdso]".
 
-##### Field `build_id_index`
+##### Field `build_id`
 
+Index into string table
 A string that uniquely identifies a particular program version
 with high probability. E.g., for binaries generated by GNU tools,
-it could be the contents of the .note.gnu.build-id field. Index into string table
+it could be the contents of the .note.gnu.build-id field.
 
-##### Field `attribute_set_index`
+##### Field `has_functions`
 
-Reference to an attribute set from the Profile's attribute set table.
+Index into string table
+The following fields indicate the resolution of symbolic info.
+
+##### Field `file_id_index`
+
+A string that uniquely identifies a particular binary with high probability.
+It is meant to work around deficiencies in the GNU Build ID that may compromise
+uniqueness / correlatability. Index into string table.
+
+##### Field `attributes`
+
+References to attributes in Profile.attribute_table. [optional]
 </details>
 
 #### Message `Function`
 
-Represents a function in a source file. These are stored in a lookup table in a Profile. These are referenced by index from other messages.
-
 <details>
 <summary>Field Descriptions</summary>
 
-##### Field `name_index`
+##### Field `id`
 
-Name of the function, in human-readable form if available. Index into string table
+Unique nonzero id for the function. [deprecated]
 
-##### Field `system_name_index`
+##### Field `name`
 
+Name of the function, in human-readable form if available.
+
+##### Field `system_name`
+
+Index into string table
 Name of the function, as identified by the system.
-For instance, it can be a C++ mangled name. Index into string table
+For instance, it can be a C++ mangled name.
 
-##### Field `filename_index`
+##### Field `filename`
 
-Source file containing the function. Index into string table
+Index into string table
+Source file containing the function.
 
 ##### Field `start_line`
 
+Index into string table
 Line number in source file.
 </details>
 
@@ -737,7 +1062,7 @@ Line number in source file.
 
 #### Simple example
 
-Considering the following example presented in a modified collapsed format:
+Considering the following example presented in a modified folded format:
 
 ```
 foo;bar;baz 100 region=us,trace_id=0x01020304010203040102030401020304,span_id=0x9999999999999999 1687841528000000
@@ -749,7 +1074,7 @@ It represents 2 samples:
 * one for stacktrace `foo;bar;baz` with value `100`, attributes `region=us`, linked to trace `0x01020304010203040102030401020304` and span `0x9999999999999999`, and timestamp `1687841528000000`
 * one for stacktrace `foo;bar` with value `200`, attributes `region=us`, no link, no timestamp
 
-The resulting profile in OTLP format would look like this (in YAML format):
+The resulting profile in OTLP format would look like this (converted to YAML format for legibility):
 
 ```yaml
 resource_profiles:
@@ -758,75 +1083,65 @@ resource_profiles:
     schema_url: todo
     scope_profiles:
       - profiles:
-          - attribute_sets:
-              - attributes: null
-              - attributes:
-                  - key: region
-                    value:
-                      Value:
-                        string_value: us
-            functions:
-              - name_index: 1
-              - name_index: 2
-              - name_index: 3
-            links:
-              - span_id: ""
-                trace_id: ""
-              - span_id: "9999999999999999"
-                trace_id: "01020304010203040102030401020304"
-            locations:
-              - line:
-                  - {}
-              - line:
-                  - function_index: 1
-              - line:
-                  - function_index: 2
-            profile_types:
-              - aggregation_temporality: 1
-                sample_rate: 100
-                type_index: 4
-                unit_index: 5
-                attribute_set_indices:
-                  - 1
-                  - 1
-                link_indices:
-                  - 1
-                  - 0
-                stacktrace_indices:
-                  - 0
-                  - 1
-                timestamps:
-                  - 1.687841528e+15
-                  - 0
-                values:
-                  - 100
-                  - 200
-            stacktraces:
-              - location_indices:
-                  - 0
-                  - 1
-                  - 2
-              - location_indices:
-                  - 0
-                  - 1
-            string_table:
-              - ""
-              - foo
-              - bar
-              - baz
-              - cpu
-              - samples
-            attributes: null
-            profile_id: 0102030405060708090a0b0c0d0e0f10
-        scope:
-          attributes: null
+          - profile_id: 0102030405060708090a0b0c0d0e0f10
+            profile:
+              sample_type:
+                type: 4
+                unit: 5
+                aggregation_temporality: 1
+              attribute_table:
+                - key: trace_id
+                  value:
+                    Value:
+                      bytes_value: 0x01020304010203040102030401020304
+                - key: span_id
+                  value:
+                    Value:
+                      bytes_value: 0x9999999999999999
+                - key: region
+                  value:
+                    Value:
+                      string_value: us
+              function:
+                - name: 1
+                - name: 2
+                - name: 3
+              location:
+                - line:
+                    - {}
+                - line:
+                    - function_index: 1
+                - line:
+                    - function_index: 2
+              location_indices:
+                - 0
+                - 1
+                - 2
+              sample:
+                - locations_start_index: 0
+                  locations_length: 3
+                  timestamps:
+                    - 1687841528000000
+                  value:
+                    - 100
+                - locations_start_index: 0
+                  locations_length: 2
+                  value:
+                    - 200
+              string_table:
+                - ""
+                - foo
+                - bar
+                - baz
+                - cpu
+                - samples
 ```
 
 ### Notable differences compared to other signals
 
 Due to the increased performance requirements associated with profiles signal, here are some notable differences between profiles signal and other signals.
 
-#### Relationships between messages
+#### Relationships Between Messages
 
 There are two main ways relationships between messages are represented:
 
@@ -835,75 +1150,116 @@ There are two main ways relationships between messages are represented:
 
 Profiling signal is different from most other ones in that we use the referencing technique a lot to represent relationships between messages where there is a lot of duplication happening. This allows to reduce the size of the resulting protobuf payload and the number of objects that need to be allocated to parse such payload.
 
-This pseudocode illustrates the conceptual difference between the two approaches. Note that this example is simplified for the sake of clarity:
+This example illustrates the conceptual difference between the two approaches. Note that this example is simplified for clarity and provided in YAML format for legibility:
 
-```json
-// denormalized
-"samples": [
-  {
-    "stacktrace": ["foo", "bar"],
-    "value": 100,
-    "attribute_set": {
-      "endpoint": "/v1/users"
-    }
-  }, {
-    "stacktrace": ["foo", "bar", "baz"],
-    "value": 200,
-    "attribute_set": {
-      "endpoint": "/v1/users"
-    }
-  }
-],
+```yaml
+# denormalized
+samples:
+- stacktrace:
+  - foo
+  - bar
+  value: 100
+  attribute_set:
+    endpoint: "/v1/users"
+- stacktrace:
+  - foo
+  - bar
+  - baz
+  value: 200
+  attribute_set:
+    endpoint: "/v1/users"
 
-// normalized
-"attribute_sets": [
-  {
-    "endpoint": "/v1/users"
-  }
-],
-"samples": [
-  {
-    "stacktrace": ["foo", "bar"],
-    "value": 100,
-    "attribute_set_index": 0
-  }, {
-    "stacktrace": ["foo", "bar", "baz"],
-    "value": 200,
-    "attribute_set_index": 0
-  }
-],
+# normalized
+attribute_sets:
+- endpoint: "/v1/users"
+samples:
+- stacktrace:
+  - foo
+  - bar
+  value: 100
+  attribute_set_index: 0
+- stacktrace:
+  - foo
+  - bar
+  - baz
+  value: 200
+  attribute_set_index: 0
+
 ```
 
 Explanation: because multiple samples have the same attributes, we can store them in a separate table and reference them by index. This reduces the size of the resulting protobuf payload and the number of objects that need to be allocated to parse such payload.
 
 Benchmarking shows that this approach is significantly more efficient in terms of CPU utilization, memory consumption and size of the resulting protobuf payload. See [Prior art and alternatives](#prior-art-and-alternatives) for more details.
 
-#### Arrays of Integers vs Arrays of Structures
+#### Relationship Between Samples and Locations
 
-Another optimization technique that we use to reduce the size of the resulting protobuf payload and the number of objects that need to be allocated to parse such payload is using arrays of integers instead of arrays of structures to represent messages. This technique is used in conjunction with the referencing technique described above. Here's pseudocode that illustrates the approach. Note that this example is simplified for the sake of clarity:
+Relationship between Samples and Locations is using the referencing technique described above. However, there's an additional optimization technique used to reduce the size of the resulting protobuf payload and the number of objects that need to be allocated to parse such payload. The technique is based on the fact that many samples share the same locations.
 
-```json
-// normalized
-"samples": [
-  {
-    "stacktrace_index": 1,
-    "value": 100
-  }, {
-    "stacktrace_index": 2,
-    "value": 200
-  }
-],
+Considering the following example presented in a folded format:
 
-// arrays
-"stacktrace_indices": [1, 2],
-"values": [100, 200]
+```
+foo;bar;baz 100
+abc;def 200
+foo;bar 300
 ```
 
-Explanation: in `normalized` representation samples are a collection of references to other messages plus a value. The standard way of representing those is to put each [Samples](#sample-structure) into a separate message, and link from [Samples](#sample-structure) to other messages. Parsing / generating such payloads creates many individual objects that runtime has to track. The second `arrays` representation puts values of the same kind into separate arrays. This reduces the size of the resulting protobuf payload and the number of objects that need to be allocated to parse / generate such payload.
+It represents 3 samples:
+
+* one for stacktrace `foo;bar;baz` with value `100`.
+* one for stacktrace `abc;def` with value `200`.
+* one for stacktrace `foo;bar` with value `300`. Note that 2 of the locations are shared with the first sample.
+
+By storing locations in a separate table and referring to start_index+length in that table, we can reduce the size of the resulting protobuf payload and the number of objects that need to be allocated to parse such payload. With this approach we can also take advantage of the fact that many samples share the same locations. Below is a representation of the resulting protobuf payload (in YAML format for legibility):
+
+```yaml
+sample:
+  - locations_start_index: 0
+    locations_length: 3
+    value:
+      - 100
+  - locations_start_index: 2
+    locations_length: 2
+    value:
+      - 200
+  - locations_start_index: 0
+    locations_length: 2
+    value:
+      - 300
+location_indices:
+  - 0 # foo
+  - 1 # bar
+  - 2 # baz
+  - 4 # abc
+  - 5 # def
+location:
+  - line:
+      - function_index: 0 # foo
+  - line:
+      - function_index: 1 # bar
+  - line:
+      - function_index: 2 # baz
+  - line:
+      - function_index: 3 # abc
+  - line:
+      - function_index: 4 # def
+function:
+  - name: 1 # foo
+  - name: 2 # bar
+  - name: 3 # baz
+  - name: 4 # abc
+  - name: 5 # def
+string_table:
+  - ""
+  - foo
+  - bar
+  - baz
+  - abc
+  - def
+```
 
 Benchmarking shows that this approach is significantly more efficient in terms of CPU utilization, memory consumption and size of the resulting protobuf payload. See [Prior art and alternatives](#prior-art-and-alternatives) for more details.
 
-## Trade-offs and mitigations
+## Trade-offs and Mitigations
 
 The biggest trade-off was made between the performance characteristics of the format and it's simplicity. The emphasis was made on the performance characteristics, which resulted in a cognitively more complex format.
 
@@ -914,110 +1270,143 @@ Authors feel like the complexity is justified for the following reasons:
 
 Alternative formats that are simpler to understand were considered, but they were not as efficient in terms of CPU utilization, memory consumption and size of the resulting protobuf payload. See [next chapter, Prior art and alternatives](#prior-art-and-alternatives) for more details.
 
-## Prior art and alternatives
+## Prior Art and Alternatives
 
-The specification presented here was heavily inspired by pprof. Multiple alternative representations were considered, including:
+This section describes other existing popular formats and alternative representations that were considered in the process of designing this data model.
 
+### Other Popular Formats
+
+Many other popular formats were considered as part of the process of designing this format. The popularity was assesed based on [data from profilerpedia website](https://docs.google.com/spreadsheets/d/1UM-WFQhNf4GcyXmluSUGnMbOenvN-TqP2HQC9-Y50Lc/edit?usp=sharing). This chapter describes the most notable formats that were considered.
+
+#### Folded Stacks
+
+The [Folded Stacks representation](https://profilerpedia.markhansen.co.nz/formats/folded-stacks/), which is rooted in a straightforward text-based format, presents its own set of limitations. The main one is its inefficiency in handling large datasets, as it can struggle with both the complexity and the volume of data. The format's definition also reveals shortcomings, such as the absence of standardized, machine-readable attributes, resulting in varying interpretations and implementations by different profiling tools and analysis software.
+
+#### Chromium's Trace Event Format
+
+The [Chromium Trace Event Format](https://profilerpedia.markhansen.co.nz/formats/trace-event-format/), which employs JSON as its foundation, exhibits certain limitations. Notably, it does not excel in terms of payload size efficiency and lacks robust support for aggregation. Additionally, its specification demonstrates weaknesses, as it lacks machine-readable attributes, leading to distinct interpretations by various implementations, such as Perfetto and Catapult.
+
+#### Linux perf.data
+
+The [Linux perf.data format](https://profilerpedia.markhansen.co.nz/formats/linux-perf-data/), primarily aimed at low-level data collection, offers insights at a granularity that may not be suitable for high-level analysis. As it contains events generated by Performance Monitoring Units (PMUs) along with metadata, many of its fields find relevance primarily in data collected at the kernel level.
+
+#### Java Flight Recorder (JFR)
+
+[Java Flight Recorder](https://profilerpedia.markhansen.co.nz/formats/jfr/) (JFR) may not be the ideal choice for profiling applications outside the Java ecosystem. Its specialization in Java profiling limits its applicability in environments that rely on other programming languages, rendering it unsuitable for non-Java applications.
+
+### Alternative Representations
+
+In the process of refining the data model, multiple alternative representations were considered, including:
+
+* `pprof` representation is data in original pprof format.
 * `denormalized` representation, where all messages are embedded and no references by index are used. This is the simplest representation, but it is also the least efficient (by a huge margin) in terms of CPU utilization, memory consumption and size of the resulting protobuf payload.
 * `normalized` representation, where messages that repeat often are stored in separate tables and are referenced by indices. See [this chapter](#relationships-between-messages) for more details. This technique reduces the size of the resulting protobuf payload and the number of objects that need to be allocated to parse such payload.
-* `arrays` representation, which is based on `normalized` representation, but uses arrays of integers instead of arrays of structures to represent messages. See [this chapter](#arrays-of-integers-vs-arrays-of-structures) for more details. It further reduces the number of allocations, and the size of the resulting protobuf payload.
-* `pprof` itself. More on that in the next section
+* `arrays` representation, which is based on `normalized` representation, but uses arrays of integers instead of arrays of structures to represent messages. It further reduces the number of allocations, and the size of the resulting protobuf payload.
+* `pprofextended` is a modified `pprof` representation. It is the one presented in this OTEP.
 
-### pprof
+You can find exact proto definitions for each one [here](https://github.com/open-telemetry/opentelemetry-proto-profile/commit/622c1658673283102a9429109185615bfcfaa78e#diff-a21ad1b0e4735fa9b5085cf46abe16f6c13d1710fd255b15b28adb2493a129bfR1).
 
-pprof itself was also considered as one of the options. It is a very efficient and very popular format, but it is not a good fit for OTLP for the combination of technical and non-technical reasons:
-
-#### Divergence of Objectives
-
-Before we dive into the actual reasons, it's important to recognize the differing objectives between the pprof format and the proposed OTLP profiles format:
-
-* The pprof format, well-established in the Go ecosystem, primarily serves as a means to visualize and analyze profiling data. Users often share pprof files and use various tools for visualization. Interoperability is a key feature, given the extensive ecosystem that produces and consumes pprof files.
-
-* On the other hand, OpenTelemetry has a broader mission, encompassing the collection and management of telemetry data across various languages and platforms. This mission emphasizes cross-linking between various signals (traces, metrics, logs, profiles), vendor-neutrality, and extensibility. OpenTelemetry aims to provide not only the wire format and a reference implementation for one runtime but also comprehensive tooling for various languages and runtimes, including client SDKs and collectors.
-
-* It's important to note that pprof primarily serves as a file format, with users directly interacting with pprof files. In contrast, OTLP serves as a wire format, and users don't interact directly with OTLP data. Moreover, OTLP format may evolve over time without affecting user experience.
-
-* OTLP profiles are not intended to replace pprof. Instead, they serve as a means to transport profiling data, linked to other signals, across the wire.
-
-#### Technical Reasons
-
-**Support for Linking Between Signals**: While it is possible to express links between signals in pprof using labels, the format is not optimized for this use-case within the broader telemetry ecosystem.
-
-**Support for Timestamps**: Similar to the previous point, pprof can handle timestamps, but doing so efficiently would require representing each timestamp as a separate Sample, which is inefficient due to the format's lack of optimization for this use-case. For more context, see [this PR from @felixge](https://github.com/google/pprof/pull/728).
-
-**Miscellaneous Improvements**: The OTLP profiles format introduces several improvements, such as the use of arrays-of-integers instead of arrays-of-structs representation (which reduces memory allocations), the use of indices instead of IDs to refer to structs (eliminating confusion and reducing payload size), and the use of semantic conventions to define profile types and units, among others.
-
-#### Non-Technical Reasons
-
-There are also non-technical considerations at play:
-
-**Interoperability and Backwards Compatibility**: Interoperability is a key strength of pprof. Tools that read pprof files from a decade ago still work with files generated today and vice versa. Introducing changes to pprof to align with OTLP's objectives could disrupt this longstanding interoperability.
-
-**Ability to Make Changes to the Format**: While using the same format would be ideal, the divergence in objectives between pprof and OTLP profiles could hinder effective collaboration and progress in introducing profiling support to OpenTelemetry.
-
-#### Additional Considerations
-
-##### Interoperability between OTLP and pprof
-
-One of the stated requirements in this OTEP is that existing profiling formats (pprof) can be unambiguously mapped to this data model. This means that existing tools that generate pprof files are automatically compatible with any OTLP backend.
-
-It works in the opposite direction as well — any OTLP backend should be able to generate pprof files, albeit some functionality (like timestamps support) may be limited. This is important because it allows users to use existing tools to visualize profiles generated by OpenTelemetry.
-
-##### Performance implications in Go ecosystem
-
-There are concerns that using OTLP profiles will have a negative impact on performance in the Go ecosystem. We discussed this with Go runtime team in one of the meetings and the direction we landed on is that the Go runtime could provide lower level APIs that would allow us to avoid the overhead of parsing pprof and encoding it into OTLP. FWIW There's already APIs like that for memory profiles.
+These alternative representations helped us narrow down various techniques for representing profiling data. It was found that all of the representations above are less performant compared to the data model presented in this OTEP. More on that in the next section, [Benchmarking](#benchmarking).
 
 ### Benchmarking
 
-[Benchmarking results](https://docs.google.com/spreadsheets/d/1Q-6MlegV8xLYdz5WD5iPxQU2tsfodX1-CDV1WeGzyQ0/edit#gid=0) showed that `arrays` representation is the most efficient in terms of CPU utilization, memory consumption and size of the resulting protobuf payload. Some notable benchmark results are showcased below:
+The benchmarking was done using Go benchmarking tools.
+As part of the process of designing the data model we ran many benchmarks. All benchmarks follow the same 3 step process:
 
-#### Average profile
+* Get a profile in pprof format
+* Convert it into a profile in some other format, serialize it to bytes, gzip the result
+* Measure key performance indicators
 
-The source for this test is a single 10 second pprof profile collected from a simple go program. It represents a typical profile that is collected from a running application. You can see that the `arrays` representation is the most efficient in terms of memory allocations and size of the resulting protobuf payload.
+All benchmarks measured a few key indicators:
 
-|name|bytes|gzipped_bytes|retained_objects|unique_label_sets|bytes_allocated|allocs|
-|---|---|---|---|---|---|---|
-|BenchmarkAveragePprof-10|8,030|3,834|n/a|1|n/a|n/a|
-|BenchmarkAverageDenormalized-10|83,187|3,829|3,167|1|1,027,424|3,191|
-|BenchmarkAverageNormalized-10|7,955|3,416|706|1|867,488|1,037|
-|BenchmarkAverageArrays-10|7,742|3,311|584|1|869,648|880|
+* `bytes` — size of payload after conversion and serialization
+* `gzipped_bytes` — size of payload after gzip compression.
+* `retained_objects` — number of go runtime objects created and retained after conversion.
+* `unique_label_sets` — number of unique label sets in source pprof file
+* `bytes_allocated` - number of bytes allocated by go runtime during conversion
+* `allocs` — number of allocations by go runtime during conversion
 
-#### Average profile with timestamps added to each sample
+`gzipped_bytes` is an important metric since this is a cost center for network traffic.
 
-The source is the same as in the previous example, but this time there were timestamps added to each sample in the profile. `arrays` representation remains the most efficient one.
+`bytes`, `retained_objects`, `bytes_allocated`, `allocs` metrics are important because they directly affects memory as well as garbage collection overhead on data producers as well as the intermediaries (such as collector).
 
-|name|bytes|gzipped_bytes|retained_objects|unique_label_sets|bytes_allocated|allocs|
-|---|---|---|---|---|---|---|
-|BenchmarkAverageTimestampsPprof-10|9,478|3,865|n/a|1|n/a|n/a|
-|BenchmarkAverageTimestampsDenormalized-10|119,526|4,154|4,482|1|1,125,320|4,893|
-|BenchmarkAverageTimestampsNormalized-10|9,637|3,549|941|1|890,192|1,873|
-|BenchmarkAverageTimestampsArrays-10|9,560|3,381|684|1|894,472|1,680|
+[Benchmarking results](https://docs.google.com/spreadsheets/d/1Q-6MlegV8xLYdz5WD5iPxQU2tsfodX1-CDV1WeGzyQ0/edit#gid=0) spreadsheet shows the most recent benchmarking results as well as history of previous benchmarking runs. [Here](https://github.com/petethepig/opentelemetry-collector/pull/1#:~:text=in%20text%20form-,To%20run%20benchmarks%3A,-Clone%20this%20repo) are instructions on how to run the benchmarks. Here's a rough history of benchmarking our group has done:
 
-#### Ruby profile with very deep stacktraces
+* "23 July 2023", "24 Aug 2023" — show differences between "pprof", "denormalized" and "normalized" representations
+* "04 Oct 2023" — introduces "pprofextended" representation, compares it to "pprof" and "arrays". Shoes that "pprofextended" version is overall better than "pprof", but not as a good as "arrays"
+* "06 Oct 2023" vs "After Stacktrace removal (Oct 6 2023)" — shows difference between representing stacktraces as separate struct vs a separate array of integers. Shows massive reduction in retained_objects. Demonstrates that after Stacktrace struct removal "pprofexntended" representation is better than "arrays" representation
+* "Attribute Representations (Oct 13 2023)" — focuses on differences between different attribute representations. Shows that having a lookup table for attributes is optimal compared to other representations
 
-The source for this test is an aggregated pprof profile collected from a Ruby application that has very deep stacktraces. You can see that the `arrays` representation is the most efficient in terms of memory allocations and size of the resulting protobuf payload.
+Below you can see the benchmarking results for most notable example profiles:
 
-|name|bytes|gzipped_bytes|retained_objects|unique_label_sets|bytes_allocated|allocs|
-|---|---|---|---|---|---|---|
-|BenchmarkRuby1Pprof-10|1,869,563|115,323|n/a|1|n/a|n/a|
-|BenchmarkRuby1Denormalized-10|163,107,484|4,716,442|3,840,093|1|319,473,752|3,844,625|
-|BenchmarkRuby1Normalized-10|1,931,905|130,556|41,457|1|18,982,328|78,242|
-|BenchmarkRuby1Arrays-10|1,886,964|120,382|23,481|1|18,365,800|42,284|
+#### "average" profile
 
-#### Large profile
-
-The source for this test is an aggregated pprof profile collected from a Go application over a large period of time. This one shows that the `arrays` representation remains the most efficient, however, the `gzipped_bytes` number is a little bit larger.
+The source for this benchmark is a single 10 second pprof profile collected from a simple go program. It represents a typical profile that is collected from a running application.
 
 |name|bytes|gzipped_bytes|retained_objects|unique_label_sets|bytes_allocated|allocs|
 |---|---|---|---|---|---|---|
-|BenchmarkLargePprof-10|16,767,419|4,625,632|n/a|163|n/a|n/a|
-|BenchmarkLargeDenormalized-10|969,446,655|71,246,645|24,036,740|163|2,140,322,432|24,429,954|
-|BenchmarkLargeNormalized-10|17,813,931|4,874,456|2,068,600|163|208,793,736|4,217,313|
-|BenchmarkLargeArrays-10|16,980,323|5,779,036|964,989|163|218,418,624|3,396,515|
+|pprof|7,974|3,772|653|1|876,968|824|
+|denormalized|83,204|3,844|3,166|1|1,027,424|3,191|
+|normalized|7,940|3,397|753|1|906,848|1,815|
+|arrays|7,487|3,276|586|1|922,948|2,391|
+|pprofextended|7,695|3,347|654|1|899,400|779|
+
+#### "average" profile with timestamps added to each sample
+
+The source is the same as in the previous example, but this time there were timestamps added to each sample in the profile.
+
+|name|bytes|gzipped_bytes|retained_objects|unique_label_sets|bytes_allocated|allocs|
+|---|---|---|---|---|---|---|
+|pprof|9,516|3,787|968|1|898,696|1,568|
+|denormalized|121,396|4,233|4,536|1|1,126,280|4,894|
+|normalized|9,277|3,394|900|1|925,904|2,632|
+|arrays|8,877|3,309|588|1|946,468|3,306|
+|pprofextended|8,863|3,387|806|1|919,904|1,476|
+
+#### "ruby" profile with very deep stacktraces
+
+The source for this test is an aggregated pprof profile collected from a Ruby application that has very deep stacktraces.
+
+|name|bytes|gzipped_bytes|retained_objects|unique_label_sets|bytes_allocated|allocs|
+|---|---|---|---|---|---|---|
+|pprof|1,869,549|115,289|19,759|1|14,488,578|42,359|
+|denormalized|163,107,501|4,716,428|3,840,093|1|319,473,752|3,844,625|
+|normalized|1,931,909|130,565|46,890|1|315,003,144|1,725,508|
+|arrays|1,868,982|120,298|23,483|1|314,117,160|1,689,537|
+|pprofextended|841,957|94,852|19,759|1|20,719,752|33,410|
+
+#### "large" profile
+
+The source for this test is an aggregated pprof profile collected from a Go application over a long period of time (24 hours).
+
+|name|bytes|gzipped_bytes|retained_objects|unique_label_sets|bytes_allocated|allocs|
+|---|---|---|---|---|---|---|
+|pprof|2,874,764|1,110,109|350,659|27|27,230,584|470,033|
+|denormalized|87,887,253|6,890,103|2,287,303|27|190,243,856|2,325,604|
+|normalized|2,528,337|953,211|333,565|27|46,449,824|1,274,000|
+|arrays|2,251,355|999,310|213,018|27|60,971,752|1,904,756|
+|pprofextended|2,398,961|872,059|274,140|27|38,874,712|353,083|
+
+#### Conclusions
+
+After running many benchmarks and analyzing the results, we came to the following conclusions:
+
+* `denormalized` representation is good but lacks deeper integration with OpenTelemetry standards and could be improved in terms of performance.
+* `denormalized` representation is significantly more expensive in terms of CPU utilization, memory consumption and size of the resulting protobuf payload compared to `normalized` representation. It is not suitable for production use.
+* `normalized` representation is much better than `denormalized` one
+* `arrays` representation is generally better than `normalized` one, but introduces significant changes to the data model and is not as easy to understand
+* `pprofextended` (the representation that is used in this OTEP) is the perfect mix of performance and simplicity. It is significantly better than `normalized` representation in terms of CPU utilization, memory consumption and size of the resulting protobuf payload, but it is also more similar to original pprof and easier to understand and implement than `arrays` representation.
 
 ### Semantic Conventions
 
-We plan to leverage OTEL Semantic Conventions for various enums such as profile types or units. Here's a non-exhaustive list of semantic conventions that are used in data model. It is expected to be extended in the future.
+We plan to leverage OTEL Semantic Conventions for various attributes and enums such as profile types or units. Here's a non-exhaustive list of semantic conventions that are used in data model. It is expected to be polished and extended in the future.
+
+#### Attributes
+
+| Attribute  | Type | Description  | Examples  | Requirement Level |
+|---|---|---|---|---|
+| `trace_id` | bytes | Reference to a trace | `0x01020304010203040102030401020304` | Conditionally Required: If `span_id` present. |
+| `span_id` | bytes | Reference to a span | `0x9999999999999999` | Conditionally Required: If `trace_id` present. |
 
 #### Profile Types
 
@@ -1037,12 +1426,12 @@ Here's a list of possible profile types. It is not exhaustive, and it is expecte
 
 #### Profile Units
 
-Here's a list of possible profile units. It is not exhaustive, and it is expected that more units will be added in the future:
+Here's a list of possible profile units. It is not exhaustive, and it is expected that more units will be added in the future. [UCUM](https://ucum.org/) will be used as a reference for some of these units:
 
 * `bytes`
 * `samples`
-* `nanoseconds`
-* `milliseconds`
+* `ns`
+* `ms`
 * `count`
 
 ### Decision Log
@@ -1063,5 +1452,5 @@ This OTEP enables us to start working on various parts of [OTEL Specification](h
 
 That in turn would enable us to start working on:
 
-* [OTEL Collector](https://github.com/open-telemetry/opentelemetry-collector)
+* Profiles support in [OTEL Collector](https://github.com/open-telemetry/opentelemetry-collector)
 * Client SDK implementations in various languages (e.g Go and Java)
