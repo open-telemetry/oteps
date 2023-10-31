@@ -154,33 +154,39 @@ pipeline where the participating stages are part of the same logical
 failure domain.  Typically each SDK or Collector is considered a
 station.
 
-#### Station integrity principle
+#### Station integrity principles
 
 The [OpenTelemetry library guidelines (point
 4)](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/library-guidelines.md#requirements)
 describes a separation of protocol-dependent ("receivers",
-"exporters") and protocol-independent ("processors") parts.  Here we
-refer to this combination of parts as a station, belonging to a single
-failure domain, because:
+"exporters") and protocol-independent ("processors") parts.  We refer
+to the combination of parts as a station.
 
-1. Logic internal to a station is presumably non-lossy.  Dropping
-   within a station is presumed to be intentional, as distinct from
-   the case of failures.
-2. Under normal circumstances, we expect all-or-none failures for
-   individual stations.
+The station concept is called out because within a station, we expect
+that the station (software) acts responsibly by design, for the
+integrity of the pipeline.  Stations allow data to enter a pipeline
+only through receiver components.  Stations are never responsible for
+dropping data, because only processor components drop data.  Stations
+allow data to leave a pipeline only through exporter components.
 
-These qualities of the station will allow us to vary the level of
-detail between basic and normal-level monitoring without information
-loss.
+Because of station integrity, we can make the following assertions:
+
+1. Data that enters a pipeline is eventually exported or dropped.
+2. No other outcomes are possible.
+
+There is a potential for pipeline metrics to be redundant, as
+described in these assertions.  In a pipeline with no fan-in or
+fan-out, each stage processes as many items as the stage before it
+did, minus the number of items dropped.
 
 #### Pipeline stage-name uniqueness
 
 The Pipeline Stage Name Uniqueness requirement developed here avoids
 over-counting in an export pipeline by ensuring that no single metric
-name counts items are more than one distinct component.  This rule
-prevents counting items of telemetry sent by SDKs and Collectors in
-the same metric; it also prevents counting items of telemetry sent
-through a multi-tier arrangement of Collectors.
+name counts items more than once in transit.  This rule prevents
+counting items of telemetry sent by SDKs and Collectors in the same
+metric; it also prevents counting items of telemetry sent through a
+multi-tier arrangement of Collectors using the same metric.
 
 In a standard deployment of OpenTelemetry, we expect one, two, or
 three stations in a collection pipeline.  The names given to these
@@ -198,48 +204,144 @@ example when there are connectors in use; however, if so, the
 collector must enforce that pipeline-stage names are unique within a
 pipeline.
 
-#### Pipeline conservation principle
+#### Basic detail through inclusive counters
 
-The station integrity principle leads to the axiom: items that are
-transmitted, leading to success or failure, cannot have been dropped.
+By station integrity principles, we have several forms of detail that
+may be omitted by users that want only the basic level of detail.
 
-The second principle developed here establishes that items going in to
-a station either succeed or fail.
+At a minimum, to establish information about _loss_ requires knowing
+how much is received by the first station in the pipeline and how much
+is exported by the last station in the pipeline.  From the total
+received and the total exported, we can compute total pipeline loss.
+Note that metrics about intermediate pipeline stations may be omitted,
+since they implicitly factor into global pipeline loss.
 
+For this proposal to succeed, it is necessary to use inclusive
+counters as opposed to exclusive counters.  For the receivers, at a
+basic level of detail, we only need to know the number of items
+received (i.e., including items that succeed or fail or are dropped)
+because those that fail or are dropped implicitly factor in to global
+pipeline loss.
 
----00-
+For processors, at a basic level of detail, it is not necessary to
+count anything, since drops are implicit.  Any items not received by
+the next stage in the pipeline must have dropped, therefore we can
+infer drop counts from basic-detail metrics without any new counters.
 
-From a technical perspective, how do you propose accomplishing the
-proposal? In particular, please explain:
+For exporters, at a basic level of detail, the same argument applies.
+Metrics describing an exporter in a pipeline ordinarily will match
+those of receiver at the next stage in the pipeline, so they are not
+needed at the basic level of detail, provided all receivers report
+inclusive counters.
 
-* How the change would impact and interact with existing functionality
-* Likely error modes (and how to handle them)
-* Corner cases (and how to handle them)
+#### Pipeline failures optional
 
-While you do not need to prescribe a particular implementation - indeed, OTEPs should be about **behaviour**, not implementation! - it may be useful to provide at least one suggestion as to how the proposal *could* be implemented. This helps reassure reviewers that implementation is at least possible, and often helps them inspire them to think more deeply about trade-offs, alternatives, etc.
+For a processor, dropping data is always on purpose, but dropped data
+may be counted as failures or not, depending on the circumstances.
+For an SDK batch processor, dropping data is considered failure.  For
+a Collector sampler processor, dropping data is considered success.
+It is up to the individual processor component whether to treat
+dropped data as failures or successes.
+
+We are also aware of a precedent for returning success at certain
+stages in a pipeline, perhaps asynchronously, regardless of actual
+success or not.  This is known to happen in the Collector's core
+`exporterhelper` library, which provides a number of standard
+features, including the ability to drop data when the queue is full.
+
+Because failure is sometimes treated as success, it may be necessary
+to monitor a point in the pipeline after failures are suppressed.
+
+#### Pipeline signal type
+
+OpenTelemetry currently has 3 signal types, but it may add more.
+Instead of using the signal name in the metric names, we opt for a
+general-purpose noun that usefully describes any signal.  
+
+The signal-agnostic term used here is "items", referring to spans, log
+records, and metric data points.  An attribute to distinguish the
+`signal` will be used with name `traces`, `logs`, or `metrics`.
+
+Users are expected to understand that the data item for traces is a
+span, for logs is a record, and for metrics is a point.
+
+#### Pipeline component name
+
+Components are uniquely identified using a descriptive `name`
+attribute which encompasses at least a short name describing the type
+of component being used (e.g., `batch` for the SDK BatchSpanProcessor
+or the Collector batch proessor).
+
+When there is more than one component of a given type active in a
+pipeline having the same `domain` and `signal` attributes, the `name`
+should include additional information to disambiguate the multiple
+instances using the syntax `<type>/<instance>`.  For example, if there
+were two `batch` processors in a collection pipeline (e.g., one for
+error spans and one for non-error spans) they might use the names
+`batch/error` and `batch/noerror`.
+
+#### Pipeline monitoring diagram
+
+The relationship between items received, dropped, and exported is
+shown in the following diagram.
+
+![pipeline monitoring metrics](../images/otel-pipeline-monitoring.png)
+
+### Proposed metrics semantic conventions
+
+The proposed metric names are: 
+
+`otel.{station}.received`: Inclusive count of items entering the pipeline at a station.
+`otel.{station}.dropped`: Non-inclusive count of items dropped by a component in a pipeline.
+`otel.{station}.exported`: Inclusive count of items exiting the pipeline at a station.
+
+The behavior specified for SDKs and Collectors at each level of detail
+is different, because SDKs do not receive items from a pipeline.
+
+#### SDK default configuration
+
+At the basic level of detail, SDKs are required to count spans
+received by the export pipeline.  Only the `otel.sdk.received` metric
+is required.  This includes items that succeed, fail, or are dropped.
+
+At the normal level of detail, the `otel.sdk.received` metric gains an
+additional boolean attribute, `success` indicating success or failure.
+Also at the normal level of detail, the `otel.sdk.dropped` metric is
+counted.
+
+#### Collector default configuration
+
+At the basic level of detail, Collectors of a given `{station}` name
+are required to count `otel.{station}.received`,
+`otel.{station}.dropped`, and `otel.{station}.exported`.
+
+At the normal level of detailed, the `received` and `exported` metrics
+gain an additional boolean attribute, `success` indicating success or
+failure.
+
+#### Detailed-level metrics configuration
+
+There is one additional dimension that users may wish to opt-in to, in
+order to gain information about failures at a particular pipeline
+stage.  When detail-level metrics are requested, all three metric
+instruments specified for pipeline monitoring gain an additional
+`reason` attribute, with a short string explaining the failure.  
+
+For example, with detailed-level metrics in use, the
+`otel.{station}.received` and `otel.{station}.exported` counters will
+include additional `reason` information (e.g., `timeout`,
+`resource_exhausted`, `permission_denied`).
 
 ## Trade-offs and mitigations
 
-What are some (known!) drawbacks? What are some ways that they might be mitigated?
+While the use of three-levels of metric detail may seem excessive,
+instrumentation authors are expected to implement the cardinality of
+attributes specified here, with the use of Metric SDK View
+configuration to remove unwanted attributes at runtime.  
 
-Note that mitigations do not need to be complete *solutions*, and that they do not need to be accomplished directly through your proposal. A suggested mitigation may even warrant its own OTEP!
+This approach (i.e., configuration of views) can also be used in the
+Collector, which is instrumented using the OTel-Go metrics SDK.
 
 ## Prior art and alternatives
 
-What are some prior and/or alternative approaches? For instance, is there a corresponding feature in OpenTracing or OpenCensus? What are some ideas that you have rejected?
-
-## Open questions
-
-What are some questions that you know aren't resolved yet by the OTEP? These may be questions that could be answered through further discussion, implementation experiments, or anything else that the future may bring.
-
-## Future possibilities
-
-What are some future changes that this proposal would enable?
-
-
-
-
-
-
-
-semantic-conventions/
+Prior work in (this PR)[https://github.com/open-telemetry/semantic-conventions/pull/184].
