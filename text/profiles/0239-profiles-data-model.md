@@ -1454,6 +1454,3 @@ That in turn would enable us to start working on:
 
 * Profiles support in [OTEL Collector](https://github.com/open-telemetry/opentelemetry-collector)
 * Client SDK implementations in various languages (e.g Go and Java)
-
-
-This is second version of the Profiling Data Model. After [we've gotten feedback from the greater OTel community](https://github.com/open-telemetry/oteps/pull/237) we went back to the drawing board and came up with a new version of the data model. The main difference between the two versions is that the new version is more similar to the original pprof format, which makes it easier to understand and implement. It also has better performance characteristics. See [this chapter](#benchmarking) for more details.
