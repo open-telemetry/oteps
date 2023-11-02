@@ -1084,6 +1084,8 @@ resource_profiles:
     scope_profiles:
       - profiles:
           - profile_id: 0102030405060708090a0b0c0d0e0f10
+            start_time_unix_nano: 1687841520000000
+            end_time_unix_nano: 1687841530000000
             profile:
               sample_type:
                 type: 4
