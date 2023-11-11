@@ -114,8 +114,8 @@ For rule-based sampling (e.g. decision depends on Span attributes), we need a Ru
 Note: The `opentelemetry-java-contrib` repository contains [RuleBasedRoutingSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/RuleBasedRoutingSampler.java), with similar functionality.
 ```yaml
    samplerType: RuleBased
-   spanKind: SERVER | CONSUMER | ...   # optional
    parameters:
+    - spanKind: SERVER | CONSUMER | ...   # optional
     - - RULE1
       - RULE2
       ...
@@ -129,6 +129,56 @@ where each RULE is
 ```
 The Predicates represent logical expressions which can access Span Attributes (or anything else available when the sampling decision is to be taken), and perform tests on the accessible values.
 For example, one can test if the target URL for a SERVER span matches a given pattern.
+
+## Example
+
+Let's assume that a user wants to configure head sampling as follows:
+- for root spans:
+    - drop all `/healthcheck` requests
+    - capture all `/checkout` requests
+    - capture 25% of all other requests
+- for non-root spans
+    - follow the parent sampling decision
+    - however, capture all calls to service `/foo` (even if the trace will be incomplete)
+- in any case, do not exceed 1000 spans/second
+
+Such sampling requirements can be expressed as:
+```yaml
+  samplerType: AllOf
+  parameters:
+  - - samplerType: AnyOf
+      parameters:
+       - - samplerType: ParentBased
+           parameters:
+            - samplerType: RuleBased  # for root spans
+              parameters:
+               - spanKind: SERVER
+               - - predicate: http.target == /healtcheck
+                   sampler:
+                     samplerType: AlwaysOff
+                 - predicate: http.target == /checkout
+                   sampler:
+                     samplerType: AlwaysOn
+               - samplerType: TraceIdRatioBased  # fallback sampler
+                 parameters:
+                  - 0.25
+            - samplerType: AlwaysOn    # remote parent sampled
+            - samplerType: AlwaysOff   # remote parent not sampled
+            - samplerType: AlwaysOn    # local parent sampled
+            - samplerType: AlwaysOff   # local parent not sampled
+         - samplerType: RuleBased
+           parameters:
+            - spanKind: CLIENT
+            - - predicate: http.url == /foo
+                sampler:
+                  samplerType: AlwaysOn
+            - samplerType: AlwaysOff   # fallback sampler
+    - samplerType: RateLimiting
+      parameters:
+      - 1000   # spans/second
+```
+
+The above example uses plain text representation of predicates. Actual representation for predicates is TBD. The example also assumes that a hypothetical `RateLimitingSampler` is available.
 
 ## Strong and Weak Typing
 
