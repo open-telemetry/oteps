@@ -27,13 +27,13 @@ Even when the code for these samplers is available, their use is not very simple
 
 ## The Goal
 
-The goal of this proposal is to create an open-ended configuration schema which supports not only the current set of SDK standard samplers, but also non-standard ones, and even samplers that will be added in the future. Furthermore the samplers should be composable together, as it might be required by the users.
+The goal of this proposal is to create an open-ended configuration schema which supports not only the current set of SDK standard samplers, but also non-standard ones, and even samplers that will be added in the future. Furthermore the samplers should be composable together, as it is often required by the users.
 
 In contrast, the existing configuration schemas, such as [Jaeger sampling](https://www.jaegertracing.io/docs/1.50/sampling/#file-based-sampling-configuration), or Agent [OTEP 225 - Configuration proposal](https://github.com/open-telemetry/oteps/pull/225) address sampling configuration with a limited known set of samplers only.
 
 ## Use cases
 
-- I want to use one of the samplers from the `opentelemetry-java-contrib` repository, but I do not want to build my own agent extension. I prefer to download one or more jarfiles containing the samplers and configure their use without writing any additional code.
+- I want to use some of the samplers from the `opentelemetry-java-contrib` repository, but I do not want to build my own agent extension. I prefer to download one or more jarfiles containing the samplers and configure their use without writing any additional code.
 - I want to apply a sampling strategy that combines different samplers depending on the span attributes, such as the URL of the incoming request, and I expect to update the configuration frequently, so I prefer that it is file-based (rather than hardcoded), and better yet, applied dynamically
  - I want to write my own sampler with some unique logic, but I want to focus entirely on the sampling algorithm and avoid writing any boilerplate code for instantiating, configuring, and wrapping it up as an agent extension
 
@@ -122,10 +122,15 @@ Note: The `opentelemetry-java-contrib` repository contains [RuleBasedRoutingSamp
       - RULEn
     - FALLBACK_SAMPLER
 ```
-where each RULE is
+where RULE is an extension of SAMPLER, providing additional predicate 
 ```yaml
-    predicate: PREDICATE
-    sampler: SAMPLER
+  predicate: PREDICATE
+  samplerType: TYPE
+  parameters:
+   - PARAM1
+   - PARAM2
+   ...
+   - PARAMn
 ```
 The Predicates represent logical expressions which can access Span Attributes (or anything else available when the sampling decision is to be taken), and perform tests on the accessible values.
 For example, one can test if the target URL for a SERVER span matches a given pattern.
@@ -153,12 +158,10 @@ Such sampling requirements can be expressed as:
             - samplerType: RuleBased  # for root spans
               parameters:
                - spanKind: SERVER
-               - - predicate: http.target == /healtcheck
-                   sampler:
-                     samplerType: AlwaysOff
+               - - predicate: http.target == /healthcheck
+                   samplerType: AlwaysOff
                  - predicate: http.target == /checkout
-                   sampler:
-                     samplerType: AlwaysOn
+                   samplerType: AlwaysOn
                - samplerType: TraceIdRatioBased  # fallback sampler
                  parameters:
                   - 0.25
@@ -170,8 +173,7 @@ Such sampling requirements can be expressed as:
            parameters:
             - spanKind: CLIENT
             - - predicate: http.url == /foo
-                sampler:
-                  samplerType: AlwaysOn
+                samplerType: AlwaysOn
             - samplerType: AlwaysOff   # fallback sampler
     - samplerType: RateLimiting
       parameters:
