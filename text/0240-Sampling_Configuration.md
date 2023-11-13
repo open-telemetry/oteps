@@ -18,7 +18,7 @@ The need for sampling configuration has been explicitly or implicitly indicated 
 - discussion [3725](https://github.com/open-telemetry/opentelemetry-specification/discussions/3725): Overriding Decisions of the Built-in Trace Samplers via a "sample.priority" Like Span Attribute
 
 
-A number of custom samplers are already available as indpendent contributions
+A number of custom samplers are already available as independent contributions
 ([RuleBasedRoutingSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/RuleBasedRoutingSampler.java),
 [LinksBasedSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/LinksBasedSampler.java),
 and, of course, the latest and greatest [Consistent Probability Sampling](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/consistent-sampling)) or just as ideas. They all share the same pain point, which is lack of easy to use configuration mechanism. 
@@ -210,6 +210,6 @@ However, adding some uniformity there, as well as to the samplers from `opentele
 Another point of contention is that the existing configuration practices and proposals (see [JSON Schema Definitions for OpenTelemetry File Configuration](https://github.com/open-telemetry/opentelemetry-configuration/blob/main/schema/tracer_provider.json)) expect very specific knowledge about the samplers, while in this proposal responsibility for matching the samplers' arguments with the samplers signature becomes user's responsibility. However, to decrease the risk of misconfiguration, this proposal can be extended by introducing another configuration section which would describe the number of arguments and their type for non-standard samplers, thus providing some level of consistency checking.
 
 ## Open Issues
-- How to encode Predicates so they will be readable and yet powerfull and efficiently calculated?
+- How to encode Predicates so they will be readable and yet powerful and efficiently calculated?
 - How to handle RecordOnly (_do not export_) sampling decisions?
  
