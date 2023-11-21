@@ -4,17 +4,18 @@ An attempt to provide a framework for defining sampling configurations.
 
 Calling this proposal half-baked would be too generous. At this time it just a vision, with many questions unanswered and without any working prototype. Its purpose is to start a discussion on the needs and wants the Open Telemetry community might have on the subject of sampling configuration and a possible way to accomplish them.
 
-The focus is on head-based sampling, but a similar approach might be used for later sampling stages as well. Most of the technical details presented here assume Java as the platform, but should be general enough to have corresponding concepts and solutions available for other platformstoo.
+The focus is on head-based sampling, but a similar approach might be used for later sampling stages as well. Most of the technical details presented here assume Java as the platform, but should be general enough to have corresponding concepts and solutions available for other platforms too.
 
 ## Motivation
 
-The need for sampling configuration has been explicitly or implicitly indicated in several discussions, some of them going back a number of years, see for example
+The need for sampling configuration has been explicitly or implicitly indicated in several discussions, both within the [Samplig SIG](https://docs.google.com/document/d/1gASMhmxNt9qCa8czEMheGlUW2xpORiYoD7dBD7aNtbQ) and in the wider community. Some of the discussions are going back a number of years, see for example
 
 - issue [173](https://github.com/open-telemetry/opentelemetry-specification/issues/173): Way to ignore healthcheck traces when using automatic tracer across all languages?
 - issue [679](https://github.com/open-telemetry/opentelemetry-specification/issues/679): Configuring a sampler from an environment variable
 - issue [1060](https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/1060): Exclude URLs from Tracing
 - issue [1844](https://github.com/open-telemetry/opentelemetry-specification/issues/1844): Composite Sampler
 - issue [2085](https://github.com/open-telemetry/opentelemetry-specification/issues/2085): Remote controlled sampling rules using attributes
+- otep [213](https://github.com/open-telemetry/oteps/pull/213): Add Sampling SIG research notes
 - issue [3205](https://github.com/open-telemetry/opentelemetry-specification/issues/3205): Equivalent of "logLevel" for spans
 - discussion [3725](https://github.com/open-telemetry/opentelemetry-specification/discussions/3725): Overriding Decisions of the Built-in Trace Samplers via a "sample.priority" Like Span Attribute
 
@@ -34,7 +35,7 @@ In contrast, the existing configuration schemas, such as [Jaeger sampling](https
 ## Use cases
 
 - I want to use some of the samplers from the `opentelemetry-java-contrib` repository, but I do not want to build my own agent extension. I prefer to download one or more jarfiles containing the samplers and configure their use without writing any additional code.
-- I want to apply a sampling strategy that combines different samplers depending on the span attributes, such as the URL of the incoming request, and I expect to update the configuration frequently, so I prefer that it is file-based (rather than hardcoded), and better yet, applied dynamically.
+- I want to apply a sampling strategy that combines different samplers depending on the span attributes, such as the URL of the incoming request, and I expect to update the configuration frequently, so I prefer that it is file based (rather than hardcoded), and better yet, applied dynamically.
 - I want to write my own sampler with some unique logic, but I want to focus entirely on the sampling algorithm and avoid writing any boilerplate code for instantiating, configuring, and wrapping it up as an agent extension.
 
 ## The basics
@@ -117,7 +118,7 @@ If all of the child samplers agreed to sample, and some of them modified the tra
 
 ### Rule based sampling
 
-For rule-based sampling (e.g. decision depends on Span attributes), we need a RuleBasedSampler, which will take a list of Rules as an argument, an optional Span Kind and a fallback Sampler. Each rule will consist of a Predicate and a Sampler. For a sampling decision, if the Span kind matches the optionally specified kind, the list will be worked through in the declared order. If a Predicate holds, the corresponding Sampler will be called to make the final sampling decision. If the Span Kind does not match the final decision is not to sample. If the Span Kind matches, but none of the Predicates evaluates to True, the fallback sampler makes the final decision.
+For rule-based sampling (e.g. decision depends on Span attributes), we need a RuleBasedSampler, which will take a list of Rules as an argument, and an optional Span Kind. Each rule will consist of a Predicate and a Sampler. For a sampling decision, if the Span kind matches the optionally specified kind, the list will be worked through in the declared order. If a Predicate holds, the corresponding Sampler will be called to make the final sampling decision. If the Span Kind does not match, or none of the Predicates evaluates to True, the final decision is not to sample.
 
 Note: The `opentelemetry-java-contrib` repository contains [RuleBasedRoutingSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/RuleBasedRoutingSampler.java), with similar functionality.
 
@@ -129,7 +130,6 @@ Note: The `opentelemetry-java-contrib` repository contains [RuleBasedRoutingSamp
       - RULE2
       ...
       - RULEn
-    - FALLBACK_SAMPLER
 ```
 
 where RULE is an extension of SAMPLER, providing additional predicate:
@@ -176,9 +176,10 @@ Such sampling requirements can be expressed as:
                    samplerType: AlwaysOff
                  - predicate: http.target == /checkout
                    samplerType: AlwaysOn
-               - samplerType: TraceIdRatioBased  # fallback sampler
-                 parameters:
-                  - 0.25
+                 - predicate: true     # works as a fallback sampler
+                   samplerType: TraceIdRatioBased
+                     parameters:
+                      - 0.25
             - samplerType: AlwaysOn    # remote parent sampled
             - samplerType: AlwaysOff   # remote parent not sampled
             - samplerType: AlwaysOn    # local parent sampled
@@ -188,7 +189,6 @@ Such sampling requirements can be expressed as:
             - spanKind: CLIENT
             - - predicate: http.url == /foo
                 samplerType: AlwaysOn
-            - samplerType: AlwaysOff   # fallback sampler
     - samplerType: RateLimiting
       parameters:
       - 1000   # spans/second
