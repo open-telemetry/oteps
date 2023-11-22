@@ -42,43 +42,45 @@ In contrast, the existing configuration schemas, such as [Jaeger sampling](https
 
 It is assumed that the sampling configuration will be a YAML document, in most cases available as a file. Remote configuration remains an option, as well as dynamic changes to the configuration.
 
-The configuration file will contain a definition of the sampler to use:
+The configuration file will contain an actual configuration of the sampler to use. It may also optionally contain definitions of custom samplers.
 
 ```yaml
 ---
+sampler_definitions:   # optional
+  <CUSTOM_SAMPLER_DEF1>
+  <CUSTOM_SAMPLER_DEF2>
+   ...
+  <CUSTOM_SAMPLER_DEF3>
 sampler:
-   SAMPLER
+  <SAMPLER>
 ```
 
-Additional information could be placed there as well. For example, for Java, there could be a location of a jarfile containing any non-standard samplers which have been configured.
+Each sampler is identified by a unique _sampler_key_, which takes a form of string.
+A <SAMPLER> is described by the sampler_key followed by the sampler arguments, if applicable.
 
-A SAMPLER is described by a structure with two fields:
 
 ```yaml
-  samplerType: TYPE
-  parameters:    # an optional list of parameters for the sampler
-   - PARAM1
-   - PARAM2
-   ...
-   - PARAMn
+  <SAMPLER_KEY>:
+    <PARAM_NAME1>: <ARGUMENT_VALUE1>
+    <PARAM_NAME2>: <ARGUMENT_VALUE2>
+     ...
 ```
-
-The mechanism to map the sampler TYPE to the sampler implementation will be platform specific. For Java, the TYPE can be a simple class name, or a part of class name, and the implementing class can be found using reflection. Specifying a fully qualified class name should be an option.
-
-There will be a need for each supported sampler to have a documented canonical way of instantiation or initialization, which takes a known list of parameters. The order of the parameters specified in the configuration file will have to match exactly that list.
 
 A sampler can be passed as an argument for another sampler:
 
 ```yaml
-   samplerType: ParentBased
-   parameters:
-    - samplerType: TraceIdRatioBased  # for root spans
-      parameters:
-       - 0.75
-    - samplerType: AlwaysOn    # remote parent sampled
-    - samplerType: AlwaysOff   # remote parent not sampled
-    - samplerType: AlwaysOn    # local parent sampled
-    - samplerType: AlwaysOff   # local parent not sampled
+    parent_based:
+      root:
+        trace_id_ratio_based:
+          ratio: 0.75
+      remote_parent_sampled:
+        always_on:
+      remote_parent_not_sampled:
+        always_off:
+      local_parent_sampled:
+        always_on:
+      local_parent_not_sampled:
+        always_off:
 ```
 
 There's no limit on the depth of nesting samplers, which hopefully allows to create complex configurations addressing most of the sampling needs.
@@ -90,58 +92,52 @@ New composite samplers are proposed to make group sampling decisions. They alway
 ### Logical-Or Sampling
 
 ```yaml
-   samplerType: AnyOf
-   parameters:
-    - - SAMPLER1
-      - SAMPLER2
+   any_sampler:
+     from:
+      - <SAMPLER1>
+      - <SAMPLER2>
       ...
-      - SAMPLERn
+      - <SAMPLERn>
 ```
 
-The AnyOf sampler takes a list of Samplers as the argument. When making a sampling decision, it goes through the list to find a sampler that decides to sample. If found, this sampling decision is final. If none of the samplers from the list wants to sample the span, the AnyOf sampler drops the span.
+The `any_sampler` is a composite sampler which takes a non-empty list of Samplers as the argument. When making a sampling decision, it goes through the list to find a sampler that decides to sample. If found, this sampling decision is final. If none of the samplers from the list wants to sample the span, the composite sampler drops the span.
 If the first child which decided to sample modified the trace state, the effect of the modification remains in effect.
 
 ### Logical-And Sampling
 
 ```yaml
-   samplerType: AllOf
-   parameters:
-    - - SAMPLER1
-      - SAMPLER2
+   all_samplers:
+     from:
+      - <SAMPLER1>
+      - <SAMPLER2>
       ...
-      - SAMPLERn
+      - <SAMPLERn>
 ```
 
-The AllOf sampler takes a list of SAMPLERs as the argument. When making a sampling decision, it goes through the list to find a sampler that decides not to sample. If found, thie final sampling decision is not to sample. If all of the samplers from the list want to sample the span, the AllOf sampler samples the span.
+The `all_samplers` composite sampler takes a non-empty list of Samplers as the argument. When making a sampling decision, it goes through the list to find a sampler that decides not to sample. If found, the final sampling decision is not to sample. If all of the samplers from the list want to sample the span, the composite sampler samples the span.
 
 If all of the child samplers agreed to sample, and some of them modified the trace state, the modifications are cumulative as performed in the given order. If the final decision is not to sample, the trace state remains unchanged.
 
 ### Rule based sampling
 
-For rule-based sampling (e.g. decision depends on Span attributes), we need a RuleBasedSampler, which will take a list of Rules as an argument, and an optional Span Kind. Each rule will consist of a Predicate and a Sampler. For a sampling decision, if the Span kind matches the optionally specified kind, the list will be worked through in the declared order. If a Predicate holds, the corresponding Sampler will be called to make the final sampling decision. If the Span Kind does not match, or none of the Predicates evaluates to True, the final decision is not to sample.
+For rule-based sampling (e.g. decision depends on Span attributes), we need a `rule_based` sampler, which will take a list of Rules as an argument, and an optional Span Kind. Each rule will consist of a Predicate and a Sampler. For a sampling decision, if the Span kind matches the optionally specified kind, the list will be worked through in the declared order. If a Predicate holds, the corresponding Sampler will be called to make the final sampling decision. If the Span Kind does not match, or none of the Predicates evaluates to True, the final decision is not to sample.
 
-Note: The `opentelemetry-java-contrib` repository contains [RuleBasedRoutingSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/RuleBasedRoutingSampler.java), with similar functionality.
+Note: The `opentelemetry-java-contrib` repository contains [RuleBasedRoutingSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/RuleBasedRoutingSampler.java), with similar but a bit different functionality.
 
 ```yaml
-   samplerType: RuleBased
-   parameters:
-    - spanKind: SERVER | CONSUMER | ...   # optional
-    - - RULE1
-      - RULE2
-      ...
-      - RULEn
+   rule_based:
+     span_kind: SERVER | CONSUMER | ...   # optional
+     rules:
+       - <RULE1>
+       - <RULE2>
+        ...
 ```
 
-where RULE is an extension of SAMPLER, providing additional predicate:
+where RULE is a pair of PREDICATE and SAMPLER:
 
 ```yaml
   predicate: PREDICATE
-  samplerType: TYPE
-  parameters:
-   - PARAM1
-   - PARAM2
-   ...
-   - PARAMn
+  sampler: SAMPLER
 ```
 
 The Predicates represent logical expressions which can access Span Attributes (or anything else available when the sampling decision is to be taken), and perform tests on the accessible values.
@@ -163,44 +159,70 @@ Let's assume that a user wants to configure head sampling as follows:
 Such sampling requirements can be expressed as:
 
 ```yaml
-  samplerType: AllOf
-  parameters:
-  - - samplerType: AnyOf
-      parameters:
-       - - samplerType: ParentBased
-           parameters:
-            - samplerType: RuleBased  # for root spans
-              parameters:
-               - spanKind: SERVER
-               - - predicate: http.target == /healthcheck
-                   samplerType: AlwaysOff
-                 - predicate: http.target == /checkout
-                   samplerType: AlwaysOn
-                 - predicate: true     # works as a fallback sampler
-                   samplerType: TraceIdRatioBased
-                     parameters:
-                      - 0.25
-            - samplerType: AlwaysOn    # remote parent sampled
-            - samplerType: AlwaysOff   # remote parent not sampled
-            - samplerType: AlwaysOn    # local parent sampled
-            - samplerType: AlwaysOff   # local parent not sampled
-         - samplerType: RuleBased
-           parameters:
-            - spanKind: CLIENT
-            - - predicate: http.url == /foo
-                samplerType: AlwaysOn
-    - samplerType: RateLimiting
-      parameters:
-      - 1000   # spans/second
+sampler:
+  all_samplers:
+    from:
+     - any_sampler:
+         from:
+          - parent_based:
+              root:
+                rule_based:
+                  span_kind: SERVER
+                  rules:
+                   - predicate: http.target == /healthcheck
+                     sampler: always_off
+                   - predicate: http.target == /checkout
+                     sampler: always_on
+                   - predicate: true     # works as a fallback sampler
+                     sampler: trace_id_ratio_based
+                       ratio: 0.25
+              remote_parent_sampled:
+                always_on:
+              remote_parent_not_sampled:
+                always_off:
+              local_parent_sampled:
+                always_on:
+              local_parent_not_sampled:
+                always_off:
+          - rule_based:
+              span_kind: CLIENT
+              rules:
+               - predicate: http.url == /foo
+                 sampler: always_on
+     - rate_limiting:
+         max_rate: 1000   # spans/second
 ```
 
-The above example uses plain text representation of predicates. Actual representation for predicates is TBD. The example also assumes that a hypothetical `RateLimitingSampler` is available.
+The above example uses plain text representation of predicates. Actual representation for predicates is TBD. The example also assumes that a hypothetical `rate_limiting` sampler is available.
+
+## Custom samplers
+
+The YAML parser will have built-in knowledge about the standard SDK samplers as well as about the composite samplers described above.
+However, one of the goals is to support also other samplers. Before such a custom sampler can be used in the configuration it needs to be introduced to the parser by providing the sampler definition.
+Not all platforms are expected to accept custom samplers.
+
+For example, let's assume that the `rate_limiting` sampler from the previous example is not known to the parser. It's definition can look like follows
+
+```yaml
+sampler_definitions:
+  rate_limiting:   # this is the sampler key
+    parameters:
+     - max_rate: number  # spans per second
+    implementation:
+      class_name: java/io/opentelemetry/contrib/sampler/RateLimitingSampler
+      instantiation: constructor
+```
+
+The platform dependant `implementation` part will specify the details allowing the parser to access the sampler code and create the sampler object.
+There will be a need for each supported custom sampler to have a documented canonical way of instantiation or initialization, which takes a known list of parameters. The order of the parameters specified in the definition section will have to match exactly that list.
+
+Specifying the parameter type within the sampler definition can be used to both guide the parser with the correct interpretation of the argument values, or to provide additional verification of the configuration correctness. Definition of more complex types remains to be designed. 
 
 ## Strong and Weak Typing
 
-Constructing a sampler instance may require using some data types which are not strings, numbers, samplers, or lists of those types. Obviously, the beforementioned rule-based sampler needs to get `Rules`, which, in turn, will reference `Predicates`. The knowledge of these types can be built-in to the YAML parser, to ensure proper support.
+Constructing a sampler instance may require using some data types which are not strings, numbers, samplers, or lists of those types. Obviously, the beforementioned rule-based sampler needs to get `SpanKind` and `Rules`, which, in turn, will reference `Predicates`. The knowledge of these types can be built-in to the YAML parser, to ensure proper support.
 
-If there's a need to support other complex types, the supported parsers can take maps of (key, value) pairs, which will be provided directly by the YAML parser. The samplers will be responsible for converting these values into a suitable internal representation.
+If there's a need to support other complex types, the supported custom parsers may be required take maps of (key, value) pairs, which will be provided directly by the YAML parser. The samplers will be responsible for converting these values into a suitable internal representation.
 
 ## Suggested deployment pattern
 
@@ -219,14 +241,16 @@ If the feature proves popular, other options can be considered.
 
 ## Compatibility with existing standards and proposals
 
-Generally, the standard SDK samplers as well as those from the `opentelemetry-java-contrib` repository, with few exceptions, are not prepared to be used directly by this proposal. Even the standard samplers do not have a uniform way of instantiation. For example `ParentBasedSampler` offers only a constructor, while `TraceIdRatioBasedSampler` is typically instantiated using static `create` method.
+There already exists a [specification](https://github.com/open-telemetry/oteps/pull/225) for agent configuration which addresses sampling configuration. As long as the standard SDK samplers are used, the YAML representation of sampling configuration in that specification is identical to that of this proposal.
+However, here the following extended capabilities are offered:
 
-However, adding some uniformity there, as well as to the samplers from `opentelemetry-java-contrib` should be quite easy, and hopefully not very controversial. It is also possible to demand a uniform instantiation mechanism only for non-standard samplers; the knowledge about the standard samplers can be built-in.
-
-Another point of contention is that the existing configuration practices and proposals (see [JSON Schema Definitions for OpenTelemetry File Configuration](https://github.com/open-telemetry/opentelemetry-configuration/blob/main/schema/tracer_provider.json)) expect very specific knowledge about the samplers, while in this proposal responsibility for matching the samplers' arguments with the samplers signature becomes user's responsibility. However, to decrease the risk of misconfiguration, this proposal can be extended by introducing another configuration section which would describe the number of arguments and their type for non-standard samplers, thus providing some level of consistency checking.
+- additional composite samplers are built-in
+- new (custom) samplers can be defined without adding any code to the SDK or SDK extension
+- sampler configuration changes can be applied dynamically upon detecting configuration file modification, and supporting remote configuration via a wire protocol is an option
 
 ## Open Issues
 
 - How to encode Predicates so they will be readable and yet powerful, and at the same time calculated efficiently?
-- How to handle RecordOnly (_do not export_) sampling decisions?
-- How to improve ergonomy of dealing with generic sampler definitions?
+- How to describe sampler parameter types to arrive at the _right_ balance of complexity and expressiveness?
+- How to handle RecordOnly (_do not export_) sampling decisions by the composite samplers?
+
