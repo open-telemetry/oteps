@@ -1,5 +1,4 @@
-# Introducing Application Telemetry Schema in OpenTelemetry
-_Vision and Roadmap_
+# Introducing Application Telemetry Schema in OpenTelemetry - Vision and Roadmap
 
 ----
 **Author**: Laurent Querel, F5 Inc.
@@ -70,6 +69,7 @@ schema-driven end-to-end telemetry system in the future.
 The concept of the Application Telemetry Schema, as described in the previous
 diagram, will play a central role and unlock numerous use cases (this is not an
 exhaustive list):
+
 * Telemetry Client SDKs can be automatically generated from an application
 telemetry schema, enhancing both user experience and performance.
 * CI/CD pipelines can leverage an application telemetry schema to:
@@ -185,6 +185,7 @@ This process involves taking the entire hierarchy of Telemetry Schemas and
 Semantic Convention Registries and applying a set of rules to resolve overrides
 and eliminate external references. The key design principles to be followed in
 the definition of the Resolved Telemetry Schema are:
+
 * **Self-contained**: No external references are allowed. This artifact contains
 everything required to determine what an application or a library produces in
 terms of telemetry.
@@ -244,6 +245,7 @@ OpenTelemetry community, a series of OTEPs and tools are proposed.
 ### Tools
 
 OpenTelemetry tools
+
 * Semantic Convention Registry Merger (Johannes Tax's proposal): This tool will
 merge all the semantic convention files of a registry into a single and
 referencable file.
