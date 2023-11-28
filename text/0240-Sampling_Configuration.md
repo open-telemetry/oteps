@@ -1,6 +1,6 @@
 # Sampling Configuration
 
-An attempt to provide a framework for defining sampling configurations.
+This is an attempt to provide a framework for defining sampling configurations for spans and traces.
 
 Calling this proposal half-baked would be too generous. At this time it just a vision, with many questions unanswered and without any working prototype. Its purpose is to start a discussion on the needs and wants the Open Telemetry community might have on the subject of sampling configuration and a possible way to accomplish them.
 
@@ -22,7 +22,7 @@ The need for sampling configuration has been explicitly or implicitly indicated 
 A number of custom samplers are already available as independent contributions
 ([RuleBasedRoutingSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/RuleBasedRoutingSampler.java),
 [LinksBasedSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/LinksBasedSampler.java),
-and, of course, the latest and greatest [Consistent Probability Sampling](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/consistent-sampling)) or just as ideas. They all share the same pain point, which is lack of easy to use configuration mechanism.
+and, of course, the latest and greatest [Consistent Probability Sampling](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/consistent-sampling)) or just as ideas, such as [hintable sampler](https://github.com/open-telemetry/opentelemetry-specification/discussions/3725). They all share the same pain point, which is lack of easy to use configuration mechanism.
 
 Even when the code for these samplers is available, their use is not very simple. In case of Java, they require writing a custom agent [extension](https://opentelemetry.io/docs/instrumentation/java/automatic/extensions/). This can become a hurdle, especially for the Open Telemetry users with no hands-on coding experience.
 
@@ -30,13 +30,14 @@ Even when the code for these samplers is available, their use is not very simple
 
 The goal of this proposal is to create an open-ended configuration schema which supports not only the current set of SDK standard samplers, but also non-standard ones, and even samplers that will be added in the future. Furthermore the samplers should be composable together, as it is often required by the users.
 
-In contrast, the existing configuration schemas, such as [Jaeger sampling](https://www.jaegertracing.io/docs/1.50/sampling/#file-based-sampling-configuration), or Agent [OTEP 225 - Configuration proposal](https://github.com/open-telemetry/oteps/pull/225) address sampling configuration with a limited known set of samplers only.
+In contrast, the existing configuration schemas, such as [Jaeger sampling](https://www.jaegertracing.io/docs/1.50/sampling/#file-based-sampling-configuration), or Agent [OTEP 225 - Configuration proposal](https://github.com/open-telemetry/oteps/pull/225) address sampling configuration with a limited known set of samplers only, and providing extensions requires multiple steps, as shown in this [draft PR](https://github.com/open-telemetry/opentelemetry-java-examples/pull/227).
 
 ## Use cases
 
 - I want to use some of the samplers from the `opentelemetry-java-contrib` repository, but I do not want to build my own agent extension. I prefer to download one or more jarfiles containing the samplers and configure their use without writing any additional code.
 - I want to apply a sampling strategy that combines different samplers depending on the span attributes, such as the URL of the incoming request, and I expect to update the configuration frequently, so I prefer that it is file based (rather than hardcoded), and better yet, applied dynamically.
 - I want to write my own sampler with some unique logic, but I want to focus entirely on the sampling algorithm and avoid writing any boilerplate code for instantiating, configuring, and wrapping it up as an agent extension.
+- I want to write my own sampler and deploy it for my already running application, without restarting the application process.
 
 ## The basics
 
@@ -57,7 +58,6 @@ sampler:
 
 Each sampler is identified by a unique _sampler_key_, which takes a form of string.
 A <SAMPLER> is described by the sampler_key followed by the sampler arguments, if applicable.
-
 
 ```yaml
   <SAMPLER_KEY>:
@@ -193,7 +193,7 @@ sampler:
          max_rate: 1000   # spans/second
 ```
 
-The above example uses plain text representation of predicates. Actual representation for predicates is TBD. The example also assumes that a hypothetical `rate_limiting` sampler is available.
+The above example uses plain text representation for predicates. Actual representation for predicates is TBD. The example also assumes that a hypothetical `rate_limiting` sampler is available.
 
 ## Custom samplers
 
@@ -208,25 +208,37 @@ sampler_definitions:
   rate_limiting:   # this is the sampler key
     parameters:
      - max_rate: number  # spans per second
-    implementation:
+    implementation:      # Java-specific part
       class_name: java/io/opentelemetry/contrib/sampler/RateLimitingSampler
+      class_path: path/to/my/new/sampler.jar  # additional classpath, optional
       instantiation: constructor
 ```
 
-The platform dependant `implementation` part will specify the details allowing the parser to access the sampler code and create the sampler object.
-There will be a need for each supported custom sampler to have a documented canonical way of instantiation or initialization, which takes a known list of parameters. The order of the parameters specified in the definition section will have to match exactly that list.
+The platform dependant `implementation` part will specify the details allowing the parser to access the sampler code and create the sampler object. For Java, reflection can be used to instantiate the sampler object. Other platforms will use other means, if available.
 
-Specifying the parameter type within the sampler definition can be used to both guide the parser with the correct interpretation of the argument values, or to provide additional verification of the configuration correctness. Definition of more complex types remains to be designed. 
+There will be a need for each custom sampler to have a documented canonical way of instantiation or initialization, which takes a known list of parameters. The order of the parameters specified in the definition section will have to match exactly that list.
+
+Specifying the parameter type within the sampler definition can be used to both guide the parser with the correct interpretation of the argument values, or to provide additional verification of the configuration correctness. Definition of more complex types remains to be designed.
 
 ## Strong and Weak Typing
 
 Constructing a sampler instance may require using some data types which are not strings, numbers, samplers, or lists of those types. Obviously, the beforementioned rule-based sampler needs to get `SpanKind` and `Rules`, which, in turn, will reference `Predicates`. The knowledge of these types can be built-in to the YAML parser, to ensure proper support.
 
-If there's a need to support other complex types, the supported custom parsers may be required take maps of (key, value) pairs, which will be provided directly by the YAML parser. The samplers will be responsible for converting these values into a suitable internal representation.
+If there's a need to support other complex types, the supported custom samplers may be required to accept maps of (key, value) pairs, which will be provided directly by the YAML parser. The samplers will be responsible for converting these values into a suitable internal representation.
+
+## Compatibility with existing standards and proposals
+
+There already exists a [specification](https://github.com/open-telemetry/oteps/blob/main/text/0225-configuration.md) for agent configuration which addresses all configuration needs, including  sampling. As long as the standard SDK samplers are used, the YAML representation of sampling configuration in that specification is identical to that of this proposal.
+
+However, here the following extended capabilities are offered:
+
+- additional composite samplers are built-in
+- new (custom) samplers can be defined without adding any code to the SDK or SDK extension
+- sampler configuration changes can be applied dynamically upon detecting configuration file modification, and supporting remote configuration via a wire protocol remains an option
 
 ## Suggested deployment pattern
 
-Using the file-based configuration for sampling as described in this proposal does not require any changes to the OpenTelemetry Java Agent. The YAML file parser and the code to instantiate and configure requested samplers can be provided as an Extension jarfile (`config_based_sampler.jar` below). All samplers from the `opentelemetry-java-contrib` repository can be also made available as a separate jarfile (`all_samplers.jar` below).
+Using the file-based configuration for sampling as described in this proposal does not require any changes to the OpenTelemetry Java Agent. The YAML file parser and the code to instantiate and configure requested samplers can be provided as an [extension](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/examples/extension) jarfile (`config_based_sampler.jar` below). All samplers from the `opentelemetry-java-contrib` repository can be also made available as a separate jarfile (`all_samplers.jar` below).
 
 ```bash
 $ java -javaagent:path/to/opentelemetry-javaagent.jar \
@@ -237,20 +249,20 @@ $ java -javaagent:path/to/opentelemetry-javaagent.jar \
      -jar myapp.jar
 ```
 
-If the feature proves popular, other options can be considered.
+If the feature proves popular, other options can be considered, including adding this sampler along with its auxiliary composite samplers to the tracing SDK. Assuming that the sampler described in this proposal is called `meta_sampler`, the Java Agent users will be able to configure it as follows, when using [file-based configuration](https://github.com/open-telemetry/oteps/blob/main/text/0225-configuration.md#configuration-file)
 
-## Compatibility with existing standards and proposals
-
-There already exists a [specification](https://github.com/open-telemetry/oteps/pull/225) for agent configuration which addresses sampling configuration. As long as the standard SDK samplers are used, the YAML representation of sampling configuration in that specification is identical to that of this proposal.
-However, here the following extended capabilities are offered:
-
-- additional composite samplers are built-in
-- new (custom) samplers can be defined without adding any code to the SDK or SDK extension
-- sampler configuration changes can be applied dynamically upon detecting configuration file modification, and supporting remote configuration via a wire protocol is an option
+```yaml
+sdk:
+  tracer_provider:
+    sampler_config:
+      meta_sampler:
+        config_file: path/to/sampling_config.yaml
+  ...
+  
+```
 
 ## Open Issues
 
 - How to encode Predicates so they will be readable and yet powerful, and at the same time calculated efficiently?
 - How to describe sampler parameter types to arrive at the _right_ balance of complexity and expressiveness?
 - How to handle RecordOnly (_do not export_) sampling decisions by the composite samplers?
-
