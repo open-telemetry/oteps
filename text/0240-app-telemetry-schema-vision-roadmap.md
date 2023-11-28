@@ -171,7 +171,7 @@ for more information).
 The following diagram illustrates the relationships between these concepts and
 the main changes from Telemetry Schema v1.1 to v1.2.
 
-![Telemetry Schema v1.1 to v1.2](./img/0240-telemetry-schema- v1.1-to-v1.2.png)
+![Telemetry Schema](./img/0240-telemetry-schema-v1.1-to-v1.2.png)
 
 Several OTEPs will be dedicated to the precise definition of the structure and
 the format of Telemetry Schema v1.2. The rules for resolving overrides
