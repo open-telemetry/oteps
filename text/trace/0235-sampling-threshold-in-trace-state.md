@@ -89,10 +89,12 @@ This section defines behavior for each kind of sampler.
 A head sampler is responsible for computing a new span's initial [`TraceState`](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.25.0/specification/trace/api.md#tracestate) (among other data). Notable inputs to that computation include the parent span's trace state (if a parent span exists) and the new span's trace ID.
 
 First, a consistent `Sampler` decides which sampling probability to use. The sampler MAY select any value of T. If a valid `SpanContext` is provided in the call to `ShouldSample` (indicating that the span being created will be a child span),
+
 - Choosing a T less than the parent span's is expected to result in partial traces (the parent may be sampled but the child dropped).
 - Choosing a T greater than or equal to the parent span is expected to result in complete traces (this is definition of consistent probability sampling).
 
 For the output TraceState,
+
 - The `th` key MUST be defined, with value describing the sampling probability the sampler actually used.
 - The `rv` value, if present on the input TraceState, MUST be defined and equal to the parent span's `rv`. Otherwise, `rv` MUST be defined if and only if the effective R was _generated_ during the decision, per the "derive R" algorithm given earlier.
 
