@@ -159,11 +159,7 @@ prob = float(threshold) / maxth
 
 ### Converting threshold to an adjusted count (sampling rate)
 
-The adjusted count is an integer value, indicating the approximate quantity of items from the population that this sample represents. It is 1/probability, [rounded half-up](https://en.wikipedia.org/wiki/Rounding#Rounding_half_up) to the nearest integer. It is not defined for spans that were obtained via non-probabilistic sampling (a sampled span with integer threshold = 0).
-
-```py
-maxth = 0x100_0000_0000_0000  # 2^56
-adjcount = math.floor((maxth / float(threshold)) + 0.5)
+The adjusted count indicates the approximate quantity of items from the population that this sample represents. It is equal to `1/probability`. It is not defined for spans that were obtained via non-probabilistic sampling (a sampled span with integer threshold = 0).
 
 ## Trade-offs and mitigations
 
