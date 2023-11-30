@@ -16,7 +16,7 @@ The `p` value is limited to powers of two, while the `th` value in this proposal
 This proposal allows for the continued expression of randomness using `r-value` as specified there using the key `r`.
 To distinguish the cases, this proposal uses the key `rv`.
 
-In order to make consistent sampling decisions across the entire path of the trace, two values SHOULD be propagated with the trace:
+In the general case, in order to make consistent sampling decisions across the entire path of the trace, two values MUST be present in the `SpanContext`:
 
 1. A _random_ (or pseudo-random) 56-bit value, called `R` below.
 2. A 56-bit trace _threshold_ as expressed in the TraceState, called `T` below. `T` represents the minimum threshold that was applied in all previous consistent sampling stages. If the current sampling stage applies a lower threshold than any stage before, it has to update (decrease) the threshold correspondingly.
