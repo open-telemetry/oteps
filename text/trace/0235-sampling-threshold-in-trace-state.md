@@ -76,17 +76,34 @@ The `T` value MUST be derived as follows:
 
 Sampling Decisions MUST be propagated by setting the value of the `th` key in the Tracestate header according to the above.
 
-## Changing T and R values
+## Initializing and updating T and R values
 
-The T value MAY be modified.
+There are two categories of sampler:
+- **Head samplers:** Implementations of [`Sampler`](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.25.0/specification/trace/sdk.md#sampler), called by a `Tracer` during span creation.
+- **Downstream samplers:** Any component that, given an ended Span, decides whether to drop or forward ("sample") it on to the next component in the system. Also known as "collection-path samplers" or "sampling processors". _Tail samplers_ are a special class of downstream samplers that buffer the spans in a trace and select a sampling probability for the trace as a whole using data from any span in the buffered trace.
 
-In the case of a downstream sampler -- a tail sampler on the collection path that is attempting to reduce the volume of traffic -- the sampler MAY modify the `th` header by reducing its value.
-It MUST NOT increase it, as it is not possible to retroactively adjust the sampling probability upward.
+This section defines behavior for each kind of sampler.
 
-A consistent head sampler MUST set the T value corresponding to the sampling probability it actually uses. If it samples a non-root span, it MAY use the sampling probability of the parent span and use its T value.
-Using different sampling probabilities for spans belonging to the same trace will lead to incomplete traces.
+### Head samplers
 
-A sampler MUST introduce an R value to a trace that does not include one and does not have the `Random` trace-id flag set. It MUST use the `rv` key for this purpose. A sampler MUST NOT modify an existing R value or trace-id.
+A head sampler is responsible for computing a new span's initial [`TraceState`](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.25.0/specification/trace/api.md#tracestate) (among other data). Notable inputs to that computation include the parent span's trace state (if a parent span exists) and the new span's trace ID.
+
+First, a consistent `Sampler` decides which sampling probability to use. The sampler MAY select any value of T. If a valid `SpanContext` is provided in the call to `ShouldSample` (indicating that the span being created will be a child span),
+- Choosing a T less than the parent span's is expected to result in partial traces (the parent may be sampled but the child dropped).
+- Choosing a T greater than or equal to the parent span is expected to result in complete traces (this is definition of consistent probability sampling).
+
+For the output TraceState,
+- The `th` key MUST be defined, with value describing the sampling probability the sampler actually used.
+- The `rv` value, if present on the input TraceState, MUST be defined and equal to the parent span's `rv`. Otherwise, `rv` MUST be defined if and only if the effective R was _generated_ during the decision, per the "derive R" algorithm given earlier.
+
+TODO: For _new_ spans, `ShouldSample` doesn't currently have a way to know the new Span's `TraceFlags`, so it can't determine whether the Random Trace ID Flag is set, and in turn can't execute the "derive R" algorithm. Maybe it should take `TraceFlags` as an additional parameter, just like it takes `TraceId`?
+
+### Downstream samplers
+
+A downstream sampler, in contrast, may output a given ended Span with a _modified_ trace state, complying with following rules:
+
+- If the chosen sampling probability is 1, the sampler MUST NOT modify any existing `th`, nor set any `th`.
+- Otherwise, the chosen sampling probability is in `(0, 1)`. In this case the sampler MUST output the span with a `th` equal to `min(input th, chosen th)`. In other words, `th` MUST NOT be increased (as it is not possible to retroactively adjust an earlier stage's sampling probability), and it MUST be decreased if a lower sampling probability was used. This case represents the common case where a downstream sampler is reducing span throughput in the system.
 
 ## Internal details
 
