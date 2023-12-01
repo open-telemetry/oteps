@@ -100,8 +100,8 @@ New composite samplers are proposed to make group sampling decisions. They alway
       - <SAMPLERn>
 ```
 
-The `any_sampler` is a composite sampler which takes a non-empty list of Samplers as the argument. When making a sampling decision, it goes through the list to find a sampler that decides to sample. If found, this sampling decision is final. If none of the samplers from the list wants to sample the span, the composite sampler drops the span.
-If the first child which decided to sample modified the trace state, the effect of the modification remains in effect.
+The `any_sampler` is a composite sampler which takes a non-empty list of Samplers as the argument. When making a sampling decision, it goes through the list and asks each sampler for its decision about sampling. If any of these samplers decides to sample, the final decision is to sample. If none of the samplers from the list wants to sample the span, the composite sampler drops the span.
+State trace modfications by all the child samplers are cumulative.
 
 ### Logical-And Sampling
 
@@ -114,9 +114,8 @@ If the first child which decided to sample modified the trace state, the effect 
       - <SAMPLERn>
 ```
 
-The `all_samplers` composite sampler takes a non-empty list of Samplers as the argument. When making a sampling decision, it goes through the list to find a sampler that decides not to sample. If found, the final sampling decision is not to sample. If all of the samplers from the list want to sample the span, the composite sampler samples the span.
-
-If all of the child samplers agreed to sample, and some of them modified the trace state, the modifications are cumulative as performed in the given order. If the final decision is not to sample, the trace state remains unchanged.
+The `all_samplers` composite sampler takes a non-empty list of Samplers as the argument. When making a sampling decision, it goes through the list and asks each sampler for its decision about sampling. If any of these samplers decides not to sample, the final sampling decision is not to sample. If all of the samplers from the list want to sample the span, the composite sampler samples the span.
+State trace modfications by all the child samplers are cumulative.
 
 ### Rule based sampling
 
