@@ -4,7 +4,7 @@
 **Author**: Laurent Querel, F5 Inc.
 
 **Keywords**: Telemetry Schema, Semantic Convention, Code Generator,
-Telemetry Backend, Data Governance, Data Privacy.
+Telemetry Backend, Data Governance, Automated Privacy Enforcement.
 
 **Related OTEPs**: [OTEP0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md), [OTEP0202](https://github.com/open-telemetry/oteps/blob/main/text/0202-events-and-logs-api.md).
 
@@ -39,8 +39,8 @@ But this approach is not without challenges:
 * **Discoverability and Interoperability**: It is difficult to discover a priori
 and automatically what an application as a whole specifically generates in terms
 of telemetry and associated metadata.This makes it difficult to integrate with
-enterprise data catalogs, compliance procedures, or privacy management in CI/CD
-pipelines.
+enterprise data catalogs, compliance procedures, or automated privacy
+enforcement in CI/CD pipelines.
 * **User experience**: Although very flexible, generic clients do not offer the
 same benefits as a strongly typed dedicated API. A type-safe API is more
 ergonomic, more robust, and more easily maintainable. Modern IDEs are capable
@@ -172,6 +172,28 @@ The following diagram illustrates the relationships between these concepts and
 the main changes from Telemetry Schema v1.1 to v1.2.
 
 ![Telemetry Schema](./img/0240-telemetry-schema-v1.1-to-v1.2.png)
+
+> Note 1: Each signal definition, where possible, reuses the existing syntax and
+semantics defined by the semantic conventions. Each signal definition is also
+identified by a unique name (or ID), making schemas easy to traverse, validate,
+and diff.
+
+> Note 2: This hierarchy of telemetry schemas helps large organizations in
+collaborating on the Application Telemetry Schema. It enables different aspects
+of an Application Telemetry Schema to be managed by various teams.
+
+> Note 3: For all the elements that make up the Application Telemetry Schema, a
+general mechanism of annotation or tagging will be integrated in order to attach
+additional traits, characteristics, or constraints, allowing vendors and
+companies to extend the definition of concepts defined by OpenTelemetry.
+
+> Note 4: Annotations and Tags can also be employed to modify schemas for
+diverse audiences. For example, the public version of a schema can exclude all
+signals or other metadata labeled as private. Similarly, elements can be
+designated as exclusively available for beta testers. These annotations can also
+identify attributes as PII (Personally Identifiable Information), and privacy
+policy enforcement can be implemented at various levels (e.g., in the generated
+client SDK or in a proxy).
 
 Several OTEPs will be dedicated to the precise definition of the structure and
 the format of Telemetry Schema v1.2. The rules for resolving overrides
