@@ -174,29 +174,26 @@ the main changes from Telemetry Schema v1.1 to v1.2.
 ![Telemetry Schema](./img/0240-telemetry-schema-v1.1-to-v1.2.png)
 
 > Note 1: Each signal definition, where possible, reuses the existing syntax and
-semantics defined by the semantic conventions. Each signal definition is also
-identified by a unique name (or ID), making schemas easy to traverse, validate,
-and diff.
-
-
+> semantics defined by the semantic conventions. Each signal definition is also
+> identified by a unique name (or ID), making schemas easy to traverse, validate
+> , and diff.
+>
 > Note 2: This hierarchy of telemetry schemas helps large organizations in
-collaborating on the Application Telemetry Schema. It enables different aspects
-of an Application Telemetry Schema to be managed by various teams.
-
-
+> collaborating on the Application Telemetry Schema. It enables different
+> aspects of an Application Telemetry Schema to be managed by various teams.
+>
 > Note 3: For all the elements that make up the Application Telemetry Schema, a
-general mechanism of annotation or tagging will be integrated in order to attach
-additional traits, characteristics, or constraints, allowing vendors and
-companies to extend the definition of concepts defined by OpenTelemetry.
-
-
+> general mechanism of annotation or tagging will be integrated in order to
+> attach additional traits, characteristics, or constraints, allowing vendors
+> and companies to extend the definition of concepts defined by OpenTelemetry.
+>
 > Note 4: Annotations and Tags can also be employed to modify schemas for
-diverse audiences. For example, the public version of a schema can exclude all
-signals or other metadata labeled as private. Similarly, elements can be
-designated as exclusively available for beta testers. These annotations can also
-identify attributes as PII (Personally Identifiable Information), and privacy
-policy enforcement can be implemented at various levels (e.g., in the generated
-client SDK or in a proxy).
+> diverse audiences. For example, the public version of a schema can exclude all
+> signals or other metadata labeled as private. Similarly, elements can be
+> designated as exclusively available for beta testers. These annotations can
+> also identify attributes as PII (Personally Identifiable Information), and
+> privacy policy enforcement can be implemented at various levels (e.g., in the
+> generated client SDK or in a proxy).
 
 Several OTEPs will be dedicated to the precise definition of the structure and
 the format of Telemetry Schema v1.2. The rules for resolving overrides
