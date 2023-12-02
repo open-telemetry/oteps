@@ -178,14 +178,17 @@ semantics defined by the semantic conventions. Each signal definition is also
 identified by a unique name (or ID), making schemas easy to traverse, validate,
 and diff.
 
+
 > Note 2: This hierarchy of telemetry schemas helps large organizations in
 collaborating on the Application Telemetry Schema. It enables different aspects
 of an Application Telemetry Schema to be managed by various teams.
+
 
 > Note 3: For all the elements that make up the Application Telemetry Schema, a
 general mechanism of annotation or tagging will be integrated in order to attach
 additional traits, characteristics, or constraints, allowing vendors and
 companies to extend the definition of concepts defined by OpenTelemetry.
+
 
 > Note 4: Annotations and Tags can also be employed to modify schemas for
 diverse audiences. For example, the public version of a schema can exclude all
