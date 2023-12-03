@@ -194,6 +194,16 @@ the main changes from Telemetry Schema v1.1 to v1.2.
 > also identify attributes as PII (Personally Identifiable Information), and
 > privacy policy enforcement can be implemented at various levels (e.g., in the
 > generated client SDK or in a proxy).
+> 
+> Note 5: This recent [paper](https://arxiv.org/pdf/2311.07509.pdf#:~:text=The%20results%20of%20the%20benchmark%20provide%20evidence%20that%20supports%20our,LLM%20without%20a%20Knowledge%20Graph)
+> from [data.world](https://data.world/home/), along with the [MetricFlow framework](https://docs.getdbt.com/docs/build/about-metricflow)
+> which underpins the [dbt Semantic Layer](https://www.getdbt.com/product/semantic-layer),
+> highlights the significance of adopting a schema-first approach in data
+> modeling, especially for Generative AI-based question answering systems. Tools
+> like Observability Query Assistants (e.g. [Elastic AI Assistant](https://www.elastic.co/fr/blog/introducing-elastic-ai-assistant)
+> and [Honeycomb Query Assistant](https://www.honeycomb.io/blog/introducing-query-assistant?utm_source=newswire&utm_medium=link&utm_campaign=query_assistant))
+> are likely to become increasingly prevalent and efficient in the near future,
+> thanks to the adoption of a schema-first approach.
 
 Several OTEPs will be dedicated to the precise definition of the structure and
 the format of Telemetry Schema v1.2. The rules for resolving overrides
@@ -290,4 +300,7 @@ by relying on the standardized format of the Resolved Telemetry Schema.
 
 ## Links
 
-[Positional Paper: Schema-First Application Telemetry](https://research.facebook.com/publications/positional-paper-schema-first-application-telemetry/)
+- [Positional Paper: Schema-First Application Telemetry](https://research.facebook.com/publications/positional-paper-schema-first-application-telemetry/)
+- [A benchmark to understand the role of knowledge graphs on Large Language Model's accuracy for question answering on enterprise sql databases](https://arxiv.org/pdf/2311.07509.pdf#:~:text=The%20results%20of%20the%20benchmark%20provide%20evidence%20that%20supports%20our,LLM%20without%20a%20Knowledge%20Graph)
+- [MetricFlow framework](https://docs.getdbt.com/docs/build/about-metricflow)
+
