@@ -317,11 +317,14 @@ OpenTelemetry community, a series of OTEPs and tools are proposed.
 * Telemetry Schema versions (incremental steps):
   * V1.1.1: Add a section to import one or several Semantic Convention
   Registries. Once implemented, the official Semantic Convention Registry will
-  be referenced from the official OpenTelemetry Root Telemetry Schema.
+  be referenced from the official OpenTelemetry Root Telemetry Schema. At this
+  stage, code generation for OTel-wide conventions can be carried out, and
+  search capabilities can be implemented to retrieve attributes and metrics from
+  the semantic convention registry.
   * V1.2: Add references to parent schemas and define a schema section to
   describe application/library signals. In this version, only metrics, logs, and
-  spans signals are described. This is the first version of the telemetry schema
-  that can be used by the Client SDK generator. In this version only one schema
+  spans signals are described. At this point, a custom Client SDK and Client
+  API can be generated from the schema section. In this version only one schema
   can be inherited. More complex hierarchies will be supported in version 1.5.
   * V1.3: Add support for events in the schema section. This OTEP is contingent
   upon the approval of events in OpenTelemetry.
