@@ -244,6 +244,65 @@ to reuse the same subset of attributes or metrics across several signals.
 A dedicated OTEP will precisely define the structure and format of the Resolved
 Telemetry Schema.
 
+### Development Models
+
+Two development models coexist. The first model, a monorepo type (or similar),
+has complete control over the applications, their dependencies, and the
+associated telemetry schemas. The second model is more heterogeneous, where the
+build process of external dependencies is out of the control of the entity
+owning the applications or services.
+
+In the first model, each build process can independently apply telemetry schema
+policies in parallel, knowing that the policies are shared and the entire
+environment is controlled by the same entity.
+
+In the second model, the application/service environment does not have access to
+and does not control the telemetry schema policies applied to the telemetry
+schemas of the libraries. Two strategies for recovering telemetry schemas are
+currently being considered. A specific OTEP will be responsible for identifying
+the best approach.
+
+![Development Models](./img/0240-dev-models.png)
+
+#### Decentralized Strategy
+
+# Library Designers Using a Schema-First Telemetry Schema Approach
+
+Library designers using this schema-first telemetry schema approach add a phase
+in their CI/CD pipeline for the registration of the resolved telemetry schema
+associated with their library for a given version. This registration is done
+towards a registry maintained by OpenTelemetry.
+
+Application/service owners configure their CI/CD pipeline to automatically
+import the resolved telemetry schemas of dependencies (if they exist) in order
+to apply locally the telemetry schema policies or any other build step that
+applies to/feeds off the resolved telemetry schemas of the dependencies.
+
+![Decentralized Strategy](./img/0240-decentralized-strategy.png)
+
+This approach is considered decentralized as it does not impose any direct
+collaboration between parties while ensuring consistency between versions of
+dependencies and their associated telemetry schemas.
+
+#### Centralized Strategy
+
+In this strategy, the library designers have no interaction with the external
+world. They define a telemetry schema for their library, version the resolved
+schema in their repository, and release their library as usual.
+
+On the application and service owners' side, they must either make a local copy
+of the resolved telemetry schemas corresponding to their dependencies (similar
+conceptually to the model followed by protobuf and gRPC) or link to the resolved
+telemetry schema for a specific version. In both cases, the synchronization
+between the versions of the library and the resolved telemetry schema is the
+responsibility of the application owner.
+
+![Centralized Strategy](./img/0240-centralized-strategy.png)
+
+This approach is considered centralized as the application owner has the
+responsibility of maintaining, in a centralized manner locally, all the
+telemetry schemas of the dependencies.
+
 ## Roadmap
 
 To facilitate the review process and progressively deliver value to the
@@ -270,7 +329,9 @@ OpenTelemetry community, a series of OTEPs and tools are proposed.
   allow the distribution of semantic convention registries across vendors and
   enterprises. This OTEP depends on the “Schema Child/Parent relationship
   resolution” OTEP.
-* Resolved Schema Format v1.0.
+* Resolved Schema Format v1.0. This OTEP will define both the structure and
+format of the Resolved Telemetry Schema and the strategy for collecting the
+Resolved Telemetry Schemas of the dependencies.
 * Schema-driven Client SDK Generator.
 * Schema Child/Parent relationship resolution.
 
