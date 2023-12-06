@@ -266,8 +266,6 @@ the best approach.
 
 #### Decentralized Strategy
 
-# Library Designers Using a Schema-First Telemetry Schema Approach
-
 Library designers using this schema-first telemetry schema approach add a phase
 in their CI/CD pipeline for the registration of the resolved telemetry schema
 associated with their library for a given version. This registration is done
