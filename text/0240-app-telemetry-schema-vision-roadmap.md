@@ -66,9 +66,9 @@ schema-driven end-to-end telemetry system in the future.
 
 ![Application Telemetry Schema Overview](./img/0240-app-telemetry-schema-overview.png)
 
-The concept of the Application Telemetry Schema, as described in the previous
-diagram, will play a central role and unlock numerous use cases (this is not an
-exhaustive list):
+The concept of the Application Telemetry Schema and Resolved Telemetry Schema,
+as described in the previous diagram, will play a central role and unlock
+numerous use cases (this is not an exhaustive list):
 
 * Telemetry Client SDKs can be automatically generated from an application
 telemetry schema, enhancing both user experience and performance.
