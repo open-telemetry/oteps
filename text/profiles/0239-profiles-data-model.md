@@ -504,6 +504,9 @@ message Sample {
 
   // References to attributes in Profile.attribute_table. [optional]
   repeated uint64 attributes = 7;
+
+  // A 128bit id that uniquely identifies this stacktrace, globally. Index into string table. [optional]
+  uint32 stacktrace_id_index = 2;
 }
 
 message Label {
@@ -908,6 +911,10 @@ Timestamps associated with Sample represented in ms. These timestamps are expect
 ##### Field `attributes`
 
 References to attributes in Profile.attribute_table. [optional]
+
+##### Field `stacktrace_id_index`
+
+A 128bit id that uniquely identifies this stacktrace, globally. Index into string table. [optional]
 </details>
 
 #### Message `Location`
