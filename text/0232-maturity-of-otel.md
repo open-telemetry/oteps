@@ -45,7 +45,7 @@ The component is ready for general availability. Bugs and performance problems s
 
 #### Deprecated
 
-Development of this component is halted, and no further support will be provided. No new versions are planned, and the component might be removed from its included distributions. Note that new issues will likely not be worked on except for critical security issues. Components that are included in distributions are expected to exist for at least two minor releases or six months, whichever happens later. They also MUST communicate in which version they will be removed, either in terms of a concrete version number or the date of a release, like: "the first release after 2023-08-01".
+Development of this component is halted. No new versions are planned, and the component might be removed from its included distributions. Note that new issues will likely not be worked on except for critical security issues. Components that are included in distributions are expected to exist for at least two minor releases or six months, whichever happens later. They also MUST communicate in which version they will be removed, either in terms of a concrete version number or the date of a release, like: "the first release after 2023-08-01".
 
 #### Unmaintained
 
