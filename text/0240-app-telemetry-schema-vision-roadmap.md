@@ -40,7 +40,7 @@ But this approach is not without challenges:
 and automatically what an application as a whole specifically generates in terms
 of telemetry and associated metadata.This makes it difficult to integrate with
 enterprise data catalogs, compliance procedures, or automated privacy
-enforcement in CI/CD pipelines.
+enforcement in _CI/CD pipelines_.
 * **User experience**: Although very flexible, generic clients do not offer the
 same benefits as a strongly typed dedicated API. A type-safe API is more
 ergonomic, more robust, and more easily maintainable. Modern IDEs are capable
@@ -56,9 +56,9 @@ efficient and less error-prone for representing this list of attributes.
 
 Databases and RPC systems (e.g., Protobuf & gRPC) have already addressed some of
 these issues with a schema-first approach. There is nothing to prevent adopting
-a similar approach in the context of telemetry. This document discusses how to
+a similar approach in the context of telemetry. **This document discusses how to
 apply a schema-first approach in the OpenTelemetry project and its implications
-for the existing Telemetry Schema and Semantic Conventions.
+for the existing Telemetry Schema and Semantic Conventions.**
 
 The following diagram provides an overview of the relationships between the
 various components, processes, and artifacts of what could be a typical
@@ -91,9 +91,9 @@ diverse contexts, such as overriding some properties (e.g., changing the
 requirement level from recommended to required). Additionally, the presence of
 vendor-specific attributes and metrics in the existing official OpenTelemetry
 semantic convention registry does not align with the goal of offering a catalog
-of attributes, metrics, and signals that are vendor-agnostic. These issues are
+of attributes, metrics, and signals that are vendor-agnostic. **These issues are
 indicative of a lack of standardized mechanisms for extending, customizing, and
-developing an ecosystem of schemas and semantic convention registries.
+developing an ecosystem of schemas and semantic convention registries.**
 
 In response to these problems, a hierarchy of telemetry schemas can be defined,
 ranging from the most general to one that is specifically refined for an
@@ -113,19 +113,26 @@ schema v1.1 and the OpenTelemetry semantic conventions.
 
 ### Overview
 
-Conceptually, this proposal is based on three main concepts: Telemetry
-Schema v1.2, Semantic Convention Registry, and Resolved Telemetry Schema. The
-relationships between these entities are described in the following diagram.
+Conceptually, this proposal is based on three main concepts: Application/Library
+Telemetry Schema, Semantic Convention Registry, and Resolved Telemetry Schema.
+The relationships between these entities are described in the following diagram.
 
-![Application Telemetry Schema Concepts](./img/0240-app-telemetry-schema-concepts.png)
+![Application Telemetry Schema Concepts](./img/0240-otel-weaver-concepts.svg)
 
-The Telemetry Schemas form a hierarchy of schemas, the complexity of which
-depends on the complexity of the situation (usage in very large enterprises
-will tend to produce more complex schema hierarchies). A single Telemetry Schema
-can import from zero to n Semantic Convention Registries, depending on its
-needs. A Resolved Telemetry Schema is generated during the schema resolution
-process from a hierarchy of Telemetry Schemas and Semantic Convention
-Registries.
+The Application/Library Telemetry Schemas, referred to as App Telemetry Schema
+in this document, are created by application or library authors. An App
+Telemetry Schema may import any number of Semantic Convention Registries as
+needed. During the schema resolution process, a Resolved Telemetry Schema is
+created from an App Telemetry Schema. This Resolved Telemetry Schema is complete
+in itself and has no external references. Optionally, an App Telemetry Schema
+can extend an existing Resolved Telemetry Schema. Typically, the official
+OpenTelemetry root telemetry schema, which is a resolved schema, is extended to
+include the standard OpenTelemetry Semantic Convention registry. In complex
+cases, large enterprises might create their own intermediary resolved schemas
+for custom definitions.
+
+The idea of Resolved Telemetry Schema is actually an extension of the Telemetry
+Schema v1.1, which was first defined in this [OTEP 0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md).
 
 The following diagram illustrates a possible instance of a complex hierarchy of
 schemas and semantic convention registries. It involves several vendor and
