@@ -245,8 +245,9 @@ in the following diagram.
 
 The internal catalog is used to define all the attributes and metrics in this
 artifact. This design allows for the reuse of the same attributes or metrics
-multiple times in different signals. It is expected to be a very common pattern
-to reuse the same subset of attributes or metrics across several signals.
+multiple times in different signals and different instrumentation libraries. It
+is expected to be a very common pattern to reuse the same subset of attributes
+or metrics across several signals and libraries.
 
 A dedicated OTEP will precisely define the structure and format of the Resolved
 Telemetry Schema.
