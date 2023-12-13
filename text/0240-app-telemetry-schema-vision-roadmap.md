@@ -148,7 +148,7 @@ For each important component, the following diagram defines the responsibilities
 and key design properties that have been considered in the subsequent sections
 of this document.
 
-![Application Telemetry Schema - Levels of responsibilities & Key design properties](./img/0240-app-telemetry-schema-design-properties.png)
+![Application Telemetry Schema - Levels of responsibilities & Key design properties](./img/0240-otel-weaver-responsibilities-properties.svg)
 
 This design enables the definition of semantic conventions in a distributed
 manner. OpenTelemetry, vendors, and enterprises can define their own semantic
