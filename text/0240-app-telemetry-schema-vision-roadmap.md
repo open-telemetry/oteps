@@ -123,16 +123,16 @@ The Application/Library Telemetry Schemas, referred to as App Telemetry Schema
 in this document, are created by application or library authors. An App
 Telemetry Schema may import any number of Semantic Convention Registries as
 needed. During the schema resolution process, a Resolved Telemetry Schema is
-created from an App Telemetry Schema. This Resolved Telemetry Schema is complete
-in itself and has no external references. Optionally, an App Telemetry Schema
-can extend an existing Resolved Telemetry Schema. Typically, the official
-OpenTelemetry root telemetry schema, which is a resolved schema, is extended to
-include the standard OpenTelemetry Semantic Convention registry. In complex
-cases, large enterprises might create their own intermediary resolved schemas
-for custom definitions.
+created from an App Telemetry Schema. This Resolved Telemetry Schema is self-contained
+and has no external references. Optionally, an App Telemetry Schema can extend
+an existing Resolved Telemetry Schema. Typically, the official OpenTelemetry
+root telemetry schema, which is a resolved schema, is extended to include the
+standard OpenTelemetry Semantic Convention registry. In complex cases, large
+enterprises might create their own intermediary resolved schemas for custom
+definitions.
 
 The idea of Resolved Telemetry Schema is actually an extension of the Telemetry
-Schema v1.1, which was first defined in this [OTEP 0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md).
+Schema v1.1, which was first defined in the [OTEP 0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md).
 
 The following diagram illustrates a possible instance of a complex hierarchy of
 schemas and semantic convention registries. It involves several vendor and
