@@ -64,7 +64,7 @@ The following diagram provides an overview of the relationships between the
 various components, processes, and artifacts of what could be a typical
 schema-driven end-to-end telemetry system in the future.
 
-![Application Telemetry Schema Overview](./img/0240-app-telemetry-schema-overview.png)
+![Application Telemetry Schema Overview](./img/0240-otel-weaver-overview.svg)
 
 The concept of the Application Telemetry Schema and Resolved Telemetry Schema,
 as described in the previous diagram, will play a central role and unlock
@@ -265,55 +265,16 @@ In the first model, each build process can independently apply telemetry schema
 policies in parallel, knowing that the policies are shared and the entire
 environment is controlled by the same entity.
 
-In the second model, the application/service environment does not have access to
-and does not control the telemetry schema policies applied to the telemetry
-schemas of the libraries. Two approaches for recovering telemetry schemas are
-currently being considered. A specific OTEP will be responsible for identifying
-the best approach.
+In the second model, the application or service environment cannot access or
+control the telemetry schema policies of the libraries. We need a way to
+retrieve telemetry schemas from these dependencies. At this point, the preferred
+method is to include the telemetry schema artifact within the library artifact
+(like binary libraries, jar files, crates, go modules, etc.). This way, they are
+automatically collected during the application's build process. This method is
+fully decentralized and does not need a global schema registry. A specific OTEP
+will describe the best method for this.
 
-![Development Strategies to Support](./img/0240-dev-strategies.png)
-
-#### Decentralized Approach
-
-Library designers using this schema-first telemetry schema approach add a phase
-in their CI/CD pipeline for the registration of the resolved telemetry schema
-associated with their library for a given version. This registration is done
-towards a registry maintained by OpenTelemetry.
-
-Application/service owners configure their CI/CD pipeline to automatically
-import the resolved telemetry schemas of dependencies (if they exist) in order
-to apply locally the telemetry schema policies or any other build step that
-applies to/feeds off the resolved telemetry schemas of the dependencies.
-
-![Decentralized Approach](./img/0240-decentralized-approach.png)
-
-This approach is considered decentralized as it does not impose any direct
-collaboration between parties while ensuring consistency between versions of
-dependencies and their associated telemetry schemas.
-
-#### Centralized Approach
-
-In this approach, the library designers have no interaction with the external
-world. They define a telemetry schema for their library, version the resolved
-schema in their repository, and release their library as usual.
-
-On the application and service owners' side, they must either make a local copy
-of the resolved telemetry schemas corresponding to their dependencies (similar
-conceptually to the model followed by protobuf and gRPC) or link to the resolved
-telemetry schema for a specific version. In both cases, the synchronization
-between the versions of the library and the resolved telemetry schema is the
-responsibility of the application owner.
-
-![Centralized Approach](./img/0240-centralized-approach.png)
-
-This approach is considered centralized as the application owner has the
-responsibility of maintaining, in a centralized manner locally, all the
-telemetry schemas of the dependencies.
-
-A specific OTEP dedicated to the resolved telemetry schema will be responsible
-for defining the format and structure of the resolved telemetry schema, as well
-as the best approach to collect the resolved telemetry schemas of the different
-dependencies.
+![Development Strategies to Support](./img/0240-otel-weaver-dev-strategies.svg)
 
 ## Roadmap
 
