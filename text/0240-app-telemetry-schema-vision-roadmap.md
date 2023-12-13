@@ -241,7 +241,7 @@ platform architectures and programming languages.
 Conceptually, the main components of a Resolved Telemetry Schema are described
 in the following diagram.
 
-![Resolved Telemetry Schema](./img/0240-resolved-telemetry-schema.png)
+![Resolved Telemetry Schema](./img/0240-otel-weaver-resolved-schema.svg)
 
 The internal catalog is used to define all the attributes and metrics in this
 artifact. This design allows for the reuse of the same attributes or metrics
