@@ -142,7 +142,7 @@ Schema that can be easily consumed by various tools and applications, such as a
 Client SDK generator, compatibility checker, compliance checker, data catalog
 feeder, and more.
 
-![Example of Application Telemetry Schema Hierarchy](./img/0240-otel-weaver-hierarchy.png)
+![Example of Application Telemetry Schema Hierarchy](./img/0240-otel-weaver-hierarchy.svg)
 
 For each important component, the following diagram defines the responsibilities
 and key design properties that have been considered in the subsequent sections
