@@ -157,28 +157,28 @@ conventions in different registries simplifying the existing process.
 The next two sections will describe the concepts of Telemetry Schema v1.2 and
 the Resolved Telemetry Schema.
 
-## Telemetry Schema v1.2 (aka Application Telemetry Schema)
+## Application/Library Telemetry Schema
 
-The Telemetry Schema v1.2 represents a forward-compatible extension of the
-existing Telemetry Schema v1.1. It offers a way to import semantic convention
-registries and to define resource attributes, the properties of the
-instrumentation library, and the telemetry signals an application or library can
-produce. The existing versioning mechanism defined in version 1.1 remains
-unchanged. A Telemetry Schema can inherit from one or several other telemetry
-schemas (as explained in the previous section). The root schema is usually the
-official Telemetry Schema, referencing the official OpenTelemetry Semantic
-Convention Registry. The last schema (leaf) in this hierarchy is called the
-Application Telemetry Schema, as it defines all the signals a particular
-application produces. Although there is no direct lineage between these systems,
-a similar approach was designed and deployed by Facebook to address the same
-type of problem but in a proprietary context (refer to this
-[positional paper](https://research.facebook.com/publications/positional-paper-schema-first-application-telemetry/)
+The Application/Library Telemetry Schema, also known as the App Telemetry
+Schema, is a user-friendly format for defining an application's or library's
+telemetry schema. Authors of applications or libraries can enhance an existing
+resolved telemetry schema by overriding or adding new elements, referencing
+semantic convention registries, defining resource attributes (only for
+applications), defining properties of the instrumentation library, and defining
+the telemetry signals an application or library can produce. They can also use
+the versioning mechanism from OTEP 0152. The base schema is typically the
+official Telemetry Schema, which links to the OpenTelemetry Semantic Convention
+Registry. The final schema in this system, named the Application Telemetry
+Schema, details all the signals produced by a specific application.
+
+Although there is no direct lineage between these systems, a similar approach
+was designed and deployed by Facebook to address the same type of problem but in
+a proprietary context (refer to this [positional paper](https://research.facebook.com/publications/positional-paper-schema-first-application-telemetry/)
 for more information).
 
-The following diagram illustrates the relationships between these concepts and
-the main changes from Telemetry Schema v1.1 to v1.2.
+The following diagram shows how a Telemetry Schema is structured.
 
-![Telemetry Schema](./img/0240-telemetry-schema-v1.1-to-v1.2.png)
+![Telemetry Schema](./img/0240-otel-weaver-app-telemetry-schema.svg)
 
 > Note 1: Each signal definition, where possible, reuses the existing syntax and
 > semantics defined by the semantic conventions. Each signal definition is also
