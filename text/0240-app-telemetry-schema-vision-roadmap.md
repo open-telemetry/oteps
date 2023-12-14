@@ -283,54 +283,51 @@ OpenTelemetry community, a series of OTEPs and tools are proposed.
 
 ### OTEPs
 
-* Telemetry Schema versions (incremental steps):
-  * V1.1.1: Add a section to import one or several Semantic Convention
-  Registries. Once implemented, the official Semantic Convention Registry will
-  be referenced from the official OpenTelemetry Root Telemetry Schema. At this
-  stage, code generation for OTel-wide conventions can be carried out, and
-  search capabilities can be implemented to retrieve attributes and metrics from
-  the semantic convention registry.
-  * V1.2: Add references to parent schemas and define a schema section to
-  describe application/library signals. In this version, only metrics, logs, and
-  spans signals are described. At this point, a custom Client SDK and Client
-  API can be generated from the schema section. In this version only one schema
-  can be inherited. More complex hierarchies will be supported in version 1.5.
-  * V1.3: Add support for events in the schema section. This OTEP is contingent
-  upon the approval of events in OpenTelemetry.
-  * V1.4: Add support for metric_groups (multivariate metrics) in the schema
-  section. This will only be relevant if a support for multivariate metrics is
-  planned in the Client SDK Generator.
-  * V1.5: Add support for multi-inheritance and for schema hierarchies of more
-  than 2 levels. This is useful for supporting complex environments and will
-  allow the distribution of semantic convention registries across vendors and
-  enterprises. This OTEP depends on the “Schema Child/Parent relationship
-  resolution” OTEP.
-* Resolved Schema Format v1.0. This OTEP will define both the structure and
-format of the Resolved Telemetry Schema and the strategy for collecting the
-Resolved Telemetry Schemas of the dependencies.
-* Schema-driven Client SDK Generator.
-* Schema Child/Parent relationship resolution.
+* **Telemetry Schema** (a.k.a Resolved Telemetry Schema)
+  * File format V1.2: This OTEP will add a registry section containing a list of fully
+  resolved attributes, metrics, and other telemetry signals defined in the
+  existing semantic convention registry. Once implemented, the telemetry schema
+  published by the OpenTelemetry project will contained the registry of all the
+  standardized attributes, metrics, and signals defined by the semantic
+  conventions.
+  * File format V1.3: This OTEP will add a resource, instrumentation library, and schema
+  sections to represent the telemetry signal emitted by an application (and its
+  dependencies), or by a library. Telemetry Schema V1.3 depends on the
+  definition of Component Telemetry Schema V1.0.
+  * Dependency Management: This OTEP will describe the method use to collect the
+  resolved telemetry schemas from dependencies.
+* **Component Telemetry Schema** (a.k.a Application/Library Telemetry Schema)
+  * File format V1.0: This OTEP will allow application or library authors to define the
+    telemetry signals (metrics, logs, spans) emitted by their components.
+  * File format V1.1: This OTEP will allow application or library authors to override the
+    definitions inherited from a parent resolved schema.
+  * File format V1.2: This OTEP will add support for events in the schema section. This OTEP
+    is contingent upon the approval of events in OpenTelemetry.
+  * File format V1.3: This OTEP will add support for metric_groups (multivariate metrics) in
+    the schema section. This will only be relevant if a support for multivariate
+    metrics is planned in the Client SDK Generator.
 
 ### Tools
 
-OpenTelemetry tools
-
-* Semantic Convention Registry Merger (Johannes Tax's proposal): This tool will
-merge all the semantic convention files of a registry into a single and
-referencable file.
-* Search Engine: This tool will provide search capability within semantic
-convention registries and telemetry schemas.
-  * V1 focusing on the semantic convention registry.
-  * V2 focusing on telemetry schema v1.2.
-* Telemetry Schema Resolver: This tool will resolve the telemetry schema and its
-dependencies. The main outcome of this tool is a Resolved Telemetry Schema.
-* Schema-driven Client SDK Generator: This tool will generate a client SDK or a
-client API from a telemetry schema v1.2. It will be designed to be extensible,
-allowing each language SIG and the general community to create templates for
-generating client SDKs and APIs in specific programming languages.
-* Telemetry Schema Compatibility Checker: This tool will verify that two
-successive versions of the same Telemetry Schema adhere to the specified
-compatibility rules.
+* OTel Weaver Commands
+  * `resolve registry`: This command will produce a Telemetry Schema V1.2 from
+    the official OpenTelemetry semantic convention registry.
+  * `resolve schema`: This command will produce a Telemetry Schema V1.3 from
+    a Component Telemetry Schema V1.0 (or upper version).
+  * `search registry`: This command will provide search capabilities within the
+    official OpenTelemetry semantic convention registry.
+  * `search schema`: This command will provide search capabilities within a
+    Component Telemetry Schema V1.0 (or upper version).
+  * `gen-client sdk`: This command will generate a Client SDK from a Component
+    Telemetry Schema V1.0 (or upper version) or a Telemetry Schema V1.3.
+  * `gen-client api`: This command will generate a Client API from a Component
+    Telemetry Schema V1.0 (or upper version) or a Telemetry Schema V1.3.
+* OTel Weaver Plugin System
+  * Plugin Framework
+  * Plugin to collect telemetry schemas from external dependencies.
+  * Plugin to check compatibility between two telemetry schemas.This tool will
+  verify that two successive versions of the same Telemetry Schema adhere to the
+  specified compatibility rules.
 
 Other tools will be developed by the broader community and could be implemented
 by relying on the standardized format of the Resolved Telemetry Schema.
