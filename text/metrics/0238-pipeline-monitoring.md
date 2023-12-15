@@ -18,10 +18,6 @@ the current state of metrics in the OTel collector.
 
 ### Collector metrics
 
-The OpenTelemetry collector code base was audited for metrics usage
-detail around the time of the v0.88.0 release.  Here is a summary of
-the current state of the Collector regarding export-pipeline metrics.
-
 The core collector formerly contained a package named `obsreport`,
 which has a uniform interface dedicated to each of its components.
 This package has been migrated into the commonly-used helper classes
@@ -31,7 +27,7 @@ Obsreport is responsible for giving collector metrics a uniform
 appearance.  Metric names were created using OpenCensus style, which
 uses a `/` character to indicate hierarchy and a `.` to separate the
 operative verb and noun.  This library creates metrics named, in
-general, `{component-type}/{verb}.{plural-noun}`, with component types
+general, `{component-type}/{verb}.{noun}`, with component types
 `receiver`, `processor`, and, `exporter`, and with signal-specific
 nouns `spans`, `metric_points` and `logs` corresponding with the unit
 of information for the tracing, metrics, and logs signals,
@@ -41,7 +37,7 @@ Earlier adopters of the Collector would use Prometheus to read these
 metrics, which does not accept `/` or `.`.  The Prometheus integration
 would add a `otelcol_` prefix and replace the invalid characters with
 `_`.  The same metric in the example above would appear named
-`otelcol_receiver_accepted_spans`, for example.
+`otelcol_receiver_accepted_spans`.
 
 #### Obsreport receiver
 
@@ -78,6 +74,10 @@ The `obsreport_exporter` interface counts spans in two ways:
 Items are exclusively counted in one of these counts.  The average
 failure rate is defined as `send_failed / (sent + send_failed)`.
 
+The exporterhelper package takes on many aspects of processor
+behavior, including the ability to drop when a queue is full.  It uses
+a separate counter for these items, known as `enqueue_failed`.
+
 ### Jaeger trace SDK metrics
 
 Jaeger SDKs expose metrics on the "Reporter", which includes
@@ -89,79 +89,68 @@ OpenTelemetry Collector processor components.
 
 ### Analysis
 
-#### Use of exclusive counters
-
 As we can see by the examples documented above, it is a standard
 practice to monitor a telemetry pipeline using three counters to count
-successful, failed, and dropped items.  In each of the existing
-solutions, because the counters are exclusive, all three counter
-values are needed to establish the total loss rate.
+successful, failed, and dropped items.
 
-Because the number of SDKs generally is greater than collectors, and
-because they are in the first position of the pipeline, this is a
-significant detail.  When the subject is a single SDK, all three
-counters are essential and necessary for a complete understanding of
-loss.  The single-SDK loss rate, defined for exclusive counters, is:
+A central aspect of the proposed specification is to use a single
+metric instrument with three exclusive attribute values, as compared
+with the use of three separate metric instruments.
 
-```
-SingleLossRate = 1 - Success / (Success + Failed + Dropped)
-```
+#### Loss rate calculation
 
-However, in a scenario where hundreds or thousands of identical SDKs
-are deployed, users may wish to opt-out of such extensive detail.
-Reasoning that identical SDKs are likely experiencing the same
-failures, users may wish to enable additional detail only in a sample
-of SDKs, or only in regions or services where loss is already known to
-exist.
+The benefit of using a single metric instrument is that aggregation is
+easy to apply, particularly in Metric SDKs using the standard Views
+mechanism.  This means it is both easy and natural to configure an SDK
+to produce more or less detail, so that both advanced and basic
+use-cases are possible.
 
-To use inclusive counters, in this case, means to use a single metric
-name with one or more attributes to subdivide the total into specific
-categories.  For example, a total count can be subdivided into
-`success=true` and `success=false`.  From the SDK perspective, drops
-are counted as failures, and from the Collector perspective we will
-find other reasons to count drops separately.  Therefore, the
-definition above can be replaced for inclusive counters:
+When calculating the single-SDK loss rate, all three variables are
+necessary.  We use the terms `items{outcome=success}`,
+`items{outcome=failed}`, and `items{outcome=dropped}` to denote the
+count of items by three outcomes, and the loss rate is a function of
+all three.
 
 ```
-SingleLossRate = Total{success=false} / Total{*}
+SingleLossRate = (items{outcome=failed} + items{outcome=dropped}) / (items{outcome=success} + items{outcome=failed} + items{outcome=dropped})
 ```
 
-By using inclusive counters instead of exclusive counters, it is
-possible to establish the total rate of loss with substantially fewer
-timeseries, because we only need to distinguish success and failure
-the end of the pipeline to determine total loss.
+The benefit of using a single metric instrument is that the
+calculation `(items{outcome=success} + items{outcome=failed} +
+items{outcome=dropped})` is simple and inexpensive to apply in SDKs by
+removing the `outcome` attribute.  The sum of these three with no
+`outcome` variable (`items{}`) can be used to establish the loss rate
+between two points in a pipeline, because at this level the
+distinction between outcomes does not matter.
+
+In an ordinary deployment where the number of SDKs is orders of
+magnitude larger than the number of collectors, this can lead to
+meaningful savings.  The total loss rate for a pipeline is calculated
+from the sum of items at the final stage of collection and the sum of
+items at the SDKs.
 
 ```
-PipelineLossRate = LastStageTotal{success=false} / FirstStageTotal{*}
+TotalLossRate = `sum(collector_items{}) / sum(sdk_items{})`
 ```
 
-Since total loss can be calculated with only a single timneseries per
-SDK, this will be specified as the behavior when configuring pipeline
-monitoring with basic-level metric detail.
+#### Dropped means intentionally not transmitted
 
-#### Collector perspective
+In the SDK, we may consider the case of dropped items as a form of
+failure, but these are intentional failures.  Looking at Collector
+processors, we see that dropped items may or may not be considered
+success, but whatever they are, they result from an intentional
+decision not to transmit an item.
 
-Collector counters are exclusive.  Like for SDKs, items that enter a
-processor are counted in one of three ways and to compute a meaningful
-ratio requires all three timeseries.  If the processor is a sampler,
-for example, the effective sampling rate is computed as
-`(accepted+refused)/(accepted+refused+dropped)`.
+As an example, when a sampler processor drops spans, it should not be
+considered failure.  When the Collector's exporterhelper component
+drops items, it should probabily be considered a failure.
 
-While the collector defines and emits metrics sufficient for
-monitoring the individual pipeline component--taken as a whole, there
-is substantial redundancy in having so many exclusive counters.  For
-example, when a collector pipeline features no processors, the
-receiver's `refused` count is expected to equal the exporter's
-`send_failed` count.
+#### Collector 
 
-When there are several processors, it is primarily the number of
-dropped items that we are interested in counting.  When there are
-multiple sequential processors in a pipeline, however, counting the
-total number of items at each stage in a multi-processor pipeline
-leads to over-counting in aggregate.  For example, if you combine
-`accepted` and `refused` for two adjacent processors, then remove the
-metric attribute which distinguishes them, the resulting sum will be
-twice the number of items processed by the pipeline.
+TODO: Why we count only drops for pipeline segments, but not SDKs.
+
+
+
 
 ### Pipeline monitoring
 
