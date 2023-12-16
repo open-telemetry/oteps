@@ -97,6 +97,101 @@ A central aspect of the proposed specification is to use a single
 metric instrument with three exclusive attribute values, as compared
 with the use of three separate metric instruments.
 
+By specifying attribute dimensions for the resulting single
+instrument, users can configure the level of detail and the number of
+timeseries needed to convey the information they to monitor.
+
+#### Meaning of "dropped" telemetry
+
+The term "Dropped" in pipeline monitoring usually refers to telemetry
+that was intentionally not transmitted.  A survey of existing pipeline
+components shows the following uses.
+
+In the SDK, the standard OpenTelemetry BatchSpanProcessor will drop
+spans that cannot be admitted into its queue.  These cases are
+intentional, to protect the application and downstream pipeline, but
+they should be considered failure because they were meant to be be
+collected.
+
+In a Collector pipeline, there are formal and informal uses:
+
+- A sampling processor, for example, may drop spans because it was
+  instructed to (e.g., due to an attribute like `sampling.priority=0`).
+  In this case, drops are considered success.
+- The memorylimiter processor, for example, may "drop" spans because
+  it was instructed to (e.g., when it is above a hard limit).
+  However, when it does this, it returns an error counts the item as
+  `refused`, contradicting the documentation of that metric instrument:
+  
+> "Number of spans that were rejected by the next component in the pipeline."
+
+There is already an inconsistency.  By counting its own failures as
+refused, we should expect that the next component in the pipeline
+handled the data.  This is a failure case drop, one where the next
+component in the pipeline does not handle the item:
+
+> "Number of spans that were dropped."
+
+The memory limiter source code actually has a comment on this topic,
+
+```
+// TODO: actually to be 100% sure that this is "refused" and not "dropped"
+// 	it is necessary to check the pipeline to see if this is directly connected
+// 	to a receiver (ie.: a receiver is on the call stack). For now it
+// 	assumes that the pipeline is properly configured and a receiver is on the
+// 	callstack and that the receiver will correctly retry the refused data again.
+```
+
+which adds to the confusion -- it is not standard practice for
+receivers to retry in the OpenTelemetry collector, that is the duty of
+exporters in our current practice.
+
+There is still another use of "dropped" in the collector, similar to
+the memory limiter example and the SDK use-case, where "dropped" is a
+case of failure.  In the `exporterhelper` module, the term dropped is
+used in log messages to describe data that was tried at least once and
+will not be retried, which matches the processor's definition of
+`refused` in the sense that data was submitted to the next component
+in the pipeline and failed and does not match the processor's
+definition `dropped`.  When counting these spans, they may or may not
+be treated as send failures, depending on whether "queue-sender"
+behavior was configured or not (and whether it is a persistent queue
+or not).
+
+As the exporter helper is not part of a processor framework, it does
+not have a conventional way to count dropped items.  When the
+queue-sender is enabled and the queue is full, items are dropped in
+the standard sense, but they are counted using an `enqueue_failed`
+metric.
+
+#### Practice of suppressing errors
+
+Continuing the analysis of existing pipeline monitoring behavior, when
+the Collector exporter helper is configured with a non-persistent
+queue-sender, errors are suppressed.  Error suppression is common and
+meant to support use-cases when there would otherwise be a
+potentential to send duplicate information with negative impact.  This
+ordinarily happens when there is fan-in to or fan-out from a
+component.
+
+For example, when a the core batch processor forms a batch using items
+from multiple producers (e.g., as by multiple clients sending, or
+multiple receivers configured), there is a many-to-many relationship
+between arriving batches and outgoing batches.  When some of the
+producers data failed and but some of it was successful, the standard
+practice
+
+TODO: talk about partial success, and how we should use it.  how SDKs
+and collectors should preserve this in their counting, where
+"rejected" is failure-dropped by a subsequent pipeline and conveyed by
+success because some of the data was not dropped.
+
+The recommendation here is that Collectors try to avoid suppressing
+errors, because it makes SDK pipeline monitoring unreliable.  SDKs
+can't honestly report failed telemetry if Collectors are suppressing
+errors.  Instead, we should count partial success, which naturally
+prevents retry but still preserves failure information.
+
 #### Loss rate calculation
 
 The benefit of using a single metric instrument is that aggregation is
@@ -133,19 +228,7 @@ items at the SDKs.
 TotalLossRate = `sum(collector_items{}) / sum(sdk_items{})`
 ```
 
-#### Dropped means intentionally not transmitted
-
-In the SDK, we may consider the case of dropped items as a form of
-failure, but these are intentional failures.  Looking at Collector
-processors, we see that dropped items may or may not be considered
-success, but whatever they are, they result from an intentional
-decision not to transmit an item.
-
-As an example, when a sampler processor drops spans, it should not be
-considered failure.  When the Collector's exporterhelper component
-drops items, it should probabily be considered a failure.
-
-#### Collector 
+#### Collector
 
 TODO: Why we count only drops for pipeline segments, but not SDKs.
 
