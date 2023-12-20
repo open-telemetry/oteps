@@ -50,10 +50,11 @@ Compilers can automatically detect errors in case of refactoring or evolution
 of the telemetry schema.
 * **Extensibility**: Adding metadata to the basic signal specification is
 essential for enabling use cases like data security, privacy enforcement,
-metadata-driven data transformation, and knowledge graph enrichment. This
-metadata can be added independently of the application or library's development
-cycle. The metadata definition, separate from the signal definition, can be
-specified by non-development teams.
+metadata-driven data transformation, and knowledge graph enrichment. Currently,
+there's no standard way to add metadata separate from an application's or
+library's development cycle. These metadata definitions should be distinct from
+the signal definitions and could be specified by teams other than development
+teams.
 * **Performance overheads**: A significant downside of generic telemetry
 instrumentation is the various overheads it generally introduces due to inherent
 layers of abstraction. For example, the collection of attributes is typically
