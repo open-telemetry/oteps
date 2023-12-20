@@ -5,16 +5,15 @@ export-pipeline metrics with three standard levels of detail.
 
 ## Motivation
 
-OpenTelemetry has pending requests to standardize the metrics emitted
-by SDKs. At the same time, the OpenTelemetry Collector is becoming a
-stable and critical part of the ecosystem, and it has different
-semantic conventions.  Here we attempt to unify them.
+OpenTelemetry has pending requests to standardize conventions for the
+metrics emitted by SDKs. At the same time, the OpenTelemetry Collector
+is becoming a stable and critical part of the ecosystem, and it has
+different semantic conventions.  Here we attempt to unify them.
 
 ## Explanation
 
 The OpenTelemetry Collector's pipeline metrics were derived from the
-OpenCensus collector.  There is no original source material explaining
-the current state of metrics in the OTel collector.
+OpenCensus collector.
 
 ### Collector metrics
 
@@ -39,7 +38,7 @@ would add a `otelcol_` prefix and replace the invalid characters with
 `_`.  The same metric in the example above would appear named
 `otelcol_receiver_accepted_spans`.
 
-#### Obsreport receiver
+#### Collector: Obsreport receiver metrics
 
 For receivers, the obsreport library counts items in two ways:
 
@@ -94,12 +93,12 @@ practice to monitor a telemetry pipeline using three counters to count
 successful, failed, and dropped items.
 
 A central aspect of the proposed specification is to use a single
-metric instrument with three exclusive attribute values, as compared
-with the use of three separate metric instruments.
+metric instrument with exclusive attribute values, as compared with
+the use of separate metric instruments.
 
 By specifying attribute dimensions for the resulting single
 instrument, users can configure the level of detail and the number of
-timeseries needed to convey the information they to monitor.
+timeseries needed to convey the information they want to monitor.
 
 #### Meaning of "dropped" telemetry
 
@@ -110,8 +109,8 @@ components shows the following uses.
 In the SDK, the standard OpenTelemetry BatchSpanProcessor will drop
 spans that cannot be admitted into its queue.  These cases are
 intentional, to protect the application and downstream pipeline, but
-they should be considered failure because they were meant to be be
-collected.
+they should be considered failure because they were sampled, and not
+collecting them in general will lead to trace incompleteness.
 
 In a Collector pipeline, there are formal and informal uses:
 
@@ -144,7 +143,9 @@ The memory limiter source code actually has a comment on this topic,
 
 which adds to the confusion -- it is not standard practice for
 receivers to retry in the OpenTelemetry collector, that is the duty of
-exporters in our current practice.
+exporters in our current practice.  So, the memory limiter component,
+to be consistent, should count "failure drops" to indicate that the
+next stage of the pipeline did not see the data.
 
 There is still another use of "dropped" in the collector, similar to
 the memory limiter example and the SDK use-case, where "dropped" is a
@@ -153,10 +154,7 @@ used in log messages to describe data that was tried at least once and
 will not be retried, which matches the processor's definition of
 `refused` in the sense that data was submitted to the next component
 in the pipeline and failed and does not match the processor's
-definition `dropped`.  When counting these spans, they may or may not
-be treated as send failures, depending on whether "queue-sender"
-behavior was configured or not (and whether it is a persistent queue
-or not).
+definition `dropped`.
 
 As the exporter helper is not part of a processor framework, it does
 not have a conventional way to count dropped items.  When the
@@ -164,306 +162,60 @@ queue-sender is enabled and the queue is full, items are dropped in
 the standard sense, but they are counted using an `enqueue_failed`
 metric.
 
-#### Practice of suppressing errors
+## Proposed semantic conventions
 
-Continuing the analysis of existing pipeline monitoring behavior, when
-the Collector exporter helper is configured with a non-persistent
-queue-sender, errors are suppressed.  Error suppression is common and
-meant to support use-cases when there would otherwise be a
-potentential to send duplicate information with negative impact.  This
-ordinarily happens when there is fan-in to or fan-out from a
-component.
+### Use of a single metric name
 
-For example, when a the core batch processor forms a batch using items
-from multiple producers (e.g., as by multiple clients sending, or
-multiple receivers configured), there is a many-to-many relationship
-between arriving batches and outgoing batches.  When some of the
-producers data failed and but some of it was successful, the standard
-practice
-
-TODO: talk about partial success, and how we should use it.  how SDKs
-and collectors should preserve this in their counting, where
-"rejected" is failure-dropped by a subsequent pipeline and conveyed by
-success because some of the data was not dropped.
-
-The recommendation here is that Collectors try to avoid suppressing
-errors, because it makes SDK pipeline monitoring unreliable.  SDKs
-can't honestly report failed telemetry if Collectors are suppressing
-errors.  Instead, we should count partial success, which naturally
-prevents retry but still preserves failure information.
-
-#### Loss rate calculation
-
-The benefit of using a single metric instrument is that aggregation is
-easy to apply, particularly in Metric SDKs using the standard Views
-mechanism.  This means it is both easy and natural to configure an SDK
-to produce more or less detail, so that both advanced and basic
-use-cases are possible.
-
-When calculating the single-SDK loss rate, all three variables are
-necessary.  We use the terms `items{outcome=success}`,
-`items{outcome=failed}`, and `items{outcome=dropped}` to denote the
-count of items by three outcomes, and the loss rate is a function of
-all three.
+The use of a single metric name is less confusing than the use of
+multiple metric names, because the user has to know only a single name
+to writing useful queries.  Users working with existing collector and
+SDK pipeline monitoring metrics have to remember at least three metric
+names and explicitly join them custom metric queries.  For example, to
+calculate loss rate for an SDK using traditional pipeline metrics,
 
 ```
-SingleLossRate = (items{outcome=failed} + items{outcome=dropped}) / (items{outcome=success} + items{outcome=failed} + items{outcome=dropped})
+LossRate_MultipleMetrics = (dropped + failed) / (dropped + failed + success)
 ```
 
-The benefit of using a single metric instrument is that the
-calculation `(items{outcome=success} + items{outcome=failed} +
-items{outcome=dropped})` is simple and inexpensive to apply in SDKs by
-removing the `outcome` attribute.  The sum of these three with no
-`outcome` variable (`items{}`) can be used to establish the loss rate
-between two points in a pipeline, because at this level the
-distinction between outcomes does not matter.
-
-In an ordinary deployment where the number of SDKs is orders of
-magnitude larger than the number of collectors, this can lead to
-meaningful savings.  The total loss rate for a pipeline is calculated
-from the sum of items at the final stage of collection and the sum of
-items at the SDKs.
+On the other hand, with a uniform boolean attribute indicating success
+or failure the resulting query is simpler.
 
 ```
-TotalLossRate = `sum(collector_items{}) / sum(sdk_items{})`
+LossRate_SingleMetric = items{success=false} / items{success=*}
 ```
+
+In a typical metric query engine, after the user has entered the one
+metric name, attribute values will be automatically surfaced in the
+user interface, allowing them to make sense of the data and
+interactively build useful queries.  On the other hand, the user who
+has to query multiple metrics has to enter each metric name
+explicitly without help from the user interface.
+
+The proposed metric instrument would be named distinctly depending on
+whether it is a collector or an SDK, to prevent accidental aggregation
+of these timeseries.  The specified counter names:
+
+- `otelsdk.producer.items`: count of successful and failed items of
+  telemetry produced by signal type by an OpenTelemetry SDK.
+- `otelcol.receiver.items`: 
+- `otelcol.processor.items`: 
+- `otelcol.exporter.items`: 
+
+### Recommended conventional attributes
+
+- `otel.success` (boolean): This is true or false depending on whether the
+  component considers the outcome a success or a failure.
+- `otel.outcome` (string): This describes the outcome in a more specific
+  way than `otel.success`, with recommended values specified below.
+- `otel.signal` (string): This is the name of the signal (e.g., "logs",
+  "metrics", "traces")
+- `otel.name` (string): Name of the component 
+- `otel.pipeline` (string): 
 
 #### Collector
 
 TODO: Why we count only drops for pipeline segments, but not SDKs.
 
-
-
-
-### Pipeline monitoring
-
-The term _Stage_ is used to describe the a single component in an
-export pipeline.
-
-The term _Station_ is used to describe a location in the export
-pipeline where the participating stages are part of the same logical
-failure domain.  Typically each SDK or Collector is considered a
-station.
-
-#### Station integrity principles
-
-The [OpenTelemetry library guidelines (point
-4)](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/library-guidelines.md#requirements)
-describes a separation of protocol-dependent ("receivers",
-"exporters") and protocol-independent ("processors") parts.  We refer
-to the combination of parts as a station.
-
-The station concept is called out because within a station, we expect
-that the station (software) acts responsibly by design, for the
-integrity of the pipeline.  Stations allow data to enter a pipeline
-only through receiver components.  Stations are never responsible for
-dropping data, because only processor components drop data.  Stations
-allow data to leave a pipeline only through exporter components.
-
-Because of station integrity, we can make the following assertions:
-
-1. Data that enters a station is eventually exported or dropped.
-2. No other outcomes are possible.
-
-These principles suggest ways to monitor a pipeline, when normal-level
-metric detail is configured, to avoid redundancy.  For simple
-pipelines, the number of items exported equals the number of items
-received minus the number of items dropped, and for simple pipelines
-it is sufficient to observe only successes and failures by receiver as
-well as items dropped by processors.
-
-#### Practice of error suppression
-
-There is a accepted practice in the OpenTelemetry Collector of
-accepting data and returning success before the data is written to its
-final destination.  In fact, this is the out-of-the-box default for
-most pipelines, because of `exporterhelper` defaults.
-
-Suppressing errors, when it is practiced, means a later stage in the
-pipeline must be monitored to detect resource exhaustion, since
-earlier stages will not see any failures or experience backpressure.
-Because the practice of asynchronous reporting is widespread,
-OpenTelemetry Collectors therefore should normally count exported data
-in addition to received data, despite creating redundancy when errors
-are not suppressed.
-
-#### Pipeline stage-name uniqueness
-
-The Pipeline Stage Name Uniqueness requirement developed here avoids
-over-counting in an export pipeline by ensuring that no single metric
-name counts items more than once in transit.  This rule prevents
-counting items of telemetry sent by SDKs and Collectors in the same
-metric; it also prevents counting items of telemetry sent through a
-multi-tier arrangement of Collectors using the same metric.
-
-In a standard deployment of OpenTelemetry, we expect one, two, or
-three stations in a collection pipeline.  The names given to these
-standard set of stations:
-
-- `sdk`: an original source of new telemetry
-- `agent`: a collector with operations "local" to the `sdk`
-- `gateway`: a collector serving as a proxy to an external service.
-
-This is not meant as an exclusive set of station names.  Users should
-be given the ability to configure the station name used by particular
-instances of the OpenTelemetry Collector.  It may even be desirable to
-support configuring "sub-stations" within a larger pipeline, for
-example when there are connectors in use; however, if so, the
-collector must enforce that pipeline-stage names are unique within a
-station.
-
-#### Pipeline signal type
-
-OpenTelemetry currently has 3 signal types, but it may add more.
-Instead of using the signal name in the metric names, we opt for a
-general-purpose noun that usefully describes any signal.
-
-The signal-agnostic term used here is "items", referring to spans, log
-records, and metric data points.  An attribute to distinguish the
-`signal` will be used with name `traces`, `logs`, or `metrics`.
-
-Users are expected to understand that the data item for traces is a
-span, for logs is a record, and for metrics is a point.  Users may
-opt-in to removing this attribute, in which case items of telemetry
-data will be counted in aggregate.  When the `signal` attribute is
-removed, loss-rate can likewise only be calculated in aggregate.
-
-#### Pipeline component name
-
-Components are uniquely identified using a descriptive `name`
-attribute which encompasses at least a short name describing the type
-of component being used (e.g., `batch` for the SDK BatchSpanProcessor
-or the Collector batch proessor).
-
-When there is more than one component of a given type active in a
-pipeline having the same `domain` and `signal` attributes, the `name`
-should include additional information to disambiguate the multiple
-instances using the syntax `<type>/<instance>`.  For example, if there
-were two `batch` processors in a collection pipeline (e.g., one for
-error spans and one for non-error spans) they might use the names
-`batch/error` and `batch/noerror`.
-
-#### Pipeline monitoring diagram
-
-The relationship between items received, dropped, and exported is
-shown in the following diagram.
-
-![pipeline monitoring metrics](../images/otel-pipeline-monitoring.png)
-
-### Proposed metrics semantic conventions
-
-The proposed metric names match the following pattern:
-
-| Metric Name               | Meaning                                                            |
-|---------------------------|--------------------------------------------------------------------|
-| `otel.{station}.received` | Inclusive count of items entering the pipeline at a station.       |
-| `otel.{station}.dropped`  | Non-inclusive count of items dropped by a processor in a pipeline. |
-| `otel.{station}.exported` | Inclusive count of items exiting the pipeline at a station.        |
-
-The behavior specified for SDKs and Collectors at each level of detail
-is different, because SDKs do not receive items from a pipeline and
-because they outnumber the other components.
-
-These attributes can be applied to any of the pipeline monitoring
-metrics specified here.
-
-| Attributes     | Meaning                                     | Level of detail (Optional) | Examples                                                   |
-|----------------|---------------------------------------------|----------------------------|------------------------------------------------------------|
-| `otel.signal`  | Name of the telemetry signal                | Basic (Opt-out)            | `traces`, `logs`, `metrics`                                |
-| `otel.name`    | Type, name, or "type/name" of the component | Normal (Opt-out)           | `probabilitysampler`, `batch`, `otlp/grpc`                |
-| `otel.success` | Boolean: item considered success?           | Normal (Opt-out)           | `true`, `false`                                            |
-| `otel.reason`  | Explaination of success/failures.           | Detailed (Opt-in)          | `ok`, `timeout`, `permission_denied`, `resource_exhausted` |
-| `otel.scope`   | Name of instrumentation.                    | Detailed (Opt-in)          | `opentelemetry.io/library`                                 |
-
-For example, when a sampler processor drops an item it may report
-`success=true`, but when a queue processor drops an item it may report
-`success=false`.
-
-#### SDK default configuration
-
-| Metric name         | Enablement level |
-|---------------------|------------------|
-| `otel.sdk.received` | Basic            |
-| `otel.sdk.dropped`  | Normal           |
-| `otel.sdk.exported` | Detailed         |
-
-#### Collector default configuration
-
-| Metric name               | Enablement level |
-|---------------------------|------------------|
-| `otel.{station}.received` | Basic            |
-| `otel.{station}.dropped`  | Basic            |
-| `otel.{station}.exported` | Basic            |
-
-## Pipeline monitoring as a service
-
-With this specification, users operating OpenTelemetry SDKs and
-Collectors sending to a third-party observability system may expect to
-be provided with information about telemetry losses.
-
-### Configuration of pipeline monitoring metrics
-
-OpenTelemetry SDKs will be configured by default to send pipeline
-monitoring metrics using Meter instances obtained from the global
-meter provider.
-
-SDKs authors SHOULD provide users with an option to configure an
-alternate destination for pipeline monitoring metrics, so that
-pipeline metrics can be monitored independently of ordinary telemetry
-data.
-
-### Inference rules for service providers
-
-By design, losses and failures due to intermediate collectors will be
-observable to the service provider, as long as all original producers
-report pipeline-monitoring metrics.  For all telemetry producers with
-basic-level pipeline monitoring enabled, the telemetry system will be
-able to compare the actual number of OpenTelemetry spans, metric data
-points, and log records received against the numbers that entered the
-system's own pipelines.  In aggregate, the number of items entering
-the pipeline should match the number of items successfully received,
-otherwise the system is capable of reporting the combined losses to
-the user.
-
-When losses are unacceptable to the user, or the causes of loss cannot
-be resolved through other system indicators, the user (or the system
-acting on the user's behalf) may wish to enable normal-level detail
-for SDKs or enable metrics for intermediate collectors.  The
-additional detail will give the system information that can be used to
-narrow down the location(s) and source(s) where loss occurs.
-
-## OpenTelemetry SDKs have no receivers
-
-OpenTelemetry SDKs are special pipeline components because they do not
-receive data from an external source.  OpenTelemetry SDKs support
-specific, signal-specific features that may appear like standard
-receivers or processors in a pipeline, but as specified here, pipeline
-monitoring only applies to items of data that are submitted for
-export by an SDK-internal mechanism.
-
-There are several examples:
-
-- In the trace SDK, spans are sampled by a component that emulates a
-  pipeline processor, but the actions of a sampler are not the same as
-  an export pipeline.  While we could count spans not sampled using
-  `otel.sdk.dropped` with `success=true` and
-  `name=traceidratiosampler`, it could lead to misleading
-  interpretation because spans that are unfinished are neither
-  `success=true` nor `success=false`.  Different semantic conventions
-  should probably be used to monitor sampler components.
-- In the metrics SDK, Metric View configuration can cause metric
-  events to be "dropped".  We could count all metric data points as
-  logically entering a pipeline, and then the ones that are dropped
-  would appear as `otel.sdk.dropped` with `success=true` and
-  `name=metricreader`, but this would lead to an accounting problem.
-  The point of Drop aggregation is to avoid the cost of a metric
-  instrument, so we do not which to count what we drop.
-
-For these reasons, the `otel.sdk.received` metric is defined as the
-number of items that the SDK produces as input to the pipeline.  This
-quantity MUST be the number of items that are are expected for
-delivery at the final destination, when the pipeline is operating
-correctly and without failures.
 
 ## Metrics SDK special considerations
 
