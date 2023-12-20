@@ -294,16 +294,41 @@ In the first model, each build process can independently apply telemetry schema
 policies in parallel, knowing that the policies are shared and the entire
 environment is controlled by the same entity.
 
-In the second model, the application or service environment cannot access or
-control the telemetry schema policies of the libraries. We need a way to
-retrieve telemetry schemas from these dependencies. At this point, the preferred
-method is to include the telemetry schema artifact within the library artifact
-(like binary libraries, jar files, crates, go modules, etc.). This way, they are
-automatically collected during the application's build process. This method is
-fully decentralized and does not need a global schema registry. A specific OTEP
-will describe the best method for this.
+In the second model, the application or service environment does not control the
+telemetry schema policies of external dependencies. There is a need for a method
+to retrieve telemetry schemas from these dependencies. The mechanism for
+distributing these schemas is still being discussed (refer to the Open Questions
+section). Ultimately, this will enable the CI/CD pipeline of the application or
+service to apply its own local policies to these schemas from the dependencies.
 
 ![Development Strategies to Support](./img/0240-otel-weaver-dev-strategies.svg)
+
+## Open Questions
+
+During the review of this document, several questions were raised, and some have
+not yet reached consensus. It has been deemed more valuable to postpone
+addressing these open questions to future OTEPs. Their resolution is not
+critical at this point and will likely become clearer as these future OTEPs are
+defined and implemented.
+
+### Should we use a single Telemetry Schema or the combination of Component and Resolved Telemetry Schema?
+
+### What should be the schema(s) be named?
+
+### What distribution mechanism should be used for retrieving dependency schemas?
+
+Currently, two main methods are being considered:
+
+1) Establishing a public, centralized repository for resolved schemas, where
+library authors can register their resolved telemetry schemas as part of their
+build process.
+2) Embedding the Resolved Telemetry Schema directly within the library artifact
+(such as binary libraries, jar files, crates, Go modules, etc.), ensuring
+automatic collection during the application's build process.
+
+At present, the second option is preferred as it is fully decentralized and
+eliminates the need for a global schema registry. A specific OTEP will be
+developed to define this distribution mechanism.
 
 ## Roadmap
 
@@ -335,6 +360,7 @@ OpenTelemetry community, a series of OTEPs and tools are proposed.
   * File format V1.3: This OTEP will add support for metric_groups (multivariate metrics) in
     the schema section. This will only be relevant if a support for multivariate
     metrics is planned in the Client SDK Generator.
+* **Resolved Telemetry Schema Distribution**: blabla.
 
 ### Tools
 
