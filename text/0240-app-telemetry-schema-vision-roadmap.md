@@ -194,7 +194,7 @@ for more information).
 
 The following diagram shows how a Component Telemetry Schema is structured.
 
-![Telemetry Schema](./img/0240-otel-weaver-app-telemetry-schema.svg)
+![Telemetry Schema](./img/0240-otel-weaver-component-schema.svg)
 
 > Note 1: Each signal definition, where possible, reuses the existing syntax and
 > semantics defined by the semantic conventions. Each signal definition is also
