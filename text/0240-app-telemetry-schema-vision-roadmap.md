@@ -263,8 +263,12 @@ distributing Telemetry Schemas throughout the entire ecosystem.
 
 ![Use cases](./img/0240-otel-weaver-use-cases.svg)
 
-Conceptually, the main components of a Resolved Telemetry Schema are described
-in the following diagram.
+The main components of a Resolved Telemetry Schema are illustrated in the
+diagram below. The 'OTel Weaver' tool is used to create these schemas. It can
+also extend an existing schema or import a Semantic Convention Registry.
+Resolved Telemetry Schema serves as a key mechanism for interoperability,
+feeding various external tools, including SDK generators, documentation
+generators, policy enforcers, and more.
 
 ![Resolved Telemetry Schema](./img/0240-otel-weaver-resolved-schema.svg)
 
