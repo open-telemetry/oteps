@@ -256,6 +256,13 @@ straightforward to avoid any misinterpretation.
 * **Platform- and Language-agnostic**: This artifact must be independent of any
 platform architectures and programming languages.
 
+The following diagram describes two main use cases for the Resolved Telemetry
+Schema. The key points to remember are: 1) both use cases result in a Resolved
+Telemetry Schema, and 2) Resolved Telemetry Schemas serve as the mechanism for
+distributing Telemetry Schemas throughout the entire ecosystem.
+
+![Use cases](./img/0240-otel-weaver-use-cases.svg)
+
 Conceptually, the main components of a Resolved Telemetry Schema are described
 in the following diagram.
 
