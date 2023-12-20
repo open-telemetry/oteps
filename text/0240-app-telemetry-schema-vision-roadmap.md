@@ -177,17 +177,17 @@ Telemetry Schema and the Resolved Telemetry Schema.
 
 ## Component Telemetry Schema
 
-The Component Telemetry Schema is a user-friendly format for defining an
+The Component Telemetry Schema is a developer-friendly format for defining an
 application's or library's telemetry schema. Authors of applications or
-libraries can enhance an existing resolved telemetry schema by overriding or
-adding new elements, referencing semantic convention registries, defining
+libraries can enhance an existing Resolved Telemetry Schema by overriding or
+adding new elements, importing Semantic Convention Registries, defining
 resource attributes (only for applications), defining properties of the
 instrumentation library, and defining the telemetry signals an application or
 library can produce. They can also use the versioning mechanism from OTEP 0152.
-The base schema is typically the official Telemetry Schema, which links to the
-OpenTelemetry Semantic Convention Registry. The final schema in this system,
-named the Application Telemetry Schema, details all the signals produced by a
-specific application.
+The base schema is typically the official Telemetry Schema (Resolved), which
+links to the OpenTelemetry Semantic Convention Registry. The final schema in
+this system details all the signals produced by a specific application or
+library.
 
 Although there is no direct lineage between these systems, a similar approach
 was designed and deployed by Facebook to address the same type of problem but in
@@ -200,14 +200,14 @@ The following diagram shows how a Component Telemetry Schema is structured.
 
 > Note 1: Each signal definition, where possible, reuses the existing syntax and
 > semantics defined by the semantic conventions. Each signal definition is also
-> identified by a unique name (or ID), making schemas easy to traverse, validate
-> , and diff.
+> identified by a unique name (or ID), making schemas addressable, easy to
+> traverse, validate, and diff.
 >
 > Note 2: This hierarchy of telemetry schemas helps large organizations in
-> collaborating on the Application Telemetry Schema. It enables different
-> aspects of an Application Telemetry Schema to be managed by various teams.
+> collaborating on the Component Telemetry Schema. It enables different
+> aspects of a Component Telemetry Schema to be managed by various teams.
 >
-> Note 3: For all the elements that make up the Application Telemetry Schema, a
+> Note 3: For all the elements that make up the Component Telemetry Schema, a
 > general mechanism of annotation or tagging will be integrated in order to
 > attach additional traits, characteristics, or constraints, allowing vendors
 > and companies to extend the definition of concepts defined by OpenTelemetry.
@@ -231,7 +231,7 @@ The following diagram shows how a Component Telemetry Schema is structured.
 > thanks to the adoption of a schema-first approach.
 
 Several OTEPs will be dedicated to the precise definition of the structure and
-the format of Telemetry Schema v1.2. The rules for resolving overrides
+the format of this/these schema(s). The rules for resolving overrides
 (inheritance), external references, and conflicts will also be described in
 these OTEPs. See the Roadmap section for a comprehensive list of these OTEPs.
 
