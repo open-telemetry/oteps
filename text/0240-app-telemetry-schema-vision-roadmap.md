@@ -130,8 +130,8 @@ OpenTelemetry Semantic Conventions.
 
 ### Overview
 
-Conceptually, this proposal is based on three main concepts: Component Telemetry
-Schema, Semantic Convention Registry, and Resolved Telemetry Schema.
+Conceptually, this proposal is based on three main concepts: **Component Telemetry
+Schema**, **Semantic Convention Registry**, and **Resolved Telemetry Schema**.
 The relationships between these entities are described in the following diagram.
 
 ![Telemetry Schema Concepts](./img/0240-otel-weaver-concepts.svg)
@@ -139,16 +139,18 @@ The relationships between these entities are described in the following diagram.
 The Component Telemetry Schemas are created by application or library authors.
 A Component Telemetry Schema may import any number of Semantic Convention
 Registries as needed. During the schema resolution process, a Resolved Telemetry
-Schema is created from a Component Telemetry Schema. This Resolved Telemetry
-Schema is self-contained and has no external references. Optionally, a Component
+Schema is created from a Component Telemetry Schema. This **Resolved Telemetry
+Schema is self-contained** and has no external references. Optionally, a Component
 Telemetry Schema can extend an existing Resolved Telemetry Schema. Typically,
-the official OpenTelemetry root telemetry schema, which is a resolved schema, is
-extended to include the standard OpenTelemetry Semantic Convention registry. In
-complex cases, large enterprises might create their own intermediary resolved
-schemas for custom definitions.
+the official OpenTelemetry Telemetry Schema, which is conceptually a resolved schema, is
+inherited by a Component Telemetry Schema to include the standard OpenTelemetry
+Semantic Convention registry. In complex cases, large enterprises might create
+their own intermediary resolved schemas for custom definitions.
 
-The idea of Resolved Telemetry Schema is actually an extension of the Telemetry
-Schema v1.1, which was first defined in the [OTEP 0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md).
+Note: The relationship between Telemetry Schema v1.1
+([OTEP 0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md))
+and the Component and Resolved Telemetry Schema concepts is still being
+discussed. This will be clarified in future OTEPs (refer to the last section).
 
 The following diagram illustrates a possible instance of a complex hierarchy of
 schemas and semantic convention registries. It involves several vendor and
@@ -170,8 +172,8 @@ This design enables the definition of semantic conventions in a distributed
 manner. OpenTelemetry, vendors, and enterprises can define their own semantic
 conventions in different registries simplifying the existing process.
 
-The next two sections will describe the concepts of Telemetry Schema v1.2 and
-the Resolved Telemetry Schema.
+The next two sections will provide more detailed descriptions of the Component
+Telemetry Schema and the Resolved Telemetry Schema.
 
 ## Component Telemetry Schema
 
