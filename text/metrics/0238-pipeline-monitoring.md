@@ -209,13 +209,12 @@ of these timeseries.  The specified counter names:
   way than `otel.success`, with recommended values specified below.
 - `otel.signal` (string): This is the name of the signal (e.g., "logs",
   "metrics", "traces")
-- `otel.name` (string): Name of the component 
-- `otel.pipeline` (string): 
+- `otel.name` (string): Name of the component in a pipeline.
+- `otel.pipeline` (string): Name of the pipeline in a collector.
 
 #### Collector
 
 TODO: Why we count only drops for pipeline segments, but not SDKs.
-
 
 ## Metrics SDK special considerations
 
