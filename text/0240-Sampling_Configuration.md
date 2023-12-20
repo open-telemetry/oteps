@@ -114,8 +114,8 @@ State trace modfications by all the child samplers are cumulative.
       - <SAMPLERn>
 ```
 
-The `all_samplers` composite sampler takes a non-empty list of Samplers as the argument. When making a sampling decision, it goes through the list and asks each sampler for its decision about sampling. If any of these samplers decides not to sample, the final sampling decision is not to sample. If all of the samplers from the list want to sample the span, the composite sampler samples the span.
-State trace modfications by all the child samplers are cumulative.
+The `all_samplers` composite sampler takes a non-empty list of Samplers as the argument. When making a sampling decision, it goes through the list and asks each sampler for its decision about sampling. If any of these samplers decides not to sample, the final sampling decision is not to sample, and the remaining samplers are skipped. If all of the samplers from the list decide to sample the span, the composite sampler samples the span.
+State trace modfications by all the referenced child samplers are cumulative.
 
 ### Rule based sampling
 
@@ -142,6 +142,15 @@ where RULE is a pair of PREDICATE and SAMPLER:
 The Predicates represent logical expressions which can access Span Attributes (or anything else available when the sampling decision is to be taken), and perform tests on the accessible values.
 For example, one can test if the target URL for a SERVER span matches a given pattern.
 
+## Limitations of composite samplers
+
+Not all samplers can participate as components of composite samplers without undesired or unexpected effects. In general, samplers can update trace-state regardless of their sampling decision, and can maintain internal state as well. A good example for this are rate limiting samplers which have to keep track of the rate of created spans and/or the rate of positive sampling decisions.
+Such samplers assume that their sampling decisions will be honored by the tracer at the face value in all cases.
+
+A special attention is required for [consistent probability](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#consistent-probability-sampler) (CP) samplers. The sampling probability they record in trace-state is later used to calculate [_adjusted count_](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#adjusted-count), which, in turn, is used to calculate span-based metrics. Mixing CP samplers with other types of samplers in most cases will lead to incorrect adjusted counts. The family of CP samplers has its own [composition rules](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#composition-rules), which correctly handle composing multiple CP samplers.
+
+There are other choices for defining the behavior of Logical-Or and Logical-And composite samplers. One such option would be to allow consequent component samplers of Logical-And to see the trace-state as modified by their predecessors in the list. However, this would seem to violate the expectation that the trace-state as accessible via the `Context` parameter for [`shouldSample`](https://opentelemetry.io/docs/specs/otel/trace/sdk/#shouldsample) represents the values as left by the span parent rather than the predecessor samplers.
+
 ## Example
 
 Let's assume that a user wants to configure head sampling as follows:
@@ -153,7 +162,7 @@ Let's assume that a user wants to configure head sampling as follows:
 - for non-root spans
   - follow the parent sampling decision
   - however, capture all calls to service `/foo` (even if the trace will be incomplete)
-- in any case, do not exceed 1000 spans/second
+- in any case, do not exceed 1000 spans/minute
 
 Such sampling requirements can be expressed as:
 
@@ -189,7 +198,7 @@ sampler:
                - predicate: http.url == /foo
                  sampler: always_on
      - rate_limiting:
-         max_rate: 1000   # spans/second
+         max_rate: 1000   # spans/minute
 ```
 
 The above example uses plain text representation for predicates. Actual representation for predicates is TBD. The example also assumes that a hypothetical `rate_limiting` sampler is available.
@@ -206,7 +215,7 @@ For example, let's assume that the `rate_limiting` sampler from the previous exa
 sampler_definitions:
   rate_limiting:   # this is the sampler key
     parameters:
-     - max_rate: number  # spans per second
+     - max_rate: number  # spans per minute
     implementation:      # Java-specific part
       class_name: java/io/opentelemetry/contrib/sampler/RateLimitingSampler
       class_path: path/to/my/new/sampler.jar  # additional classpath, optional
