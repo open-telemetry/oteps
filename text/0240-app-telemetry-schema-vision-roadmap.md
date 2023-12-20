@@ -70,27 +70,34 @@ a similar approach in the context of telemetry. **This document discusses how to
 apply a schema-first approach in the OpenTelemetry project and its implications
 for the existing Telemetry Schema and Semantic Conventions.**
 
-The following diagram provides an overview of the relationships between the
-various components, processes, and artifacts of what could be a typical
-schema-driven end-to-end telemetry system in the future.
+The following diagram provides a conceptual overview of the relationships
+between the various components, processes, and artifacts of what could be a
+typical schema-driven end-to-end telemetry system in the future.
 
 ![Application Telemetry Schema Overview](./img/0240-otel-weaver-overview.svg)
 
-The concept of the Application Telemetry Schema and Resolved Telemetry Schema,
-as described in the previous diagram, will play a central role and unlock
-numerous use cases (this is not an exhaustive list):
+The Application Telemetry Schema concept is divided into two key parts: the
+Component Telemetry Schema and the Resolved Telemetry Schema, as shown in the
+previous diagram. These concepts are central to unlocking a variety of use
+cases.
 
-* Telemetry Client SDKs can be automatically generated from an application
-telemetry schema, enhancing both user experience and performance.
-* CI/CD pipelines can leverage an application telemetry schema to:
-  * Check compatibility of different schema versions,
-  * Ensure security and privacy compliance,
+Examples of use cases include:
+
+* Automatic generation of Telemetry Client SDKs from telemetry schemas,
+improving user experience and performance.
+* CI/CD pipelines using telemetry schemas to:
+  * Check compatibility between different schema versions.
+  * Ensure security and privacy compliance.
   * Integrate with enterprise data catalog systems.
   * And more.
-* Telemetry backends can:
-  * Automatically derive or update database schemas or dashboards.
-  * Trigger schema-driven transformations or processing in stream processor systems.
+* Telemetry backends capable of:
+  * Automatically updating database schemas or dashboards.
+  * Triggering schema-driven transformations or processing in stream processors.
   * And more.
+
+> Note: The names and formats of these concepts are still under discussion. A
+> detailed analysis of pros and cons will be covered later in the document. The
+> final decision will be deferred to future dedicated OTEPs.
 
 Another problem this proposal aims to address is the inherent complexity of the
 ecosystem where OpenTelemetry is utilized but not fully addressed by existing
@@ -114,10 +121,10 @@ allowing for the definition of OpenTelemetry, vendor-specific, and
 enterprise-level registries. These two enhancements make OpenTelemetry more
 customizable, extensible, and ecosystem-friendly.
 
-The following section will elaborate on the concepts of the Application
-Telemetry Schema, schema inheritance, semantic convention registries, Resolved
-Telemetry Schema, and their relationship with both the existing OpenTelemetry
-schema v1.1 and the OpenTelemetry semantic conventions.
+The following section will elaborate on the concepts of the Component Telemetry
+Schema, Resolved Telemetry Schema, Semantic Convention Registries, and their
+relationship with both the existing OpenTelemetry Schema v1.1 and the
+OpenTelemetry Semantic Conventions.
 
 ## Proposal
 
