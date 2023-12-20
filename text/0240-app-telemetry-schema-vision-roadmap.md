@@ -3,8 +3,9 @@
 ----
 **Author**: Laurent Querel, F5 Inc.
 
-**Keywords**: Telemetry Schema, Semantic Convention, Code Generator,
-Telemetry Backend, Data Governance, Automated Privacy Enforcement.
+**Keywords**: Schema-First Approach, Telemetry Schema, Semantic Convention, 
+Discoverability, Interoperability, Type-Safe Client SDKs, Client SDKs Generation,
+CI/CD Integration, Data Governance, Data Privacy.
 
 **Related OTEPs**: [OTEP0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md), [OTEP0202](https://github.com/open-telemetry/oteps/blob/main/text/0202-events-and-logs-api.md).
 
@@ -18,9 +19,9 @@ documenting, and generating artifacts from telemetry signals specific to an
 application. This document presents a long-term vision aimed at enabling the
 OpenTelemetry project to address this issue and extend its impact to a broader
 ecosystem. It proposes extending the initiatives of Telemetry Schema and
-Semantic Conventions to include concepts of Application Telemetry Schema and
-Resolved Telemetry Schema. A series of OTEPs and Tools will be proposed in this
-overarching document to detail each aspect of this vision._
+Semantic Conventions to include logical concepts of Component Telemetry Schema
+and Resolved Telemetry Schema. A series of OTEPs and Tools will be proposed in
+this overarching document to detail each aspect of this vision._
 
 ## Current State Overview
 
@@ -47,12 +48,20 @@ ergonomic, more robust, and more easily maintainable. Modern IDEs are capable
 of providing smart autocompletion and contextual documentation based on the API.
 Compilers can automatically detect errors in case of refactoring or evolution
 of the telemetry schema.
+* **Extensibility**: Adding metadata to the basic signal specification is
+essential for enabling use cases like data security, privacy enforcement,
+metadata-driven data transformation, and knowledge graph enrichment. This
+metadata can be added independently of the application or library's development
+cycle. The metadata definition, separate from the signal definition, can be
+specified by non-development teams.
 * **Performance overheads**: A significant downside of generic telemetry
 instrumentation is the various overheads it generally introduces due to inherent
 layers of abstraction. For example, the collection of attributes is typically
 represented as a list of key/value pairs or as hashmaps, resulting in memory
 overhead. A simple struct or a set of well-typed function arguments will be more
-efficient and less error-prone for representing this list of attributes.
+efficient and less error-prone for representing this list of attributes. In the
+same way, it is possible to use a dictionary encoding for values whose domain is
+specified in the form of an enumeration in the schema definition.
 
 Databases and RPC systems (e.g., Protobuf & gRPC) have already addressed some of
 these issues with a schema-first approach. There is nothing to prevent adopting
