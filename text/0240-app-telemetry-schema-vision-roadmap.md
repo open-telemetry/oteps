@@ -130,23 +130,22 @@ OpenTelemetry Semantic Conventions.
 
 ### Overview
 
-Conceptually, this proposal is based on three main concepts: Application/Library
-Telemetry Schema, Semantic Convention Registry, and Resolved Telemetry Schema.
+Conceptually, this proposal is based on three main concepts: Component Telemetry
+Schema, Semantic Convention Registry, and Resolved Telemetry Schema.
 The relationships between these entities are described in the following diagram.
 
-![Application Telemetry Schema Concepts](./img/0240-otel-weaver-concepts.svg)
+![Telemetry Schema Concepts](./img/0240-otel-weaver-concepts.svg)
 
-The Application/Library Telemetry Schemas, referred to as App Telemetry Schema
-in this document, are created by application or library authors. An App
-Telemetry Schema may import any number of Semantic Convention Registries as
-needed. During the schema resolution process, a Resolved Telemetry Schema is
-created from an App Telemetry Schema. This Resolved Telemetry Schema is self-contained
-and has no external references. Optionally, an App Telemetry Schema can extend
-an existing Resolved Telemetry Schema. Typically, the official OpenTelemetry
-root telemetry schema, which is a resolved schema, is extended to include the
-standard OpenTelemetry Semantic Convention registry. In complex cases, large
-enterprises might create their own intermediary resolved schemas for custom
-definitions.
+The Component Telemetry Schemas are created by application or library authors.
+A Component Telemetry Schema may import any number of Semantic Convention
+Registries as needed. During the schema resolution process, a Resolved Telemetry
+Schema is created from a Component Telemetry Schema. This Resolved Telemetry
+Schema is self-contained and has no external references. Optionally, a Component
+Telemetry Schema can extend an existing Resolved Telemetry Schema. Typically,
+the official OpenTelemetry root telemetry schema, which is a resolved schema, is
+extended to include the standard OpenTelemetry Semantic Convention registry. In
+complex cases, large enterprises might create their own intermediary resolved
+schemas for custom definitions.
 
 The idea of Resolved Telemetry Schema is actually an extension of the Telemetry
 Schema v1.1, which was first defined in the [OTEP 0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md).
@@ -159,13 +158,13 @@ Schema that can be easily consumed by various tools and applications, such as a
 Client SDK generator, compatibility checker, compliance checker, data catalog
 feeder, and more.
 
-![Example of Application Telemetry Schema Hierarchy](./img/0240-otel-weaver-hierarchy.svg)
+![Example of Telemetry Schema Hierarchy](./img/0240-otel-weaver-hierarchy.svg)
 
 For each important component, the following diagram defines the responsibilities
 and key design properties that have been considered in the subsequent sections
 of this document.
 
-![Application Telemetry Schema - Levels of responsibilities & Key design properties](./img/0240-otel-weaver-responsibilities-properties.svg)
+![Telemetry Schema - Levels of responsibilities & Key design properties](./img/0240-otel-weaver-responsibilities-properties.svg)
 
 This design enables the definition of semantic conventions in a distributed
 manner. OpenTelemetry, vendors, and enterprises can define their own semantic
@@ -174,26 +173,26 @@ conventions in different registries simplifying the existing process.
 The next two sections will describe the concepts of Telemetry Schema v1.2 and
 the Resolved Telemetry Schema.
 
-## Application/Library Telemetry Schema
+## Component Telemetry Schema
 
-The Application/Library Telemetry Schema, also known as the App Telemetry
-Schema, is a user-friendly format for defining an application's or library's
-telemetry schema. Authors of applications or libraries can enhance an existing
-resolved telemetry schema by overriding or adding new elements, referencing
-semantic convention registries, defining resource attributes (only for
-applications), defining properties of the instrumentation library, and defining
-the telemetry signals an application or library can produce. They can also use
-the versioning mechanism from OTEP 0152. The base schema is typically the
-official Telemetry Schema, which links to the OpenTelemetry Semantic Convention
-Registry. The final schema in this system, named the Application Telemetry
-Schema, details all the signals produced by a specific application.
+The Component Telemetry Schema is a user-friendly format for defining an
+application's or library's telemetry schema. Authors of applications or
+libraries can enhance an existing resolved telemetry schema by overriding or
+adding new elements, referencing semantic convention registries, defining
+resource attributes (only for applications), defining properties of the
+instrumentation library, and defining the telemetry signals an application or
+library can produce. They can also use the versioning mechanism from OTEP 0152.
+The base schema is typically the official Telemetry Schema, which links to the
+OpenTelemetry Semantic Convention Registry. The final schema in this system,
+named the Application Telemetry Schema, details all the signals produced by a
+specific application.
 
 Although there is no direct lineage between these systems, a similar approach
 was designed and deployed by Facebook to address the same type of problem but in
 a proprietary context (refer to this [positional paper](https://research.facebook.com/publications/positional-paper-schema-first-application-telemetry/)
 for more information).
 
-The following diagram shows how a Telemetry Schema is structured.
+The following diagram shows how a Component Telemetry Schema is structured.
 
 ![Telemetry Schema](./img/0240-otel-weaver-app-telemetry-schema.svg)
 
