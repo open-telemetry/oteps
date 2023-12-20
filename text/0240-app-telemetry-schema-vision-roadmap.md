@@ -3,11 +3,12 @@
 ----
 **Author**: Laurent Querel, F5 Inc.
 
-**Keywords**: Schema-First Approach, Telemetry Schema, Semantic Convention, 
+**Keywords**: Schema-First Approach, Telemetry Schema, Semantic Convention,
 Discoverability, Interoperability, Type-Safe Client SDKs, Client SDKs Generation,
 CI/CD Integration, Data Governance, Data Privacy.
 
-**Related OTEPs**: [OTEP0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md), [OTEP0202](https://github.com/open-telemetry/oteps/blob/main/text/0202-events-and-logs-api.md).
+**Related OTEPs
+**: [OTEP0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md), [OTEP0202](https://github.com/open-telemetry/oteps/blob/main/text/0202-events-and-logs-api.md).
 
 ----
 _Unlike the traditional data ecosystem (OLTP and OLAP), the world of telemetry
@@ -38,31 +39,31 @@ pipeline.
 But this approach is not without challenges:
 
 * **Discoverability and Interoperability**: It is difficult to discover a priori
-and automatically what an application as a whole specifically generates in terms
-of telemetry and associated metadata.This makes it difficult to integrate with
-enterprise data catalogs, compliance procedures, or automated privacy
-enforcement in _CI/CD pipelines_.
+  and automatically what an application as a whole specifically generates in terms
+  of telemetry and associated metadata.This makes it difficult to integrate with
+  enterprise data catalogs, compliance procedures, or automated privacy
+  enforcement in _CI/CD pipelines_.
 * **User experience**: Although very flexible, generic clients do not offer the
-same benefits as a strongly typed dedicated API. A type-safe API is more
-ergonomic, more robust, and more easily maintainable. Modern IDEs are capable
-of providing smart autocompletion and contextual documentation based on the API.
-Compilers can automatically detect errors in case of refactoring or evolution
-of the telemetry schema.
+  same benefits as a strongly typed dedicated API. A type-safe API is more
+  ergonomic, more robust, and more easily maintainable. Modern IDEs are capable
+  of providing smart autocompletion and contextual documentation based on the API.
+  Compilers can automatically detect errors in case of refactoring or evolution
+  of the telemetry schema.
 * **Extensibility**: Adding metadata to the basic signal specification is
-essential for enabling use cases like data security, privacy enforcement,
-metadata-driven data transformation, and knowledge graph enrichment. Currently,
-there's no standard way to add metadata separate from an application's or
-library's development cycle. These metadata definitions should be distinct from
-the signal definitions and could be specified by teams other than development
-teams.
+  essential for enabling use cases like data security, privacy enforcement,
+  metadata-driven data transformation, and knowledge graph enrichment. Currently,
+  there's no standard way to add metadata separate from an application's or
+  library's development cycle. These metadata definitions should be distinct from
+  the signal definitions and could be specified by teams other than development
+  teams.
 * **Performance overheads**: A significant downside of generic telemetry
-instrumentation is the various overheads it generally introduces due to inherent
-layers of abstraction. For example, the collection of attributes is typically
-represented as a list of key/value pairs or as hashmaps, resulting in memory
-overhead. A simple struct or a set of well-typed function arguments will be more
-efficient and less error-prone for representing this list of attributes. In the
-same way, it is possible to use a dictionary encoding for values whose domain is
-specified in the form of an enumeration in the schema definition.
+  instrumentation is the various overheads it generally introduces due to inherent
+  layers of abstraction. For example, the collection of attributes is typically
+  represented as a list of key/value pairs or as hashmaps, resulting in memory
+  overhead. A simple struct or a set of well-typed function arguments will be more
+  efficient and less error-prone for representing this list of attributes. In the
+  same way, it is possible to use a dictionary encoding for values whose domain is
+  specified in the form of an enumeration in the schema definition.
 
 Databases and RPC systems (e.g., Protobuf & gRPC) have already addressed some of
 these issues with a schema-first approach. There is nothing to prevent adopting
@@ -84,16 +85,16 @@ cases.
 Examples of use cases include:
 
 * Automatic generation of Telemetry Client SDKs from telemetry schemas,
-improving user experience and performance.
+  improving user experience and performance.
 * CI/CD pipelines using telemetry schemas to:
-  * Check compatibility between different schema versions.
-  * Ensure security and privacy compliance.
-  * Integrate with enterprise data catalog systems.
-  * And more.
+    * Check compatibility between different schema versions.
+    * Ensure security and privacy compliance.
+    * Integrate with enterprise data catalog systems.
+    * And more.
 * Telemetry backends capable of:
-  * Automatically updating database schemas or dashboards.
-  * Triggering schema-driven transformations or processing in stream processors.
-  * And more.
+    * Automatically updating database schemas or dashboards.
+    * Triggering schema-driven transformations or processing in stream processors.
+    * And more.
 
 > **Note: The names and formats of these concepts are still under discussion. A
 > detailed analysis of pros and cons will be covered later in the document. The
@@ -191,7 +192,8 @@ library.
 
 Although there is no direct lineage between these systems, a similar approach
 was designed and deployed by Facebook to address the same type of problem but in
-a proprietary context (refer to this [positional paper](https://research.facebook.com/publications/positional-paper-schema-first-application-telemetry/)
+a proprietary context (refer to
+this [positional paper](https://research.facebook.com/publications/positional-paper-schema-first-application-telemetry/)
 for more information).
 
 The following diagram shows how a Component Telemetry Schema is structured.
@@ -220,13 +222,17 @@ The following diagram shows how a Component Telemetry Schema is structured.
 > privacy policy enforcement can be implemented at various levels (e.g., in the
 > generated client SDK or in a proxy).
 >
-> Note 5: This recent [paper](https://arxiv.org/pdf/2311.07509.pdf#:~:text=The%20results%20of%20the%20benchmark%20provide%20evidence%20that%20supports%20our,LLM%20without%20a%20Knowledge%20Graph)
-> from [data.world](https://data.world/home/), along with the [MetricFlow framework](https://docs.getdbt.com/docs/build/about-metricflow)
+> Note 5: This
+> recent [paper](https://arxiv.org/pdf/2311.07509.pdf#:~:text=The%20results%20of%20the%20benchmark%20provide%20evidence%20that%20supports%20our,LLM%20without%20a%20Knowledge%20Graph)
+> from [data.world](https://data.world/home/), along with
+> the [MetricFlow framework](https://docs.getdbt.com/docs/build/about-metricflow)
 > which underpins the [dbt Semantic Layer](https://www.getdbt.com/product/semantic-layer),
 > highlights the significance of adopting a schema-first approach in data
 > modeling, especially for Generative AI-based question answering systems. Tools
-> like Observability Query Assistants (e.g. [Elastic AI Assistant](https://www.elastic.co/fr/blog/introducing-elastic-ai-assistant)
-> and [Honeycomb Query Assistant](https://www.honeycomb.io/blog/introducing-query-assistant?utm_source=newswire&utm_medium=link&utm_campaign=query_assistant))
+> like Observability Query Assistants (
+> e.g. [Elastic AI Assistant](https://www.elastic.co/fr/blog/introducing-elastic-ai-assistant)
+>
+and [Honeycomb Query Assistant](https://www.honeycomb.io/blog/introducing-query-assistant?utm_source=newswire&utm_medium=link&utm_campaign=query_assistant))
 > are likely to become increasingly prevalent and efficient in the near future,
 > thanks to the adoption of a schema-first approach.
 
@@ -244,17 +250,17 @@ and eliminate external references. The key design principles to be followed in
 the definition of the Resolved Telemetry Schema are:
 
 * **Self-contained**: No external references are allowed. This artifact contains
-everything required to determine what an application or a library produces in
-terms of telemetry.
+  everything required to determine what an application or a library produces in
+  terms of telemetry.
 * **Easy to exchange**: This artifact must be easily accessible from a web
-server via a URL. This artifact must be small and avoid the repetition of
-definitions.
+  server via a URL. This artifact must be small and avoid the repetition of
+  definitions.
 * **Easy to parse**: A widespread and well-defined format should be preferred.
-JSON is an example of such a format.
+  JSON is an example of such a format.
 * **Easy to interpret**: The internal structure of this artifact must be
-straightforward to avoid any misinterpretation.
+  straightforward to avoid any misinterpretation.
 * **Platform- and Language-agnostic**: This artifact must be independent of any
-platform architectures and programming languages.
+  platform architectures and programming languages.
 
 The following diagram describes two main use cases for the Resolved Telemetry
 Schema. The key points to remember are: 1) both use cases result in a Resolved
@@ -305,26 +311,51 @@ service to apply its own local policies to these schemas from the dependencies.
 
 ## Open Questions
 
-During the review of this document, several questions were raised, and some have
-not yet reached consensus. It has been deemed more valuable to postpone
-addressing these open questions to future OTEPs. Their resolution is not
-critical at this point and will likely become clearer as these future OTEPs are
-defined and implemented.
+During the review of this document, several questions were raised, and some
+remain unresolved. We've decided to postpone the answers to these open questions
+to future OTEPs. This approach seems more practical as the resolution of these
+questions is not critical at this stage and will likely become clearer as we
+define and implement future OTEPs.
 
 ### Should we use a single Telemetry Schema or the combination of Component and Resolved Telemetry Schema?
 
+The debate between adopting a single Telemetry Schema or separate Component and
+Resolved Telemetry Schemas remains unresolved.
+
+Advocates of a single-schema approach see it as a simplification in terms of
+schema definition, implementation, and even cognitive overhead. They suggest
+using the same schema but disallowing any external references for schemas
+intended for publication and reuse by third parties. The schema resolution
+process would then remove these references.
+
+Proponents of a two-schema approach believe that each format is intended for 
+different users and use cases (app/lib developers vs telemetry tool developers),
+and therefore, having two distinct structures and formats would make it easier
+to optimize each for its specific use case (in multiple dimensions). The first
+group, app and lib developers, is much larger than the second and would not need
+to understand the details of the second format.
+
 ### What should be the schema(s) be named?
+
+The naming of the schema(s) was also discussed but without consensus. The current proposals are as follows:
+
+- Single schema approach: Retain the existing Telemetry Schema name, supporting
+different formats depending on the use case (e.g., YAML for app and lib
+developers, JSON + JSON schema for publication and tool consumption).
+- Two schemas approach:
+  - Component Telemetry Schema alternative names: Telemetry Schema, Weaver Schema.
+  - Resolved Telemetry Schema alternative names: Compiled Telemetry Schema, Published Telemetry Schema, Weaver Schema.
 
 ### What distribution mechanism should be used for retrieving dependency schemas?
 
 Currently, two main methods are being considered:
 
 1) Establishing a public, centralized repository for resolved schemas, where
-library authors can register their resolved telemetry schemas as part of their
-build process.
+   library authors can register their resolved telemetry schemas as part of their
+   build process.
 2) Embedding the Resolved Telemetry Schema directly within the library artifact
-(such as binary libraries, jar files, crates, Go modules, etc.), ensuring
-automatic collection during the application's build process.
+   (such as binary libraries, jar files, crates, Go modules, etc.), ensuring
+   automatic collection during the application's build process.
 
 At present, the second option is preferred as it is fully decentralized and
 eliminates the need for a global schema registry. A specific OTEP will be
@@ -338,51 +369,51 @@ OpenTelemetry community, a series of OTEPs and tools are proposed.
 ### OTEPs
 
 * **Telemetry Schema** (a.k.a Resolved Telemetry Schema)
-  * File format V1.2: This OTEP will add a registry section containing a list of fully
-  resolved attributes, metrics, and other telemetry signals defined in the
-  existing semantic convention registry. Once implemented, the telemetry schema
-  published by the OpenTelemetry project will contained the registry of all the
-  standardized attributes, metrics, and signals defined by the semantic
-  conventions.
-  * File format V1.3: This OTEP will add a resource, instrumentation library, and schema
-  sections to represent the telemetry signal emitted by an application (and its
-  dependencies), or by a library. Telemetry Schema V1.3 depends on the
-  definition of Component Telemetry Schema V1.0.
-  * Dependency Management: This OTEP will describe the method use to collect the
-  resolved telemetry schemas from dependencies.
+    * File format V1.2: This OTEP will add a registry section containing a list of fully
+      resolved attributes, metrics, and other telemetry signals defined in the
+      existing semantic convention registry. Once implemented, the telemetry schema
+      published by the OpenTelemetry project will contained the registry of all the
+      standardized attributes, metrics, and signals defined by the semantic
+      conventions.
+    * File format V1.3: This OTEP will add a resource, instrumentation library, and schema
+      sections to represent the telemetry signal emitted by an application (and its
+      dependencies), or by a library. Telemetry Schema V1.3 depends on the
+      definition of Component Telemetry Schema V1.0.
+    * Dependency Management: This OTEP will describe the method use to collect the
+      resolved telemetry schemas from dependencies.
 * **Component Telemetry Schema** (a.k.a Application/Library Telemetry Schema)
-  * File format V1.0: This OTEP will allow application or library authors to define the
-    telemetry signals (metrics, logs, spans) emitted by their components.
-  * File format V1.1: This OTEP will allow application or library authors to override the
-    definitions inherited from a parent resolved schema.
-  * File format V1.2: This OTEP will add support for events in the schema section. This OTEP
-    is contingent upon the approval of events in OpenTelemetry.
-  * File format V1.3: This OTEP will add support for metric_groups (multivariate metrics) in
-    the schema section. This will only be relevant if a support for multivariate
-    metrics is planned in the Client SDK Generator.
+    * File format V1.0: This OTEP will allow application or library authors to define the
+      telemetry signals (metrics, logs, spans) emitted by their components.
+    * File format V1.1: This OTEP will allow application or library authors to override the
+      definitions inherited from a parent resolved schema.
+    * File format V1.2: This OTEP will add support for events in the schema section. This OTEP
+      is contingent upon the approval of events in OpenTelemetry.
+    * File format V1.3: This OTEP will add support for metric_groups (multivariate metrics) in
+      the schema section. This will only be relevant if a support for multivariate
+      metrics is planned in the Client SDK Generator.
 * **Resolved Telemetry Schema Distribution**: blabla.
 
 ### Tools
 
 * OTel Weaver Commands
-  * `resolve registry`: This command will produce a Telemetry Schema V1.2 from
-    the official OpenTelemetry semantic convention registry.
-  * `resolve schema`: This command will produce a Telemetry Schema V1.3 from
-    a Component Telemetry Schema V1.0 (or upper version).
-  * `search registry`: This command will provide search capabilities within the
-    official OpenTelemetry semantic convention registry.
-  * `search schema`: This command will provide search capabilities within a
-    Component Telemetry Schema V1.0 (or upper version).
-  * `gen-client sdk`: This command will generate a Client SDK from a Component
-    Telemetry Schema V1.0 (or upper version) or a Telemetry Schema V1.3.
-  * `gen-client api`: This command will generate a Client API from a Component
-    Telemetry Schema V1.0 (or upper version) or a Telemetry Schema V1.3.
+    * `resolve registry`: This command will produce a Telemetry Schema V1.2 from
+      the official OpenTelemetry semantic convention registry.
+    * `resolve schema`: This command will produce a Telemetry Schema V1.3 from
+      a Component Telemetry Schema V1.0 (or upper version).
+    * `search registry`: This command will provide search capabilities within the
+      official OpenTelemetry semantic convention registry.
+    * `search schema`: This command will provide search capabilities within a
+      Component Telemetry Schema V1.0 (or upper version).
+    * `gen-client sdk`: This command will generate a Client SDK from a Component
+      Telemetry Schema V1.0 (or upper version) or a Telemetry Schema V1.3.
+    * `gen-client api`: This command will generate a Client API from a Component
+      Telemetry Schema V1.0 (or upper version) or a Telemetry Schema V1.3.
 * OTel Weaver Plugin System
-  * Plugin Framework
-  * Plugin to collect telemetry schemas from external dependencies.
-  * Plugin to check compatibility between two telemetry schemas.This tool will
-  verify that two successive versions of the same Telemetry Schema adhere to the
-  specified compatibility rules.
+    * Plugin Framework
+    * Plugin to collect telemetry schemas from external dependencies.
+    * Plugin to check compatibility between two telemetry schemas.This tool will
+      verify that two successive versions of the same Telemetry Schema adhere to the
+      specified compatibility rules.
 
 Other tools will be developed by the broader community and could be implemented
 by relying on the standardized format of the Resolved Telemetry Schema.
