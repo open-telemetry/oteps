@@ -366,7 +366,7 @@ developed to define this distribution mechanism.
 ### OTEPs
 
 To facilitate the review process and progressively deliver value to the
-OpenTelemetry community, a series of OTEPs.
+OpenTelemetry community, a series of OTEPs and tools are suggested.
 
 * **Telemetry Schema(s) - Structure and Formats**: This OTEP will weigh the pros 
   and cons of a single schema versus a dual-schema approach. It aims to identify
