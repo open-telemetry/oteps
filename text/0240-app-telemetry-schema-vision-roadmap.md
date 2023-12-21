@@ -7,8 +7,7 @@
 Discoverability, Interoperability, Type-Safe Client SDKs, Client SDKs Generation,
 CI/CD Integration, Data Governance, Data Privacy.
 
-**Related OTEPs
-**: [OTEP0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md), [OTEP0202](https://github.com/open-telemetry/oteps/blob/main/text/0202-events-and-logs-api.md).
+**Related OTEPs**: [OTEP0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md), [OTEP0202](https://github.com/open-telemetry/oteps/blob/main/text/0202-events-and-logs-api.md).
 
 ----
 _Unlike the traditional data ecosystem (OLTP and OLAP), the world of telemetry
