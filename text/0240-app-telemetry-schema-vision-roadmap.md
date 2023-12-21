@@ -86,14 +86,14 @@ Examples of use cases include:
 * Automatic generation of Telemetry Client SDKs from telemetry schemas,
   improving user experience and performance.
 * CI/CD pipelines using telemetry schemas to:
-    * Check compatibility between different schema versions.
-    * Ensure security and privacy compliance.
-    * Integrate with enterprise data catalog systems.
-    * And more.
+  * Check compatibility between different schema versions.
+  * Ensure security and privacy compliance.
+  * Integrate with enterprise data catalog systems.
+  * And more.
 * Telemetry backends capable of:
-    * Automatically updating database schemas or dashboards.
-    * Triggering schema-driven transformations or processing in stream processors.
-    * And more.
+  * Automatically updating database schemas or dashboards.
+  * Triggering schema-driven transformations or processing in stream processors.
+  * And more.
 
 > **Note: The names and formats of these concepts are still under discussion. A
 > detailed analysis of pros and cons will be covered later in the document. The
@@ -327,7 +327,7 @@ using the same schema but disallowing any external references for schemas
 intended for publication and reuse by third parties. The schema resolution
 process would then remove these references.
 
-Proponents of a two-schema approach believe that each format is intended for 
+Proponents of a two-schema approach believe that each format is intended for
 different users and use cases (app/lib developers vs telemetry tool developers),
 and therefore, having two distinct structures and formats would make it easier
 to optimize each for its specific use case (in multiple dimensions). The first
@@ -367,7 +367,7 @@ developed to define this distribution mechanism.
 To facilitate the review process and progressively deliver value to the
 OpenTelemetry community, a series of OTEPs and tools are suggested.
 
-* **Telemetry Schema(s) - Structure and Formats**: This OTEP will weigh the pros 
+* **Telemetry Schema(s) - Structure and Formats**: This OTEP will weigh the pros
   and cons of a single schema versus a dual-schema approach. It aims to identify
   the optimal solution and define the structures and formats for the two
   concepts introduced in this OTEP: the Component and Resolved Telemetry Schema.
