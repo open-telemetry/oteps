@@ -398,13 +398,18 @@ outline the method for collecting resolved telemetry schemas from dependencies.
 A proof of concept, OTel Weaver, is under development to test the feasibility of
 the proposed approach. It will support the following commands:
 
-    * `resolve registry`: Generates a Resolved Telemetry Schema from an
-    OpenTelemetry semantic convention registry.
-    * `resolve schema`: Creates a Resolved Telemetry Schema from a Component Telemetry Schema.
-    * `search registry`: Offers search functionality within an OpenTelemetry semantic convention registry.
-    * `search schema`: Provides search capabilities within a Component or Resolved Telemetry Schema.
-    * `gen-client sdk`: Generates a Client SDK from a Component or Resolved Telemetry Schema.
-    * `gen-client api`: Produces a Client API from a Component or Resolved Telemetry Schema.
+* `resolve registry`: Generates a Resolved Telemetry Schema from an
+OpenTelemetry semantic convention registry.
+* `resolve schema`: Creates a Resolved Telemetry Schema from a Component
+Telemetry Schema.
+* `search registry`: Offers search functionality within an OpenTelemetry
+semantic convention registry.
+* `search schema`: Provides search capabilities within a Component or Resolved
+Telemetry Schema.
+* `gen-client sdk`: Generates a Client SDK from a Component or Resolved
+Telemetry Schema.
+* `gen-client api`: Produces a Client API from a Component or Resolved
+Telemetry Schema.
 
 A Plugin System is planned to allow community contributions to the OTel Weaver
 tool. Proposed plugins include:
@@ -414,8 +419,9 @@ dependencies.
 * An example of compatibility checker plugin to ensure successive versions of
 the same Telemetry Schema follow specified compatibility rules.
 
-Additional tools are anticipated to be developed by the broader community,
-leveraging the standardized format of the Resolved Telemetry Schema.
+Additional plugins and tools are anticipated to be developed by the broader
+community, leveraging the OTel Weaver Plugin System and the standardized format
+of the Resolved Telemetry Schema.
 
 ## Links
 
