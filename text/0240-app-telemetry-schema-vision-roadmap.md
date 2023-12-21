@@ -363,60 +363,59 @@ developed to define this distribution mechanism.
 
 ## Roadmap
 
-To facilitate the review process and progressively deliver value to the
-OpenTelemetry community, a series of OTEPs and tools are proposed.
-
 ### OTEPs
 
-* **Telemetry Schema** (a.k.a Resolved Telemetry Schema)
-    * File format V1.2: This OTEP will add a registry section containing a list of fully
-      resolved attributes, metrics, and other telemetry signals defined in the
-      existing semantic convention registry. Once implemented, the telemetry schema
-      published by the OpenTelemetry project will contained the registry of all the
-      standardized attributes, metrics, and signals defined by the semantic
-      conventions.
-    * File format V1.3: This OTEP will add a resource, instrumentation library, and schema
-      sections to represent the telemetry signal emitted by an application (and its
-      dependencies), or by a library. Telemetry Schema V1.3 depends on the
-      definition of Component Telemetry Schema V1.0.
-    * Dependency Management: This OTEP will describe the method use to collect the
-      resolved telemetry schemas from dependencies.
-* **Component Telemetry Schema** (a.k.a Application/Library Telemetry Schema)
-    * File format V1.0: This OTEP will allow application or library authors to define the
-      telemetry signals (metrics, logs, spans) emitted by their components.
-    * File format V1.1: This OTEP will allow application or library authors to override the
-      definitions inherited from a parent resolved schema.
-    * File format V1.2: This OTEP will add support for events in the schema section. This OTEP
-      is contingent upon the approval of events in OpenTelemetry.
-    * File format V1.3: This OTEP will add support for metric_groups (multivariate metrics) in
-      the schema section. This will only be relevant if a support for multivariate
-      metrics is planned in the Client SDK Generator.
-* **Resolved Telemetry Schema Distribution**: blabla.
+To facilitate the review process and progressively deliver value to the
+OpenTelemetry community, a series of OTEPs.
 
-### Tools
+* **Telemetry Schema(s) - Structure and Formats**: This OTEP will weigh the pros 
+  and cons of a single schema versus a dual-schema approach. It aims to identify
+  the optimal solution and define the structures and formats for the two
+  concepts introduced in this OTEP: the Component and Resolved Telemetry Schema.
+  We plan several sub-OTEPs to progressively introduce and phase the concepts
+  discussed in this document:
+  * **Phase 1**: Introduce a registry section with a list of fully
+  resolved attributes, metrics, and other telemetry signals from the existing
+  semantic convention registry. Upon implementation, the OpenTelemetry project's
+  telemetry schema will include a registry of all standardized attributes,
+  metrics, and signals as defined by the semantic conventions.
+  * **Phase 2**: Add sections for resource, instrumentation library,
+  and schema sections to represent telemetry signals emitted by an application
+  (and its dependencies) or a library. Initially, only metrics, logs, and spans
+  definitions will be supported.
+  * **Phase 3**: Enable application or library authors to
+  override definitions inherited from a parent resolved schema.
+  * **Phase 4**: Implement support for events in the schema
+  section, pending the approval of events in OpenTelemetry.
+  * **Phase 5**: Introduce support for multivariate metrics in
+  the schema section, relevant only if the Client SDK Generator plans to support
+  multivariate metrics.
+* **Dependency Management and Telemetry Schema Distribution**: This OTEP will
+outline the method for collecting resolved telemetry schemas from dependencies.
 
-* OTel Weaver Commands
-    * `resolve registry`: This command will produce a Telemetry Schema V1.2 from
-      the official OpenTelemetry semantic convention registry.
-    * `resolve schema`: This command will produce a Telemetry Schema V1.3 from
-      a Component Telemetry Schema V1.0 (or upper version).
-    * `search registry`: This command will provide search capabilities within the
-      official OpenTelemetry semantic convention registry.
-    * `search schema`: This command will provide search capabilities within a
-      Component Telemetry Schema V1.0 (or upper version).
-    * `gen-client sdk`: This command will generate a Client SDK from a Component
-      Telemetry Schema V1.0 (or upper version) or a Telemetry Schema V1.3.
-    * `gen-client api`: This command will generate a Client API from a Component
-      Telemetry Schema V1.0 (or upper version) or a Telemetry Schema V1.3.
-* OTel Weaver Plugin System
-    * Plugin Framework
-    * Plugin to collect telemetry schemas from external dependencies.
-    * Plugin to check compatibility between two telemetry schemas.This tool will
-      verify that two successive versions of the same Telemetry Schema adhere to the
-      specified compatibility rules.
+### Proof of Concept and Tools
 
-Other tools will be developed by the broader community and could be implemented
-by relying on the standardized format of the Resolved Telemetry Schema.
+A proof of concept, OTel Weaver, is under development to test the feasibility of
+the proposed approach. It will support the following commands:
+
+    * `resolve registry`: Generates a Resolved Telemetry Schema from an
+    OpenTelemetry semantic convention registry.
+    * `resolve schema`: Creates a Resolved Telemetry Schema from a Component Telemetry Schema.
+    * `search registry`: Offers search functionality within an OpenTelemetry semantic convention registry.
+    * `search schema`: Provides search capabilities within a Component or Resolved Telemetry Schema.
+    * `gen-client sdk`: Generates a Client SDK from a Component or Resolved Telemetry Schema.
+    * `gen-client api`: Produces a Client API from a Component or Resolved Telemetry Schema.
+
+A Plugin System is planned to allow community contributions to the OTel Weaver
+tool. Proposed plugins include:
+
+* An example of plugin for gathering resolved telemetry schemas from external
+dependencies.
+* An example of compatibility checker plugin to ensure successive versions of
+the same Telemetry Schema follow specified compatibility rules.
+
+Additional tools are anticipated to be developed by the broader community,
+leveraging the standardized format of the Resolved Telemetry Schema.
 
 ## Links
 
