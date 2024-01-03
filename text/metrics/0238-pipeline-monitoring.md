@@ -241,23 +241,25 @@ of these timeseries.  The specified counter names would be:
 
 The `otel.outcome` attribute indicates extra information about a
 success or failure.  A set of standard conventional attribute values
-is supplied, however it should not be considered a closed set.  If
-these outcomes do not accurately explain the reason for a success or
-failure outcome, they can be extended by users with alternative,
-low-cardinality explanatory values.
+is supplied and is considered a closed set.  If these outcomes do not
+accurately explain the reason for a success or failure outcome, they
+SHOULD be extended by OpenTelemetry.
 
 For success:
 
-- `ok`: Indicates a normal success case.  The item was handled by the
-  next stage of the pipeline, which returned success.
-- `not_sampled`: Indicates a successful drop case, due to sampling.
+- `consumed`: Indicates a normal, synchronous request success case.
+  The item was consumed by the next stage of the pipeline, which
+  returned success.
+- `unsampled`: Indicates a successful drop case, due to sampling.
   The item was intentionally not handled by the next stage of the
   pipeline.
+- `queued`: Indicates the component admitted items into a queue and
+  then allowed the request to return before the final outcome was known.
 
 For failure:
 
-- `timeout`: The item was in the process of being transmitted but the
-  request timed out.
+- `timeout`: The item was in the process of being sent but the request
+  timed out.
 - `queue_full`: Indicates a dropped item because a local, limited-size
   queue is at capacity.  The item was not handled by the next stage of
   the pipeline.  If the item was handled by the next stage of the
@@ -276,10 +278,119 @@ For failure:
   which returned a permanent error status not covered by any of the
   above values.
 
-#### Collector
+### Error suppression behavior
 
-TODO: Why we count only drops for pipeline segments, but not SDKs.
-TODO: What to do about suppression.
+OpenTelemetry collector exporter components have existing error
+suppression behavior, optionally obtained through the `exporterhelper`
+library, which causes the `Consume()` function to return success for
+what would ordinarily count as failure.  This behavior makes automatic
+component health status reporting more difficult than necessary.
+
+One goal if this proposal is that Collector component health could be
+automatically inferred from metrics.  Therefore, error suppression
+performed by a component SHOULD NOT alter the `otel.success` attribute
+value used in counting.
+
+Error suppression is naturally exposed as inconsistency in pipeline
+metrics between the component and preceding components in the
+pipeline.  When an exporter suppresses errors, the processors and
+receivers that it consumes from will (in aggregate) report
+`otel.success=true` for more items than the exporter itself.
+
+As an option, the Collector MAY alter the `otel.outcome` attribute
+value indicated when errors are suppressed, in conjunction with the
+`otel.success=true` attribute.  Instead of `otel.outcome=consumed`,
+components can form a string using `suppressed:` followed by the
+suppressed outcome (e.g., `otel.outcome=suppressed:queue_full`).  This
+is optional because could require substantial new code for the
+collector component framework to track error suppression across
+components.
+
+### Batch processor behavior
+
+Current `batchprocessor` behavior is to return success when the item
+is accepted into its internal queue.  This specification would add
+`otel.outcome=queued` to the success response.
+
+Note the existing Collector core `batchprocessor` component has no
+option to block until the actual outcome is known.  If it had that
+option, the Collector would need a way to return the failure to its
+preceding component.
+
+Note that the `batchprocessor` component was designed before OTLP
+introduced `PartialSuccess` messages, which provide a way to return
+success, meaning not to retry, even when some or all of the data was
+ultimately rejected by the pipeline.
+
+### Rejected points behavior
+
+Note that the current Collector does not account for the number of
+items rejected, as introduced in OTLP through `PartialSuccess`
+response messages.  The error suppression semantic specified here is
+compatible with this existing behavior, in the sense that rejected
+points are being counted as successes.  Collectors SHOULD count
+rejected points as failed according to the specification here unless
+error suppression is enabled.
+
+Since rejected points are generally part of successful export
+requests, they are naturally suppressed from preceding pipeline
+components.
+
+### SDKs are not like Collectors
+
+The proposed specification uses one metric per SDK instance
+(`otelsdk.producer.items`) while it uses three per Collector instance
+(`otelcol.*.items`) for the three primary component categories.
+
+This is justified as follows:
+
+- SDKs are net producers of telemetry, while Collectors pass telemetry
+  through, therefore we monitor these components in different ways.
+- It is meaningless to aggregate pipeline metrics describing SDKs and
+  Collectors in a single metric.  Collectors are generally
+  instrumented with OpenTelemtry SDKs, so this ambigiuty is avoided.
+- SDKs are not consistent about component names.  While tracing SDKs
+  have both processor and exporter components, there is no reason to
+  separately account for these components.  On the other hand, metrics
+  SDKs do not have a "processor" component, they have a "reader"
+  component.
+
+### Connectors are both exporters and receivers
+
+Collectors have a special type of component called a "Connector",
+which acts as both a receiver and an exporter, possibly having
+different signal type.  These components should be instrumented twice,
+making pipeline metrics available for both the receiver and exporter.
+
+Therefore, a single Connector component will show up twice, having
+both `otelcol.receiver.items` and `otelcol.exporter.items` counters.
+These two counters will have the same component name (i.e.,
+`otel.name` value), different pipeline name (i.e., `otel.pipeline`
+value) and possibly different signal type (i.e., `otel.signal` value).
+
+### Components fail in all sorts of ways
+
+The existing Collector `obsreport` framework is overly restrictive in
+terms of the available outcomes that can be counted.  As discussed
+above, exporter components have no natural way to report dropped data
+when a queue is full.
+
+Processor components, for example, are able to report `refused`,
+`dropped`, and `success` outcomes but have no natural way to report
+internally-generated failures (e.g., `memorylimiter` discussed above).
+
+Another example concerns processors that introduce delay but wish to
+honor deadlines.  There is not a natural way for processors to count
+timeouts.  The proposed specification here allows all components to
+report failures on an item-by-item basis.
+
+### 
+
+TODO: About how there are strongly-recommended dimensions.  How certain attributes, if removed, lead to meaningful/useless outcomes.
+
+TODO: about level of detail: table of which attributes at which levels
+
+TODO: about trace-specific condisderations: samplers are not counted, not covered here.
 
 ## Metrics SDK special considerations
 
