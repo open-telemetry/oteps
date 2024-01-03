@@ -1,7 +1,7 @@
 # OpenTelemetry Export-pipeline metrics
 
 Propose a uniform standard for OpenTelemetry SDK and Collector
-export-pipeline metrics with three standard levels of detail.
+export-pipeline metrics with support for multiple levels of detail.
 
 ## Motivation
 
@@ -94,7 +94,7 @@ successful, failed, and dropped items.
 
 A central aspect of the proposed specification is to use a single
 metric instrument with exclusive attribute values, as compared with
-the use of separate metric instruments.
+the use of separate, exclusive metric instruments.
 
 By specifying attribute dimensions for the resulting single
 instrument, users can configure the level of detail and the number of
@@ -119,15 +119,18 @@ In a Collector pipeline, there are formal and informal uses:
   In this case, drops are considered success.
 - The memorylimiter processor, for example, may "drop" spans because
   it was instructed to (e.g., when it is above a hard limit).
-  However, when it does this, it returns an error counts the item as
+  However, when it does this, it returns an error counting the item as
   `refused`, contradicting the documentation of that metric instrument:
   
 > "Number of spans that were rejected by the next component in the pipeline."
 
-There is already an inconsistency.  By counting its own failures as
-refused, we should expect that the next component in the pipeline
-handled the data.  This is a failure case drop, one where the next
-component in the pipeline does not handle the item:
+There is already an inconsistency, along with a new term "rejected".
+By counting its own failures as refused, we should expect that the
+next component in the pipeline handled the data.  This is a failure
+case drop, one where the next component in the pipeline does not
+handle the item, however counting drops as refused leads to
+inconsitency, since refused spans should be visibly counted by the
+next stage in the pipeline.
 
 > "Number of spans that were dropped."
 
@@ -164,14 +167,30 @@ metric.
 
 ## Proposed semantic conventions
 
+Following the analysis above, the main problem being addressed is
+confusion over the meaning of "dropped", which is sometimes success
+and sometimes failure.  The use of a single metric with optional
+attributes allows us to explicitly count success and failure while
+optionally counting additional dimensions.  As we will see, this
+allows introducing newly-distinct outcomes without breaking past
+conventions.
+
+For example, the term "rejected" has a formal definition in
+OpenTelemetry that is not expressed by existing metrics.  An item of
+telemetry is considered rejected when it is included in a successful
+request but was individually dropped (for stated reasons) and should
+not be retried; these items were successfully sent but dropped (due to
+partial success) after processing by the next stage in the pipeline.
+
 ### Use of a single metric name
 
 The use of a single metric name is less confusing than the use of
 multiple metric names, because the user has to know only a single name
 to writing useful queries.  Users working with existing collector and
 SDK pipeline monitoring metrics have to remember at least three metric
-names and explicitly join them custom metric queries.  For example, to
-calculate loss rate for an SDK using traditional pipeline metrics,
+names and explicitly join them via custom metric queries.  For
+example, to calculate loss rate for an SDK using traditional pipeline
+metrics,
 
 ```
 LossRate_MultipleMetrics = (dropped + failed) / (dropped + failed + success)
@@ -193,13 +212,19 @@ explicitly without help from the user interface.
 
 The proposed metric instrument would be named distinctly depending on
 whether it is a collector or an SDK, to prevent accidental aggregation
-of these timeseries.  The specified counter names:
+of these timeseries.  The specified counter names would be:
 
 - `otelsdk.producer.items`: count of successful and failed items of
-  telemetry produced by signal type by an OpenTelemetry SDK.
-- `otelcol.receiver.items`: 
-- `otelcol.processor.items`: 
-- `otelcol.exporter.items`: 
+  telemetry produced, by signal type, by an OpenTelemetry SDK.
+- `otelcol.receiver.items`: count of successful and failed items of
+  telemetry received, by signal type, by an OpenTelemetry Collector
+  receiver component.
+- `otelcol.processor.items`: count of successful and failed items of
+  telemetry processed, by signal type, by an OpenTelemetry Collector
+  receiver component.
+- `otelcol.exporter.items`: count of successful and failed items of
+  telemetry processed, by signal type, by an OpenTelemetry Collector
+  receiver component.
 
 ### Recommended conventional attributes
 
@@ -212,9 +237,49 @@ of these timeseries.  The specified counter names:
 - `otel.name` (string): Name of the component in a pipeline.
 - `otel.pipeline` (string): Name of the pipeline in a collector.
 
+### Specified `otel.outcome` attribute values
+
+The `otel.outcome` attribute indicates extra information about a
+success or failure.  A set of standard conventional attribute values
+is supplied, however it should not be considered a closed set.  If
+these outcomes do not accurately explain the reason for a success or
+failure outcome, they can be extended by users with alternative,
+low-cardinality explanatory values.
+
+For success:
+
+- `ok`: Indicates a normal success case.  The item was handled by the
+  next stage of the pipeline, which returned success.
+- `not_sampled`: Indicates a successful drop case, due to sampling.
+  The item was intentionally not handled by the next stage of the
+  pipeline.
+
+For failure:
+
+- `timeout`: The item was in the process of being transmitted but the
+  request timed out.
+- `queue_full`: Indicates a dropped item because a local, limited-size
+  queue is at capacity.  The item was not handled by the next stage of
+  the pipeline.  If the item was handled by the next stage of the
+  pipeline, use `resource_exhausted`.
+- `resource_exhausted`: The item was handled by the next stage of the
+  pipeline, which returned an error code indicating that it was
+  overloaded.  If the resource being exhausted is local and the item
+  was not handled by the next stage of the pipeline, use `queue_full`.
+- `rejected`: The item was handled by the next stage of the pipeline,
+  which returned a partial success status indicating that some items
+  could not be accepted.
+- `transient`: The item was handled by the next stage of the pipeline,
+  which returned a retryable error status not covered by any of the
+  above values.
+- `permanent`: The item was handled by the next stage of the pipeline,
+  which returned a permanent error status not covered by any of the
+  above values.
+
 #### Collector
 
 TODO: Why we count only drops for pipeline segments, but not SDKs.
+TODO: What to do about suppression.
 
 ## Metrics SDK special considerations
 
