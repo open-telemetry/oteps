@@ -230,8 +230,7 @@ The following diagram shows how a Component Telemetry Schema is structured.
 > modeling, especially for Generative AI-based question answering systems. Tools
 > like Observability Query Assistants (
 > e.g. [Elastic AI Assistant](https://www.elastic.co/fr/blog/introducing-elastic-ai-assistant)
->
-and [Honeycomb Query Assistant](https://www.honeycomb.io/blog/introducing-query-assistant?utm_source=newswire&utm_medium=link&utm_campaign=query_assistant))
+> and [Honeycomb Query Assistant](https://www.honeycomb.io/blog/introducing-query-assistant?utm_source=newswire&utm_medium=link&utm_campaign=query_assistant))
 > are likely to become increasingly prevalent and efficient in the near future,
 > thanks to the adoption of a schema-first approach.
 
