@@ -264,8 +264,9 @@ the definition of the Resolved Telemetry Schema are:
 
 The following diagram describes two main use cases for the Resolved Telemetry
 Schema. The key points to remember are: 1) both use cases result in a Resolved
-Telemetry Schema, and 2) Resolved Telemetry Schemas serve as the mechanism for
-distributing Telemetry Schemas throughout the entire ecosystem.
+Telemetry Schema, 2) Resolved Telemetry Schemas serve as the mechanism for
+distributing Telemetry Schemas throughout the entire ecosystem, and 3) Resolved
+Telemetry Schemas would replace/augment existing SchemaURL.
 
 ![Use cases](./img/0240-otel-weaver-use-cases.svg)
 
