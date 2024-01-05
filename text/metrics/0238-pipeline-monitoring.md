@@ -278,6 +278,30 @@ For failure:
   which returned a permanent error status not covered by any of the
   above values.
 
+### Metric detail levels
+
+The five metric attributes specified above are recommended at all
+levels of metric detail for OpenTelemetry Collectors.  Collectors may
+wish to configure other instrumentation at higher levels of detail,
+such as counters for number of compressed bytes transmitted and
+received.
+
+For SDKs, two levels of detail are available, as options that allow
+the user to control whether each signal uses two timeseries or more,
+as many as seven per signal.  The metrics level of detail determines
+which attributes are viewed, with the following recommended defaults.
+
+| Level  | SDK attributes                                |
+|--------|-----------------------------------------------|
+| Basic  | `otel.success`, `otel.signal`                 |
+| Normal | `otel.success`, `otel.signal`, `otel.outcome` |
+
+SDKs may wish to configure additional instrumentation at higher levels
+of detail, such as gRPC or HTTP-specific instrumentation for export
+operations.
+
+## Detailed rationale
+
 ### Error suppression behavior
 
 OpenTelemetry collector exporter components have existing error
@@ -384,35 +408,70 @@ honor deadlines.  There is not a natural way for processors to count
 timeouts.  The proposed specification here allows all components to
 report failures on an item-by-item basis.
 
-### 
+### Strongly-recommended dimensions
 
-TODO: About how there are strongly-recommended dimensions.  How certain attributes, if removed, lead to meaningful/useless outcomes.
+We are aware of the potential to accidentally combine metrics from a
+pipeline in ways that lead to meaningful but potentially suprising
+results.  This is best explained by example:
 
-TODO: about level of detail: table of which attributes at which levels
+- A collector pipeline contains two processor elements.  If the
+  `otelcol.processor.items` metric is aggregated to remove the
+  `otel.name` attribute, then the resulting aggregate will count two
+  items for every one passing through the pipeline.
+- A multi-stage pipeline passes telemetry through an agent collector
+  followed by a gateway collector.  If any of the `otelcol.*.items`
+  metrics are aggregated such that the agent-vs-gateway distinction is
+  lost, then the resulting aggregate counts two for every one item
+  passing through the pipeline (this distinction is a resource-level
+  attribute, not covered by these semantic conventions).
 
-TODO: about trace-specific condisderations: samplers are not counted, not covered here.
+These are meaningful and correct aggregations, just not usually what
+the user is looking for.  Products built to monitor OpenTelemetry
+pipelines specifically should be aware that values in these dimensions
+are potentially repeated.
 
-## Metrics SDK special considerations
+## SDK special considerations
 
 We expect that Metrics SDKs will be used to generate
 pipeline-monitoring metrics reporting about themselves.
 
-As stated above, SDKs SHOULD support configuring an alternate Meter
-Provider for pipeline-monitoring metrics.  When the global Meter
-Provider is used, the Metrics SDK's pipeline will receive its own
+All SDKs SHOULD support configuring an alternate Meter Provider for
 pipeline-monitoring metrics.  When a custom Meter Provider is used, a
-secondary pipeline will receive the pipeline monitoring metrics, in
-which case the secondary pipeline may also self-report for itself.
+secondary SDK will receive the pipeline monitoring metrics.
 
-## Trade-offs and mitigations
+When an SDK is used as the global Meter Provider is used (or when a
+secondary SDK monitors a primary SDK), that Metrics SDK will receive
+its own pipeline-monitoring metrics.  When a Metrics SDK reports to
+itself, the export operations that occur during shutdown MAY NOT be
+instrumented.
 
-The use of three-levels of metric detail may seem like more freedom
-than necessary.  Implementors are expected to take advantage of Metric
-View configuration in the Metrics SDK for configuring opt-out of
-standard attributes (i.e., to remove `otel.signal`, `otel.name`, or
-`otel.signal`).  For opt-in attributes (i.e., to configure no
-`otel.reason` or `otel.scope` attribute), implementors MAY choose to
-enable additional attributes only when configured.
+## Trace SDK special considerations
+
+Samplers are not considered part of the telemetry pipeline, because
+Spans are unfinished at the time they start and cannot be considered
+part of a pipeline until the finish.  Sampler behavior is not covered
+by these semantic conventions.  The number counted by
+`otelsdk.producer.items` includes items that are exported and/or
+dropped by the Span Processor.
+
+When the Metrics SDK responsible for reporting pipeline metrics is not
+functional for any reason, another signal may be necessary to
+effectively monitor the situation.
+
+For this reason, all SDKs SHOULD support configuring a Tracer Provider
+for monitoring pipeline export operations.  Users concerned about
+potential loss of metrics service may wish to configure an independent
+trace data pipeline.  In that case, the spans duration should match
+the export and the span name SHOULD be `OTel SDK Export`.
+
+The specified attributes are:
+
+- `otel.status` (string): OK, Error, or Unset
+- `otel.items` (int64): Number of spans, metric data points, or log records.
+- `otel.signal` (string): `traces`, `metrics`, or `logs`.
+
+These spans MAY contain additional detail about the cause of failures,
+for example.
 
 ## Prior art and alternatives
 
