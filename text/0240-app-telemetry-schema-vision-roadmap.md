@@ -70,6 +70,8 @@ a similar approach in the context of telemetry. **This document discusses how to
 apply a schema-first approach in the OpenTelemetry project and its implications
 for the existing Telemetry Schema and Semantic Conventions.**
 
+## Possible/Desired Future State
+
 The following diagram provides a conceptual overview of the relationships
 between the various components, processes, and artifacts of what could be a
 typical schema-driven end-to-end telemetry system in the future.
