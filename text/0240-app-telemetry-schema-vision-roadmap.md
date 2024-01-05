@@ -258,7 +258,7 @@ the definition of the Resolved Telemetry Schema are:
 * **Easy to parse**: A widespread and well-defined format should be preferred.
   JSON is an example of such a format.
 * **Easy to interpret**: The internal structure of this artifact must be
-  straightforward to avoid any misinterpretation.
+  straightforward to avoid any misinterpretation and must be efficient.
 * **Platform- and Language-agnostic**: This artifact must be independent of any
   platform architectures and programming languages.
 
