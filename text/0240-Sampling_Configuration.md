@@ -101,7 +101,9 @@ New composite samplers are proposed to make group sampling decisions. They alway
 ```
 
 The `any_sampler` is a composite sampler which takes a non-empty list of Samplers as the argument. When making a sampling decision, it goes through the list and asks each sampler for its decision about sampling. If any of these samplers decides to sample, the final decision is to sample. If none of the samplers from the list wants to sample the span, the composite sampler drops the span.
-State trace modfications by all the child samplers are cumulative.
+[Trace state](https://opentelemetry.io/docs/specs/otel/trace/api/#tracestate) modfications by all the child samplers are cumulative.
+
+Each direct component of `any_sampler` is guaranteed to participate in the sampling decision (be invoked) and will see the same _parent_ state. The order of the component samplers in the list does not matter, as long as there's no overlap in the trace state keys they use.
 
 ### Logical-And Sampling
 
@@ -114,8 +116,7 @@ State trace modfications by all the child samplers are cumulative.
       - <SAMPLERn>
 ```
 
-The `all_samplers` composite sampler takes a non-empty list of Samplers as the argument. When making a sampling decision, it goes through the list and asks each sampler for its decision about sampling. If any of these samplers decides not to sample, the final sampling decision is not to sample, and the remaining samplers are skipped. If all of the samplers from the list decide to sample the span, the composite sampler samples the span.
-State trace modfications by all the referenced child samplers are cumulative.
+The `all_samplers` composite sampler takes a non-empty list of Samplers as the argument. When making a sampling decision, it goes through the list and asks each sampler for its decision about sampling. If any of these samplers decides not to sample, the final sampling decision is not to sample, and the remaining samplers are skipped. If all of the samplers from the list decide to sample the span, the composite sampler samples the span and the trace state modfications by all the referenced child samplers become cumulative. The trace state does not change if any of the child samplers decided not to sample.
 
 ### Rule based sampling
 
@@ -144,12 +145,12 @@ For example, one can test if the target URL for a SERVER span matches a given pa
 
 ## Limitations of composite samplers
 
-Not all samplers can participate as components of composite samplers without undesired or unexpected effects. In general, samplers can update trace-state regardless of their sampling decision, and can maintain internal state as well. A good example for this are rate limiting samplers which have to keep track of the rate of created spans and/or the rate of positive sampling decisions.
+Not all samplers can participate as components of composite samplers without undesired or unexpected effects. In general, samplers can update trace state regardless of their sampling decision, and can maintain internal state as well. A good example for this are rate limiting samplers which have to keep track of the rate of created spans and/or the rate of positive sampling decisions.
 Such samplers assume that their sampling decisions will be honored by the tracer at the face value in all cases.
 
 A special attention is required for [consistent probability](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#consistent-probability-sampler) (CP) samplers. The sampling probability they record in trace-state is later used to calculate [_adjusted count_](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#adjusted-count), which, in turn, is used to calculate span-based metrics. Mixing CP samplers with other types of samplers in most cases will lead to incorrect adjusted counts. The family of CP samplers has its own [composition rules](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#composition-rules), which correctly handle composing multiple CP samplers.
 
-There are other choices for defining the behavior of Logical-Or and Logical-And composite samplers. One such option would be to allow consequent component samplers of Logical-And to see the trace-state as modified by their predecessors in the list. However, this would seem to violate the expectation that the trace-state as accessible via the `Context` parameter for [`shouldSample`](https://opentelemetry.io/docs/specs/otel/trace/sdk/#shouldsample) represents the values as left by the span parent rather than the predecessor samplers.
+There are other choices for defining the behavior of Logical-Or and Logical-And composite samplers. One such option would be to allow consequent component samplers of Logical-And to see the trace-state as modified by their predecessors in the list. However, this would seem to violate the expectation that the trace state as accessible via the `Context` parameter for [`shouldSample`](https://opentelemetry.io/docs/specs/otel/trace/sdk/#shouldsample) represents the values as left by the span parent rather than the predecessor samplers.
 
 ## Example
 
