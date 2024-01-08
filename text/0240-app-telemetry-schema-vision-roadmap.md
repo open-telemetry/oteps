@@ -241,6 +241,9 @@ the format of this/these schema(s). The rules for resolving overrides
 (inheritance), external references, and conflicts will also be described in
 these OTEPs. See the Roadmap section for a comprehensive list of these OTEPs.
 
+An example of what the structure and format of a component telemetry schema
+could look like is provided in this [appendix](#appendix-a---component-telemetry-schema).
+
 ## Resolved Telemetry Schema
 
 A Resolved Telemetry Schema is the outcome of the schema resolution process.
@@ -286,7 +289,8 @@ is expected to be a very common pattern to reuse the same subset of attributes
 or metrics across several signals and libraries.
 
 A dedicated OTEP will precisely define the structure and format of the Resolved
-Telemetry Schema.
+Telemetry Schema. An example of what the structure of a resolved telemetry
+schema could look like is provided in this [appendix](#appendix-b---resolved-telemetry-schema).
 
 ### Development Strategies
 
@@ -432,12 +436,88 @@ of the Resolved Telemetry Schema.
 
 ## Appendices
 
-### Component Telemetry Schema - Structure and Format
+### Appendix A - Component Telemetry Schema
+
+The structure and format of the component telemetry schema is given here as an
+example and corresponds to the author's vision (not yet validated) of what the
+structure/format of a component telemetry schema could be. The definitive
+structure and format of this component schema will be discussed and finalized
+later in a dedicated OTEP.
 
 ```yaml
+# This file describes the structure and format of a component telemetry schema.
+# A component telemetry schema can be used for three types of purposes:
+# - defining the telemetry schema for an application or a service
+# - defining the telemetry schema for a library
+# - defining a semantic convention registry
+file_format: 1.2.0
+schema_url: <url-of-the-current-component-schema>
+# This optional field allows to specify the parent schema of the current schema.
+# The parent schema is a resolved schema.
+parent_schema_url: <url-of-a-parent-resolved-schema>
+
+# This optional section allows for importing a semantic convention registry
+# from a git repository containing a set of semantic convention files. It is
+# also possible to import file by file.
+semantic_conventions:
+  - git_url: <git-url-of-the-semantic-conventions-repository>
+    path: <path-to-the-semantic-conventions-directory-inside-the-git-repo>
+  - url: <url-of-the-semantic-conventions-file>
+
+# The resource field is defined when the component schema is that of an
+# application (as opposed to that of a library). The resource field contains a
+# list of local references to attributes defined in the shared catalog within
+# this file.
+resource:
+  # attributes defined locally or inherited from the parent schema (if any) or
+  # from the semantic conventions (if any).
+  attributes: # attribute definitions
+
+# This optional section defines the instrumentation library, its version, and
+# the schema of OTel entities reported by this instrumentation library (
+# representing an application or a library component).
+# This section is not defined if the current component telemetry schema is only
+# used to represent a semantic convention registry.
+instrumentation_library:
+  name: <instrumentation-library-name>
+  version: <instrumentation-library-version>
+  # The schema details all the metrics, logs, and spans specifically generated
+  # by that instrumentation library.
+  schema:
+    # Declaration of all the univariate metrics
+    resource_metrics:
+      - metric_name: <metric-id>
+        # attributes defined locally or inherited from the parent schema (if any) or
+        # from the semantic conventions (if any).
+        attributes: # attribute definitions
+        # ...
+        # other metric fields
+        # ...
+        tags:
+          <tag-key>: <tag-value>
+
+    # Declaration of all the spans
+    resource_spans:
+      - span_name: <span-id>
+        # attributes defined locally or inherited from the parent schema (if any) or
+        # from the semantic conventions (if any).
+        attributes: # attribute definitions
+        # ...
+        # other span fields
+        # ...
+        tags:
+          <tag-key>: <tag-value>
+
+# Reuse the same versioning mechanism already defined in the telemetry schema v1.1.0
+versions: # see telemetry schema v1.1.0.
 ```
 
-### Resolved Telemetry Schema - Structure
+### Appendix B - Resolved Telemetry Schema
+
+The structure of the resolved telemetry schema is given here as an example and
+corresponds to the author's vision (not yet validated) of what the structure of
+a resolved telemetry schema could be. The definitive structure and format of
+this resolved schema will be discussed and finalized later in a dedicated OTEP.
 
 ```yaml
 # This file describes the general logical structure envisioned to date for a
