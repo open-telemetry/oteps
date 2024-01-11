@@ -11,6 +11,7 @@ Introduces Data Model for Profiles signal to OpenTelemetry.
   * [Relationships With Other Signals](#relationships-with-other-signals)
     * [From profiles to other signals](#from-profiles-to-other-signals)
     * [From other signals to profiles](#from-other-signals-to-profiles)
+  * [Compatibility with Original pprof](#compatibility-with-original-pprof)
   * [Proto Definition](#proto-definition)
   * [Message Descriptions](#message-descriptions)
     * [Message `ProfilesData`](#message-profilesdata)
@@ -20,6 +21,7 @@ Introduces Data Model for Profiles signal to OpenTelemetry.
     * [Message `Profile`](#message-profile)
     * [Message `ValueType`](#message-valuetype)
     * [Message `Sample`](#message-sample)
+    * [Message `Link`](#message-link)
     * [Message `Location`](#message-location)
     * [Message `Line`](#message-line)
     * [Message `Mapping`](#message-mapping)
@@ -175,12 +177,12 @@ option go_package = "go.opentelemetry.io/proto/otlp/profiles/v1";
 // ┌──────────────────┐
 // │      Profile     │
 // └──────────────────┘
-//   │
-//   │ 1-n
-//   ▼
-// ┌──────────────────┐   1-n   ┌──────────────┐
-// │      Sample      │ ──────▷ │   KeyValue   │
-// └──────────────────┘         └──────────────┘
+//   │                                1-n
+//   │ 1-n         ┌───────────────────────────────────────┐
+//   ▼             │                                       ▽
+// ┌──────────────────┐   1-n   ┌──────────────┐      ┌──────────┐
+// │      Sample      │ ──────▷ │   KeyValue   │      │   Link   │
+// └──────────────────┘         └──────────────┘      └──────────┘
 //   │                    1-n       △      △
 //   │ 1-n        ┌─────────────────┘      │ 1-n
 //   ▽            │                        │
@@ -343,6 +345,8 @@ import "opentelemetry/proto/common/v1/common.proto";
 
 option go_package = "go.opentelemetry.io/proto/otlp/profiles/v1/alternatives/pprofextended";
 
+// Represents a complete profile, including sample types, samples,
+// mappings to binaries, locations, functions, string table, and additional metadata.
 message Profile {
   // A description of the samples associated with each Sample.value.
   // For a cpu profile this might be:
@@ -397,8 +401,23 @@ message Profile {
   repeated int64 location_indices = 15;
   // Lookup table for attributes.
   repeated opentelemetry.proto.common.v1.KeyValue attribute_table = 16;
+  // Lookup table for links.
+  repeated Link link_table = 17;
 }
 
+// A pointer from a profile Sample to a trace Span.
+// Connects a profile sample to a trace span, identified by unique trace and span IDs.
+message Link {
+  // A unique identifier of a trace that this linked span is part of. The ID is a
+  // 16-byte array.
+  bytes trace_id = 1;
+
+  // A unique identifier for the linked span. The ID is an 8-byte array.
+  bytes span_id = 2;
+}
+
+// Specifies the method of aggregating metric values, either DELTA (change since last report)
+// or CUMULATIVE (total since a fixed start time).
 enum AggregationTemporality {
   /* UNSPECIFIED is the default AggregationTemporality, it MUST not be used. */
   AGGREGATION_TEMPORALITY_UNSPECIFIED = 0;
@@ -458,14 +477,14 @@ enum AggregationTemporality {
   11. A request is received, the system measures 1 request.
   12. The 1 second collection cycle ends. A metric is exported for the
       number of requests received over the interval of time t_1 to
-      t_1+1 with a value of 1.
+      t_0+1 with a value of 1.
 
   Note: Even though, when reporting changes since last report time, using
   CUMULATIVE is valid, it is not recommended. */
   AGGREGATION_TEMPORALITY_CUMULATIVE = 2;
 }
 
-// ValueType describes the semantics and measurement units of a value.
+// ValueType describes the type and units of a value, with an optional aggregation temporality.
 message ValueType {
   int64 type = 1; // Index into string table.
   int64 unit = 2; // Index into string table.
@@ -511,10 +530,15 @@ message Sample {
   // References to attributes in Profile.attribute_table. [optional]
   repeated uint64 attributes = 7;
 
+  // References to links in Profile.link_table. [optional]
+  repeated uint64 links = 8;
+
   // A 128bit id that uniquely identifies this stacktrace, globally. Index into string table. [optional]
-  uint32 stacktrace_id_index = 2;
+  uint32 stacktrace_id_index = 9;
 }
 
+// Provides additional context for a sample,
+// such as thread ID or allocation size, with optional units. [deprecated]
 message Label {
   int64 key = 1;   // Index into string table
 
@@ -532,6 +556,16 @@ message Label {
   int64 num_unit = 4;  // Index into string table
 }
 
+// Indicates the type of build ID, either from the linker or a binary hash.
+enum BuildIdKind {
+  // BUILD_ID_LINKER indicates that the build id is linker-provided (usually GNU build ID)
+  BUILD_ID_LINKER = 0;
+  // BUILD_ID_BINARY_HASH indicates that the build id is a hash of the binary.
+  BUILD_ID_BINARY_HASH = 1;
+}
+
+// Describes the mapping of a binary in memory, including its address range,
+// file offset, and metadata like build ID
 message Mapping {
   // Unique nonzero id for the mapping. [deprecated]
   uint64 id = 1;
@@ -556,10 +590,8 @@ message Mapping {
   bool has_line_numbers = 9;
   bool has_inline_frames = 10;
 
-  // A string that uniquely identifies a particular binary with high probability.
-  // It is meant to work around deficiencies in the GNU Build ID that may compromise
-  // uniqueness / correlatability. Index into string table.
-  uint32 file_id_index = 11;
+  // Specifies the kind of build id. See BuildIdKind enum for more detaiks [optional]
+  BuildIdKind build_id_kind = 11;
 
   // References to attributes in Profile.attribute_table. [optional]
   repeated uint64 attributes = 12;
@@ -602,6 +634,7 @@ message Location {
   repeated uint64 attributes = 7;
 }
 
+// Details a specific line in a source code, linked to a function.
 message Line {
   // The index of the corresponding profile.Function for this line.
   uint64 function_index = 1;
@@ -609,6 +642,8 @@ message Line {
   int64 line = 2;
 }
 
+// Describes a function, including its human-readable name, system name,
+// source file, and starting line number in the source.
 message Function {
   // Unique nonzero id for the function. [deprecated]
   uint64 id = 1;
@@ -761,6 +796,9 @@ following conventions:
   mappings. For every nonzero Location.mapping_id there must be a
   unique Mapping with that id.
 
+Represents a complete profile, including sample types, samples,
+mappings to binaries, locations, functions, string table, and additional metadata.
+
 <details>
 <summary>Field Descriptions</summary>
 
@@ -849,11 +887,15 @@ Array of locations referenced by samples.
 ##### Field `attribute_table`
 
 Lookup table for attributes.
+
+##### Field `link_table`
+
+Lookup table for links.
 </details>
 
 #### Message `ValueType`
 
-ValueType describes the semantics and measurement units of a value.
+ValueType describes the type and units of a value, with an optional aggregation temporality.
 
 <details>
 <summary>Field Descriptions</summary>
@@ -918,9 +960,31 @@ Timestamps associated with Sample represented in ms. These timestamps are expect
 
 References to attributes in Profile.attribute_table. [optional]
 
+##### Field `links`
+
+References to links in Profile.link_table. [optional]
+
 ##### Field `stacktrace_id_index`
 
 A 128bit id that uniquely identifies this stacktrace, globally. Index into string table. [optional]
+</details>
+
+#### Message `Link`
+
+A pointer from a profile Sample to a trace Span.
+Connects a profile sample to a trace span, identified by unique trace and span IDs.
+
+<details>
+<summary>Field Descriptions</summary>
+
+##### Field `trace_id`
+
+A unique identifier of a trace that this linked span is part of. The ID is a
+16-byte array.
+
+##### Field `span_id`
+
+A unique identifier for the linked span. The ID is an 8-byte array.
 </details>
 
 #### Message `Location`
@@ -977,6 +1041,8 @@ References to attributes in Profile.attribute_table. [optional]
 
 #### Message `Line`
 
+Details a specific line in a source code, linked to a function.
+
 <details>
 <summary>Field Descriptions</summary>
 
@@ -990,6 +1056,9 @@ Line number in source code.
 </details>
 
 #### Message `Mapping`
+
+Describes the mapping of a binary in memory, including its address range,
+file offset, and metadata like build ID
 
 <details>
 <summary>Field Descriptions</summary>
@@ -1028,11 +1097,9 @@ it could be the contents of the .note.gnu.build-id field.
 Index into string table
 The following fields indicate the resolution of symbolic info.
 
-##### Field `file_id_index`
+##### Field `build_id_kind`
 
-A string that uniquely identifies a particular binary with high probability.
-It is meant to work around deficiencies in the GNU Build ID that may compromise
-uniqueness / correlatability. Index into string table.
+Specifies the kind of build id. See BuildIdKind enum for more detaiks [optional]
 
 ##### Field `attributes`
 
@@ -1040,6 +1107,9 @@ References to attributes in Profile.attribute_table. [optional]
 </details>
 
 #### Message `Function`
+
+Describes a function, including its human-readable name, system name,
+source file, and starting line number in the source.
 
 <details>
 <summary>Field Descriptions</summary>
