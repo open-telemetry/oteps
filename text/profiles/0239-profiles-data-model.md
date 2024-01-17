@@ -349,6 +349,14 @@ import "opentelemetry/proto/common/v1/common.proto";
 
 option go_package = "go.opentelemetry.io/proto/otlp/profiles/v1/alternatives/pprofextended";
 
+// Represents a mapping between Attribute Keys and Units.
+message AttributeUnit {
+  // Index into string table.
+  int64 attribute_key = 1;
+  // Index into string table.
+  int64 unit = 2;
+}
+
 // Represents a complete profile, including sample types, samples,
 // mappings to binaries, locations, functions, string table, and additional metadata.
 message Profile {
@@ -376,8 +384,10 @@ message Profile {
   // string_table[0] must always be "".
   // Lookup table for attributes.
   repeated opentelemetry.proto.common.v1.KeyValue attribute_table = 16;
+  // Represents a mapping between Attribute Keys and Units.
+  repeated AttributeUnit attribute_units = 17;
   // Lookup table for links.
-  repeated Link link_table = 17;
+  repeated Link link_table = 18;
   repeated string string_table = 6;
   // frames with Function.function_name fully matching the following
   // regexp will be dropped from the samples, along with their successors.
@@ -532,11 +542,8 @@ message Sample {
   // References to attributes in Profile.attribute_table. [optional]
   repeated uint64 attributes = 10;
 
-  // References to attribute units in Profile.string_table. Each number in this array MUST have a matching attribute reference in attributes array. [optional]
-  repeated uint64 attribute_units = 11;
-
-  // References to links in Profile.link_table. [optional]
-  repeated uint64 links = 12;
+  // Reference to link in Profile.link_table. [optional]
+  uint64 link = 12;
 
   // Timestamps associated with Sample represented in ms. These timestamps are expected
   // to fall within the Profile's time range. [optional]
@@ -782,26 +789,6 @@ This is a reference to a pprof profile. Required, even when original_payload is 
 
 #### Message `Profile`
 
-Profile is a common stacktrace profile format.
-Measurements represented with this format should follow the
-following conventions:
-
-- Consumers should treat unset optional fields as if they had been
-  set with their default value.
-- When possible, measurements should be stored in "unsampled" form
-  that is most useful to humans.  There should be enough
-  information present to determine the original sampled values.
-- On-disk, the serialized proto must be gzip-compressed.
-- The profile is represented as a set of samples, where each sample
-  references a sequence of locations, and where each location belongs
-  to a mapping.
-- There is a N->1 relationship from sample.location_id entries to
-  locations. For every sample.location_id entry there must be a
-  unique Location with that id.
-- There is an optional N->1 relationship from locations to
-  mappings. For every nonzero Location.mapping_id there must be a
-  unique Mapping with that id.
-
 Represents a complete profile, including sample types, samples,
 mappings to binaries, locations, functions, string table, and additional metadata.
 
@@ -845,6 +832,10 @@ Functions referenced by locations.
 A common table for strings referenced by various messages.
 string_table[0] must always be "".
 Lookup table for attributes.
+
+##### Field `attribute_units`
+
+Represents a mapping between Attribute Keys and Units.
 
 ##### Field `link_table`
 
@@ -965,18 +956,50 @@ name on a sample.  Again, possible to express, but should not be used.
 
 References to attributes in Profile.attribute_table. [optional]
 
-##### Field `attribute_units`
+##### Field `link`
 
-References to attribute units in Profile.string_table. Each number in this array MUST have a matching attribute reference in attributes array. [optional]
-
-##### Field `links`
-
-References to links in Profile.link_table. [optional]
+Reference to link in Profile.link_table. [optional]
 
 ##### Field `timestamps`
 
 Timestamps associated with Sample represented in ms. These timestamps are expected
 to fall within the Profile's time range. [optional]
+</details>
+
+#### Message `AttributeUnit`
+
+Profile is a common stacktrace profile format.
+Measurements represented with this format should follow the
+following conventions:
+
+- Consumers should treat unset optional fields as if they had been
+  set with their default value.
+- When possible, measurements should be stored in "unsampled" form
+  that is most useful to humans.  There should be enough
+  information present to determine the original sampled values.
+- On-disk, the serialized proto must be gzip-compressed.
+- The profile is represented as a set of samples, where each sample
+  references a sequence of locations, and where each location belongs
+  to a mapping.
+- There is a N->1 relationship from sample.location_id entries to
+  locations. For every sample.location_id entry there must be a
+  unique Location with that id.
+- There is an optional N->1 relationship from locations to
+  mappings. For every nonzero Location.mapping_id there must be a
+  unique Mapping with that id.
+
+Represents a mapping between Attribute Keys and Units.
+
+<details>
+<summary>Field Descriptions</summary>
+
+##### Field `attribute_key`
+
+Index into string table.
+
+##### Field `unit`
+
+Index into string table.
 </details>
 
 #### Message `Link`
