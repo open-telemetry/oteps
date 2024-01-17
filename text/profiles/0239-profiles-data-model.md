@@ -21,6 +21,7 @@ Introduces Data Model for Profiles signal to OpenTelemetry.
     * [Message `Profile`](#message-profile)
     * [Message `ValueType`](#message-valuetype)
     * [Message `Sample`](#message-sample)
+    * [Message `AttributeUnit`](#message-attributeunit)
     * [Message `Link`](#message-link)
     * [Message `Location`](#message-location)
     * [Message `Line`](#message-line)
@@ -145,6 +146,8 @@ package opentelemetry.proto.profiles.v1;
 
 import "opentelemetry/proto/common/v1/common.proto";
 import "opentelemetry/proto/resource/v1/resource.proto";
+
+import "opentelemetry/proto/profiles/v1/alternatives/pprofextended/pprofextended.proto";
 
 option csharp_namespace = "OpenTelemetry.Proto.Profiles.V1";
 option java_multiple_files = true;
@@ -347,6 +350,7 @@ package opentelemetry.proto.profiles.v1.alternatives.pprofextended;
 
 import "opentelemetry/proto/common/v1/common.proto";
 
+option csharp_namespace = "OpenTelemetry.Proto.Profiles.V1.Alternatives.PprofExtended";
 option go_package = "go.opentelemetry.io/proto/otlp/profiles/v1/alternatives/pprofextended";
 
 // Represents a mapping between Attribute Keys and Units.
