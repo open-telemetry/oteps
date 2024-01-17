@@ -21,6 +21,8 @@ In the general case, in order to make consistent sampling decisions across the e
 1. A _random_ (or pseudo-random) 56-bit value, called `R` below.
 2. A 56-bit _rejection threshold_ (or just "threshold") as expressed in the TraceState, called `T` below. `T` represents the maximum threshold that was applied in all previous consistent sampling stages. If the current sampling stage applies a greater-valued threshold than any stage before, it MUST update (increase) the threshold correspondingly.
 
+One way to think about _rejection threshold_ is that is the number of spans that would be discarded out of 2^56 considered spans.
+
 Here is an example involving three participants `A`, `B`, and `C`:
 
 `A` -> `B` -> `C`
