@@ -66,6 +66,7 @@ There are circumstances where trace-id randomness is inadequate (for example, sa
 The value of the `rv` and `th` keys MUST be expressed as up to 14 hexadecimal digits from the set `[0-9a-f]`. For `th` keys only, trailing zeros (but not leading zeros) may be omitted. `rv` keys MUST always be exactly 14 hex digits.
 
 Examples:
+
 - `th` value is missing: non-probabalistic sampling may be taking place.
 - `th=4` -- equivalent to `th=40000000000000`, which is a 25% rejection threshold, corresponding to a 75% sampling probability.
 - `th=c` -- equivalent to `th=c0000000000000`, which is a rejection threshold of 75%, corresponding to a sampling probability of 25%.
