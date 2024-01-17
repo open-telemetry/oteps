@@ -46,10 +46,10 @@ The system has the following invariant:
 
 The sampling decision is propagated with the following algorithm:
 
-* If the `th` key is not specified, this implies that non-probabilistic sampling is taking place.
+* If the `th` key is not specified, this implies that non-probabilistic sampling may be taking place.
 * Else derive `T` by parsing the `th` key as a hex value as described below.
 * If `T` is 0, Always Sample.
-* Compare the 56 bits of `T` with the 56 bits of `R`. If `T >= R`, then do not sample.
+* Compare the 56 bits of `T` with the 56 bits of `R`. If `T > R`, then do not sample.
 
 The `R` value MUST be derived as follows:
 
@@ -64,15 +64,15 @@ There are circumstances where trace-id randomness is inadequate (for example, sa
 The value of the `rv` and `th` keys MUST be expressed as up to 14 hexadecimal digits from the set `[0-9a-f]`. For `th` keys only, trailing zeros (but not leading zeros) may be omitted. `rv` keys MUST always be exactly 14 hex digits.
 
 Examples:
-`th` value is missing: Always Sample (probability = 100%). The AlwaysOn sampler in the OTel SDK should do this.
-`th=4` -- equivalent to `th=40000000000000`, which is a 25% rejection threshold, corresponding to a 75% sampling probability.
-`th=c` -- equivalent to `th=c0000000000000`, which is a rejection threshold of 75%, corresponding to a sampling probability of 25%.
-`th=08` -- equivalent to `th=08000000000000`, which is a rejection threshold of 3.125%, corresponding to a sampling probability of 96.875%.
-`th=0` -- equivalent to `th=00000000000000`, which is a 0% rejection threshold, which means Always Sample.
+- `th` value is missing: non-probabalistic sampling may be taking place.
+- `th=4` -- equivalent to `th=40000000000000`, which is a 25% rejection threshold, corresponding to a 75% sampling probability.
+- `th=c` -- equivalent to `th=c0000000000000`, which is a rejection threshold of 75%, corresponding to a sampling probability of 25%.
+- `th=08` -- equivalent to `th=08000000000000`, which is a rejection threshold of 3.125%, corresponding to a sampling probability of 96.875%.
+- `th=0` -- equivalent to `th=00000000000000`, which is a 0% rejection threshold, which means Always Sample.
 
 The `T` value MUST be derived as follows:
 
-* If the `th` key is not present in the Tracestate header, then `T` is effectively 0.
+* If the `th` key is not present in the Tracestate header, then non-probabalistic sampling may be in use.
 * Else the value corresponding to the `th` key should be interpreted as above.
 
 Sampling Decisions MUST be propagated by setting the value of the `th` key in the Tracestate header according to the above.
@@ -145,7 +145,7 @@ tv = 'tv='+h[2:]
 
 ### Testing rv vs threshold
 
-Given rv and threshold as 64-bit integers, a sample should be taken if rv is strictly less than the threshold.
+Given rv and threshold as 64-bit integers, a sample should be taken if rv is greater than or equal to the threshold.
 
 ```
 shouldSample = (rv >= threshold)
@@ -158,12 +158,12 @@ The sampling probability is a value from 0.0 to 1.0, which can be calculated usi
 ```py
 # embedded _ in numbers for clarity (permitted by Python3)
 maxth = 0x100_0000_0000_0000  # 2^56
-prob = float(threshold) / maxth
+prob = float(maxth - threshold) / maxth
 ```
 
 ### Converting threshold to an adjusted count (sampling rate)
 
-The adjusted count indicates the approximate quantity of items from the population that this sample represents. It is equal to `1/probability`. It is not defined for spans that were obtained via non-probabilistic sampling (a sampled span with integer threshold = 0).
+The adjusted count indicates the approximate quantity of items from the population that this sample represents. It is equal to `1/probability`. It is not defined for spans that were obtained via non-probabilistic sampling (a sampled span with no `th` value).
 
 ## Trade-offs and mitigations
 
