@@ -44,7 +44,7 @@ It is acceptable for B to have a lesser initial `th` than A has. It would not be
 
 The system has the following invariant:
 
-`(R >= T) = sampled flag)`
+`(R >= T) = sampled flag`
 
 The sampling decision is propagated with the following algorithm:
 
