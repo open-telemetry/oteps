@@ -20,7 +20,7 @@ As metrics and logs do not have defined a parent-child relationship, using
 `peer.service` could help gaining insight into the remote service as well.
 
 Defining (optional) automated population of `peer.service` will greatly help
-adoption of this attribute by users and vendors explictly interested in this
+adoption of this attribute by users and vendors explicitly interested in this
 scenario.
 
 ## Explanation
@@ -29,10 +29,10 @@ SDKs will define an optional feature, disabled by default,
 to read the `service.name` attribute of the related `Resource` and set it
 in the spans' `TraceState` as described in
 [trace state handling](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/tracestate-handling.md)
-specifically using the `sn` subkey (denoting **service name**):
+specifically using the `us` subkey (denoting **upstream service**):
 
 ```
-ot=sn:MyService
+ot=us:MyService
 ```
 
 Instrumentation and processors are then free to use this information to set
@@ -59,7 +59,7 @@ if (tracerSharedState.propagateServiceName) {
 ```
 
 Server-side instrumentation (e.g. http servers, gRPC on the receiver side)
-can then be updated to use the propagated context to look for the `sn` subkey
+can then be updated to use the propagated context to look for the `us` subkey
 in `TraceState`, and if it exists, use it to set `peer.service` on the local `Span`:
 
 ```java
@@ -72,9 +72,9 @@ try (Scope scope = extractRemoteContext(headers).makeCurrent()) {
   TraceState remoteTraceState = Span.current()
       .getSpanContext()
       .getTraceState();
-  String peerServiceName = getPropagatedServiceName(remoteTraceState);
+  String peerServiceName = getUpstreamServiceName(remoteTraceState);
   if (peerServiceName != null) {
-    spanBuilder.setAttribute("peer.service", peerServiceName);
+    spanBuilder.setAttribute(PEER_SERVICE, peerServiceName);
   }
 }
 ```
