@@ -92,10 +92,11 @@ A specially interesting case is sampling depending on the calling service, speci
   more traces could be sampled for the latter.
 * In cases where a parent `Span ` is **not** sampled **but** its child (or linked-to `Span`)
   wants to sample, knowing the calling service **may** help with the sampling decision.
+  Right now only a parent span id is available in such case.
 * In deployment scenarios where context is properly propagated through all the services,
   but not all of them are actually traced, it would be helpful to know what services
-  were part of the request, even if no traces/spans exist for them, see
-  https://github.com/w3c/trace-context/issues/550 as an example.
+  were part of the request, even if no traces/spans exist for them. See
+  https://github.com/w3c/trace-context/issues/550 .
 
 ## Trade-offs and mitigations
 
