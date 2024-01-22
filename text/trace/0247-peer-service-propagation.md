@@ -13,8 +13,8 @@ become unreliable, making it eventually obsolete.
 
 This information can be effectively derived in the backend using the
 `Resource` of the parent `Span`, but is otherwise not available
-at Collector processing time, where it could be used for sampling
-and tranformation purposes.
+at Collector processing time, where it could be used for transformation
+purposes or sampling (e.g. adaptive sampling based on the calling service).
 
 As metrics and logs do not have defined a parent-child relationship, using
 `peer.service` could help gaining insight into the remote service as well.
@@ -82,6 +82,20 @@ try (Scope scope = extractRemoteContext(headers).makeCurrent()) {
 With `peer.service` present in server spans, further processing, filtering and sampling can
 then be accomplished in the Collector, e.g. a preview of the dependency map of a service,
 similar in spirit to zPages could be created.
+
+### Sampling scenarios
+
+A specially interesting case is sampling depending on the calling service, specifically:
+
+* An adaptive sampler may decide to sample or not based on the calling service, e.g.
+  given Service A amounting to 98% of requests, and Service B amounting to 2% only,
+  more traces could be sampled for the latter.
+* In cases where a parent `Span ` is **not** sampled **but** its child (or linked-to `Span`)
+  wants to sample, knowing the calling service **may** help with the sampling decision.
+* In deployment scenarios where context is properly propagated through all the services,
+  but not all of them are actually traced, it would be helpful to know what services
+  were part of the request, even if no traces/spans exist for them, see
+  https://github.com/w3c/trace-context/issues/550 as an example.
 
 ## Trade-offs and mitigations
 
