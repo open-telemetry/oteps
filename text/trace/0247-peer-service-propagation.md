@@ -83,20 +83,24 @@ With `peer.service` present in server spans, further processing, filtering and s
 then be accomplished in the Collector, e.g. a preview of the dependency map of a service,
 similar in spirit to zPages could be created.
 
-### Sampling scenarios
+### Use scenarios
 
-A specially interesting case is sampling depending on the calling service, specifically:
+Sampling can benefit from knowing the calling service, specifically:
 
 * An adaptive sampler may decide to sample or not based on the calling service, e.g.
   given Service A amounting to 98% of requests, and Service B amounting to 2% only,
-  more traces could be sampled for the latter.
+  with a default sampling rate of 50%, more traces of the latter service could be preserved,
+  as opposed to running the risk of no traces at all.
 * In cases where a parent `Span ` is **not** sampled **but** its child (or linked-to `Span`)
   wants to sample, knowing the calling service **may** help with the sampling decision.
   Right now only a parent span id is available in such case.
-* In deployment scenarios where context is properly propagated through all the services,
-  but not all of them are actually traced, it would be helpful to know what services
-  were part of the request, even if no traces/spans exist for them. See
-  https://github.com/w3c/trace-context/issues/550 .
+
+In deployment scenarios where context is properly propagated through **all** the services,
+but not all of them are traced (i.e. use the no-op implementation), it would be helpful to know what services
+were actually part of the request, even if not observed. This could help with confusion and false
+positives. Observe this cannot be currently
+computed at the backend with OTel, as non-traced systems will simply send no telemetry
+whatsoever. See https://github.com/w3c/trace-context/issues/550
 
 ## Trade-offs and mitigations
 
