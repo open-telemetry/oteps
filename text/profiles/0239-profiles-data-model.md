@@ -688,7 +688,7 @@ These are detailed descriptions of protobuf messages that are used to represent 
 <!-- messages -->
 #### Message `ProfilesData`
 
-ProfilesData represents the profiles data that can be stored in a persistent storage,
+ProfilesData represents the profiles data that can be stored in persistent storage,
 OR can be embedded by other protocols that transfer OTLP profiles data but do not
 implement the OTLP protocol.
 The main difference between this message and collector protocol is that
