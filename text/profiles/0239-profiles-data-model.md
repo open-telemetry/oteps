@@ -122,7 +122,7 @@ Proto definition is based on [pprof format](https://github.com/google/pprof/blob
 
 In the landscape of performance profiling tools, pprof's data format stands as a clear industry standard. Its evolution and enduring relevance are a reflection of its effectiveness in addressing diverse and complex performance profiling needs. Major technology firms and open-source projects alike routinely employ pprof, underscoring its universal applicability and reliability.
 
-According to the [data from Profilerpedia](https://docs.google.com/spreadsheets/d/1UM-WFQhNf4GcyXmluSUGnMbOenvN-TqP2HQC9-Y50Lc/edit?usp=sharing), it's one of the most widely used formats. Compared to other formats it has the highest number of profilers, UIs, formats it can be converted to and from.
+According to the [data from Profilerpedia](https://docs.google.com/spreadsheets/d/1UM-WFQhNf4GcyXmluSUGnMbOenvN-TqP2HQC9-Y50Lc/edit?usp=sharing), pprof is one of the most widely used formats. Compared to other formats it has the highest number of profilers, UIs, formats it can be converted to and from.
 
 The original pprof data model underwent enhancements to more effectively manage profiling data within the scope of OpenTelemetry, and certain upgrades were implemented to overcome a few of the original format's constraints.
 
