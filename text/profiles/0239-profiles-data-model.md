@@ -1408,7 +1408,7 @@ This section describes other existing popular formats and alternative representa
 
 ### Other Popular Formats
 
-Many other popular formats were considered as part of the process of designing this format. The popularity was assesed based on [data from profilerpedia website](https://docs.google.com/spreadsheets/d/1UM-WFQhNf4GcyXmluSUGnMbOenvN-TqP2HQC9-Y50Lc/edit?usp=sharing). This chapter describes the most notable formats that were considered.
+Many other popular formats were considered as part of the process of designing this format. The popularity was assessed based on [data from Profilerpedia website](https://docs.google.com/spreadsheets/d/1UM-WFQhNf4GcyXmluSUGnMbOenvN-TqP2HQC9-Y50Lc/edit?usp=sharing). This chapter describes the most notable formats that were considered.
 
 #### Folded Stacks
 
