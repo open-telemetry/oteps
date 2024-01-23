@@ -133,6 +133,7 @@ Here's a [link to a diff between original pprof and modified pprof](https://gith
 * Reuse of OpenTelemetry conventions and message types.
 * Semantic conventions for linking to other signals via `trace_id`s and `span_id`s.
 * First-class timestamp support.
+* Expanded metadata attach points (Sample / Location / Mapping).
 
 Below you will find the proto for the new Profiles signal. It is split into two parts: the first part is the OpenTelemetry specific part, and the second part is the modified pprof proto. Intention here is to make it easier to compare modified pprof proto to the original pprof proto.
 
