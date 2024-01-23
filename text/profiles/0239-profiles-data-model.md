@@ -1466,7 +1466,7 @@ All benchmarks measured a few key indicators:
 
 * "23 July 2023", "24 Aug 2023" — show differences between "pprof", "denormalized" and "normalized" representations
 * "04 Oct 2023" — introduces "pprofextended" representation, compares it to "pprof" and "arrays". Shoes that "pprofextended" version is overall better than "pprof", but not as a good as "arrays"
-* "06 Oct 2023" vs "After Stacktrace removal (Oct 6 2023)" — shows difference between representing stacktraces as separate struct vs a separate array of integers. Shows massive reduction in retained_objects. Demonstrates that after Stacktrace struct removal "pprofexntended" representation is better than "arrays" representation
+* "06 Oct 2023" vs "After Stacktrace removal (Oct 6 2023)" — shows difference between representing stacktraces as separate struct vs a separate array of integers. Shows massive reduction in retained_objects. Demonstrates that after Stacktrace struct removal "pprofextended" representation is better than "arrays" representation
 * "Attribute Representations (Oct 13 2023)" — focuses on differences between different attribute representations. Shows that having a lookup table for attributes is optimal compared to other representations
 
 Below you can see the benchmarking results for most notable example profiles:
