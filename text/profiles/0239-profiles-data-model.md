@@ -353,14 +353,6 @@ import "opentelemetry/proto/common/v1/common.proto";
 option csharp_namespace = "OpenTelemetry.Proto.Profiles.V1.Alternatives.PprofExtended";
 option go_package = "go.opentelemetry.io/proto/otlp/profiles/v1/alternatives/pprofextended";
 
-// Represents a mapping between Attribute Keys and Units.
-message AttributeUnit {
-  // Index into string table.
-  int64 attribute_key = 1;
-  // Index into string table.
-  int64 unit = 2;
-}
-
 // Represents a complete profile, including sample types, samples,
 // mappings to binaries, locations, functions, string table, and additional metadata.
 message Profile {
@@ -421,6 +413,14 @@ message Profile {
   // Index into the string table of the type of the preferred sample
   // value. If unset, clients should default to the last sample value.
   int64 default_sample_type = 14;
+}
+
+// Represents a mapping between Attribute Keys and Units.
+message AttributeUnit {
+  // Index into string table.
+  int64 attribute_key = 1;
+  // Index into string table.
+  int64 unit = 2;
 }
 
 // A pointer from a profile Sample to a trace Span.
@@ -657,6 +657,8 @@ message Line {
   uint64 function_index = 1;
   // Line number in source code.
   int64 line = 2;
+  // Column number in source code.
+  int64 column = 3;
 }
 
 // Describes a function, including its human-readable name, system name,
@@ -792,6 +794,26 @@ This is a reference to a pprof profile. Required, even when original_payload is 
 </details>
 
 #### Message `Profile`
+
+Profile is a common stacktrace profile format.
+Measurements represented with this format should follow the
+following conventions:
+
+- Consumers should treat unset optional fields as if they had been
+  set with their default value.
+- When possible, measurements should be stored in "unsampled" form
+  that is most useful to humans.  There should be enough
+  information present to determine the original sampled values.
+- On-disk, the serialized proto must be gzip-compressed.
+- The profile is represented as a set of samples, where each sample
+  references a sequence of locations, and where each location belongs
+  to a mapping.
+- There is a N->1 relationship from sample.location_id entries to
+  locations. For every sample.location_id entry there must be a
+  unique Location with that id.
+- There is an optional N->1 relationship from locations to
+  mappings. For every nonzero Location.mapping_id there must be a
+  unique Mapping with that id.
 
 Represents a complete profile, including sample types, samples,
 mappings to binaries, locations, functions, string table, and additional metadata.
@@ -972,26 +994,6 @@ to fall within the Profile's time range. [optional]
 
 #### Message `AttributeUnit`
 
-Profile is a common stacktrace profile format.
-Measurements represented with this format should follow the
-following conventions:
-
-- Consumers should treat unset optional fields as if they had been
-  set with their default value.
-- When possible, measurements should be stored in "unsampled" form
-  that is most useful to humans.  There should be enough
-  information present to determine the original sampled values.
-- On-disk, the serialized proto must be gzip-compressed.
-- The profile is represented as a set of samples, where each sample
-  references a sequence of locations, and where each location belongs
-  to a mapping.
-- There is a N->1 relationship from sample.location_id entries to
-  locations. For every sample.location_id entry there must be a
-  unique Location with that id.
-- There is an optional N->1 relationship from locations to
-  mappings. For every nonzero Location.mapping_id there must be a
-  unique Mapping with that id.
-
 Represents a mapping between Attribute Keys and Units.
 
 <details>
@@ -1090,6 +1092,10 @@ The index of the corresponding profile.Function for this line.
 ##### Field `line`
 
 Line number in source code.
+
+##### Field `column`
+
+Column number in source code.
 </details>
 
 #### Message `Mapping`
