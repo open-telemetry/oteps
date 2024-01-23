@@ -1522,7 +1522,7 @@ The source for this test is an aggregated pprof profile collected from a Go appl
 
 After running many benchmarks and analyzing the results, we came to the following conclusions:
 
-* `denormalized` representation is good but lacks deeper integration with OpenTelemetry standards and could be improved in terms of performance.
+* `pprof` representation is good but lacks deeper integration with OpenTelemetry standards and could be improved in terms of performance.
 * `denormalized` representation is significantly more expensive in terms of CPU utilization, memory consumption and size of the resulting protobuf payload compared to `normalized` representation. It is not suitable for production use.
 * `normalized` representation is much better than `denormalized` one
 * `arrays` representation is generally better than `normalized` one, but introduces significant changes to the data model and is not as easy to understand
