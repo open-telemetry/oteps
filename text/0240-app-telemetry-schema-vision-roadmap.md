@@ -78,10 +78,10 @@ typical schema-driven end-to-end telemetry system in the future.
 
 ![Application Telemetry Schema Overview](./img/0240-otel-weaver-overview.svg)
 
-The Application Telemetry Schema concept is divided into two key parts: the
+The Application Telemetry Schema concept is divided into two key logical parts: the
 Component Telemetry Schema and the Resolved Telemetry Schema, as shown in the
-previous diagram. These concepts are central to unlocking a variety of use
-cases.
+previous diagram (more details on these two concepts in the proposal section).
+These concepts are central to unlocking a variety of use cases.
 
 Examples of use cases include:
 
@@ -96,6 +96,18 @@ Examples of use cases include:
   * Automatically updating database schemas or dashboards.
   * Triggering schema-driven transformations or processing in stream processors.
   * And more.
+
+This recent [paper](https://arxiv.org/pdf/2311.07509.pdf#:~:text=The%20results%20of%20the%20benchmark%20provide%20evidence%20that%20supports%20our,LLM%20without%20a%20Knowledge%20Graph)
+from [data.world](https://data.world/home/), along with
+the [MetricFlow framework](https://docs.getdbt.com/docs/build/about-metricflow)
+which underpins the [dbt Semantic Layer](https://www.getdbt.com/product/semantic-layer),
+highlights the significance of adopting a schema-first approach in data
+modeling, especially for Generative AI-based question answering systems. Tools
+like Observability Query Assistants (
+e.g. [Elastic AI Assistant](https://www.elastic.co/fr/blog/introducing-elastic-ai-assistant)
+and [Honeycomb Query Assistant](https://www.honeycomb.io/blog/introducing-query-assistant?utm_source=newswire&utm_medium=link&utm_campaign=query_assistant))
+are likely to become increasingly prevalent and efficient in the near future,
+thanks to the adoption of a schema-first approach.
 
 > **Note: The names and formats of these concepts are still under discussion. A
 > detailed analysis of pros and cons will be covered later in the document. The
@@ -138,119 +150,26 @@ The relationships between these entities are described in the following diagram.
 
 ![Telemetry Schema Concepts](./img/0240-otel-weaver-concepts.svg)
 
-The Component Telemetry Schemas are created by application or library authors.
-A Component Telemetry Schema may import any number of Semantic Convention
+The Component Telemetry Schemas are created by the OpenTelemetry SIG members,
+application, or library authors. A Component Telemetry Schema may import any
+number of Semantic Convention
 Registries as needed. During the schema resolution process, a Resolved Telemetry
 Schema is created from a Component Telemetry Schema. This **Resolved Telemetry
 Schema is self-contained** and has no external references. Optionally, a Component
-Telemetry Schema can extend an existing Resolved Telemetry Schema. Typically,
-the official OpenTelemetry Telemetry Schema, which is conceptually a resolved schema, is
-inherited by a Component Telemetry Schema to include the standard OpenTelemetry
-Semantic Convention registry. In complex cases, large enterprises might create
-their own intermediary resolved schemas for custom definitions.
+Telemetry Schema may extend an existing Telemetry Schema, whether component or
+resolved (this aspect is still under discussion). Typically, the official
+OpenTelemetry Telemetry Schema is inherited by a Component Telemetry Schema to
+include the standard OpenTelemetry Semantic Convention registry. In complex
+cases, large enterprises might create their own intermediary telemetry schemas
+for custom definitions.
 
-Note: The relationship between Telemetry Schema v1.1
-([OTEP 0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md))
-and the Component and Resolved Telemetry Schema concepts is still being
-discussed. This will be clarified in future OTEPs (refer to the last section).
+Each signal definition defined in the Component Telemetry Schema, where possible,
+reuses the existing syntax and semantics defined by the semantic conventions.
+Each signal definition is also identified by a unique name (or ID), making
+schemas addressable, easy to traverse, validate, and diff.
 
-The following diagram illustrates a possible instance of a complex hierarchy of
-schemas and semantic convention registries. It involves several vendor and
-enterprise artifacts, in addition to the standardized OpenTelemetry artifacts.
-The schema resolution process will produce a self-contained Resolved Telemetry
-Schema that can be easily consumed by various tools and applications, such as a
-Client SDK generator, compatibility checker, compliance checker, data catalog
-feeder, and more.
-
-![Example of Telemetry Schema Hierarchy](./img/0240-otel-weaver-hierarchy.svg)
-
-For each important component, the following diagram defines the responsibilities
-and key design properties that have been considered in the subsequent sections
-of this document.
-
-![Telemetry Schema - Levels of responsibilities & Key design properties](./img/0240-otel-weaver-responsibilities-properties.svg)
-
-This design enables the definition of semantic conventions in a distributed
-manner. OpenTelemetry, vendors, and enterprises can define their own semantic
-conventions in different registries simplifying the existing process.
-
-The next two sections will provide more detailed descriptions of the Component
-Telemetry Schema and the Resolved Telemetry Schema.
-
-## Component Telemetry Schema
-
-The Component Telemetry Schema is a developer-friendly format for defining an
-application's or library's telemetry schema. Authors of applications or
-libraries can enhance an existing Resolved Telemetry Schema by overriding or
-adding new elements, importing Semantic Convention Registries, defining
-resource attributes (only for applications), defining properties of the
-instrumentation library, and defining the telemetry signals an application or
-library can produce. They can also use the versioning mechanism from OTEP 0152.
-The base schema is typically the official Telemetry Schema (Resolved), which
-links to the OpenTelemetry Semantic Convention Registry. The final schema in
-this system details all the signals produced by a specific application or
-library.
-
-Although there is no direct lineage between these systems, a similar approach
-was designed and deployed by Facebook to address the same type of problem but in
-a proprietary context (refer to
-this [positional paper](https://research.facebook.com/publications/positional-paper-schema-first-application-telemetry/)
-for more information).
-
-The following diagram shows how a Component Telemetry Schema is structured.
-
-![Telemetry Schema](./img/0240-otel-weaver-component-schema.svg)
-
-> Note 1: Each signal definition, where possible, reuses the existing syntax and
-> semantics defined by the semantic conventions. Each signal definition is also
-> identified by a unique name (or ID), making schemas addressable, easy to
-> traverse, validate, and diff.
->
-> Note 2: This hierarchy of telemetry schemas helps large organizations in
-> collaborating on the Component Telemetry Schema. It enables different
-> aspects of a Component Telemetry Schema to be managed by various teams.
->
-> Note 3: For all the elements that make up the Component Telemetry Schema, a
-> general mechanism of annotation or tagging will be integrated in order to
-> attach additional traits, characteristics, or constraints, allowing vendors
-> and companies to extend the definition of concepts defined by OpenTelemetry.
->
-> Note 4: Annotations and Tags can also be employed to modify schemas for
-> diverse audiences. For example, the public version of a schema can exclude all
-> signals or other metadata labeled as private. Similarly, elements can be
-> designated as exclusively available for beta testers. These annotations can
-> also identify attributes as PII (Personally Identifiable Information), and
-> privacy policy enforcement can be implemented at various levels (e.g., in the
-> generated client SDK or in a proxy).
->
-> Note 5: This
-> recent [paper](https://arxiv.org/pdf/2311.07509.pdf#:~:text=The%20results%20of%20the%20benchmark%20provide%20evidence%20that%20supports%20our,LLM%20without%20a%20Knowledge%20Graph)
-> from [data.world](https://data.world/home/), along with
-> the [MetricFlow framework](https://docs.getdbt.com/docs/build/about-metricflow)
-> which underpins the [dbt Semantic Layer](https://www.getdbt.com/product/semantic-layer),
-> highlights the significance of adopting a schema-first approach in data
-> modeling, especially for Generative AI-based question answering systems. Tools
-> like Observability Query Assistants (
-> e.g. [Elastic AI Assistant](https://www.elastic.co/fr/blog/introducing-elastic-ai-assistant)
-> and [Honeycomb Query Assistant](https://www.honeycomb.io/blog/introducing-query-assistant?utm_source=newswire&utm_medium=link&utm_campaign=query_assistant))
-> are likely to become increasingly prevalent and efficient in the near future,
-> thanks to the adoption of a schema-first approach.
-
-Several OTEPs will be dedicated to the precise definition of the structure and
-the format of this/these schema(s). The rules for resolving overrides
-(inheritance), external references, and conflicts will also be described in
-these OTEPs. See the Roadmap section for a comprehensive list of these OTEPs.
-
-An example of what the structure and format of a component telemetry schema
-could look like is provided in this [appendix](#appendix-a---component-telemetry-schema).
-
-## Resolved Telemetry Schema
-
-A Resolved Telemetry Schema is the outcome of the schema resolution process.
-This process involves taking the entire hierarchy of Telemetry Schemas and
-Semantic Convention Registries and applying a set of rules to resolve overrides
-and eliminate external references. The key design principles to be followed in
-the definition of the Resolved Telemetry Schema are:
+The key design principles to be followed in the definition of the Resolved
+Telemetry Schema are:
 
 * **Self-contained**: No external references are allowed. This artifact contains
   everything required to determine what an application or a library produces in
@@ -273,24 +192,53 @@ Telemetry Schemas would replace/augment existing SchemaURL.
 
 ![Use cases](./img/0240-otel-weaver-use-cases.svg)
 
-The main components of a Resolved Telemetry Schema are illustrated in the
-diagram below. The 'OTel Weaver' tool is used to create these schemas. It can
-also extend an existing schema or import a Semantic Convention Registry.
-Resolved Telemetry Schema serves as a key mechanism for interoperability,
-feeding various external tools, including SDK generators, documentation
-generators, policy enforcers, and more.
+Note: The relationship between Telemetry Schema v1.1
+([OTEP 0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md))
+and the Component and Resolved Telemetry Schema concepts is still being
+discussed. This will be clarified in future OTEPs (refer to the last section).
 
-![Resolved Telemetry Schema](./img/0240-otel-weaver-resolved-schema.svg)
+The following diagram illustrates a possible instance of a complex hierarchy of
+schemas and semantic convention registries. It involves several vendor and
+enterprise artifacts, in addition to the standardized OpenTelemetry artifacts.
+The schema resolution process will produce a self-contained Resolved Telemetry
+Schema that can be easily consumed by various tools and applications, such as a
+Client SDK generator, compatibility checker, compliance checker, data catalog
+feeder, and more.
 
-The internal catalog is used to define all the attributes and metrics in this
-artifact. This design allows for the reuse of the same attributes or metrics
-multiple times in different signals and different instrumentation libraries. It
-is expected to be a very common pattern to reuse the same subset of attributes
-or metrics across several signals and libraries.
+![Example of Telemetry Schema Hierarchy](./img/0240-otel-weaver-hierarchy.svg)
 
-A dedicated OTEP will precisely define the structure and format of the Resolved
-Telemetry Schema. An example of what the structure of a resolved telemetry
-schema could look like is provided in this [appendix](#appendix-b---resolved-telemetry-schema).
+This hierarchy of telemetry schemas helps large organizations in
+collaborating on the Component Telemetry Schema. It enables different
+aspects of a Component Telemetry Schema to be managed by various teams.
+
+For all the elements that make up the Component Telemetry Schema, a
+general mechanism of annotation or tagging will be integrated in order to
+attach additional traits, characteristics, or constraints, allowing vendors
+and companies to extend the definition of concepts defined by OpenTelemetry.
+
+Annotations and Tags can also be employed to modify schemas for
+diverse audiences. For example, the public version of a schema can exclude all
+signals or other metadata labeled as private. Similarly, elements can be
+designated as exclusively available for beta testers. These annotations can
+also identify attributes as PII (Personally Identifiable Information), and
+privacy policy enforcement can be implemented at various levels (e.g., in the
+generated client SDK or in a proxy).
+
+For each important component, the following diagram defines the responsibilities
+and key design properties that will be considered in future OTEPs defining the
+Component and Resolved Telemetry Schemas.
+
+![Telemetry Schema - Levels of responsibilities & Key design properties](./img/0240-otel-weaver-responsibilities-properties.svg)
+
+This design enables the definition of semantic conventions in a distributed
+manner. OpenTelemetry, vendors, and enterprises can define their own semantic
+conventions in different registries simplifying the existing process.
+
+> Although there is no direct lineage between these systems, a similar approach
+> was designed and deployed by Facebook to address the same type of problem but in
+> a proprietary context (refer to
+> this [positional paper](https://research.facebook.com/publications/positional-paper-schema-first-application-telemetry/)
+> for more information).
 
 ### Development Strategies
 
@@ -434,226 +382,3 @@ of the Resolved Telemetry Schema.
 - [A benchmark to understand the role of knowledge graphs on Large Language Model's accuracy for question answering on enterprise sql databases](https://arxiv.org/pdf/2311.07509.pdf#:~:text=The%20results%20of%20the%20benchmark%20provide%20evidence%20that%20supports%20our,LLM%20without%20a%20Knowledge%20Graph)
 - [MetricFlow framework](https://docs.getdbt.com/docs/build/about-metricflow)
 
-## Appendices
-
-### Appendix A - Component Telemetry Schema
-
-The structure and format of the component telemetry schema is given here as an
-example and corresponds to the author's vision (not yet validated) of what the
-structure/format of a component telemetry schema could be. The definitive
-structure and format of this component schema will be discussed and finalized
-later in a dedicated OTEP.
-
-```yaml
-# This file describes the structure and format of a component telemetry schema.
-# A component telemetry schema can be used for three types of purposes:
-# - defining the telemetry schema for an application or a service
-# - defining the telemetry schema for a library
-# - defining a semantic convention registry
-file_format: 1.2.0
-schema_url: <url-of-the-current-component-schema>
-# This optional field allows to specify the parent schema of the current schema.
-# The parent schema is a resolved schema.
-parent_schema_url: <url-of-a-parent-resolved-schema>
-
-# This optional section allows for importing a semantic convention registry
-# from a git repository containing a set of semantic convention files. It is
-# also possible to import file by file.
-semantic_conventions:
-  - git_url: <git-url-of-the-semantic-conventions-repository>
-    path: <path-to-the-semantic-conventions-directory-inside-the-git-repo>
-  - url: <url-of-the-semantic-conventions-file>
-
-# The resource field is defined when the component schema is that of an
-# application (as opposed to that of a library). The resource field contains a
-# list of local references to attributes defined in the shared catalog within
-# this file.
-resource:
-  # attributes defined locally or inherited from the parent schema (if any) or
-  # from the semantic conventions (if any).
-  attributes: # attribute definitions
-
-# This optional section defines the instrumentation library, its version, and
-# the schema of OTel entities reported by this instrumentation library (
-# representing an application or a library component).
-# This section is not defined if the current component telemetry schema is only
-# used to represent a semantic convention registry.
-instrumentation_library:
-  name: <instrumentation-library-name>
-  version: <instrumentation-library-version>
-  # The schema details all the metrics, logs, and spans specifically generated
-  # by that instrumentation library.
-  schema:
-    # Declaration of all the univariate metrics
-    resource_metrics:
-      - metric_name: <metric-id>
-        # attributes defined locally or inherited from the parent schema (if any) or
-        # from the semantic conventions (if any).
-        attributes: # attribute definitions
-        # ...
-        # other metric fields
-        # ...
-        tags:
-          <tag-key>: <tag-value>
-
-    # Declaration of all the spans
-    resource_spans:
-      - span_name: <span-id>
-        # attributes defined locally or inherited from the parent schema (if any) or
-        # from the semantic conventions (if any).
-        attributes: # attribute definitions
-        # ...
-        # other span fields
-        # ...
-        tags:
-          <tag-key>: <tag-value>
-
-# Reuse the same versioning mechanism already defined in the telemetry schema v1.1.0
-versions: # see telemetry schema v1.1.0.
-```
-
-### Appendix B - Resolved Telemetry Schema
-
-The structure of the resolved telemetry schema is given here as an example and
-corresponds to the author's vision (not yet validated) of what the structure of
-a resolved telemetry schema could be. The definitive structure and format of
-this resolved schema will be discussed and finalized later in a dedicated OTEP.
-
-```yaml
-# This file describes the general logical structure envisioned to date for a
-# resolved telemetry schema. The precise definition of the structure and format
-# of a resolved telemetry schema is the subject of a dedicated OTEP, which does
-# not yet exist at the time of writing the current OTEP. The format used here
-# is YAML, but another format such as JSON, Protobuf, or another could
-# ultimately be chosen based on considerations of efficiency and ease of
-# integration.
-# The telemetry metadata described in this file is self-contained and describes
-# the entirety of telemetry metadata for either:
-# - one or more semantic convention registries
-# - an application or a service
-# - a library
-file_format: 1.2.0
-schema_url: <url-of-the-current-schema>
-
-catalog:
-  # The attribute catalog is the place where the fields of attributes are defined
-  # precisely. The other sections of the Resolved Telemetry Schema refer to the
-  # catalog when they need to "attach" one or more attributes to an OTel entity
-  # (e.g., resource, metric, span, ...). Within the catalog, each attribute
-  # definition is unique. This does not mean that the id of the attributes is
-  # unique within the catalog. It means that the set of fields that make up an
-  # attribute is unique. The fact that the id of an attribute is not unique in a
-  # resolved schema is related to the overload mechanism supported by the
-  # telemetry schema component. This process is ensured at the time of the schema
-  # resolution process.
-  # Note: A reference to an attribute defined in this catalog is defined in terms
-  # of the numerical position of the corresponding attribute in the catalog.
-  attributes:
-    # Array of fully resolved and qualified attributes
-    - name: <fully-qualified-attribute-name> # id of the most recent version
-      type: <attribute-type>
-      # ...
-      # other attributes fields
-      # ...
-
-      # This field is used when versioning has been implemented for this
-      # attribute. It is calculated by the resolution process to simplify the
-      # exploitation of versioning by consumers of resolved telemetry schemas.
-      versions:
-        <version-number>:
-          rename_to: <fully-qualified-attribute-name>
-
-
-# This optional section contains one or more semantic convention registries of
-# attributes, spans, metrics, etc., groups. This section only exists when the
-# schema resolution process has been applied to one or more registries (e.g.,
-# the official and standard OTel registry, and an internal registry of a
-# company complementing that of OTel). The `ref` and 'extend' clauses present
-# in the initial registry are all resolved and should therefore no longer
-# appear here. Only internal references to the attribute catalog are used.
-registries:
-  # Registry definition
-  - registry_url: <registry-url>
-    groups:
-      - id: <group-id>
-        type: <attribute_group|span|...>
-        attributes:
-          - <attr-ref-number>  # position in the catalog of attributes
-          - <...>
-        # ...
-        # other group fields (except `ref` and `extends` which have been
-        # resolved)
-        # ...
-
-        # This optional field tracks the provenance and the various
-        # transformations that have been applied to the attribute during the
-        # resolution process within the current group. If originally the
-        # attribute was defined by a reference with some fields locally
-        # overridden, the provenance and override operations will be defined
-        # by the lineage. If the attribute comes from an extends clause, then
-        # the lineage will contain the provenance and the reference of the
-        # extends. The exact definition of the lineage field will be detailed
-        # in the OTEP describing the format of the resolved schemas.
-        # This field is present only upon request during the resolution process.
-        # By default, this field is not present.
-        lineage:
-          provenance: <url-or-file-where-this-group-was-defined>
-          attributes: # will be defined in a future OTEP
-
-# The resource field is defined when the resolved schema is that of an
-# application (as opposed to that of a library). The resource field contains a
-# list of local references to attributes defined in the shared catalog within
-# this file.
-resource:
-  attributes:
-    - <attr-ref-number>  # position in the catalog of attributes
-
-# This optional section defines the instrumentation library, its version, and
-# the schema of OTel entities reported by this instrumentation library. This
-# section is mandatory if the origin of this resolved schema is a telemetry
-# schema component (i.e. application or library). Therefore, this section does
-# not exist for the resolution of a registry.
-instrumentation_library:
-  name: <instrumentation-library-name>
-  version: <instrumentation-library-version>
-  # The schema details all the metrics, logs, and spans specifically generated
-  # by that instrumentation library.
-  schema:
-    # Declaration of all the univariate metrics
-    resource_metrics:
-      - metric_name: <metric-id>
-        attributes:
-          - <attr-ref-number>  # position in the catalog of attributes
-        # ...
-        # other metric fields
-        # ...
-        tags:
-          <tag-key>: <tag-value>
-        versions: # optional versioning for the metric.
-
-    # Declaration of all the spans
-    resource_spans:
-      - span_name: <span-id>
-        attributes:
-          - <attr-ref-number>  # position in the catalog of attributes
-        # ...
-        # other span fields
-        # ...
-        tags:
-          <tag-key>: <tag-value>
-        versions: # optional versioning for the span.
-
-# This optional section contains the definition of the resolved telemetry
-# schema for each dependency of the currently instrumented component
-# (application or library). The schema resolution process collects the resolved
-# telemetry schemas of the component's dependencies, merges the attribute
-# catalog, and adds the instrumentation library of the dependency with all the
-# definitions of metrics, logs, spans it contains while adapting the attribute
-# references to point to the local catalog.
-dependencies:
-  - name: <instrumentation-library-name>
-    version: <instrumentation-library-version>
-    # The schema details all the metrics, logs, and spans specifically generated
-    # by that instrumentation library (i.e. a dependency in this context).
-    schema: # same structure as the instrumentation_library section (see above)
-```
