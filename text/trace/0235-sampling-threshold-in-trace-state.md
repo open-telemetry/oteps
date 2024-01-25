@@ -84,7 +84,7 @@ Sampling Decisions MUST be propagated by setting the value of the `th` key in th
 
 There are two categories of sampler:
 
-- **Head samplers:** Implementations of [`Sampler`](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.25.0/specification/trace/sdk.md#sampler), called by a `Tracer` during span creation.
+- **Head samplers:** Implementations of [`Sampler`](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.29.0/specification/trace/sdk.md#sampler), called by a `Tracer` during span creation.
 - **Downstream samplers:** Any component that, given an ended Span, decides whether to drop or forward ("sample") it on to the next component in the system. Also known as "collection-path samplers" or "sampling processors". _Tail samplers_ are a special class of downstream samplers that buffer the spans in a trace and select a sampling probability for the trace as a whole using data from any span in the buffered trace.
 
 This section defines behavior for each kind of sampler.
