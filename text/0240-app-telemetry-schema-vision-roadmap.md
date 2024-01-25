@@ -215,6 +215,8 @@ For all the elements that make up the Component Telemetry Schema, a
 general mechanism of annotation or tagging will be integrated in order to
 attach additional traits, characteristics, or constraints, allowing vendors
 and companies to extend the definition of concepts defined by OpenTelemetry.
+This annotation mechanism will be included as part of the Component Telemetry
+Schema definition.
 
 Annotations and Tags can also be employed to modify schemas for
 diverse audiences. For example, the public version of a schema can exclude all
@@ -284,9 +286,10 @@ process would then remove these references.
 Proponents of a two-schema approach believe that each format is intended for
 different users and use cases (app/lib developers vs telemetry tool developers),
 and therefore, having two distinct structures and formats would make it easier
-to optimize each for its specific use case (in multiple dimensions). The first
-group, app and lib developers, is much larger than the second and would not need
-to understand the details of the second format.
+to optimize each for its specific use case (in multiple dimensions).
+Furthermore, the group of developers using the Component Telemetry Schema will
+most likely be much larger than the group of developers who need to understand
+the details of the Resolved Telemetry Schema.
 
 ### What should be the schema(s) be named?
 
