@@ -112,11 +112,6 @@ A downstream sampler, in contrast, may output a given ended Span with a _modifie
 - If the chosen sampling probability is 1, the sampler MUST NOT modify any existing `th`, nor set any `th`.
 - Otherwise, the chosen sampling probability is in `(0, 1)`. In this case the sampler MUST output the span with a `th` equal to `max(input th, chosen th)`. In other words, `th` MUST NOT be decreased (as it is not possible to retroactively adjust an earlier stage's sampling probability), and it MUST be increased if a lower sampling probability was used. This case represents the common case where a downstream sampler is reducing span throughput in the system.
 
-## Internal details
-
-The trace state header SHOULD contain a field with the key `rv`, and a value that corresponds to a 56-bit sampling threshold.
-This value will be compared to the 56-bit random value associated with the trace.
-
 ## Visual
 
 ![Sampling decision flow](../img/0235-sampling-threshold-calculation.png)
