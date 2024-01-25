@@ -34,9 +34,9 @@ where -> indicates a parent -> child relationship.
 `C` uses a parent-based sampler.
 
 When `A` samples a span, its outgoing traceparent will have the 'sampled' flag SET and the 'th' in its outgoing tracestate will be set to `0xc0_0000_0000_0000`.
-When `A` does not sample a span, its outgoing traceparent will have the 'sampled' flag UNSET but the 'th' in its outgoing tracestate will still be set to 0xc0_0000_0000_0000.
-When B samples a span, its outgoing traceparent will have the 'sampled' flag SET and the 'th' in its outgoing tracestate will be set to 0x80_0000_0000_0000.
-C (being a parent based sampler) samples a span purely based on its parent (B in this case), it will use the sampled flag to make the decision. Its outgoing 'th' value will continue to reflect what it got from B (0x80_0000_0000_0000), and this is useful to understand its adjusted count.
+When `A` does not sample a span, its outgoing traceparent will have the 'sampled' flag UNSET but the 'th' in its outgoing tracestate will still be set to `0xc0_0000_0000_0000`.
+When B samples a span, its outgoing traceparent will have the 'sampled' flag SET and the 'th' in its outgoing tracestate will be set to `0x80_0000_0000_0000`.
+C (being a parent based sampler) samples a span purely based on its parent (B in this case), it will use the sampled flag to make the decision. Its outgoing 'th' value will continue to reflect what it got from B (`0x80_0000_0000_0000`), and this is useful to understand its adjusted count.
 
 This design requires that as a given span progresses along its collection path, `th` is non-decreasing (and, in particular, must be increased at stages that apply lower sampling probabilities).
 It does not, however, restrict a span's initial `th` in any way (e.g., relating it to that of its parent, if it has one).
