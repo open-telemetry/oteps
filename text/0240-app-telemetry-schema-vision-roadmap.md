@@ -174,8 +174,8 @@ Telemetry Schema are:
 * **Self-contained**: No external references are allowed. This artifact contains
   everything required to determine what an application or a library produces in
   terms of telemetry.
-* **Easy to exchange**: This artifact must be easily accessible from a web
-  server via a URL. This artifact must be small and avoid the repetition of
+* **Easy to exchange**: This artifact must be easily accessible to actors
+  via a URI. This artifact must be small and avoid the repetition of
   definitions.
 * **Easy to parse**: A widespread and well-defined format should be preferred.
   JSON is an example of such a format.
