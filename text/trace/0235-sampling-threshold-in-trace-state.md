@@ -21,7 +21,7 @@ In the general case, in order to make consistent sampling decisions across the e
 1. A _random_ (or pseudo-random) 56-bit value, called `R` below.
 2. A 56-bit _rejection threshold_ (or just "threshold") as expressed in the TraceState, called `T` below. `T` represents the maximum threshold that was applied in all previous consistent sampling stages. If the current sampling stage applies a greater-valued threshold than any stage before, it MUST update (increase) the threshold correspondingly.
 
-One way to think about _rejection threshold_ is that is the number of spans that would be discarded out of 2^56 considered spans.
+One way to think about _rejection threshold_ is that is the number of spans that would be discarded out of 2^56 considered spans. This means that spans where `R >= T` will be sampled.
 
 Here is an example involving three participants `A`, `B`, and `C`:
 
@@ -91,7 +91,7 @@ This section defines behavior for each kind of sampler.
 
 ### Head samplers
 
-A head sampler is responsible for computing a new span's initial [`TraceState`](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.29.0/specification/trace/api.md#tracestate) (among other data). Notable inputs to that computation include the parent span's trace state (if a parent span exists) and the new span's trace ID.
+A head sampler is responsible for computing the `rv` and `th` values in a new span's initial [`TraceState`](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.29.0/specification/trace/api.md#tracestate). Notable inputs to that computation include the parent span's trace state (if a parent span exists) and the new span's trace ID.
 
 First, a consistent `Sampler` decides which sampling probability to use. The sampler MAY select any value of T. If a valid `SpanContext` is provided in the call to `ShouldSample` (indicating that the span being created will be a child span),
 
