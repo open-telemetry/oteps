@@ -100,7 +100,7 @@ First, a consistent `Sampler` decides which sampling probability to use. The sam
 
 For the output TraceState,
 
-- The `th` key MUST be defined, with value describing the sampling probability the sampler actually used.
+- The `th` key MUST be defined with a value corresponding to the sampling probability the sampler actually used.
 - The `rv` value, if present on the input TraceState, MUST be defined and equal to the parent span's `rv`. Otherwise, `rv` MUST be defined if and only if the effective R was _generated_ during the decision, per the "derive R" algorithm given earlier.
 
 TODO: For _new_ spans, `ShouldSample` doesn't currently have a way to know the new Span's `TraceFlags`, so it can't determine whether the Random Trace ID Flag is set, and in turn can't execute the "derive R" algorithm. Maybe it should take `TraceFlags` as an additional parameter, just like it takes `TraceId`?
