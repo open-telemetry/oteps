@@ -95,7 +95,7 @@ A head sampler is responsible for computing a new span's initial [`TraceState`](
 
 First, a consistent `Sampler` decides which sampling probability to use. The sampler MAY select any value of T. If a valid `SpanContext` is provided in the call to `ShouldSample` (indicating that the span being created will be a child span),
 
-- Choosing a T greater than the parent span's is expected to result in partial traces (the parent may be sampled but the child dropped).
+- Choosing a T greater than the parent span's is expected to result in partial traces (the parent may be sampled but its child, the current span, dropped).
 - Choosing a T less than or equal to the parent span is expected to result in complete traces (this is definition of consistent probability sampling).
 
 For the output TraceState,
