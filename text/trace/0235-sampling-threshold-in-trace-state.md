@@ -91,7 +91,7 @@ This section defines behavior for each kind of sampler.
 
 ### Head samplers
 
-A head sampler is responsible for computing a new span's initial [`TraceState`](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.25.0/specification/trace/api.md#tracestate) (among other data). Notable inputs to that computation include the parent span's trace state (if a parent span exists) and the new span's trace ID.
+A head sampler is responsible for computing a new span's initial [`TraceState`](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.29.0/specification/trace/api.md#tracestate) (among other data). Notable inputs to that computation include the parent span's trace state (if a parent span exists) and the new span's trace ID.
 
 First, a consistent `Sampler` decides which sampling probability to use. The sampler MAY select any value of T. If a valid `SpanContext` is provided in the call to `ShouldSample` (indicating that the span being created will be a child span),
 
