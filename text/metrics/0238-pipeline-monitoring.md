@@ -110,17 +110,18 @@ For success=false, permanent category:
 |---------|------------------------------|-------------------------------------------------------------------|
 | true    | accepted                     | Synchronous send succeeded                                        |
 | true    | dropped                      | Dropped by intention                                              |
-| true    | supressed:accepted           | Producer saw success; true outcome unknown                        |
-| true    | supressed:dropped            | Producer saw success; request was not sent                        |
-| true    | supressed:deadline_exceeded  | Producer saw success; request sent, timed out                     |
-| true    | supressed:resource_exhausted | Producer saw success; request sent, insufficient resources        |
-| true    | supressed:retryable          | Producer saw success; request sent, other non-permanent condition |
-| true    | supressed:rejected           | Producer saw success; request sent, permanent condition           |
 | false   | dropped                      | Producer saw the component return failure, request was not sent   |
 | false   | deadline_exceeded            | Producer saw the component return failure, request timed out      |
 | false   | resource_exhausted           | Producer saw the component return failure, insufficient resources |
 | false   | retryable                    | Producer saw the component return other non-permanent condition   |
 | false   | rejected                     | Producer saw the component return a permanent condition           |
+| true    | supressed:accepted           | Producer saw success; eventually accepted                         |
+| true    | supressed:dropped            | Producer saw success; request was not sent                        |
+| true    | supressed:deadline_exceeded  | Producer saw success; request sent, timed out                     |
+| true    | supressed:resource_exhausted | Producer saw success; request sent, insufficient resources        |
+| true    | supressed:retryable          | Producer saw success; request sent, other non-permanent condition |
+| true    | supressed:rejected           | Producer saw success; request sent, permanent condition           |
+| true    | supressed:unknown            | Producer saw success; no effort to report true outcome            |
 
 #### Examples of each outcome
 
@@ -133,12 +134,12 @@ stage in the pipeline while blocking the producer.
 
 A processor was configured with instructions not to pass certain data.
 
-##### Failure, Suppressed-Accepted
+##### Success, Suppressed-Accepted
 
-A component returned success to its producer, without making any
-effort to determine the true outcome.
+A component returned success to its producer, and later the outcome
+was successful.
 
-##### Failure, Dropped and Suppressed Dropped
+##### Failure, Dropped and Success, Suppressed-Dropped
 
 (If suppressed: A component returned success to its producer, then ...)
 
@@ -146,7 +147,7 @@ The component never sent the item(s) due to limits in effect.  For
 example, shutdown was ordered and the queue could not be drained in
 time due to a limit on parallelism.
 
-##### Failure, Deadline exceeded and Suppressed Deadline exceeded
+##### Failure, Deadline exceeded and Success, Suppressed-Deadline exceeded
 
 (If suppressed: A component returned success to its producer, then ...)
 
@@ -154,7 +155,7 @@ The component attempted sending the item(s), but the item(s) did not
 succeed before the deadline expired.  If there were attempts to retry,
 this is outcome of the final attempt.
 
-##### Failure, Resource exhausted and Suppressed Resource exhausted
+##### Failure, Resource exhausted and Success, Suppressed-Resource exhausted
 
 (If suppressed: A component returned success to its producer, then ...)
 
@@ -162,7 +163,7 @@ The component attempted sending the item(s), but the consumer
 indicated its (or its consumers') resources were exceeded.  If there
 were attempts to retry, this is outcome of the final attempt.
 
-##### Failure, Retryable and Suppressed Retryable
+##### Failure, Retryable and Success, Suppressed-Retryable
 
 (If suppressed: A component returned success to its producer, then ...)
 
@@ -172,7 +173,7 @@ condition other than deadline- or resource-related (e.g., connection
 not accepted).  If there were attempts to retry, this is outcome of
 the final attempt.
 
-##### Failure, Rejected and Suppressed Rejected
+##### Failure, Rejected and Success, Suppressed-Rejected
 
 (If suppressed: A component returned success to its producer, then ...)
 
