@@ -76,7 +76,7 @@ The following diagram provides a conceptual overview of the relationships
 between the various components, processes, and artifacts of what could be a
 typical schema-driven end-to-end telemetry system in the future.
 
-![Application Telemetry Schema Overview](./img/0240-otel-weaver-overview.svg)
+![Application Telemetry Schema Overview](./img/0243-otel-weaver-overview.svg)
 
 The Application Telemetry Schema concept is divided into two key logical parts: the
 Component Telemetry Schema and the Resolved Telemetry Schema, as shown in the
@@ -148,7 +148,7 @@ Conceptually, this proposal is based on three main concepts: **Component Telemet
 Schema**, **Semantic Convention Registry**, and **Resolved Telemetry Schema**.
 The relationships between these entities are described in the following diagram.
 
-![Telemetry Schema Concepts](./img/0240-otel-weaver-concepts.svg)
+![Telemetry Schema Concepts](./img/0243-otel-weaver-concepts.svg)
 
 The Component Telemetry Schemas are created by the OpenTelemetry SIG members,
 application, or library authors. A Component Telemetry Schema may import any
@@ -190,7 +190,7 @@ Telemetry Schema, 2) Resolved Telemetry Schemas serve as the mechanism for
 distributing Telemetry Schemas throughout the entire ecosystem, and 3) Resolved
 Telemetry Schemas would replace/augment existing SchemaURL.
 
-![Use cases](./img/0240-otel-weaver-use-cases.svg)
+![Use cases](./img/0243-otel-weaver-use-cases.svg)
 
 Note: The relationship between Telemetry Schema v1.1
 ([OTEP 0152](https://github.com/open-telemetry/oteps/blob/main/text/0152-telemetry-schemas.md))
@@ -205,7 +205,7 @@ Schema that can be easily consumed by various tools and applications, such as a
 Client SDK generator, compatibility checker, compliance checker, data catalog
 feeder, and more.
 
-![Example of Telemetry Schema Hierarchy](./img/0240-otel-weaver-hierarchy.svg)
+![Example of Telemetry Schema Hierarchy](./img/0243-otel-weaver-hierarchy.svg)
 
 This hierarchy of telemetry schemas helps large organizations in
 collaborating on the Component Telemetry Schema. It enables different
@@ -230,7 +230,7 @@ For each important component, the following diagram defines the responsibilities
 and key design properties that will be considered in future OTEPs defining the
 Component and Resolved Telemetry Schemas.
 
-![Telemetry Schema - Levels of responsibilities & Key design properties](./img/0240-otel-weaver-responsibilities-properties.svg)
+![Telemetry Schema - Levels of responsibilities & Key design properties](./img/0243-otel-weaver-responsibilities-properties.svg)
 
 This design enables the definition of semantic conventions in a distributed
 manner. OpenTelemetry, vendors, and enterprises can define their own semantic
@@ -262,7 +262,7 @@ distributing these schemas is still being discussed (refer to the Open Questions
 section). Ultimately, this will enable the CI/CD pipeline of the application or
 service to apply its own local policies to these schemas from the dependencies.
 
-![Development Strategies to Support](./img/0240-otel-weaver-dev-strategies.svg)
+![Development Strategies to Support](./img/0243-otel-weaver-dev-strategies.svg)
 
 ## Open Questions
 
