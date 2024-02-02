@@ -39,7 +39,7 @@ But this approach is not without challenges:
 
 * **Discoverability and Interoperability**: It is difficult to discover a priori
   and automatically what an application as a whole specifically generates in terms
-  of telemetry and associated metadata.This makes it difficult to integrate with
+  of telemetry and associated metadata. This makes it difficult to integrate with
   enterprise data catalogs, compliance procedures, or automated privacy
   enforcement in _CI/CD pipelines_.
 * **User experience**: Although very flexible, generic clients do not offer the
