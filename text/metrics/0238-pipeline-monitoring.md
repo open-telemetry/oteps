@@ -106,22 +106,22 @@ For success=false, permanent category:
 
 #### Success, Outcome matrix
 
-| Success | Outcome                      | Meaning                                                           |
-|---------|------------------------------|-------------------------------------------------------------------|
-| true    | accepted                     | Synchronous send succeeded                                        |
-| true    | dropped                      | Dropped by intention                                              |
-| false   | dropped                      | Producer saw the component return failure, request was not sent   |
-| false   | deadline_exceeded            | Producer saw the component return failure, request timed out      |
-| false   | resource_exhausted           | Producer saw the component return failure, insufficient resources |
-| false   | retryable                    | Producer saw the component return other non-permanent condition   |
-| false   | rejected                     | Producer saw the component return a permanent condition           |
-| true    | supressed:accepted           | Producer saw success; eventually accepted                         |
-| true    | supressed:dropped            | Producer saw success; request was not sent                        |
-| true    | supressed:deadline_exceeded  | Producer saw success; request sent, timed out                     |
-| true    | supressed:resource_exhausted | Producer saw success; request sent, insufficient resources        |
-| true    | supressed:retryable          | Producer saw success; request sent, other non-permanent condition |
-| true    | supressed:rejected           | Producer saw success; request sent, permanent condition           |
-| true    | supressed:unknown            | Producer saw success; no effort to report true outcome            |
+| Caller Success | Metrics Success | Outcome                      | Meaning                                                           |
+|----------------|-----------------|------------------------------|-------------------------------------------------------------------|
+| true           | true            | accepted                     | Send succeeded (synchronous or not)                               |
+| true           | true            | dropped                      | Dropped by intention                                              |
+| false          | false           | dropped                      | Producer saw the component return failure, request was not sent   |
+| false          | false           | deadline_exceeded            | Producer saw the component return failure, request timed out      |
+| false          | false           | resource_exhausted           | Producer saw the component return failure, insufficient resources |
+| false          | false           | retryable                    | Producer saw the component return other non-permanent condition   |
+| false          | false           | rejected                     | Producer saw the component return a permanent condition           |
+| true           | false           | supressed:accepted           | Producer saw success; eventually accepted                         |
+| true           | false           | supressed:dropped            | Producer saw success; request was not sent                        |
+| true           | false           | supressed:deadline_exceeded  | Producer saw success; request sent, timed out                     |
+| true           | false           | supressed:resource_exhausted | Producer saw success; request sent, insufficient resources        |
+| true           | false           | supressed:retryable          | Producer saw success; request sent, other non-permanent condition |
+| true           | false           | supressed:rejected           | Producer saw success; request sent, permanent condition           |
+| true           | false           | supressed:unknown            | Producer saw success; no effort to report true outcome            |
 
 #### Examples of each outcome
 
