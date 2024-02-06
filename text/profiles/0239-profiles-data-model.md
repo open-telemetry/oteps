@@ -1240,7 +1240,7 @@ resource_profiles:
                 - name: 3
               location:
                 - line:
-                    - {}
+                    - function_index: 0
                 - line:
                     - function_index: 1
                 - line:
