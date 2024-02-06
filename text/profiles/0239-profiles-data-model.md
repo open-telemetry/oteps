@@ -262,7 +262,7 @@ message ScopeProfiles {
 
 // A ProfileContainer represents a single profile. It wraps pprof profile with OpenTelemetry specific metadata.
 message ProfileContainer {
-  // A unique identifier for a profile. The ID is a 16-byte array. An ID with
+  // A globally unique identifier for a profile. The ID is a 16-byte array. An ID with
   // all zeroes is considered invalid.
   //
   // This field is required.
@@ -750,7 +750,7 @@ A ProfileContainer represents a single profile. It wraps pprof profile with Open
 
 ##### Field `profile_id`
 
-A unique identifier for a profile. The ID is a 16-byte array. An ID with
+A globally unique identifier for a profile. The ID is a 16-byte array. An ID with
 all zeroes is considered invalid.
 This field is required.
 
