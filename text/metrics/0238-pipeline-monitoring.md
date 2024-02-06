@@ -33,7 +33,7 @@ component in question.
 
 ### Detailed design
 
-#### Pipeline outcome is not response status
+#### Pipeline outcome != response status
 
 In this specification, it is important to recognize that the outcome
 registered by a component in its pipeline metrics does not necessarily
@@ -49,7 +49,7 @@ condition.
 For example, an exporter involved in a fan-out arrangement may be
 configured to suppress errors, aware that the producer will see an
 error if any of the fanned-out components returns an error.  The
-exporter will be configured return success immediately and later,
+exporter will be configured to return success immediately and later,
 depending on the actual outcome, may use one of `deferred:` outcomes
 to report failures which the component ahead of it did not see.
 
@@ -69,20 +69,34 @@ single metric instruments.
 
 The use of exclusive counters, one per outcome, is also logically
 confusing.  Existing OpenTelemetry collector metrics for exporters
-have both `sent` and `send_failed` metrics.  A user could easily
-believe that the failure ratio is defined as `send_failed / sent`,
-since (logically) something has to be sent before the send can fail.
-The correct failure ratio, using exclusive counters, is `send_failed /
-(sent + send_failed)`, but from experience, users can easily miss this
-detail.  Moreover, when exclusive counters have been defined in this
-manner, it is impossible to define new outcomes, every formula would
-need to be updated.
+have both `sent` and `send_failed` metrics.  However, `sent` also
+implies success. A user could easily believe that the failure ratio is
+defined as `send_failed / sent`, since (logically) something has to be
+sent before the send can fail.  The correct failure ratio, using
+exclusive counters, is `send_failed / (sent + send_failed)`, but from
+experience, users can easily miss this detail.  Moreover, when
+exclusive counters have been defined in this manner, it is impossible
+to define new outcomes, as every formula would need to be updated.
 
 #### Distinct names for SDKs and Collectors
 
-Because these run in the same place.
+While there is overlap in the components defined as part of
+OpenTelemetry SDKs and the OpenTelemetry Collector, these are two
+different frameworks with different model behavior.  Even though both
+frameworks include processor and exporter concepts, and even though
+they perform similar roles, the environment where these components run
+and the expectations made of them are different.
 
-#### Pipeline equations: Consumed = Dropped-or-Discarded + Produced
+Because OpenTelemetry Collector pipelines are constructed of many and
+varied components, it makes sense to monitor Collector pipelines at
+the component level.  On the other hand, for SDKs it makes sense to
+monitor aggregate behavior via a single metric.
+
+#### Pipeline equations
+
+```
+Consumed + Inserted = Dropped + Discarded + Produced
+```
 
 Dropped and discarded are special
 
