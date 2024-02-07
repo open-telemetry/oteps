@@ -62,7 +62,7 @@ For example, an OTEP proposing configurable sampling *and* various samplers shou
 
 - An OTEP is `proposed` by posting it as a PR. Once the PR is created, update the OTEP file name to use the PR ID as the OTEP ID.
 - An OTEP is `approved` when four reviewers github-approve the PR. The OTEP is then merged.
-- If an OTEP is `rejected` or `withdrawn`, the PR is closed. Note that these OTEPs submissions are still recorded, as Github retains both the discussion and the proposal, even if the branch is later deleted.
+- If an OTEP is `rejected` or `withdrawn`, the PR is closed. Note that these OTEPs submissions are still recorded, as GitHub retains both the discussion and the proposal, even if the branch is later deleted.
 - If an OTEP discussion becomes long, and the OTEP then goes through a major revision, the next version of the OTEP can be posted as a new PR, which references the old PR. The old PR is then closed. This makes OTEP review easier to follow and participate in.
 
 ### Integrating the OTEP into the Spec
