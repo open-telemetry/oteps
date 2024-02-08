@@ -38,27 +38,14 @@ the relative components after or before another component in a
 pipeline.  The preceding component ("preceder") produces data that is
 consumed by the following component ("follower").
 
+An arrangement of pipeline components acting as a single unit, such as
+implemented by the OpenTelemetry Collector, is called a segment.  Each
+segment consists of a receiver, zero or more processors, and an
+exporter.  The terms "following" and "preceding" apply to pipeline
+segments with the same meaning as for components.  For example, a
+agent pipeline segment forwards to a gateway pipeline.
+
 ### Detailed design
-
-#### Pipeline outcome != response status 
-
-In this specification, it is important to recognize that the outcome
-registered by a component in its pipeline metrics does not necessarily
-match the response code that it returns from Export to the preceding
-component it in the pipeline.
-
-For example, a memory-limiter component may drop data and return a
-resource-exhausted status to the preceding component, a receiver.  The
-receiver will indicate `exhausted`, while the memory limter will
-indicate `dropped` because it was the origin of the exhausted
-condition.
-
-For example, an exporter involved in a fan-out arrangement may be
-configured to suppress errors, aware that the preceder will see an
-error if any of parallel following components returns an error.  The
-exporter will be configured to return success immediately and later,
-depending on the actual outcome, may use one of `deferred:` outcomes
-to report failures which the preceding component did not see.
 
 #### Producer and Consumer instruments
 
@@ -91,6 +78,39 @@ from experience, users can easily miss this detail.  Moreover, when
 exclusive counters have been defined in this manner, it is impossible
 to define new outcomes, as every formula would need to be updated.
 
+#### Processors count as producers and consumers
+
+As specified, processors are responsible for counting items only when
+the number changes while passing through a processor.  Processors are
+responsible for counting producer outcomes when they remove an item of
+telemetry from a request, including:
+
+- `discarded` outcomes, which do not pass the data and return success
+- `dropped` outcomes, which do not pass the data and return failure.
+- `deferred:dropped` outcomes, which (eventually) do not pass the data
+  but (immediately) return success.
+
+Data that passes through a processor component, otherwise, should not
+be counted as produced because following components are responsible
+for counting the outcome.  Considering the combined producer outcomes
+for a pipeline segment, the total will include `discarded` and
+`dropped`, subtotals from processors combined with all potential
+outcomes from the exporter component.
+
+Data that is inserted by a processor component, meaning new items of
+telemetry that were not consumed from the previous component in the
+pipeline, should be counted as consumer outcomes by the component that
+inserted them, since the preceding component does not know about them.
+Processors that insert items will:
+
+1. Wait until the next component returns from the Consume() operation.
+2. Count a consumer outcome according to the return value for the
+   number of points inserted.
+   
+By these rules, a processor that inserts data and then immediately
+drops or discards the same data will raise the count equally for both
+both consumer and producer metrics.
+
 #### Distinct prefixes for SDKs and Collectors
 
 There is a potential to use the same metric names to describe SDK
@@ -110,74 +130,97 @@ SDK instruments the OpenTelemetry Collector.
 #### Pipeline equations
 
 The behavior of a pipeline section consisting of one or more elements
-can be reduced to 5 distinct categories.  The pipeline conservation
-property introduced above leads to a pair of equations describing
-ideal pipline behavior.  At a junction between pipeline segments, we
-expect the amount consumed by the next component to equal the amount
-produced by the preceding component.
+can be reduced to distinct operation categories.  In all cases (i.e.,
+for both producer and consumer metric instruments), the item of
+telemetry has a definite outcome determined by a single component,
+with a list of outcomes specified below.  Each item also has a
+definite success or failure boolean property.
+
+The consumer categories, leading to the first pipeline segment equation:
+
+- **Received**: An item of telemetry was exported from a preceding pipeline segment
+- **Inserted**: An item of telemetry was inserted by this pipeline segment
+
+The first equation:
 
 ```
-Consumed(next) == Produced(prev)
+Consumed(Segment) == Recieved(Segment) + Inserted(Segment)
 ```
 
-For a pipeline consisting of a receiver `R`, zero or more processors
-`P`, and exporter `E`, the conservation rule is stated as:
+The producer categories, leading to the second pipeline segment equation:
+
+- **Exported**: An attempt was made to export the telemetry to a following pipeline segment
+- **Discarded**: Considered success, an item of telemetry was eliminated (i.e., export never attempted)
+- **Dropped**: Considered failure, an item of telemetry was eliminated (i.e., export never attempted)
+
+The second equation:
 
 ```
-Consumed(R) + Inserted(P) = Discarded(P) + Dropped(P or E) + Produced(E)
+Produced(Segment) == Discarded(Segment) + Dropped(Segment) + Exported(Segment)
 ```
 
-where the 
+The third equation states that the sum of all items-consumed outcomes
+for a pipeline segment equals the sum of all items-produced outcomes
+for that segment.
 
 ```
-Produced(prev) expected to equal Consumed(next)
+Consumed(Segment) == Produced(Segment)
+```
+
+These invariants are an idealization, because the consumer and
+producer operations happen independently, without ordering
+requirements.  Nevertheless, after a pipeline has been drained and the
+individual components shut down, we expect the producer and consumer
+instrument values to match exactly.
+
+#### Producer and consumer outcomes are asymmetric
+
+There are a several of reasons why the producer and consumer outcomes
+counted by pipeline monitoring will reflect contradictory information.
+
+For example, when timeouts are configured independently, as for
+example when a preceding segment's timeout is smaller than a following
+stage's timeout.  The preceding exporter's timeout, if less than the
+following exporter's timeout may cause consumer `timeout` outcomes
+without corresponding producer `timeout` outcomes.
+
+#### Outcomes may be deferred
+
+In some configurations, Collector pipeline segments have asynchronous
+elements, in an arrangement where the `Consume()` operation called by
+the preceder on the follower returns success, and responsibility for
+delivery transfers to the follower.  When deferred outcomes are in
+use, we consumer metrics will generally indicate 100% `accepted`
+outcomes.
+
+For these cases, exporters are expected to use the `deferred:` outcome
+categories to signal to monitoring systems especially the failure 
+outcomes that were not seen by producers.
+
+#### WIP
+
+Considering an Exporter and Receiver pair connecting two OpenTelemetry
+Collector pipeline segments, we expect:
+
+```
+Exported(Preceder) == Received(Follower)
 ```
 
 Dropped and discarded are special
-
-#### Timeout is special
-
-Prefer timeout to dropped, e.g., you may drop because timeout expired
-on arrival.  Call this timeout, not dropped.
 
 #### Resource-exhausted is special
 
 Be specific about this one, it impacts SLOs.  Dot apply to "this"
 component.
 
-#### Deferred outcomes are special
-
-Important because users are blind to these outcomes, so "terminal" in
-a sense.
-
-#### Coallescing Processor metrics
-
-The defintions for the `discarded`, `dropped` (and `deferred:dropped`)
-outcomes are special because they are terminal in the pipeline.  When
-an item is discarded or dropped, only the component counts these
-outcomes, while components ahead of this component will see success or
-a retryable response code.
-
-The normal behavior of a processor component in the OpenTelemetry
-Collector, except when it decides to drop or discard, is to pass
-telemetry through to the next stage in the pipeline.  It would lead to
-substantial redundancy for a sequence of processors to individually
-count pass-through outcomes, since for outcomes other than `discarded`, `dropped`, and `deferred:dropped` 
-
-Considering a sequence of adjacent components
-
-[WIP]
-
-The proposed metric instruments are named differently, depending on
-whether it is a collector or an SDK, to prevent accidental aggregation
-of these timeseries.
-
+### WIP
 
 The specified counter names are:
 
 - `otelcol_consumed_items`
 - `otelcol_produced_items`
 - `otelsdk_produced_items`
+
 
 ### Recommended conventional attributes
 
@@ -188,8 +231,7 @@ The specified counter names are:
 - `otel.signal` (string): This is the name of the signal (e.g., "logs",
   "metrics", "traces")
 - `otel.component` (string): Name of the component in a pipeline.
-- `otel.pipeline` 
-(string): Name of the pipeline in a collector.
+- `otel.pipeline` (string): Name of the pipeline in a collector.
 
 ### Specified `otel.outcome` attribute values
 
