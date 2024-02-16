@@ -71,11 +71,11 @@ The purpose of the data model is to have a common understanding of what a profil
 
 These goals are based on the vision set out in [Profiling Vision OTEP](./0212-profiling-vision.md):
 
-* Make profiling compatible with other signals
-* Standardize profiling data model for industry-wide sharing and reuse
-* Profilers must be implementable with low overhead and conforming to OpenTelemetry-wide runtime overhead / intrusiveness and wire data size requirements.
+* Make profiling compatible with other signals.
+* Standardize profiling data model for industry-wide sharing and reuse.
+* Profilers must be implementable with low overhead and conforming to OpenTelemetry-wide runtime overhead/intrusiveness and wire data size requirements.
 
-The last point is particularly important in the context of profiling. Profilers generate large amounts of data, and users of profiling technology are very sensitive to the overhead that profiling introduces. In the past high overhead has been a blocker for wider adoption of continuous profiling and was one of the reasons why profiling was not used in production environments. Therefore it is important to make sure that the overhead of handling the profiling data on the client side as well as in intermediaries (e.g collector) is minimal.
+The last point is particularly important in the context of profiling. Profilers generate large amounts of data, and users of profiling technology are very sensitive to the overhead that profiling introduces. In the past high overhead has been a blocker for wider adoption of continuous profiling and was one of the reasons why profiling was not used in production environments. Therefore, it is important to make sure that the overhead of handling the profiling data on the client side as well as in intermediaries (e.g collector) is minimal.
 
 ## Data Model
 
@@ -1240,7 +1240,7 @@ resource_profiles:
                 - name: 3
               location:
                 - line:
-                    - {}
+                    - function_index: 0
                 - line:
                     - function_index: 1
                 - line:
