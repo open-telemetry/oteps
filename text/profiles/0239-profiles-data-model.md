@@ -1533,13 +1533,6 @@ After running many benchmarks and analyzing the results, we came to the followin
 
 We plan to leverage OTEL Semantic Conventions for various attributes and enums such as profile types or units. Here's a non-exhaustive list of semantic conventions that are used in data model. It is expected to be polished and extended in the future.
 
-#### Attributes
-
-| Attribute  | Type | Description  | Examples  | Requirement Level |
-|---|---|---|---|---|
-| `trace_id` | bytes | Reference to a trace | `0x01020304010203040102030401020304` | Conditionally Required: If `span_id` present. |
-| `span_id` | bytes | Reference to a span | `0x9999999999999999` | Conditionally Required: If `trace_id` present. |
-
 #### Profile Types
 
 Here's a list of possible profile types. It is not exhaustive, and it is expected that more profile types will be added in the future:
