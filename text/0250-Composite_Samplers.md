@@ -159,6 +159,7 @@ Finally, the last step is to put a limit on the stream of exported spans. One of
 ```
 S4 = Conjunction(S3, RateLimitingSampler(1000 * 60))
 ```
+
 ## Example - sampling configuration 2
 
 Many users are interested in [Consistent Probability Sampling](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#consistent-probability-sampler) (CP), as it gives them a chance to calculate span-based metrics even when sampling is active. The configuration presented above uses the traditional samplers, which do not offer this benefit.
