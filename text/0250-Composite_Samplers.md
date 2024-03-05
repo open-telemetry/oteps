@@ -3,7 +3,7 @@
 This proposal addresses head-based sampling as described by the [Open Telemetry SDK](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling).
 It introduces additional _composite samplers_. Composite samplers use other samplers (delegates) to make sampling decisions. The composite samplers invoke the delegate samplers, but eventually make the final call.
 
-The new samplers proposed here are compatible with [Threshold propagation in trace state (OTEP 235)](https://github.com/open-telemetry/oteps/pull/235) as used by Consistent Probability samplers. Also see Draft PR 3910 [Probability Samplers based on W3C Trace Context Level 2](https://github.com/open-telemetry/opentelemetry-specification/pull/3910). 
+The new samplers proposed here are compatible with [Threshold propagation in trace state (OTEP 235)](https://github.com/open-telemetry/oteps/pull/235) as used by Consistent Probability samplers. Also see Draft PR 3910 [Probability Samplers based on W3C Trace Context Level 2](https://github.com/open-telemetry/opentelemetry-specification/pull/3910).
 
 ## Motivation
 
@@ -30,9 +30,9 @@ Head-based sampling requirements.
   - however, capture all calls to service `/foo` (even if the trace will be incomplete)
 - in any case, do not exceed 1000 spans/minute
 
-# New Samplers
+## New Samplers
 
-## AnyOf
+### AnyOf
 
 `AnyOf` is a composite sampler which takes a non-empty list of Samplers (delegates) as the argument.
 
@@ -52,7 +52,7 @@ Otherwise, the resulting `TraceState` MUST contain `th` entry with the `THRESHOL
 
 Each delegate sampler MUST be given a chance to participate in the sampling decision as described above and MUST see the same _parent_ state. The order of the delegate samplers does not matter, as long as there's no overlap in the Attribute Keys or the trace state keys (other than `th`) that they use.
 
-## EachOf
+### EachOf
 
 `EachOf` is a composite sampler which takes a non-empty list of Samplers (delegates) as the argument.
 
@@ -72,7 +72,7 @@ Otherwise, the resulting `TraceState` MUST contain `th` entry with the `THRESHOL
 
 Each delegate sampler MUST be given a chance to participate in the sampling decision as described above and MUST see the same _parent_ state. The order of the delegate samplers does not matter, as long as there's no overlap in the Attribute Keys or the trace state keys (other than `th`) that they use.
 
-## Conjunction
+### Conjunction
 
 `Conjunction` is a composite sampler which takes two Samplers (delegates) as the arguments. These delegate samplers will be hereby referenced as First and Second.
 
@@ -83,7 +83,7 @@ If the sampling Decision from the Second sampler is `RECORD_AND_SAMPLE`, the Con
 - The set of span Attributes to be added to the `Span` is the sum of the sets of Attributes as provided by the First and the Second sampler.
 - The `TraceState` to be used with the new `Span` is obtained by cumulatively applying the potential modfications from the First and Second sampler, with special handling of the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry as described below.
 
-If both First and Second samplers provided `th` entry in the returned `TraceState`, the resulting `TraceState` MUST contain `th` entry with the `THRESHOLD` being maximum of the `THRESHOLD`s provided by the First and Second samplers. Otherwise, the `th` entry MUST be removed. 
+If both First and Second samplers provided `th` entry in the returned `TraceState`, the resulting `TraceState` MUST contain `th` entry with the `THRESHOLD` being maximum of the `THRESHOLD`s provided by the First and Second samplers. Otherwise, the `th` entry MUST be removed.
 
 If the sampling Decision from the Second sampler is `RECORD_ONLY` or `DROP`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
 
@@ -91,24 +91,23 @@ If the sampling Decision from the Second sampler is `RECORD_ONLY` or `DROP`, the
 - The set of span Attributes to be added to the `Span` is empty.
 - The `TraceState` to be used with the new `Span` is the passed-in `TraceState`, but with the `th` entry removed.
 
-
-## RuleBased
+### RuleBased
 
 `RuleBased` is a composite sampler which performs `Span` categorization (e.g. when sampling decision depends on Span attributes) and sampling.
 The Spans can be grouped into separate categories, and each category can use a different Sampler.
 Categorization of Spans is aided by `Predicates`.
 
-### Predicate
+#### Predicate
 
 The Predicates represent logical expressions which can access Span Attributes (or anything else available when the sampling decision is to be made), and perform tests on the accessible values.
 For example, one can test if the target URL for a SERVER span matches a given pattern.
 `Predicate` interface allows users to create custom categories based on information that is available at the time of making the sampling decision.
 
-#### SpanMatches
+##### SpanMatches
 
 This is a routine/function/method for `Predicate`, which returns `true` if a given `Span` matches, i.e. belongs to the category described by the Predicate.
 
-#### Required Arguments for Predicates
+##### Required Arguments for Predicates
 
 The arguments represent the values that are made available for `ShouldSample`.
 
@@ -118,7 +117,7 @@ The arguments represent the values that are made available for `ShouldSample`.
 - Initial set of Attributes of the Span to be created.
 - Collection of links that will be associated with the Span to be created.
 
-### Required Arguments for RuleBased
+#### Required Arguments for RuleBased
 
 - `SpanKind`
 - list of pairs (`Predicate`, `Sampler`)
@@ -127,9 +126,9 @@ For making the sampling decision, if the `Span` kind matches the specified kind,
 
 The order of `Predicate`s is essential. If more than one `Predicate` matches a `Span`, only the Sampler associated with the first matching `Predicate` will be used.
 
-# Summary
+## Summary
 
-## Example - sampling configuration 1
+### Example - sampling configuration 1
 
 Going back to our example of sampling requirements, we can now configure the head sampler to support this particular case, using an informal notation of samplers and their arguments.
 First, let's express the requirements for the ROOT spans as follows.
@@ -160,7 +159,7 @@ Finally, the last step is to put a limit on the stream of exported spans. One of
 S4 = Conjunction(S3, RateLimitingSampler(1000 * 60))
 ```
 
-## Example - sampling configuration 2
+### Example - sampling configuration 2
 
 Many users are interested in [Consistent Probability Sampling](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#consistent-probability-sampler) (CP), as it gives them a chance to calculate span-based metrics even when sampling is active. The configuration presented above uses the traditional samplers, which do not offer this benefit.
 
@@ -189,13 +188,13 @@ S = EachOf(
    )
 ```
 
-## Limitations of composite samplers
+### Limitations of composite samplers
 
 Not all samplers can participate as components of composite samplers without undesired or unexpected effects. Some samplers require that they _see_ each `Span` being created, even if the span is going to be dropped. Some samplers update the trace state or maintain internal state, and for their correct behavior it it is assumed that their sampling decisions will be honored by the tracer at the face value in all cases. A good example for this are rate limiting samplers which have to keep track of the rate of created spans and/or the rate of positive sampling decisions.
 
 A special attention is required for CP samplers. The sampling probability they record in trace-state is later used to calculate [_adjusted count_](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#adjusted-count), which, in turn, is used to calculate span-based metrics. While the composite samplers presented here are compatible with CP samplers, generally, mixing CP samplers with other types of samplers may lead to undefined or sometimes incorrect adjusted counts.
 
-## Prior art
+### Prior art
 
 A number of composite samplers are already available as independent contributions
 ([RuleBasedRoutingSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/RuleBasedRoutingSampler.java),
