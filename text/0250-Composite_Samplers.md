@@ -76,20 +76,20 @@ Each delegate sampler MUST be given a chance to participate in the sampling deci
 
 `Conjunction` is a composite sampler which takes two Samplers (delegates) as the arguments. These delegate samplers will be hereby referenced as First and Second.
 
-Upon invocation of its `shouldSample` method, the Conjunction sampler MUST invoke `shouldSample` method on the First sampler, passing the same arguments as received, and examine the received sampling Decision. Upon receiving `DROP` or `RECORD_ONLY` decision it MUST return the SamplingResult from the First sampler, and it MUST NOT proceed with querying the Second sampler. If the sampling decision from the First sampler is `RECORD_AND_SAMPLE`, the Conjunction sampler MUST invoke `shouldSample` method on the Second sampler.
+Upon invocation of its `shouldSample` method, the Conjunction sampler MUST invoke `shouldSample` method on the First sampler, passing the same arguments as received, and examine the received sampling Decision. Upon receiving `DROP` or `RECORD_ONLY` decision it MUST return the SamplingResult from the First sampler, and it MUST NOT proceed with querying the Second sampler. If the sampling decision from the First sampler is `RECORD_AND_SAMPLE`, the Conjunction sampler MUST invoke `shouldSample` method on the Second sampler, effectively passing the `TraceState` received from the First sampler as the parent trace state.
 If the sampling Decision from the Second sampler is `RECORD_AND_SAMPLE`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
 
 - The sampling Decision is `RECORD_AND_SAMPLE`.
 - The set of span Attributes to be added to the `Span` is the sum of the sets of Attributes as provided by the First and the Second sampler.
 - The `TraceState` to be used with the new `Span` is obtained by cumulatively applying the potential modfications from the First and Second sampler, with special handling of the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry as described below.
 
-If both First and Second samplers provided `th` entry in the returned `TraceState`, the resulting `TraceState` MUST contain `th` entry with the `THRESHOLD` being maximum of the `THRESHOLD`s provided by the First and Second samplers. Otherwise, the `th` entry MUST be removed.
+If both First and Second samplers provided `th` entry in the returned `TraceState`, and the value of the `THRESHOLD` from the First sampler is `0`, then the resulting `TraceState` MUST contain `th` entry with the `THRESHOLD`as provided by the Second sampler. Otherwise, the `th` entry MUST be removed.
 
 If the sampling Decision from the Second sampler is `RECORD_ONLY` or `DROP`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
 
 - The sampling Decision is `DROP`.
-- The set of span Attributes to be added to the `Span` is empty.
-- The `TraceState` to be used with the new `Span` is the passed-in `TraceState`, but with the `th` entry removed.
+- The set of span Attributes to be added to the `Span` is as provided by the First sampler.
+- The `TraceState` to be used with the new `Span` is the `TraceState` provided by the First sampler, but with the `th` entry removed.
 
 ### RuleBased
 
