@@ -3,7 +3,7 @@
 This proposal addresses head-based sampling as described by the [Open Telemetry SDK](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling).
 It introduces additional _composite samplers_. Composite samplers use other samplers (delegates) to make sampling decisions. The composite samplers invoke the delegate samplers, but eventually make the final call.
 
-The new samplers proposed here are compatible with [Threshold propagation in trace state (OTEP 235)](https://github.com/open-telemetry/oteps/pull/235) as used by Consistent Probability samplers. Also see Draft PR 3910 [Probability Samplers based on W3C Trace Context Level 2](https://github.com/open-telemetry/opentelemetry-specification/pull/3910).
+The new samplers proposed here are mostly compatible with Consistent Probability Samplers. For verbose description of this concept see [probability sampling](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/tracestate-probability-sampling.md). However, the technical details in that document are outdated. For the current proposal see [OTEP 235](https://github.com/open-telemetry/oteps/blob/main/text/trace/0235-sampling-threshold-in-trace-state.md). Also see Draft PR 3910 [Probability Samplers based on W3C Trace Context Level 2](https://github.com/open-telemetry/opentelemetry-specification/pull/3910).
 
 ## Motivation
 
@@ -30,11 +30,17 @@ Head-based sampling requirements.
   - however, capture all calls to service `/foo` (even if the trace will be incomplete)
 - in any case, do not exceed 1000 spans/minute
 
-## New Samplers
+We present two quite different approaches to composite samplers. The first one uses only the current [sampling API](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling). It can be applied to a large variety of samplers, but is not very efficient nor elegant.
+
+The second approach is applicable exclusively to Consistent Probability Samplers, but is more efficient and less prone to misconfiguration.
+
+## Approach One
+
+The following new composite samplers are proposed.
 
 ### AnyOf
 
-`AnyOf` is a composite sampler which takes a non-empty list of Samplers (delegates) as the argument.
+`AnyOf` is a composite sampler which takes a non-empty list of Samplers (delegates) as the argument. The intention is to make `RECORD_AND_SAMPLE` decision if __any of__ the delegates decides to `RECORD_AND_SAMPLE`.
 
 Upon invocation of its `shouldSample` method, it MUST go through the whole list and invoke `shouldSample` method on each delegate sampler, passing the same arguments as received.
 
@@ -54,7 +60,7 @@ Each delegate sampler MUST be given a chance to participate in the sampling deci
 
 ### EachOf
 
-`EachOf` is a composite sampler which takes a non-empty list of Samplers (delegates) as the argument.
+`EachOf` is a composite sampler which takes a non-empty list of Samplers (delegates) as the argument. The intention is to make `RECORD_AND_SAMPLE` decision if __each of__ the delegates decides to `RECORD_AND_SAMPLE`.
 
 Upon invocation of its `shouldSample` method, it MUST go through the whole list and invoke `shouldSample` method on each delegate sampler, passing the same arguments as received.
 
@@ -74,7 +80,7 @@ Each delegate sampler MUST be given a chance to participate in the sampling deci
 
 ### Conjunction
 
-`Conjunction` is a composite sampler which takes two Samplers (delegates) as the arguments. These delegate samplers will be hereby referenced as First and Second.
+`Conjunction` is a composite sampler which takes two Samplers (delegates) as the arguments. These delegate samplers will be hereby referenced as First and Second. This kind of composition forms conditional chaining of both samplers. 
 
 Upon invocation of its `shouldSample` method, the Conjunction sampler MUST invoke `shouldSample` method on the First sampler, passing the same arguments as received, and examine the received sampling Decision. Upon receiving `DROP` or `RECORD_ONLY` decision it MUST return the SamplingResult from the First sampler, and it MUST NOT proceed with querying the Second sampler. If the sampling decision from the First sampler is `RECORD_AND_SAMPLE`, the Conjunction sampler MUST invoke `shouldSample` method on the Second sampler, effectively passing the `TraceState` received from the First sampler as the parent trace state.
 If the sampling Decision from the Second sampler is `RECORD_AND_SAMPLE`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
@@ -126,7 +132,7 @@ For making the sampling decision, if the `Span` kind matches the specified kind,
 
 The order of `Predicate`s is essential. If more than one `Predicate` matches a `Span`, only the Sampler associated with the first matching `Predicate` will be used.
 
-## Summary
+## Summary - Approach One
 
 ### Example - sampling configuration 1
 
@@ -140,6 +146,8 @@ S1 = RuleBased(ROOT, {
  true => TraceIdRatioBased(0.25)
  })
 ```
+
+Note: technically, `ROOT` is not a Span Kind, but is a special token matching all Spans with invalid parent context (i.e. the ROOT spans, regardless of their kind).
 
 In the next step, we can build the sampler to handle non-root spans as well:
 
@@ -188,11 +196,70 @@ S = EachOf(
    )
 ```
 
-### Limitations of composite samplers
+### Limitations of composite samplers in approach One
 
 Not all samplers can participate as components of composite samplers without undesired or unexpected effects. Some samplers require that they _see_ each `Span` being created, even if the span is going to be dropped. Some samplers update the trace state or maintain internal state, and for their correct behavior it it is assumed that their sampling decisions will be honored by the tracer at the face value in all cases. A good example for this are rate limiting samplers which have to keep track of the rate of created spans and/or the rate of positive sampling decisions.
 
 A special attention is required for CP samplers. The sampling probability they record in trace-state is later used to calculate [_adjusted count_](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#adjusted-count), which, in turn, is used to calculate span-based metrics. While the composite samplers presented here are compatible with CP samplers, generally, mixing CP samplers with other types of samplers may lead to undefined or sometimes incorrect adjusted counts.
+
+## Approach Two
+
+A principle of operation for Approach Two is that `ShouldSample` is invoked only once, on the root of the tree formed by composite samplers. All the logic provided by the composition of samplers is handled by calculating the threshold values, delegating the calculation downstream as necessary.
+
+### Consistent Probability Sampler API
+
+To make this approach possible, all Consistent Probability Samplers need to implement the following API, in addition to the standard Sampler API. This extension will be used by all composite samplers in Approach Two, as listed in the next sections.
+
+#### GetThreshold
+
+This is a routine/function/method for all Consistent Probability Samplers. Its purpose is to query the sampler to provide the rejection threshold value they would use had they been asked to make a sampling decision for a given span, however, without constructing the actual sampling Decision.
+
+#### Required Arguments for GetThreshold:
+
+The arguments are the same as for [`ShouldSample`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#shouldsample).
+
+- `Context` with parent Span.
+- `TraceId` of the Span to be created.
+- Name of the Span to be created.
+- `SpanKind` of the `Span` to be created.
+- Initial set of Attributes of the Span to be created.
+- Collection of links that will be associated with the Span to be created.
+
+#### Return value:
+
+The THRESHOLD value from range `0` to `2^56-1` (a 56-bit unsigned integer number) if the sampler is going to make a probability based sampling decision. Values outside of this range can be used for other situations (such as AllwaysOff decisions), or to eventually support sampling decisions other than `DROP` or `RECORD_AND_SAMPLE`.
+
+### ConsistentRuleBased
+
+This composite sampler re-uses the concept of Predicates from Approach One.
+
+#### Required Arguments for ConsistentRuleBased
+
+- `SpanKind`
+- list of pairs (`Predicate`, `ConsistentProbabilitySampler`)
+
+For calculating the rejection THRESHOLD, if the `Span` kind matches the specified kind, the sampler goes through the list in the provided order and calls `SpanMatches` on `Predicate`s passing the `Span` as the argument. If a call returns `true`, the result is as returned by `GetThreshold` called on the corresponding `ConsistentProbabilitySampler`. If the `SpanKind` does not match, or none of the calls to `SpanMatches` yield `true`, the result is obtained by calling `GetThreshold` on `ConsistentAlwaysOffSampler`.
+
+### ConsistentAnyOf
+
+`ConsistentAnyOf` is a composite sampler which takes a non-empty list of ConsistentProbabilitySamplers (delegates) as the argument. The intention is to make a positive sampling decision if __any of__ the delegates would make a positive decision.
+
+Upon invocation of its `GetThreshold` method, it MUST go through the whole list and invoke `GetTheshold` method on each delegate sampler, passing the same arguments as received.
+
+`ConsistentAnyOf` sampler MUST return a THRESHOLD which is constructed as follows:
+
+- If any of the delegates returned a threshold value from the range of `0` to `2^56-1`, the resulting threshold is the minimum value from the set of results from within that range.
+- Otherwise, the result is obtained by calling `GetThreshold` on `ConsistentAlwaysOffSampler`.
+
+Each delegate sampler MUST be given a chance to participate in calculating the threshold as described above and MUST see the same argument values. The order of the delegate samplers does not matter.
+
+### ConsistentRateLimiting
+
+_Description pending. For now, look at the explanations given in comments for this OTEP._
+
+### Limitations of composite samplers in Approach Two
+
+While making sampling decisions with samplers from Approach Two is more efficient and avoids dealing with non-mainstream cases, it puts some limits on the capabilities of the Consistent Probability Samplers. In particular, a custom CP sampler that wishes to add a span `Attribute` or modify TraceState will be out of luck if it is used as a delegate.
 
 ### Prior art
 
