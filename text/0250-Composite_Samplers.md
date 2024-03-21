@@ -128,7 +128,7 @@ The arguments represent the values that are made available for `ShouldSample`.
 - `SpanKind`
 - list of pairs (`Predicate`, `Sampler`)
 
-For making the sampling decision, if the `Span` kind matches the specified kind, the sampler goes through the list in the provided order and calls `SpanMatches` on `Predicate`s passing the `Span` as the argument. If a call returns `true`, the corresponding `Sampler` will be called to make the final sampling decision. If the `SpanKind` does not match, or none of the calls to `SpanMatches` yield `true`, the final decision is `DROP`.
+For making the sampling decision, if the `Span` kind matches the specified kind, the sampler goes through the list in the provided order and calls `SpanMatches` on `Predicate`s passing the same arguments as received by `ShouldSample`. If a call returns `true`, the corresponding `Sampler` will be called to make the final sampling decision. If the `SpanKind` does not match, or none of the calls to `SpanMatches` yield `true`, the final decision is `DROP`.
 
 The order of `Predicate`s is essential. If more than one `Predicate` matches a `Span`, only the Sampler associated with the first matching `Predicate` will be used.
 
@@ -227,7 +227,7 @@ The arguments are the same as for [`ShouldSample`](https://github.com/open-telem
 
 #### Return value:
 
-The THRESHOLD value from range `0` to `2^56-1` (a 56-bit unsigned integer number) if the sampler is going to make a probability based sampling decision. Values outside of this range can be used for other situations (such as AllwaysOff decisions), or to eventually support sampling decisions other than `DROP` or `RECORD_AND_SAMPLE`.
+The THRESHOLD value from range `0` to `2^56-1` (a 56-bit unsigned integer number) if the sampler is ready to make a probability based sampling decision. Values outside of this range can be used for other situations (such as AllwaysOff decisions), or to eventually support equivalents of sampling decisions other than `DROP` or `RECORD_AND_SAMPLE`.
 
 ### ConsistentRuleBased
 
@@ -238,13 +238,13 @@ This composite sampler re-uses the concept of Predicates from Approach One.
 - `SpanKind`
 - list of pairs (`Predicate`, `ConsistentProbabilitySampler`)
 
-For calculating the rejection THRESHOLD, if the `Span` kind matches the specified kind, the sampler goes through the list in the provided order and calls `SpanMatches` on `Predicate`s passing the `Span` as the argument. If a call returns `true`, the result is as returned by `GetThreshold` called on the corresponding `ConsistentProbabilitySampler`. If the `SpanKind` does not match, or none of the calls to `SpanMatches` yield `true`, the result is obtained by calling `GetThreshold` on `ConsistentAlwaysOffSampler`.
+For calculating the rejection THRESHOLD, if the `Span` kind matches the specified kind, the sampler goes through the list in the provided order and calls `SpanMatches` on `Predicate`s passing the same arguments as received. If a call returns `true`, the result is as returned by `GetThreshold` called on the corresponding `ConsistentProbabilitySampler`. If the `SpanKind` does not match, or none of the calls to `SpanMatches` yield `true`, the result is obtained by calling `GetThreshold` on `ConsistentAlwaysOffSampler`.
 
 ### ConsistentAnyOf
 
 `ConsistentAnyOf` is a composite sampler which takes a non-empty list of ConsistentProbabilitySamplers (delegates) as the argument. The intention is to make a positive sampling decision if __any of__ the delegates would make a positive decision.
 
-Upon invocation of its `GetThreshold` method, it MUST go through the whole list and invoke `GetTheshold` method on each delegate sampler, passing the same arguments as received.
+Upon invocation of its `GetThreshold` function, it MUST go through the whole list and invoke `GetTheshold` function on each delegate sampler, passing the same arguments as received.
 
 `ConsistentAnyOf` sampler MUST return a THRESHOLD which is constructed as follows:
 
@@ -255,13 +255,47 @@ Each delegate sampler MUST be given a chance to participate in calculating the t
 
 ### ConsistentRateLimiting
 
-_Description pending. For now, look at the explanations given in comments for this OTEP._
+`ConsistentRateLimiting` is a composite sampler that helps control the average rate of sampled spans while allowing another sampler (the delegate) to provide sampling hints.
+
+#### Required Arguments for ConsistentRateLimiting
+
+- ConsistentProbabilitySampler (delegate)
+- maximum sampling (throughput) target rate
+
+The sampler SHOULD measure and keep the average rate of incoming spans, and therefore also of the desired ratio between the incoming span rate to the target span rate.
+Upon invocation of its `GetThreshold` function, the composite sampler MUST get the threshold from the delegate sampler, passing the same arguments as received.
+If using the obtained threshold value as the final threshold would entail sampling more spans than the declared target rate, the sampler SHOULD increase the threshold to a value that would meet the target rate. Several algorithms can be used for threshold adjustment, no particular behavior is prescried by the specification though.
+
+When using `ConsistentRateLimiting` in our requirements example as a replacement for `EachOf` and `RateLimiting`, we are left with no use case for any direct equivalent to `EachOf` in Approach Two.
+
+## Summary - Approach Two
+
+### Example - sampling configuration with Approach Two
+
+With the samplers introduced by Approach Two, our example requirements can be coded in a very similar way as with ApproachOne. However, the work of the samplers configured this way forms a tree of `GetThreshold` invocations rather than `ShouldSample` invocations as in ApproachOne.
+
+```
+S = ConsistentRateLimiting(
+     ConsistentAnyOf(
+       ConsistentParentBased(
+         ConsistentRuleBased(ROOT, {
+             (http.target == /healthcheck) => ConsistentAlwaysOff,
+             (http.target == /checkout) => ConsistentAlwaysOn,
+             true => ConsistentFixedThreshold(0.25)
+         }),
+       ConsistentRuleBased(CLIENT, {
+         (http.url == /foo) => ConsistentAlwaysOn
+       }
+     ),
+     1000 * 60
+   )
+```
 
 ### Limitations of composite samplers in Approach Two
 
 While making sampling decisions with samplers from Approach Two is more efficient and avoids dealing with non-mainstream cases, it puts some limits on the capabilities of the Consistent Probability Samplers. In particular, a custom CP sampler that wishes to add a span `Attribute` or modify TraceState will be out of luck if it is used as a delegate.
 
-### Prior art
+## Prior art
 
 A number of composite samplers are already available as independent contributions
 ([RuleBasedRoutingSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/RuleBasedRoutingSampler.java),
