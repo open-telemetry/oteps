@@ -1,6 +1,6 @@
-# Telemetry Viewer for Developers
+# OTV: OpenTelemetry Viewer
 
-_A local telemetry viewer to aid in instrumentation and debugging of pipelines._
+_A local explorer for OpenTelemetry data, components, and endpoints._
 
 ## Motivation
 
@@ -9,21 +9,28 @@ ecosystem of tooling, SDKs, APIs, and instrumentation libraries. However, with
 this complexity comes a cost -- the barrier to entry for new users can be very
 high, with significant cycle time required in order to understand how their
 instrumentation code changes affect the instrumentation emitted by their
-service.
+service. In addition, operators often find it challenging to understand
+OpenTelemetry configurations at the Collector or in an SDK. While OpAMP provides
+an API that can help with this, it doesn't provide a management plane or
+visualization components to see and modify configurations in the browser.
 
-A 'local development' experience for OpenTelemetry would aid in reducing this
-cycle time and understandability burden from developers.
+To address these gaps, and others, I propose a new 'OpenTelemetry Viewer'
+component that can be built into a collector and provides in-memory storage,
+viewing, and modification of OpenTelemetry data and components.
 
 ## Explanation
 
 Different users of a telemetry system have different needs and expectations for
-debugging instrumentation. Currently, developers and coders have two options for
-quick feedback - using a logging exporter at the collector or SDK, or using an
+debugging instrumentation. Currently, developers have two options for
+quick feedback - using a debug exporter at the collector or SDK, or using an
 existing analysis tool (open source or proprietary). Both of these options have
-drawbacks - the logging exporter presents an overwhelming amount of text-based
+drawbacks - the debug exporter presents an overwhelming amount of text-based
 data, and depending the characteristics of a development environment, it may be
 challenging to stand up and use a local suite of open source analysis tools
-(such as Jaeger, Prometheus, and OpenSearch) or use a commercial tool.
+(such as Jaeger, Prometheus, and OpenSearch) or use a commercial tool. Existing
+options are optimized for viewing, querying, and analyzing data across hundreds
+or thousands of sources, not for understanding "what attributes are my metrics
+emitting?" or "what type of data are my instrumentation libraries emitting?".
 
 Reduced cycle time (both in a DevOps sense and also in a more general reading of
 the word) is a contributor to quality and resiliency of software and human
@@ -31,16 +38,34 @@ systems. Being able to quickly get feedback about if your changes are having the
 desired effect or not is invaluable, especially for developers that are
 beginning to instrument their services for observability.
 
-The goal of this OTEP is to define a set of requirements for a solution to this
-problem. Ultimately, the vision is that a developer would be able to use a
-collector extension to view the following:
+As custom instrumentation and data transformation becomes a larger and larger
+part of the OpenTelemetry story, enabling these fast feedback loops is critical
+for the project. However, we must also balance this against other tools in the
+ecosystem. Thus, I proprose the following set of criteria that will guide the
+implementation of this OTEP:
 
-- Metrics, Trace, and Log Data collected over the last X minutes.
-- The current configuration, pipelines, and operating telemetry
-  (logs, metrics, traces) of the collector.
-- A list of instrumentation libraries, or other ecosystem components in
-  use by the pipelines.
-- All attribute and resource keys seen by the collector over the last X minutes.
+- To be consistent with our existing stance on vendor agnosticism, any component
+  developed cannot implement persistent storage. Storage must be local
+  (constrained to the machine where OTV is running or accesssed from), and can
+  only persist as part of a session (for example, between refreshes on a browser
+  page or collector restarts).
+- We will not implement a query language or semantics as part of this project.
+  Data can be filtered and projected, but without a bespoke or pre-built query
+  language.
+
+With that said, the requirements of OTV are as follows:
+
+- An in-memory data store constrained by size and time. For example, a ring
+  buffer. This store can persist to local disk for persistence through collector
+  reboots, but is specifically not designed for long-term storage of data.
+- A web UI that displays data in the store, with user-configurable options for
+  grouping, filtering, and sorting data. This UI also should be able to
+  visualize metrics appropriately (as a line, bar, or big number chart).
+- A web UI that displays a list of discovered OpAMP components, and allows for
+  the viewing and editing of their configurations.
+- A 'hot reload' function that allows for configuration changes to be applied to
+  the underlying collector, so operators can tune OTTL transformations and see
+  the changes immediately.
 
 ## Internal details
 
@@ -63,20 +88,35 @@ community will create other strategies as well.
 
 ## Trade-offs and mitigations
 
-There are two major trade-offs this makes in terms of the ecosystem; One, it
-brings this component into the purview of the OpenTelemetry organization rather
-than leaving it entirely to both independent or commercial development efforts.
-Two, it could seem to presage a more opinionated approach to the collector as a
-product offering rather than as a component or piece of middleware.
+There are two points I'd like to address in terms of trade-offs around this
+component.
 
-To the former point, I believe that the project has a responsibility to define
-requirements and signposts for tooling that we believe would be useful in order
-to not only grow our developer community, but also our contributor community.
+- _Jaeger, Prometheus, and other CNCF Observability Projects_
 
-To the latter, I would argue that if we seek to become a 'native instrumentation
-layer' for cloud-native systems, it is incumbent upon us to be opinionated about
-how OpenTelemetry should be used, and to provide the development community with
-tooling that makes their lives easier.
+Future work on Jaeger and Prometheus promises to bring these tools more into
+alignment with OpenTelemetry as a 'default choice' for data storage, query,
+visualization, and workflows. This is cause for celebration, to be sure.
+However, as noted above, these projects are fundamentally designed to scale out
+for production uses of thousands or millions of data points a minute, and
+potentially thousands of users. They are not designed for the individual
+developer or operator.
+
+This component specifically does not seek to replace either of these tools, and
+I believe this OTEP helps define the boundary of tooling that we plan to build
+and support going forward.
+
+- _Why not let the community figure it out for themselves?_
+
+Since this OTEP was originally written, there have been examples of
+community-built tools (such as OTelBin, which visualizes Collector
+configurations) and vertically integrated solutions like .NET Aspire which are
+built on top of OpenTelemetry concepts or components. It's entirely possible
+that if we do nothing, someone will come up with a solution that users coalesce
+around. However, I believe we have a responsibility to define the types of tools
+that are useful, and also to offer potential contributors a variety of projects
+to work on. OTV would be a great place for 'traditional' application developers
+and front-end developers to make contributions to OpenTelemetry, increasing our
+contributor base and contributor diversity.
 
 ## Prior art and alternatives
 
