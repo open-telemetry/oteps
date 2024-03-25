@@ -70,7 +70,7 @@ With that said, the requirements of OTV are as follows:
 ## Internal details
 
 Broadly, the implementation of this viewer should be a collector extension that
-exposes a simple web portal for viewing data along with some sort of data store
+exposes a simple web portal for viewing data along with some sort of in-memory data store
 to hold the data emitted. This extension could be bundled with specific
 collector releases, or brought in via the collector builder.
 
