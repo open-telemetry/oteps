@@ -135,7 +135,7 @@ To this, I submit the following points:
 2. There is no CNCF tooling available for Dashboard or Log Storage/Querying;
    Currently, Grafana and OpenSearch seem to be the most popular and open
    source-iest options here.
-3. There is a difference in effort requireed for a developer to add a local
+3. There is a difference in effort required for a developer to add a local
    observability stack vs. swapping out a collector binary, and it's a pretty
    significant difference.
 
