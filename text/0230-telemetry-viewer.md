@@ -46,7 +46,7 @@ implementation of this OTEP:
 
 - To be consistent with our existing stance on vendor agnosticism, any component
   developed cannot implement persistent storage. Storage must be local
-  (constrained to the machine where OTV is running or accesssed from), and can
+  (constrained to the machine where OTV is running or accessed from), and can
   only persist as part of a session (for example, between refreshes on a browser
   page or collector restarts).
 - We will not implement a query language or semantics as part of this project.
