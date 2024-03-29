@@ -56,8 +56,7 @@ implementation of this OTEP:
 With that said, the requirements of OTV are as follows:
 
 - An in-memory data store constrained by size and time. For example, a ring
-  buffer. This store can persist to local disk for persistence through collector
-  reboots, but is specifically not designed for long-term storage of data.
+  buffer or simply a list.
 - A web UI that displays data in the store, with user-configurable options for
   grouping, filtering, and sorting data. This UI also should be able to
   visualize metrics appropriately (as a line, bar, or big number chart).
@@ -65,7 +64,8 @@ With that said, the requirements of OTV are as follows:
   the viewing and editing of their configurations.
 - A 'hot reload' function that allows for configuration changes to be applied to
   the underlying collector, so operators can tune OTTL transformations and see
-  the changes immediately.
+  the changes immediately. This requires some level of local persistance (in
+  order to replay changes), but should not be for production use.
 
 ## Internal details
 
