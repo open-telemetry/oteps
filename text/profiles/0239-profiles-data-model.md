@@ -1349,7 +1349,7 @@ sample:
     locations_length: 3
     value:
       - 100
-  - locations_start_index: 4
+  - locations_start_index: 3
     locations_length: 2
     value:
       - 200
