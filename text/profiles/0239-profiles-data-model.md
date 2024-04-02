@@ -1361,8 +1361,8 @@ location_indices:
   - 0 # foo
   - 1 # bar
   - 2 # baz
-  - 4 # abc
-  - 5 # def
+  - 3 # abc
+  - 4 # def
 location:
   - line:
       - function_index: 0 # foo
