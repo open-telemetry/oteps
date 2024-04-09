@@ -42,60 +42,63 @@ The following new composite samplers are proposed.
 
 `AnyOf` is a composite sampler which takes a non-empty list of Samplers (delegates) as the argument. The intention is to make `RECORD_AND_SAMPLE` decision if __any of__ the delegates decides to `RECORD_AND_SAMPLE`.
 
-Upon invocation of its `shouldSample` method, it MUST go through the whole list and invoke `shouldSample` method on each delegate sampler, passing the same arguments as received.
+Upon invocation of its `shouldSample` method, it MUST go through the whole list and invoke `shouldSample` method on each delegate sampler, passing the same arguments as received, and collecting the delegates' sampling Decisions.
 
-`AnyOf` sampler MUST return a `SamplingResult` which is constructed as follows:
+`AnyOf` sampler MUST return a `SamplingResult` with the following elements.
 
-- The sampling Decision is based on the delegate sampling Decisions. If all of the delegate Decisions are `DROP`, the composite sampler MUST return `DROP` Decision as well.
+- If all of the delegate Decisions are `DROP`, the composite sampler MUST return `DROP` Decision as well.
 If any of the delegate Decisions is `RECORD_AND_SAMPLE`, the composite sampler MUST return `RECORD_AND_SAMPLE` Decision.
 Otherwise, if any of the delegate Decisions is `RECORD_ONLY`, the composite sampler MUST return `RECORD_ONLY` Decision.
-- The set of span Attributes to be added to the `Span` is the sum of the sets of Attributes as provided by the delegate samplers within their `SamplingResults`s.
-- The `TraceState` to be used with the new `Span` is obtained by cumulatively applying all the potential modfications of the parent `TraceState` by the delegate samplers, with special handling of the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry as described below.
+- The set of span Attributes to be added to the `Span` is the sum of the sets of Attributes as provided by those delegate samplers which produced a sampling Decision other than `DROP`. In case of conflicting attribute keys, the attribute definition from the last delegate that uses that key takes effect.
+- The `TraceState` to be used with the new `Span` is obtained by cumulatively applying all the potential modfications of the parent `TraceState` by the delegate samplers. In case of conflicting entry keys, the entry definition provided by the last delegate that uses that key takes effect. However, the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry gets special handling as described below.
 
 If the final sampling Decision is `DROP` or `RECORD_ONLY`, the `th` entry MUST be removed.
 If the sampling Decision is `RECORD_AND_SAMPLE`, and there's no `th` entry in any of the `TraceState` provided by the delegates that decided to `RECORD_AND_SAMPLE`, the `th` entry MUST be also removed.
 Otherwise, the resulting `TraceState` MUST contain `th` entry with the `THRESHOLD` value being the minimum of all the `THRESHOLD` values as reported by those delegates that decided to `RECORD_AND_SAMPLE`.
 
-Each delegate sampler MUST be given a chance to participate in the sampling decision as described above and MUST see the same _parent_ state. The order of the delegate samplers does not matter, as long as there's no overlap in the Attribute Keys or the trace state keys (other than `th`) that they use.
+Each delegate sampler MUST be given a chance to participate in the sampling decision as described above and MUST see the same _parent_ state. The resulting sampling Decision does not depend on the order of the delegate samplers.
 
 ### EachOf
 
 `EachOf` is a composite sampler which takes a non-empty list of Samplers (delegates) as the argument. The intention is to make `RECORD_AND_SAMPLE` decision if __each of__ the delegates decides to `RECORD_AND_SAMPLE`.
 
-Upon invocation of its `shouldSample` method, it MUST go through the whole list and invoke `shouldSample` method on each delegate sampler, passing the same arguments as received.
+Upon invocation of its `shouldSample` method, it MUST go through the whole list and invoke `shouldSample` method on each delegate sampler, passing the same arguments as received, and collecting the delegates' sampling Decisions.
 
-`EachOf` sampler MUST return a `SamplingResult` which is constructed as follows:
+`EachOf` sampler MUST return a `SamplingResult` with the following elements.
 
-- The sampling Decision is based on the delegate sampling Decisions. If all of the delegate Decisions are `RECORD_AND_SAMPLE`, the composite sampler MUST return `RECORD_AND_SAMPLE` Decision as well.
+- If all of the delegate Decisions are `RECORD_AND_SAMPLE`, the composite sampler MUST return `RECORD_AND_SAMPLE` Decision as well.
 If any of the delegate Decisions is `DROP`, the composite sampler MUST return `DROP` Decision.
 Otherwise, if any of the delegate Decisions is `RECORD_ONLY`, the composite sampler MUST return `RECORD_ONLY` Decision.
-- The set of span Attributes to be added to the `Span` is the sum of the sets of Attributes as provided by the delegate samplers within their `SamplingResults`s.
-- The `TraceState` to be used with the new `Span` is obtained by cumulatively applying all the potential modfications of the parent `TraceState` by the delegate samplers, with special handling of the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry as described below.
+- If the resulting sampling Decision is `DROP`, the set of span Attributes to be added to the `Span` is empty. Otherwise, it is the sum of the sets of Attributes as provided by the delegate samplers within their `SamplingResults`s. In case of conflicting attribute keys, the attribute definition from the last delegate that uses that key takes effect.
+- The `TraceState` to be used with the new `Span` is obtained by cumulatively applying all the potential modfications of the parent `TraceState` by the delegate samplers. In case of conflicting entry keys, the entry definition provided by the last delegate that uses that key takes effect. However, the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry gets special handling as described below.
 
 If the final sampling Decision is `DROP` or `RECORD_ONLY`, the `th` entry MUST be removed.
-If the sampling Decision is `RECORD_AND_SAMPLE`, and there's no `th` entry in any of the `TraceState` provided by the delegates that decided to `RECORD_AND_SAMPLE`, the `th` entry MUST be also removed.
-Otherwise, the resulting `TraceState` MUST contain `th` entry with the `THRESHOLD` value being the maximum of all the `THRESHOLD` values as reported by those delegates that decided to `RECORD_AND_SAMPLE`.
+If the sampling Decision is `RECORD_AND_SAMPLE`, and there's no `th` entry in any of the `TraceState` provided by the delegates, the `th` entry MUST be also removed.
+Otherwise, the resulting `TraceState` MUST contain `th` entry with the `THRESHOLD` value being the maximum of all the `THRESHOLD` values as reported the delegates.
 
-Each delegate sampler MUST be given a chance to participate in the sampling decision as described above and MUST see the same _parent_ state. The order of the delegate samplers does not matter, as long as there's no overlap in the Attribute Keys or the trace state keys (other than `th`) that they use.
+Each delegate sampler MUST be given a chance to participate in the sampling decision as described above and MUST see the same _parent_ state. The resulting sampling Decision does not depend on the order of the delegate samplers.
 
 ### Conjunction
 
 `Conjunction` is a composite sampler which takes two Samplers (delegates) as the arguments. These delegate samplers will be hereby referenced as First and Second. This kind of composition forms conditional chaining of both samplers. 
 
 Upon invocation of its `shouldSample` method, the Conjunction sampler MUST invoke `shouldSample` method on the First sampler, passing the same arguments as received, and examine the received sampling Decision. Upon receiving `DROP` or `RECORD_ONLY` decision it MUST return the SamplingResult from the First sampler, and it MUST NOT proceed with querying the Second sampler. If the sampling decision from the First sampler is `RECORD_AND_SAMPLE`, the Conjunction sampler MUST invoke `shouldSample` method on the Second sampler, effectively passing the `TraceState` received from the First sampler as the parent trace state.
+
 If the sampling Decision from the Second sampler is `RECORD_AND_SAMPLE`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
 
 - The sampling Decision is `RECORD_AND_SAMPLE`.
-- The set of span Attributes to be added to the `Span` is the sum of the sets of Attributes as provided by the First and the Second sampler.
-- The `TraceState` to be used with the new `Span` is obtained by cumulatively applying the potential modfications from the First and Second sampler, with special handling of the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry as described below.
+- The set of span Attributes to be added to the `Span` is the sum of the sets of Attributes as provided by both samplers.
+- The `TraceState` to be used with the new `Span` is as provided by the Second sampler, with special handling of the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry.
+If the First sampler did not provide `th` entry in the returned `TraceState`, or if the value of the corresponding `THRESHOLD` is not `0`, then the `th` entry MUST be removed from the resulting `TraceState`.
 
-If both First and Second samplers provided `th` entry in the returned `TraceState`, and the value of the `THRESHOLD` from the First sampler is `0`, then the resulting `TraceState` MUST contain `th` entry with the `THRESHOLD`as provided by the Second sampler. Otherwise, the `th` entry MUST be removed.
-
-If the sampling Decision from the Second sampler is `RECORD_ONLY` or `DROP`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
+If the sampling Decision from the Second sampler is `DROP` or `RECORD_ONLY`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
 
 - The sampling Decision is `DROP`.
-- The set of span Attributes to be added to the `Span` is as provided by the First sampler.
-- The `TraceState` to be used with the new `Span` is the `TraceState` provided by the First sampler, but with the `th` entry removed.
+- The set of span Attributes to be added to the `Span` is empty.
+- The `TraceState` to be used with the new `Span` is the `TraceState` provided by the Second sampler, but with the `th` entry removed.
+
+The `Conjunction` sampler can be useful in a special case where the user wants to keep a group of traces, for example belonging to an end user session, together - meaning to make the same sampling decisions for all traces belonging to the group, as much as possible.
+One way of achieving this behavior for consistent probability samplers is to give all traces belonging to the group the same _randomness_ (represented by `r-value`), based on some criteria shared by all traces belonging to the group. This can be done by a special sampler which would provide the required `r-value` for all `ROOT` spans of the involved traces. When using such a sampler as the First delegate for `Conjunction`, this functionality can be encapsulated in a separate sampler, without making any changes to the current SDK specification.
 
 ### RuleBased
 
@@ -196,7 +199,7 @@ S = EachOf(
    )
 ```
 
-### Limitations of composite samplers in approach One
+### Limitations of composite samplers in Approach One
 
 Not all samplers can participate as components of composite samplers without undesired or unexpected effects. Some samplers require that they _see_ each `Span` being created, even if the span is going to be dropped. Some samplers update the trace state or maintain internal state, and for their correct behavior it it is assumed that their sampling decisions will be honored by the tracer at the face value in all cases. A good example for this are rate limiting samplers which have to keep track of the rate of created spans and/or the rate of positive sampling decisions.
 
