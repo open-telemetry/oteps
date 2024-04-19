@@ -69,7 +69,7 @@ Upon invocation of its `shouldSample` method, it MUST go through the whole list 
 - If all of the delegate Decisions are `RECORD_AND_SAMPLE`, the composite sampler MUST return `RECORD_AND_SAMPLE` Decision as well.
 If any of the delegate Decisions is `DROP`, the composite sampler MUST return `DROP` Decision.
 Otherwise, if any of the delegate Decisions is `RECORD_ONLY`, the composite sampler MUST return `RECORD_ONLY` Decision.
-- If the resulting sampling Decision is `DROP`, the set of span Attributes to be added to the `Span` is empty. Otherwise, it is the sum of the sets of Attributes as provided by the delegate samplers within their `SamplingResults`s. In case of conflicting attribute keys, the attribute definition from the last delegate that uses that key takes effect.
+- If the resulting sampling Decision is `DROP`, the set of span Attributes to be added to the `Span` is empty. Otherwise, it is the sum of the sets of Attributes as provided by the delegate samplers within their `SamplingResult`s. In case of conflicting attribute keys, the attribute definition from the last delegate that uses that key takes effect.
 - The `TraceState` to be used with the new `Span` is obtained by cumulatively applying all the potential modfications of the parent `TraceState` by the delegate samplers. In case of conflicting entry keys, the entry definition provided by the last delegate that uses that key takes effect. However, the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry gets special handling as described below.
 
 If the final sampling Decision is `DROP` or `RECORD_ONLY`, the `th` entry MUST be removed.
