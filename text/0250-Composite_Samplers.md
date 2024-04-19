@@ -222,7 +222,6 @@ This is a routine/function/method for all Consistent Probability Samplers. Its p
 The arguments are the same as for [`ShouldSample`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#shouldsample).
 
 - `Context` with parent Span.
-- `TraceId` of the Span to be created.
 - Name of the Span to be created.
 - `SpanKind` of the `Span` to be created.
 - Initial set of Attributes of the Span to be created.
