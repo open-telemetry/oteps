@@ -219,7 +219,7 @@ This is a routine/function/method for all Consistent Probability Samplers. Its p
 
 #### Required Arguments for GetThreshold:
 
-The arguments are the same as for [`ShouldSample`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#shouldsample).
+The arguments are the same as for [`ShouldSample`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#shouldsample) except for the `TraceId`.
 
 - `Context` with parent Span.
 - Name of the Span to be created.
