@@ -87,7 +87,7 @@ Upon invocation of its `shouldSample` method, the Conjunction sampler MUST invok
 If the sampling Decision from the Second sampler is `RECORD_AND_SAMPLE`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
 
 - The sampling Decision is `RECORD_AND_SAMPLE`.
-- The set of span Attributes to be added to the `Span` is the sum of the sets of Attributes as provided by both samplers.
+- The set of span Attributes to be added to the `Span` is the union of the sets of Attributes as provided by both samplers.
 - The `TraceState` to be used with the new `Span` is as provided by the Second sampler, with special handling of the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry.
 If the First sampler did not provide `th` entry in the returned `TraceState`, or if the value of the corresponding `THRESHOLD` is not `0`, then the `th` entry MUST be removed from the resulting `TraceState`.
 
