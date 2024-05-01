@@ -316,7 +316,7 @@ S = ConsistentRateLimiting(
 
 ### Limitations of composite samplers in Approach Two
 
-Making sampling decisions with samplers from Approach Two is more efficient than in Approach One, especially if, platform permitting, `null` values can be used for `GetAttributes` and `GetTraceState` functions to represent the prevailing trivial cases of _no-new-attributes_ and _no-special-trace-state-keys_. The only limitation is that it operates exclusively within the domain of Consistent Probability Sampling (not necessarilly a bad thing).
+Making sampling decisions with samplers from Approach Two is more efficient than in Approach One, especially if, platform permitting, `null` values can be used for `GetAttributes` and `GetTraceState` functions to represent the prevailing trivial cases of _no-new-attributes_ and _no-special-trace-state-keys_. The only limitation is that it operates exclusively within the domain of Consistent Probability Sampling (not necessarily a bad thing).
 
 Developers of Consistent Probability Samplers should consider that the samplers they provide might be used in composite samplers, and that that the sampling Decision they advise might be different from the final sampling Decision.
 
