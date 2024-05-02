@@ -75,6 +75,8 @@ It should be recommended to either use the expression or the constant and only i
 
 Note that those API calls are no-op and will be implemented by the SDK (as we do it with other API methods as well), this way (almost?) no additional overhead will be created by introducing those annotations.
 
+Below you will find details on how the `<SENSITIVITY_DETAILS>` are included in the definitions of attributes in the Semantic Conventions. By pre-loading the details for known attributes in the SDK configuration a call to `span.setAttribute("url.query", url.toString());` can apply the redaction internally. An end user may append/overwrite those details.
+
 ### Semantic Conventions
 
 With the definitions above values in the semantic conventions can be annotated with `<SENSITIVITY_DETAILS>` as outlined above, with the exception that no callback functions can be supplied as redaction rules.
@@ -91,7 +93,7 @@ Example:
 
 The `DROP` keyword means that the value is replaced with `REDACTED` (or set to null, …).
 
-It is the responsibility of the OpenTelemetry SDK to implement those sensitivity details provided by the semantic conventions. This means that an instrumentation library does not need to add `<sensitivityDetails>` when calling an `setAttribute` method or does not need to call the additional `redactAttribute` method as outlined above. An instrumentation library may choose to apply additional redactions (leveraging the OpenTelemetry APIs or doing it before calling `setAttribute` in their own business logic)
+It is the responsibility of the OpenTelemetry SDK to implement those sensitivity details provided by the semantic conventions. This means that an instrumentation library does not need to add `<sensitivityDetails>` when calling an `setAttribute` method or does not need to call the additional `redactAttribute` method as outlined above. An instrumentation library may choose to apply additional redactions (leveraging the OpenTelemetry APIs or doing it before calling `setAttribute` in their own business logic).
 
 ### SDK Configuration of sensitivity requirements
 
@@ -187,6 +189,11 @@ Finally end-users may want to apply recommendations for [Data Minimization](http
 By adding an extra layer of processing every time an attribute value gets set, might have an impact on the performance. There might be ways to reduce that overhead, e.g. by only redacting values which are finalized and ready to exported such that updated values or sampled data does not need to be handled.
 
 ## Prior art and alternatives
+
+### OTEPS
+
+- [OTEP 100 - Sensitive Data Handling](https://github.com/open-telemetry/oteps/pull/100)
+- [OTEP 187 - Data Classification for resources and attributes](https://github.com/open-telemetry/oteps/pull/187)
 
 ### Spec & SemConv Issues
 
