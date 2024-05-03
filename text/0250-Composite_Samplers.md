@@ -13,7 +13,7 @@ The need for configuring head sampling has been explicitly or implicitly indicat
 - issue [1060](https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/1060): Exclude URLs from Tracing
 - issue [1844](https://github.com/open-telemetry/opentelemetry-specification/issues/1844): Composite Sampler
 
-Unfortunately, some of the valuable ideas flowing at the sampling SIG meetings never got recorded at the time of their inception, see the comments under [OTEP 240: A Sampling Configuration proposal](https://github.com/open-telemetry/oteps/pull/240) for some examples.
+Unfortunately, some of the valuable ideas flowing at the sampling SIG meetings never got recorded at the time of their inception, but see [Sampling SIG Research Notes](https://github.com/open-telemetry/oteps/pull/213) or the comments under [OTEP 240: A Sampling Configuration proposal](https://github.com/open-telemetry/oteps/pull/240) for some examples.
 
 ## The Goal
 
