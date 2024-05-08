@@ -35,7 +35,7 @@ As a first building block the OpenTelemetry API needs to provide capability to e
 
 #### API
 
-Every API that sets an attribute consisting of a key and a value, needs to be enhanced by an additional functionality that allows to add details about the potential sensitivity of this data and a hooks how it may be redacted. This can be an additional set of parameters for an existing method or a method that can be called after the attribute has been set, if adding parameters to a method signature would lead to a breaking change.
+Every API that sets an attribute consisting of a key and a value, needs to be enhanced by an additional functionality that allows to add details about the potential sensitivity of this data and hooks for how it may be redacted. This can be an additional set of parameters for an existing method or a method that can be called after the attribute has been set, if adding parameters to a method signature would lead to a breaking change.
 
 An additional method for setting the sensitivity information for a span attribute might look like the following:
 
@@ -264,6 +264,7 @@ There are many solutions outside OpenTelemetry that help to filter or redact sen
 - [GA4 data redaction](https://support.google.com/analytics/answer/13544947?sjid=3336918779004544977-EU)
 - [Configure Privacy Settings in Matamo](https://matomo.org/faq/general/configure-privacy-settings-in-matomo/)
 - [DataDog Sensitive Data Redaction](https://docs.datadoghq.com/observability_pipelines/sensitive_data_redaction/)
+- [Dynatrace data privacy and security configuration](https://docs.dynatrace.com/docs/shortlink/global-privacy-settings)
 
 ## Open questions
 
