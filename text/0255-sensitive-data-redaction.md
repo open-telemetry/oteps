@@ -156,7 +156,7 @@ Example:
 | `client.address`|                    | Rationale: some reasons why dropping octets may be required<br>Type: `maybe_pii`<br>`DEFAULT`: `NONE`<br>`STRICT`: `'s/([0-9]+\.[0-9]+\.[0-9]+\.)[0-9]+/\10/'`<br>`STRICTER`: `'s/([0-9]+\.[0-9]+\.)[0-9]+\.[0-9]+/\10.0/'` |
 | `enduser.creditCardNumber`**[1]** |     | Rationale: ...<br>Type: `always_pii`<br>DEFAULT: `EXTRACT_IIN`<br>`STRICT`: `DROP`|
 
-**[1]**: _This is a made-up example for demonstration purpose, it’s not part of the current semantic conventions. It gives a more nuanced example, e.g. that extracting the IIN might be an option over dropping the number completely. It also demonstrated the value of “type”, which can enable Data lineage use cases_
+**[1]**: _This is a made-up example for demonstration purpose, it’s not part of the current semantic conventions. It gives a more nuanced example, e.g. that extracting the Issuer Identification Number (IIN) might be an option over dropping the number completely. It also demonstrated the value of “type”, which can enable Data lineage use cases_
 
 The `DROP` keyword means that the value is replaced with `REDACTED` (or set to null, …).
 
