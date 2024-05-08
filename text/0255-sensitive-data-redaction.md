@@ -70,7 +70,7 @@ two pieces:
 
 * Redaction requirement "configuration profiles", that end user use to express
   their overall redaction requirements.
-* Fine grained configuration that can be used to express requirements that are 
+* Fine grained configuration that can be used to express requirements that are
   unique to their environment.
 
 **Example**: An end user may configure an application with "stricter" requirements
@@ -107,7 +107,7 @@ that cover common configurations:
   data is exposed, only limited PII-related redactions are applied.
 - `STRICT`: A set that builds on top of `DEFAULT` and also applies commonly required
   PII-related redactions (anonymize emails, names, IPs, etc)
-  `STRICTER`: A set that builds on top of `STRICT` and applies even more redactions, 
+  `STRICTER`: A set that builds on top of `STRICT` and applies even more redactions,
   e.g. drop all query attribute values, drop PII-related data, etc.
 - `DROP` or `ALWAYS`: All values with (potentially) sensitivity details will be dropped
 
@@ -339,7 +339,7 @@ The following solutions for OpenTelemetry already exist:
 
 ### Alternative 0: Do nothing
 
-It’s always good to analyze this option. If we do nothing end users will still 
+It’s always good to analyze this option. If we do nothing end users will still
 need to satisfy their requirements for treating sensitive data accordingly:
 
 - Instrumentation library authors are required to manage redaction before using the OpenTelemetry API
