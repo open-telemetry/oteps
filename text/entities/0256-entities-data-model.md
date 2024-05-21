@@ -75,18 +75,17 @@ We propose a new concept of Entity.
 Entity represents an object of interest associated with produced telemetry:
 traces, metrics or logs.
 
-The Entity that produces the telemetry is called the Producing Entity. For example
-telemetry produced using OpenTelemetry SDK is normally associated with a Service.
-The Service is the Producing Entity. Similarly, OpenTelemetry defines system metrics
-for a host. The Host is the Producing Entity in this case.
+For example telemetry produced using OpenTelemetry SDK is normally associated with
+a Service. Similarly, OpenTelemetry defines system metrics for a host. The Host is the
+entity we want to associate metrics with in this case.
 
-Entities may be also associated with produced telemetry indirectly, typically by
-virtue of being related to the Producing Entity. For example a Service that produces
+Entities may be also associated with produced telemetry indirectly. 
+For example a Service that produces
 telemetry is also related with a process in which the Service runs, so we say that
 the Service entity is related to the Process entity. The process normally also runs
 on a host, so we say that the Process entity is related to the Host entity.
 
-Note: subsequent OTEPs will define how the Producing Entity is associated with
+Note: subsequent OTEPs will define how the entities are associated with
 traces, metrics and logs and how relations between entities will be specified.
 See [Future Work](#future-work).
 
