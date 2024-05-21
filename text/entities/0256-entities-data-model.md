@@ -79,7 +79,7 @@ For example telemetry produced using OpenTelemetry SDK is normally associated wi
 a Service. Similarly, OpenTelemetry defines system metrics for a host. The Host is the
 entity we want to associate metrics with in this case.
 
-Entities may be also associated with produced telemetry indirectly. 
+Entities may be also associated with produced telemetry indirectly.
 For example a Service that produces
 telemetry is also related with a process in which the Service runs, so we say that
 the Service entity is related to the Process entity. The process normally also runs
