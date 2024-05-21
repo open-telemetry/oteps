@@ -153,13 +153,13 @@ conventions</a> for attributes.
 
 ### Minimally Sufficient Id
 
-Often a number of attributes of an entity is readily available for the telemetry
+Often a number of attributes of an entity are readily available for the telemetry
 producer to compose an Id from. Of the available attributes the Entity Id should
 include the minimal set of attributes that is sufficient for uniquely identifying
 that entity. No superfluous attributes should be included in the Id set. For example
-a Process on a host can be uniquely identified by `process.id` attribute. Adding for
-example `process.executable.name` attribute to the Id is unnecessary and violates the
-Minimally Sufficient Id rule.
+a Process on a host can be uniquely identified by (`process.pid`,`process.start_time`)
+attributes. Adding for example `process.executable.name` attribute to the Id is
+unnecessary and violates the Minimally Sufficient Id rule.
 
 ### Examples of Entities
 
