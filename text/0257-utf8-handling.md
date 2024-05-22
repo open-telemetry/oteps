@@ -15,7 +15,7 @@ rely on OpenTelemetry software/systems.
 OpenTelemetry has existing [error handling
 guidelines](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/error-handling.md)
 which dictate the project's general posture towards handling.  Users
-expect telemety libraries to be harmless and safe to use, so that they
+expect telemetry libraries to be harmless and safe to use, so that they
 can confidently instrument their application without unnecessary risk.
 
 > The API and SDK SHOULD provide safe defaults for missing or invalid arguments.
@@ -50,7 +50,7 @@ nothing about this problem.
 
 This document also proposes to extend the OpenTelemetry API to support
 byte-slice valued attributes.  Otherwise, users have no good
-alterntives to handling this kind of data, which is often how invalid
+alternatives to handling this kind of data, which is often how invalid
 UTF-8 arises.
 
 ## Internal details
