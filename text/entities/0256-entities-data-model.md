@@ -76,7 +76,7 @@ Entity represents an object of interest associated with produced telemetry:
 traces, metrics or logs.
 
 For example telemetry produced using OpenTelemetry SDK is normally associated with
-a Service. Similarly, OpenTelemetry defines system metrics for a host. The Host is the
+a Service entity. Similarly, OpenTelemetry defines system metrics for a host. The Host is the
 entity we want to associate metrics with in this case.
 
 Entities may be also associated with produced telemetry indirectly.
@@ -106,7 +106,7 @@ format and encoding of how entity data is recorded).
     </td>
     <td>string
     </td>
-    <td>Defines the type of the Entity. MUST not change during the
+    <td>Defines the type of the entity. MUST not change during the
 lifetime of the entity. For example: "service" or "host". This field is
 required and MUST not be empty for valid entities.
     </td>
@@ -116,9 +116,9 @@ required and MUST not be empty for valid entities.
     </td>
     <td>key/value pair list
     </td>
-    <td>A set of attributes that identifies the Entity.
+    <td>A set of attributes that identifies the entity.
 <p>
-MUST not change during the lifetime of the Entity. The Id must contain
+MUST not change during the lifetime of the entity. The Id must contain
 at least one attribute.
 <p>
 Follows OpenTelemetry <a
@@ -133,10 +133,10 @@ conventions</a> for attributes.
     </td>
     <td>key/value pair list
     </td>
-    <td>A set of descriptive (non-identifying) attributes of the Entity.
+    <td>A set of descriptive (non-identifying) attributes of the entity.
 <p>
 MAY change over the lifetime of the entity. MAY be empty. These
-attributes are not part of Entity's identity.
+attributes are not part of entity's identity.
 <p>
 “value” follows <a
 href="https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#type-any">any</a>
@@ -154,7 +154,7 @@ conventions</a> for attributes.
 ### Minimally Sufficient Id
 
 Often a number of attributes of an entity are readily available for the telemetry
-producer to compose an Id from. Of the available attributes the Entity Id should
+producer to compose an Id from. Of the available attributes the entity Id should
 include the minimal set of attributes that is sufficient for uniquely identifying
 that entity. No superfluous attributes should be included in the Id set. For example
 a Process on a host can be uniquely identified by (`process.pid`,`process.start_time`)
@@ -168,7 +168,7 @@ the data model._
 
 Here are examples of entities, the typical identifying attributes they
 have and some examples of non-identifying attributes that may be
-associated with the Entity.
+associated with the entity.
 
 <table>
    <tr>
@@ -245,13 +245,13 @@ See more examples showing nuances of ID field composition in the
 ## Entity Events
 
 Information about Entities can be produced and communicated using 2
-types of Entity events: EntityState and EntityDelete.
+types of entity events: EntityState and EntityDelete.
 
 ### EntityState Event
 
-The EntityState event stores information about the _state_ of the Entity
+The EntityState event stores information about the _state_ of the entity
 at a particular moment of time. The data model of the EntityState event
-is the same as the Entity Data model with some extra fields:
+is the same as the entity data model with some extra fields:
 
 <table>
    <tr>
@@ -312,23 +312,23 @@ is unknown.
    </tr>
 </table>
 
-We say that an Entity mutates (changes) when one or more of its
+We say that an entity mutates (changes) when one or more of its
 descriptive attributes changes. A new descriptive attribute may be
 added, an existing descriptive attribute may be deleted or a value of an
 existing descriptive attribute may be changed. All these changes
-represent valid mutations of an Entity over time. When these mutations
-happen the identity of the Entity does not change.
+represent valid mutations of an entity over time. When these mutations
+happen the identity of the entity does not change.
 
 When the entity's state is changed it is expected that the source will
 emit a new EntityState event with a fresh timestamp and full list of
 values of all other fields.
 
 Entity event producers are recommended to periodically emit events even
-if the Entity does not change. In this case the Type, Id and Attribute
+if the entity does not change. In this case the Type, Id and Attribute
 fields will remain the same, but a fresh Timestamp will be recorded in
 the event. Producing such events allows the system to be resilient to
 event losses. Even if some events are lost eventually the correct state
-of the Entity is more likely to be delivered to the final destination.
+of the entity is more likely to be delivered to the final destination.
 Periodic sending of EntityState events also serves as a liveliness
 indicator (see below how it can be used in lieu of EntityDelete event).
 
@@ -407,7 +407,7 @@ The GID of an entity E is defined as:
 `GID(E) = { LID(E), GID(IDCONTEXT(E)) }`
 
 Where `IDCONTEXT(E)` is the identification context in which the LID of entity E is unique.
-The value of `IDCONTEXT(E)` is an Entity itself, and thus we can compute the GID value of it too.
+The value of `IDCONTEXT(E)` is an entity itself, and thus we can compute the GID value of it too.
 
 In other words, the GID of an entity is a union of its LID and the GID of its
 identification context. Note: GID(E) is a flat set of key/value attributes.
@@ -604,7 +604,7 @@ A set of prototypes that demonstrate this data model has been implemented:
 
 An experimental entity data model was implemented in OpenTelemetry Collector as described
 in [this document](https://docs.google.com/document/d/1Tg18sIck3Nakxtd3TFFcIjrmRO_0GLMdHXylVqBQmJA/edit).
-The Collector's design uses LogRecord as the carrier of Entity events, with logical structure
+The Collector's design uses LogRecord as the carrier of entity events, with logical structure
 virtually identical to what this OTEP proposes.
 
 There is also an implementation of this design in the Collector, see
@@ -637,12 +637,12 @@ following reasons:
 Entity signal allows recording the state of the entities. As the entity's state changes
 events are emitted that describe the new state. In this proposal the entity's state is
 (type,id,attributes) tuple, but we envision that in the future we may also want to add
-more information to the Entity signal, particularly to record the relationships between
+more information to the entity signal, particularly to record the relationships between
 entities (i.e the fact that a Process runs on a Host).
 
 ### Merge Entity Events data into Resource
 
-If we eliminate the Entity signal as a concept and put the entire entity's state into
+If we eliminate the entity signal as a concept and put the entire entity's state into
 the Resource then every time the entity's state changes we must emit one of
 ResourceLogs/ResourceSpans/ResourceMetrics messages that includes the Resource that
 represents the entity's state.
