@@ -62,8 +62,8 @@ to entities.
 
 - We cannot make an assumption that the entirety of information that is necessary for
   global identification of an entity is available at once, in one place. This knowledge
-  may be distributed across multiple participants and needs to be combined to form a
-  globally unique identifier.
+  may be distributed across multiple participants and needs to be combined to form an
+  identifier that is globally unique.
 
 - Semantic conventions must bring as much order as possible to telemetry, however they
   cannot be too rigid and prevent real-world use cases.
