@@ -323,7 +323,7 @@ When the entity's state is changed it is expected that the source will
 emit a new EntityState event with a fresh timestamp and full list of
 values of all other fields.
 
-Entity event producers are recommended to periodically emit events even
+Entity event producers SHOULD periodically emit events even
 if the entity does not change. In this case the Type, Id and Attribute
 fields will remain the same, but a fresh Timestamp will be recorded in
 the event. Producing such events allows the system to be resilient to
@@ -372,8 +372,8 @@ the origin clock. The field is required.
    </tr>
 </table>
 
-Note that EntityDelete is optional and is not guaranteed to be sent when
-the entity is gone. Recipients of entity signals should be prepared to
+Note that transmitting EntityDelete is not guaranteed
+when the entity is gone. Recipients of entity signals need to be prepared to
 handle this situation by expiring entities that are no longer seeing
 EntityState events reported (i.e. treat the presence of EntityState
 events as a liveliness indicator).
@@ -404,7 +404,7 @@ in a particular telemetry store no 2 entities exist that have the same GID value
 
 The GID of an entity E is defined as:
 
-`GID(E) = { LID(E), GID(IDCONTEXT(E)) }`
+`GID(E) = UNION( LID(E), GID(IDCONTEXT(E)) )`
 
 Where `IDCONTEXT(E)` is the identification context in which the LID of entity E is unique.
 The value of `IDCONTEXT(E)` is an entity itself, and thus we can compute the GID value of it too.
@@ -511,7 +511,7 @@ container. If we begin with the same process LID:
 }
 ```
 
-the Collector will then add the IDCONTEXT of container and of
+the Collector will then add the IDCONTEXT of container and
 pod to this, resulting in:
 
 ```json5
