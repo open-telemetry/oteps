@@ -75,13 +75,13 @@ We propose a new concept of Entity.
 Entity represents an object of interest associated with produced telemetry:
 traces, metrics or logs.
 
-For example telemetry produced using OpenTelemetry SDK is normally associated with
+For example, telemetry produced using OpenTelemetry SDK is normally associated with
 a Service entity. Similarly, OpenTelemetry defines system metrics for a host. The Host is the
 entity we want to associate metrics with in this case.
 
 Entities may be also associated with produced telemetry indirectly.
-For example a Service that produces
-telemetry is also related with a process in which the Service runs, so we say that
+For example a service that produces
+telemetry is also related with a process in which the service runs, so we say that
 the Service entity is related to the Process entity. The process normally also runs
 on a host, so we say that the Process entity is related to the Host entity.
 
@@ -114,9 +114,9 @@ required and MUST not be empty for valid entities.
    <tr>
     <td>Id
     </td>
-    <td>key/value pair list
+    <td>map&lt;string, attribute&gt;
     </td>
-    <td>A set of attributes that identifies the entity.
+    <td>Attributes that identify the entity.
 <p>
 MUST not change during the lifetime of the entity. The Id must contain
 at least one attribute.
@@ -131,14 +131,14 @@ conventions</a> for attributes.
    <tr>
     <td>Attributes
     </td>
-    <td>key/value pair list
+    <td>map&lt;string, any&gt;
     </td>
-    <td>A set of descriptive (non-identifying) attributes of the entity.
+    <td>Descriptive (non-identifying) attributes of the entity.
 <p>
 MAY change over the lifetime of the entity. MAY be empty. These
 attributes are not part of entity's identity.
 <p>
-“value” follows <a
+Follows <a
 href="https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#type-any">any</a>
 value definition in the OpenTelemetry spec - it can be a scalar value,
 byte array, an array or map of values. Arbitrary deep nesting of values
@@ -153,7 +153,7 @@ conventions</a> for attributes.
 
 ### Minimally Sufficient Id
 
-Often a number of attributes of an entity are readily available for the telemetry
+Commonly, a number of attributes of an entity are readily available for the telemetry
 producer to compose an Id from. Of the available attributes the entity Id should
 include the minimal set of attributes that is sufficient for uniquely identifying
 that entity. No superfluous attributes should be included in the Id set. For example
@@ -239,7 +239,7 @@ container.name
    </tr>
 </table>
 
-See more examples showing nuances of ID field composition in the
+See more examples showing nuances of Id field composition in the
 [Entity Identification](#entity-identification) section.
 
 ## Entity Events
@@ -387,8 +387,8 @@ it can consider the entity to be gone even if the EntityDelete event was not obs
 
 _This section is a supplementary guideline and is not part of logical data model._
 
-The data model defines the structure of the entity ID field. This section explains
-how the ID field is computed.
+The data model defines the structure of the entity Id field. This section explains
+how the Id field is computed.
 
 ### LID, GID and IDCONTEXT
 
@@ -410,11 +410,11 @@ Where `IDCONTEXT(E)` is the identification context in which the LID of entity E 
 The value of `IDCONTEXT(E)` is an entity itself, and thus we can compute the GID value of it too.
 
 In other words, the GID of an entity is a union of its LID and the GID of its
-identification context. Note: GID(E) is a flat set of key/value attributes.
+identification context. Note: GID(E) is a map of key/value attributes.
 
 The enrichment process often is responsible for determining the value of `IDCONTEXT(E)`
 and for computing the GID according to the formula defined above, although the GID may
-also be produced at once by the telemetry source (e.g. by Otel SDK) without requiring
+also be produced at once by the telemetry source (e.g. by OTel SDK) without requiring
 any additional enrichment.
 
 ### Semantic Conventions
@@ -422,8 +422,8 @@ any additional enrichment.
 OpenTelemetry semantic conventions will be enhanced to include entity definitions for
 well-known entities such as Service, Process, Host, etc.
 
-For well-known entity types LID(E) is defined in Otel semantic conventions per
-entity type. The value of LID is a flat set of key/value attributes. For example,
+For well-known entity types LID(E) is defined in OTel semantic conventions per
+entity type. The value of LID is a map of key/value attributes. For example,
 for entity of type "process" the semantic conventions define LID as 2 attributes:
 
 ```json5
@@ -433,7 +433,7 @@ for entity of type "process" the semantic conventions define LID as 2 attributes
 }
 ```
 
-For custom entity types (not defined in Otel semantic conventions) the end-user is
+For custom entity types (not defined in OTel semantic conventions) the end-user is
 responsible for defining their custom semantic conventions in a similar way.
 
 The entity information producer is responsible for determining the identification
@@ -445,7 +445,8 @@ always exist in the identifying context of a Kubernetes cluster. The semantic co
 for "k8s.node" and "k8s.cluster" can prescribe that the IDCONTEXT of entity of type
 "k8s.node" is always an entity of type "k8s.cluster".
 
-Important: semantic conventions can NEVER prescribe the complete GID composition.
+Important: semantic conventions are not expected to (and normally won't) prescribe
+the complete GID composition.
 Semantic conventions SHOULD prescribe LID and MAY prescribe IDCONTEXT, but GID
 composition, generally speaking, cannot be known statically.
 
@@ -461,7 +462,7 @@ data.center.id as its identifier and use (`host.id`, `data.center.id`) as GID of
 
 #### Process in a Host
 
-A locally running host agent (an Otel Collector) that produces
+A locally running host agent (e.g. an OTel Collector) that produces
 information about "process" entities has the knowledge that the
 processes run in the particular host and thus the "host" is the
 identification context for the processes that the agent observes. The
@@ -497,7 +498,7 @@ unique. See for example the
 
 #### Process in Kubernetes
 
-A Kubernetes Collector that produces information about process entities
+An OTel Collector (running in Kubernetes) that produces information about process entities
 has the knowledge that the processes run in the particular containers in
 the particular pod and thus the container is the identification context
 for the process, and the pod is the identification context for the
@@ -510,7 +511,7 @@ container. If we begin with the same process LID:
 }
 ```
 
-the Kubernetes Collector will then add the IDCONTEXT of container and of
+the Collector will then add the IDCONTEXT of container and of
 pod to this, resulting in:
 
 ```json5
@@ -530,7 +531,7 @@ pod to this, resulting in:
 ```
 
 Note that we used 3 different LIDs above to compose the GID. The
-attributes that are part of each LID are defined in Otel semantic
+attributes that are part of each LID are defined in OTel semantic
 conventions.
 
 In this example we assume this to be a valid GID because Pod is the root
@@ -575,7 +576,7 @@ the host instance id, unique within a single cloud account, e.g.:
 }
 ```
 
-Otel Collector with
+OTel Collector with
 [resourcedetection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor)
 processor with "aws" detector enabled will add the IDCONTEXT of the
 cloud account like this:
@@ -618,14 +619,14 @@ that implements entity event emitting for k8scluster receiver in the Collector.
 
 Alternative proposals were made [here](https://docs.google.com/document/d/1PLPSAnWvFWCsm6meAj6OIVDBvxsk983V51WugF0NgVo/edit) and  
 [here](https://docs.google.com/document/d/1bLmkQSv35Fi6Wbe4bAqQ-_JS7XWIXWbvuirVmAkz4a4/edit)
-to use a different structure for entity ID field.
+to use a different structure for entity Id field.
 
-We rejected these proposals in favour of the ID field proposed in this OTEP for the
+We rejected these proposals in favour of the Id field proposed in this OTEP for the
 following reasons:
 
-- The flat set of key/value attributes is widely used elsewhere in OpenTelemetry as
+- The map of key/value attributes is widely used elsewhere in OpenTelemetry as
   Resource attributes, as Scope attributes, as Metric datapoint attributes, etc. so
-  it is conceptually consistent with the rest of Otel.
+  it is conceptually consistent with the rest of OTel.
 
 - We already have a lot of machinery that works well with this definition of attributes,
   for example OTTL language has syntax for working with attributes, or Collector's pdata
@@ -738,7 +739,7 @@ Here is corresponding
 
 Is the Type field part of the entity's identity together with the Id field?
 
-For example let's assume we have a Host and an Otel Collector running on the Host.
+For example let's assume we have a Host and an OTel Collector running on the Host.
 The Host's Id will contain one attribute: `host.id`, and the Type of the entity will be
 "host". The Collector technically speaking can be also identified by one attribute
 `host.id` and the Type of the entity will be "otel.collector". This only works if we
