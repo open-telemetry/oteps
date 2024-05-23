@@ -156,7 +156,7 @@ conventions</a> for attributes.
 Commonly, a number of attributes of an entity are readily available for the telemetry
 producer to compose an Id from. Of the available attributes the entity Id should
 include the minimal set of attributes that is sufficient for uniquely identifying
-that entity. No superfluous attributes should be included in the Id set. For example
+that entity. For example
 a Process on a host can be uniquely identified by (`process.pid`,`process.start_time`)
 attributes. Adding for example `process.executable.name` attribute to the Id is
 unnecessary and violates the Minimally Sufficient Id rule.
