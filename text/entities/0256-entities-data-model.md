@@ -385,8 +385,6 @@ it can consider the entity to be gone even if the EntityDelete event was not obs
 
 ## Entity Identification
 
-_This section is a supplementary guideline and is not part of logical data model._
-
 The data model defines the structure of the entity Id field. This section explains
 how the Id field is computed.
 
@@ -440,14 +438,14 @@ The entity information producer is responsible for determining the identificatio
 context of each entity it is producing information about.
 
 In certain cases, where only one possible IDCONTEXT definition is meaningful, the
-IDCONTEXT MAY be defined in the semantic conventions. For example Kubernetes nodes
+IDCONTEXT may be defined in the semantic conventions. For example Kubernetes nodes
 always exist in the identifying context of a Kubernetes cluster. The semantic convention
 for "k8s.node" and "k8s.cluster" can prescribe that the IDCONTEXT of entity of type
 "k8s.node" is always an entity of type "k8s.cluster".
 
 Important: semantic conventions are not expected to (and normally won't) prescribe
 the complete GID composition.
-Semantic conventions SHOULD prescribe LID and MAY prescribe IDCONTEXT, but GID
+Semantic conventions should prescribe LID and may prescribe IDCONTEXT, but GID
 composition, generally speaking, cannot be known statically.
 
 For example: a host's LID should be a `host.id` attribute. A host running on a cloud
@@ -459,6 +457,8 @@ of just (`host.id`) or if a customer has multiple on prem data centers they may 
 data.center.id as its identifier and use (`host.id`, `data.center.id`) as GID of the host.
 
 ### Examples
+
+_This section is a supplementary guideline and is not part of logical data model._
 
 #### Process in a Host
 
