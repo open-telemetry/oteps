@@ -15,7 +15,7 @@ messaging systems, and others, but there are no requirements for
 inter-process context propagation, although there is considerable
 ad-hoc propagation being done using environment variables today (see [Prior Art](#prior-art)).
 This OTEP is to formalize a standard based on the existing informal
-concensus.
+consensus.
 
 These are some examples of batch and system use cases that could
 benefit from this standardization:
@@ -33,7 +33,6 @@ benefit from this standardization:
 To propagate context from a parent process to a child process,
 instrumentation can use environment variable(s) with upper-cased variable names
 as a carrier for the TextMapPropagator:
-
 
 ```
   +----------------+
@@ -110,7 +109,7 @@ and Windows systems.
 #### Prior art
 
 There is significant ad-hoc context propagation being done using environment
-variables today, and it almost soley uses upper-cased environment variable
+variables today, and it almost solely uses upper-cased environment variable
 names (in particular, `TRACEPARENT` and `TRACESTATE`; see [PriorArt](#prior-art)).
 
 #### Programming conventions
@@ -119,9 +118,7 @@ Common UNIX conventions usually reserve lower-case variable names for use in
 application programs and upper-case for environment variables:
 
 > **Constants and Environment Variable Names**
-> 
 > All caps, separated with underscores, declared at the top of the file.
-> 
 > Constants and anything exported to the environment should be capitalized.
 
 Source: [Google, Shell Style Guide, Variable Names](https://google.github.io/styleguide/shellguide.html#s7.3-constants-and-environment-variable-names)
@@ -201,9 +198,10 @@ The characters allowed in keys by the TextMapPropagator are all allowed as envir
 #### OpenTelemetry TextMapPropagator
 
 Allowed characters in keys and values, in short:
->  "!" / "#" / "$" / "%" / "&" / "'" / "*"
->  / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
->  / DIGIT / ALPHA
+
+> "!" / "#" / "$" / "%" / "&" / "'" / "*"
+> / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+> / DIGIT / ALPHA
 
 Details below.
 
@@ -212,24 +210,23 @@ Details below.
 
 Source: [OpenTelemetry Specification, API Propagators, TextMapPropagator](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/context/api-propagators.md#textmap-propagator)
 
->     header-field   = field-name ":" OWS field-value OWS
->
->     field-name     = token
+> header-field   = field-name ":" OWS field-value OWS
+> field-name     = token
 
 Source: [RFC 7230, section 3.2](https://datatracker.ietf.org/doc/html/rfc7230#section-3.2)
 
->   Most HTTP header field values are defined using common syntax
->   components (token, quoted-string, and comment) separated by
->   whitespace or specific delimiting characters.  Delimiters are chosen
->   from the set of US-ASCII visual characters not allowed in a token
->   (DQUOTE and "(),/:;<=>?@[\]{}").
+> Most HTTP header field values are defined using common syntax
+> components (token, quoted-string, and comment) separated by
+> whitespace or specific delimiting characters.  Delimiters are chosen
+> from the set of US-ASCII visual characters not allowed in a token
+> (DQUOTE and "(),/:;<=>?@[\]{}").
 >
->     token          = 1*tchar
+> token          = 1*tchar
 >
->     tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
->                    / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
->                    / DIGIT / ALPHA
->                    ; any VCHAR, except delimiters
+> tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+> / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+> / DIGIT / ALPHA
+> ; any VCHAR, except delimiters
 
 Source: [RFC 7230, section 3.2.6](https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.6)
 
@@ -243,7 +240,7 @@ Summary: The [Portable Character Set](https://pubs.opengroup.org/onlinepubs/7908
 > indicated below). There is no meaning associated with the order of strings in
 > the environment. If more than one string in a process' environment has the
 > same name the consequences are undefined.
-> 
+>
 > Environment variable names used by the utilities in the XCU specification
 > consist solely of upper-case letters, digits and the "_" (underscore) from
 > the characters defined in Portable Character Set. Other characters may be
@@ -260,7 +257,7 @@ Summary: Windows only disallows the "=" sign, which is not an allowed charater i
 
 Source: [Microsoft, Win32, Processes and Threads, Environment Variables](https://learn.microsoft.com/en-us/windows/win32/procthread/environment-variables)
 
-> The maximum size of a user-defined environment variable is 32,767 characters. 
+> The maximum size of a user-defined environment variable is 32,767 characters.
 
 Source: [Microsoft, Win32, Processes and Threads, Environment Variables](https://learn.microsoft.com/en-us/windows/win32/procthread/environment-variables)
 
@@ -276,7 +273,7 @@ will not violate any of the MUSTs by **not** preserving casing in our `Set` and
 > Content-Type to content-type) if the used protocol is case insensitive,
 > otherwise it MUST preserve casing.
 
--- https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/context/api-propagators.md#set
+-- [API Propagators - Set](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/context/api-propagators.md#set)
 
 > Get
 > ...
@@ -284,7 +281,7 @@ will not violate any of the MUSTs by **not** preserving casing in our `Set` and
 > is intended to work with a HTTP request object, the getter MUST be case
 > insensitive.
 
--- https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/context/api-propagators.md#get
+-- [API Propagators - Get](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/context/api-propagators.md#get)
 
 ## Trade-offs and mitigations
 
@@ -340,7 +337,7 @@ specification. There are two overriding reasons to use upper-cased
 variable names, however:
 
 1. Windows environment variables are case-insensitive.
-2. Significant prior art overwhelmingly uses upper-cased environment variables. 
+2. Significant prior art overwhelmingly uses upper-cased environment variables.
 
 #### Using a file for the carrier
 
@@ -351,8 +348,7 @@ number of issues:
 
 1. Would introduce an out-of-band file that would need to be created and reliably cleaned up.
 2. Managing permissions on the file might be non-trivial in some circumstances (for example, if `sudo` is used).
-3. This would deviate from significant prior art that currently uses environment variables. 
-
+3. This would deviate from significant prior art that currently uses environment variables.
 
 ## Open questions
 
