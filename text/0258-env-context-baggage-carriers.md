@@ -9,11 +9,16 @@ processes.
 * [Motivation](#motivation)
 * [Explanation](#explanation)
 * [Internal Details](#internal-details)
-    * [UNIX](#unix)
-    * [Windows](#windows)
-    * [Allowed Characters](#allowed-characters)
+  * [UNIX](#unix)
+  * [Windows](#windows)
+  * [Allowed Characters](#allowed-characters)
 * [Trade-offs and Mitigations](#trade-offs-and-mitigations
+  * [Case-sensitivity](#case-sensitivity)
+  * [Security](#security)
 * [Prior Art and Alternatives](#prior-art-and-alternatives)
+  * [Alternatives and why they were not chosen](#alternatives-and-why-they-were-not-chosen)
+* [Open Questions](#open-questions)
+* [Future Possibilities](#future-possibilities)
 
 ## Motivation
 
@@ -86,7 +91,7 @@ OpenTofu trace below.
 
 Additionally, the `init` span is able to pass baggage to the `plan` and `apply`
 spans. One example of this is module version and repository information. This
-information is only determined and known during the `init` process. Subsiquent
+information is only determined and known during the `init` process. Subsequent
 processes only know about the module by name. With `BAGGAGE` the rest of the
 proccesses are able to understand a key piece of information which allows
 errors to be tied back to original module version and source code.
@@ -141,7 +146,6 @@ recommendation to be upper-cased across OS.
 Some languages already do this. This [CPython issue][cpython] discusses how
 Python automatically upper-cases environment variables. The issue was merged and
 this [documentation][cpython-doc] was added to clarify the behavior.
-
 
 [cpython]: https://github.com/python/cpython/issues/101754
 [cpython-doc]: https://docs.python.org/3/library/os.html#os.environ
