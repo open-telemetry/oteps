@@ -12,7 +12,7 @@ processes.
   * [UNIX](#unix)
   * [Windows](#windows)
   * [Allowed Characters](#allowed-characters)
-* [Trade-offs and Mitigations](#trade-offs-and-mitigations
+* [Trade-offs and Mitigations](#trade-offs-and-mitigations)
   * [Case-sensitivity](#case-sensitivity)
   * [Security](#security)
 * [Prior Art and Alternatives](#prior-art-and-alternatives)
