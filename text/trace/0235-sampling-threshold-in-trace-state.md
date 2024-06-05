@@ -1,4 +1,4 @@
-# Sampling Threshold Propagation in TraceState
+# Consistent Probability Sampling with Support for Arbitrary Sampling Rates
 
 ## Abstract
 
@@ -6,29 +6,66 @@ Sampling is an important lever to reduce the costs associated with collecting an
 
 There are two key aspects for sampling of tracing data. The first is that sampling decisions can be made independently for *each* span in a trace. The second is that sampling decisions can be made at multiple points in the telemetry pipeline. For example, the sampling decision for a span at span creation time could have been to **keep** that span, while the downstream sampling decision for the *same* span at a later stage (say in an external process in the data collection pipeline) could be to **drop** it.
 
-For each of the above aspects, we want sampling decisions to be made in a **consistent** manner so that we can effectively reason about a trace. This OTEP describes a mechanism to achieve such consistent sampling decisions using a mechanism called **Consistent Probability Sampling**. To achieve this, it proposes a mechanism for a common random value (R) and a rejection threshold (T) that is based on a participant's sampling rate. This proposal describes how these values should be propagated and how participants should use them to make sampling decisions.
+For each of the above aspects, if we don't make *consistent* sampling decisions, we will end up with traces that are unusable and don't contain a coherent set of spans because of the completely independent sampling decisions. Instead, we want sampling decisions to be made in a **consistent** manner so that we can effectively reason about a trace.  This OTEP describes a mechanism to achieve such consistent sampling decisions using a mechanism called **Consistent Probability Sampling**. To achieve this, it proposes two key building blocks. The first is a common source of randomness (R) that is available to all participants. This can either be a custom value (called `rv`) or can be based on the last 7 bytes of the traceid. The second is a concept of a rejection threshold (T). This is derived directly from a participant's sampling rate. This proposal describes how these two values should be propagated and how participants should use them to make sampling decisions.
 
 This mechanism will enable creating a new set of samplers (known as Consistent Probability Samplers) that will enable trace participants to choose their own sampling rates, while still achieving consistent sampling decisions. This OTEP ensures that such samplers will interoperate with existing (non consistent probability) samplers.
 
 ## Motivation
 
-Customers want to express arbitrary sampling probabilities such as 1%, 10%, and 75%. However, the existing experimental [specification for probability sampling using TraceState](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/tracestate-probability-sampling.md) optimizes for powers of two probabilities. It supports non power of two sampling only using interpolation between powers of two. This approach is unnecessarily restrictive. Hence, we need an updated mechanism to support specifying any sampling probability.
+Customers want to express arbitrary sampling probabilities such as 1%, 10%, and 75%. However, the existing experimental [specification for probability sampling using TraceState](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/tracestate-probability-sampling.md) optimizes for powers of two probabilities. It supports non power of two sampling only using interpolation between powers of two. Since this approach is unnecessarily restrictive, we need an updated mechanism to support specifying any sampling probability.
 
-Further, there is a need for consistent sampling in the collection path (outside of the head-based sampling paths). To achieve consistent sampling decisions, the previous experimental spec required using a custom source of randomness (`r-value`). However, in such downstream sampling decisions, it can be expensive to reference this custom value from the tracestate attribute in every span. To improve this, this proposal makes use of the inherent randomness in the traceID as a less expensive solution. However, one caveat is that the new randomness flag introduced in the W3C TraceContext Level 2 specification can potentially be reset by trace participants until they move to that Level 2 specification. Hence, there is need to still reference tracestate to check for the non-existence of this custom random value before relying on the traceid as the source of randomness.
+Further, there is a need for consistent sampling in the collection path, outside of the head-based sampling done at span creation time. To achieve consistent sampling decisions, the previous experimental spec always required using a custom source of randomness (`r-value`). However, in such downstream sampling decisions, it can be expensive to reference this custom value from the tracestate attribute in every span. To improve it, this proposal makes use of the inherent randomness in the traceID as a less expensive solution. However, since we continue to support overriding this using a custom random value, there is still a need to reference `tracestate` to check if a custom random value is present before using traceid as the source of randomness.
+
+TODO: Since we support custom `rv` values, if downstream samplers have to anyway parse the tracestate to see if `rv` is present, then is it really less expensive as compared to always using the `rv` from tracestate?
+
+## Definitions
+
+Let's start with the definitions for the key building blocks of this proposal.
+
+### Sampling Probability
+
+This decides the percentage of spans that will be *kept*. Each participant can choose a different sampling probability. For example, if the sampling probability is 0.25, around 25% of the spans will be kept.
+
+### Consistent Sampling Decision
+
+A consistent sampling decision means that a positive sampling decision made for a particular span with probability p1 necessarily implies a positive sampling decision for any span belonging to the same trace if it is made with probability p2 >= p1.
+
+### Rejection Threshold
+
+This is a 56-bit value directly derived from the sampling probability. One way to think about this is that this is the number of spans that would be *dropped* out of 2^56 considered spans. This is an alternative to the `p` value in the previous specification. The `p` value is limited to powers of two, while this supports a large range of values.
+
+You can derive the rejection threshold from the sampling probability as follows:
+
+Rejection Threshold = (1 - sampling probability) * 2^56.
+
+For example, if the sampling probability is 100% (keep all spans), the rejection threshold would be 0.
+
+Similarly, if the sampling probability is 0% (drop all spans), the rejection threshold would be (1-0) * 2^56 = 72057594037927936 = 0x100000000000000.
+
+We refer to this rejection threshold conceptually as `T`. We represent it using the key `th`. This must be propagated in both the `tracestate` header and in the TraceState attribute of each span.
+
+### Random Value (R)
+
+A common random value (that is known or propagated to all participants) is the main ingredient that enables consistent probability sampling. Each participant can compare this value (R) with their rejection threshold (T) to make a consistent sampling decision across an entire trace (or even across a group of traces).
+
+This proposal supports two sources of randomness:
+
+- **A custom source of randomness**: This proposal allows for a _random_ (or pseudo-random) 56-bit value. We refer to this as `rv` (this was previously known as `r-value`). This can be generated and propagated through the `tracestate` header and the tracestate attribute in each span.
+- **Using TraceID as a source of randomness**: This proposal introduces using the last 56 bits of the `traceid` as the source of randomness. This can be done if the root participant knows that the `traceid` has been generated in a random or pseudo-random manner.
+
+### Consistent Sampling Decision Approach
+Given the above building blocks, let's look at how a participant can make consistent sampling decisions. For this, two values MUST be present in the `SpanContext`:
+
+1. The common source of randomness: the 56-bit `R` value.
+2. The rejection threshold: the 56-bit `T` value.
+
+If `R` >= `T`, *keep* the span, else *drop* the span.
+
+`T` represents the maximum threshold that was applied in all previous consistent sampling stages. If the current sampling stage applies a greater threshold value than any stage before, it MUST update (increase) the threshold correspondingly.
 
 ## Explanation
-Let's start with the definition for a consistent sampling decision. Consistency means that a positive sampling decision made for a particular span with probability p1 implies a positive sampling decision for any span belonging to the same trace if it is made with probability p2 >= p1.
 
-This proposal introduces a new value with the key `th` as an alternative to the `p` value in the previous specification. The `p` value is limited to powers of two, while the `th` value in this proposal supports a large range of values.
-
-This proposal allows for the continued expression of randomness using `r-value` as specified there using the key `r`. To distinguish the cases, this proposal uses the key `rv`.
-
-In the general case, in order to make consistent sampling decisions for the two aspects described above, two values MUST be present in the `SpanContext`:
-
-1. A _random_ (or pseudo-random) 56-bit value, called `R` below.
-2. A 56-bit _rejection threshold_ (or just "threshold") as expressed in the TraceState, called `T` below. `T` represents the maximum threshold that was applied in all previous consistent sampling stages. If the current sampling stage applies a greater threshold value than any stage before, it MUST update (increase) the threshold correspondingly.
-
-One way to think about _rejection threshold_ is that it is the number of spans that would be discarded out of 2^56 considered spans. This means that spans where `R >= T` will be kept.
+### Example
 
 Here is an example involving three participating operations `A`, `B`, and `C`:
 
@@ -36,16 +73,36 @@ Here is an example involving three participating operations `A`, `B`, and `C`:
 
 where -> indicates a parent to child relationship.
 
-`A` uses consistent probability sampling with a sampling probability of 0.25 (this corresponds to a rejection probability of .75).
-`B` uses consistent probability sampling with a sampling probability of 0.5.
-`C` uses a parent-based sampler.
+- `A` uses consistent probability sampling with a sampling probability of 0.25. This corresponds to a rejection threshold of (1-0.25)*2^56 = 0xc0000000000000.
+- `B` uses consistent probability sampling with a sampling probability of 0.5. This corresponds to a rejection threshold of (1-0.5)*2^56 = 0x80000000000000.
+- `C` uses a parent-based sampler. This means that C indirectly follows the same rejection threshold as its parent B.
 
-When the sampling decision for `A` is to *keep* the span, its outgoing traceparent will have the 'sampled' flag SET and the 'th' in its outgoing tracestate will be set to `0xc0_0000_0000_0000`.
-When the sampling decision for `A` is to *drop* the span, its outgoing traceparent will have the 'sampled' flag UNSET but the 'th' in its outgoing tracestate will still be set to `0xc0_0000_0000_0000`.
-When the sampling decision for `B` is to *keep* the span, its outgoing traceparent will have the 'sampled' flag SET and the 'th' in its outgoing tracestate will be set to `0x80_0000_0000_0000`.
-C (being a parent based sampler) samples a span purely based on its parent (B in this case), it will use the sampled flag to make the decision. Its outgoing 'th' value will continue to reflect what it got from B (`0x80_0000_0000_0000`), and this is useful to understand its adjusted count.
+When the sampling decision for `A` is to *keep* the span, its outgoing traceparent will have the `sampled` flag SET and the `th` in its outgoing tracestate will be set to `0xc0_0000_0000_0000`.
+When the sampling decision for `A` is to *drop* the span, its outgoing traceparent will have the `sampled` flag UNSET but the `th` in its outgoing tracestate will still be set to `0xc0_0000_0000_0000`.
+When the sampling decision for `B` is to *keep* the span, its outgoing traceparent will have the `sampled` flag SET and the `th` in its outgoing tracestate will be set to `0x80_0000_0000_0000`.
+C (being a parent based sampler) samples a span purely based on its parent (B in this case), it will use the sampled flag to make the decision. Its outgoing `th` value will continue to reflect what it got from B (`0x80_0000_0000_0000`), and this is useful to understand its adjusted count.
 
-This design requires that as a given span progresses along its collection path, `th` is non-decreasing (and, in particular, must be increased at stages that apply lower sampling probabilities).
+### Rules for `th` creation and propagation
+
+The value of the `th` key MUST be expressed as up to 14 hexadecimal digits from the set `[0-9a-f]`. Trailing zeros (but not leading zeros) may be omitted for `th` values.
+
+Examples:
+
+- `th` value is missing: non-probabalistic sampling may be taking place.
+- `th=0` -- equivalent to `th=00000000000000`, which is a 0% rejection threshold, corresponding to 100% sampling probability (Always Sample).
+- `th=08` -- equivalent to `th=08000000000000`, which is a 3.125% rejection threshold, corresponding to 96.875% sampling probability.
+- `th=4` -- equivalent to `th=40000000000000`, which is a 25% rejection threshold, corresponding to 75% sampling probability.
+- `th=c` -- equivalent to `th=c0000000000000`, which is a 75% rejection threshold, corresponding to 25% sampling probability.
+
+The `T` value MUST be derived as follows:
+
+* If the `th` key is not present in the Tracestate header, then non-probabalistic sampling may be in use.
+* Else the value corresponding to the `th` key should be interpreted as above.
+
+Sampling Decisions MUST be propagated by setting the value of the `th` key in the Tracestate header according to the above.
+
+This design requires that as a given span progresses along its collection path, `th` is non decreasing (and, in particular, must be increased at stages that apply lower sampling probabilities).
+
 It does not, however, restrict a span's initial `th` in any way. If a parent-based consistent sampler is used, a span's initial `th` would be the same as its parent's `th` value, else it would be a new value based on the sampling rate chosen for that span. In other words, the sampling rate for each operation can be chosen independently, and this would map to having different `th` values for different spans. But for any particular span, it is not acceptable for a downstream sampler to *decrease* the `th` value in its context.
 
 The system has the following invariant:
@@ -59,34 +116,19 @@ The sampling decision is propagated with the following algorithm:
 * If `T` is 0, Always Sample.
 * Compare the 56 bits of `T` with the 56 bits of `R`. If `R >= T`, then set the sampling decision to *keep* else make the decision to *drop*.
 
-The `R` value MUST be derived as follows:
-
-* If the key `rv` is present in the Tracestate header, then `R = rv`.
-* Else `R` is the lowest-order 56 bits of the trace-id.
+### Rules for R value creation and propagation
 
 At the root span, the `R` value must be generated as follows:
 
-* If the new random flag in the `traceparent` is set, then there is no action required. In this case, the tracestate header will not have the `rv` key, and the last 56 bits of the traceid will be used as the source of randomness. For more info on this new flag, see [the W3C trace context specification](https://w3c.github.io/trace-context/#trace-id).
-* If not, `R` MUST be generated as a random value in the range `[0, (2**56)-1]` and added to the Tracestate header with key `rv`.
+* If the new random flag in the `traceparent` is set, there is no need to set the `rv` key in the tracestate header, and the last 56 bits of the traceid can be used as the source of randomness. For more info on this new flag, see [the W3C trace context specification](https://w3c.github.io/trace-context/#trace-id).
+* If not, `R` MUST be generated as a random value in the range `[0, (2**56)-1]` and added to the Tracestate header with key `rv`. The value of the `rv` key MUST be expressed as up to 14 hexadecimal digits from the set `[0-9a-f]`. `rv` keys MUST always be exactly 14 hex digits.
 
-Although less common, there are circumstances where trace-id randomness is inadequate (for example, when sampling a group of traces together); in these cases, an `rv` value is required.
+Although less common, there are circumstances where trace-id randomness is not sufficient. One example of this is when you want to achieve consistent sampling across a group of traces in a session. For such cases, a common `rv` value must be generated and added to the tracestate header.
 
-The value of the `rv` and `th` keys MUST be expressed as up to 14 hexadecimal digits from the set `[0-9a-f]`. For `th` keys only, trailing zeros (but not leading zeros) may be omitted. `rv` keys MUST always be exactly 14 hex digits.
+In all other places, the `R` value MUST be derived as follows:
 
-Examples:
-
-- `th` value is missing: non-probabalistic sampling may be taking place.
-- `th=0` -- equivalent to `th=00000000000000`, which is a 0% rejection threshold, corresponding to 100% sampling probability (Always Sample).
-- `th=08` -- equivalent to `th=08000000000000`, which is a rejection threshold of 3.125%, corresponding to 96.875% sampling probability.
-- `th=4` -- equivalent to `th=40000000000000`, which is a 25% rejection threshold, corresponding to 75% sampling probability.
-- `th=c` -- equivalent to `th=c0000000000000`, which is a rejection threshold of 75%, corresponding to 25% sampling probability.
-
-The `T` value MUST be derived as follows:
-
-* If the `th` key is not present in the Tracestate header, then non-probabalistic sampling may be in use.
-* Else the value corresponding to the `th` key should be interpreted as above.
-
-Sampling Decisions MUST be propagated by setting the value of the `th` key in the Tracestate header according to the above.
+* If the key `rv` is present in the Tracestate header, then `R = rv`.
+* Else `R` is the lowest-order 56 bits of the trace-id.
 
 ## Initializing and updating T and R values
 
@@ -103,8 +145,8 @@ A head sampler is responsible for computing the `rv` and `th` values in a new sp
 
 First, a consistent probability `Sampler` may choose its own sampling rate. The higher the chosen sampling rate, the lower the rejection threshold (T). It MAY select any value of T. If a valid `SpanContext` is provided in the call to `ShouldSample` (indicating that the span being created will be a child span),
 
-- Choosing a T greater than the parent span's T can result in partial traces. The parent span may be `kept` but it is possible that its child, the current span, may be dropped because of the lower sampling rate. At the same time, in case where the child span is `kept`, the parent span would have been to `keep` as well (meeting our consistent sampling goals) since the parent's sampling rate is greater than the child's sampling rate.
-- Similarly, choosing a T less than or equal to the parent span can also result in partial traces. The parent span might have been `dropped` but it is possible that its child, the current span, may be `kept` because of the higher sampling rate. At the same time, in case where the parent span is `kept`, the child span would be `kept` as well (meeting our consistent sampling goals) since the child's sampling rate is greater than the parent's sampling rate.
+- Choosing a T greater than the parent span's T can result in partial traces. The parent span may be *kept* but it is possible that its child, the current span, may be dropped because of the lower sampling rate. At the same time, in case where the child span is *kept*, the parent span would have been to *keep* as well (meeting our consistent sampling goals) since the parent's sampling rate is greater than the child's sampling rate.
+- Similarly, choosing a T less than or equal to the parent span can also result in partial traces. The parent span might have been *dropped* but it is possible that its child, the current span, may be *kept* because of the higher sampling rate. At the same time, in case where the parent span is *kept*, the child span would be *kept* as well (meeting our consistent sampling goals) since the child's sampling rate is greater than the parent's sampling rate.
 
 For the output TraceState,
 
@@ -175,10 +217,6 @@ The adjusted count indicates the approximate quantity of items from the populati
 
 This proposal is the result of long negotiations on the Sampling SIG over what is required and various alternative forms of expressing it. [This issue](https://github.com/open-telemetry/opentelemetry-specification/issues/3602) exhaustively covers the various formats that were discussed and their pros and cons. This proposal is the result of that decision.
 
-## Prior art and alternatives
-
-The existing specification for `r-value` and `p-value` attempted to solve this problem, but was limited to powers of 2, which is inadequate.
-
 ## Open questions
 
 This specification leaves room for different implementation options. For example, comparing hex strings or converting them to numeric format are both viable alternatives for handling the threshold.
@@ -188,5 +226,4 @@ We also know that some implementations prefer to use a sampling probability (in 
 ## Future possibilities
 
 This permits sampling systems to propagate consistent sampling information downstream where it can be compensated for.
-For example, this will enable the tail-sampling processor in the OTel Collector to propagate its sampling decisions to backend systems in a standard way.
-This permits backend systems to use the effective sampling probability in data presentations.
+For example, this will enable the tail-sampling processor in the OTel Collector to propagate its sampling decisions to backend systems in a standard way. This permits backend systems to use the effective sampling probability in data presentations.
