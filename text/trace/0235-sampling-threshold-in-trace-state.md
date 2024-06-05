@@ -130,23 +130,25 @@ In all other places, the `R` value MUST be derived as follows:
 * If the key `rv` is present in the Tracestate header, then `R = rv`.
 * Else `R` is the lowest-order 56 bits of the trace-id.
 
-## Initializing and updating T and R values
+## Sampler behavior for initializing and updating T and R values
 
 There are two categories of samplers:
 
 - **Head samplers:** Implementations of [`Sampler`](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.29.0/specification/trace/sdk.md#sampler), called by a `Tracer` during span creation.
-- **Downstream samplers:** Any component that, given an ended Span, decides whether to *drop* or *keep* it by forwarding it to the next component in the system. This category is also known as "collection path samplers" or "sampling processors". _Tail samplers_ are a special class of downstream samplers that buffer spans of a trace and make a sampling decision for the trace as a whole using data from any span in the buffered trace.
+- **Downstream samplers:** Any component that, given an ended Span, decides whether to *drop* it or *keep* it (by forwarding it to the next component in the pipeline). This category is also known as "collection path samplers" or "sampling processors". Note that _Tail samplers_ are a special class of downstream samplers that buffer spans of a trace and make a sampling decision for the trace as a whole using data from any span in the buffered trace.
 
-This section defines behavior for each kind of sampler.
+This section defines the behavior for these two categories of samplers.
 
 ### Head samplers
 
 A head sampler is responsible for computing the `rv` and `th` values in a new span's initial [`TraceState`](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.29.0/specification/trace/api.md#tracestate). The main inputs to that computation include the parent span's trace state (if a parent span exists), the new span's trace ID, and possibly the trace flags (to know if the trace ID has been generated in a random manner).
 
-First, a consistent probability `Sampler` may choose its own sampling rate. The higher the chosen sampling rate, the lower the rejection threshold (T). It MAY select any value of T. If a valid `SpanContext` is provided in the call to `ShouldSample` (indicating that the span being created will be a child span),
+First, a consistent probability `Sampler` may choose its own sampling rate. The higher the chosen sampling rate, the lower the rejection threshold (T). It MAY select any value of T. If a valid `SpanContext` is provided in the call to `ShouldSample` (indicating that the span being created will be a child span), there are two possibilities:
 
-- Choosing a T greater than the parent span's T can result in partial traces. The parent span may be *kept* but it is possible that its child, the current span, may be dropped because of the lower sampling rate. At the same time, in case where the child span is *kept*, the parent span would have been to *keep* as well (meeting our consistent sampling goals) since the parent's sampling rate is greater than the child's sampling rate.
-- Similarly, choosing a T less than or equal to the parent span can also result in partial traces. The parent span might have been *dropped* but it is possible that its child, the current span, may be *kept* because of the higher sampling rate. At the same time, in case where the parent span is *kept*, the child span would be *kept* as well (meeting our consistent sampling goals) since the child's sampling rate is greater than the parent's sampling rate.
+- **The child span chooses a T greater than the parent span's T**: The parent span may be *kept* but it is possible that its child, the current span, may be dropped because of the lower sampling rate. At the same time, in the case where the decision for the child span is to *keep* it, the decision for the parent span would have also been to *keep* (due to our consistent sampling approach) since the parent's sampling rate is greater than the child's sampling rate.
+- **The child span chooses a T less than or equal to the parent span's T**:  The parent span might have been *dropped* but it is possible that its child, the current span, may be *kept* because of the higher sampling rate. At the same time, in case where the parent span is *kept*, the child span would be *kept* as well (due to our consistent sampling approach) since the child's sampling rate is greater than the parent's sampling rate.
+
+Note that while both the above cases can result in partial traces, they still meet the consistent sampling goals.
 
 For the output TraceState,
 
