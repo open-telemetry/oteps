@@ -250,7 +250,7 @@ The process of constructing the final `SamplingResult` in response to a call to 
 - The sampler compares the received THRESHOLD value with the trace Randomness value to arrive at the final sampling `Decision`,
 - In case of a positive sampling decision the sampler calls the received `GetAttributes` function to determine the set of Attributes to be added to the Span, in most cases it will be a recursive step,
 - The sampler calls the received `UpdateTraceState` function passing the parent `Tracestate` and the final sampling `Decision` to get the new `Tracestate` to be associated with the Span - again, in most cases this is a recursive step,
-- The sampler modfies (or removes) the `th` value for the `ot` key in the `Tracestate` according to the final sampling `Decision` and the THRESHOLD used in the second step above. 
+- The sampler modifies (or removes) the `th` value for the `ot` key in the `Tracestate` according to the final sampling `Decision` and the THRESHOLD used in the second step above. 
 
 ### ConsistentRuleBased
 
