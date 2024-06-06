@@ -7,7 +7,7 @@ The new samplers proposed here are mostly compatible with Consistent Probability
 
 ## Motivation
 
-The need for configuring head sampling has been explicitly or implicitly indicated in several discussions, both within the [Samplig SIG](https://docs.google.com/document/d/1gASMhmxNt9qCa8czEMheGlUW2xpORiYoD7dBD7aNtbQ) and in the wider community. Some of the discussions are going back a number of years, see for example
+The need for configuring head sampling has been explicitly or implicitly indicated in several discussions, both within the [Sampling SIG](https://docs.google.com/document/d/1gASMhmxNt9qCa8czEMheGlUW2xpORiYoD7dBD7aNtbQ) and in the wider community. Some of the discussions are going back a number of years, see for example
 
 - issue [173](https://github.com/open-telemetry/opentelemetry-specification/issues/173): Way to ignore healthcheck traces when using automatic tracer across all languages?
 - issue [1060](https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/1060): Exclude URLs from Tracing
