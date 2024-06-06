@@ -217,7 +217,7 @@ A principle of operation for Approach Two is that `ShouldSample` is invoked only
 
 ### New API
 
-To make this approach possible, all Consistent Probability Samplers which participate in the samplers composition need to implement the following API, in addition to the standard Sampler API. We will use the term _Composable Sampler_ to dentote Consistent Probability Samplers which provide the new API and conform to the rules described here.
+To make this approach possible, all Consistent Probability Samplers which participate in the samplers composition need to implement the following API, in addition to the standard Sampler API. We will use the term _Composable Sampler_ to denote Consistent Probability Samplers which provide the new API and conform to the rules described here.
 The composite samplers in Approach Two are Composable Samplers as well.
 
 #### GetSamplingAdvice
