@@ -1,13 +1,17 @@
 # Composite Samplers Proposal
 
 This proposal addresses head-based sampling as described by the [Open Telemetry SDK](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling).
-It introduces additional _composite samplers_. Composite samplers use other samplers (_delegates_ or _children_) to make sampling decisions. The composite samplers invoke the delegate samplers, but eventually make the final call.
+It introduces additional _composite samplers_.
+Composite samplers use other samplers (_delegates_ or _children_) to make sampling decisions.
+The composite samplers invoke the delegate samplers, but eventually make the final call.
 
-The new samplers proposed here are mostly compatible with Consistent Probability Samplers. For detailed description of this concept see [probability sampling](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/tracestate-probability-sampling.md). However, the technical details in that document are outdated. For the current proposal see [OTEP 235](https://github.com/open-telemetry/oteps/blob/main/text/trace/0235-sampling-threshold-in-trace-state.md). Also see Draft PR 3910 [Probability Samplers based on W3C Trace Context Level 2](https://github.com/open-telemetry/opentelemetry-specification/pull/3910).
+The new samplers proposed here are mostly compatible with Consistent Probability Samplers. For detailed description of this concept see [probability sampling (OTEP 235)](https://github.com/open-telemetry/oteps/blob/main/text/trace/0235-sampling-threshold-in-trace-state.md).
+Also see Draft PR 3910 [Probability Samplers based on W3C Trace Context Level 2](https://github.com/open-telemetry/opentelemetry-specification/pull/3910).
 
 ## Motivation
 
-The need for configuring head sampling has been explicitly or implicitly indicated in several discussions, both within the [Sampling SIG](https://docs.google.com/document/d/1gASMhmxNt9qCa8czEMheGlUW2xpORiYoD7dBD7aNtbQ) and in the wider community. Some of the discussions are going back a number of years, see for example
+The need for configuring head sampling has been explicitly or implicitly indicated in several discussions, both within the [Sampling SIG](https://docs.google.com/document/d/1gASMhmxNt9qCa8czEMheGlUW2xpORiYoD7dBD7aNtbQ) and in the wider community.
+Some of the discussions are going back a number of years, see for example
 
 - issue [173](https://github.com/open-telemetry/opentelemetry-specification/issues/173): Way to ignore healthcheck traces when using automatic tracer across all languages?
 - issue [1060](https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/1060): Exclude URLs from Tracing
@@ -36,7 +40,8 @@ We present two quite different approaches to composite samplers. The first one u
 
 The second approach is applicable exclusively to Consistent Probability Samplers, but is more efficient and less prone to misconfiguration. It requires additional API to be provided by the delegate samplers.
 
-__Note__: both approaches call for calculating unions of Attribute sets. Whenever such union is constructed, in case of conflicting attribute keys, the attribute definition from the last set that uses that key takes effect. Similarly, whenever modifications of `Tracestate` are chained, in case of conflicting keys, the last modification erases the previous values.
+__Note__: both approaches call for calculating _unions_ of Attribute sets.
+Whenever such union is constructed, in case of conflicting attribute keys, the attribute definition from the last set that uses that key takes effect. Similarly, whenever modifications of `Tracestate` are performed in sequence, in case of conflicting keys, the last modification erases the previous values.
 
 ## Approach One
 
@@ -53,7 +58,7 @@ Upon invocation of its `shouldSample` method, it MUST go through the whole list 
 - If all of the delegate Decisions are `DROP`, the composite sampler MUST return `DROP` Decision as well.
 If any of the delegate Decisions is `RECORD_AND_SAMPLE`, the composite sampler MUST return `RECORD_AND_SAMPLE` Decision.
 Otherwise, if any of the delegate Decisions is `RECORD_ONLY`, the composite sampler MUST return `RECORD_ONLY` Decision.
-- The set of span Attributes to be added to the `Span` is the union of the sets of Attributes as provided by those delegate samplers which produced a sampling Decision other than `DROP`.
+- The set of span `Attributes` to be added to the `Span` is the union of the sets of `Attributes` as provided by those delegate samplers which produced a sampling Decision other than `DROP`.
 - The `Tracestate` to be used with the new `Span` is obtained by cumulatively applying all the potential modifications of the parent `Tracestate` by the delegate samplers. However, the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry gets special handling as described below.
 
 If the final sampling Decision is `DROP` or `RECORD_ONLY`, the `th` entry MUST be removed.
@@ -73,7 +78,7 @@ Upon invocation of its `shouldSample` method, it MUST go through the whole list 
 - If all of the delegate Decisions are `RECORD_AND_SAMPLE`, the composite sampler MUST return `RECORD_AND_SAMPLE` Decision as well.
 If any of the delegate Decisions is `DROP`, the composite sampler MUST return `DROP` Decision.
 Otherwise, if any of the delegate Decisions is `RECORD_ONLY`, the composite sampler MUST return `RECORD_ONLY` Decision.
-- If the resulting sampling Decision is `DROP`, the set of span Attributes to be added to the `Span` is empty. Otherwise, it is the union of the sets of Attributes as provided by the delegate samplers within their `SamplingResult`s.
+- If the resulting sampling Decision is `DROP`, the set of span `Attributes` to be added to the `Span` is empty. Otherwise, it is the union of the sets of `Attributes` as provided by the delegate samplers within their `SamplingResult`s.
 - The `Tracestate` to be used with the new `Span` is obtained by cumulatively applying all the potential modfications of the parent `Tracestate` by the delegate samplers. However, the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry gets special handling as described below.
 
 If the final sampling Decision is `DROP` or `RECORD_ONLY`, the `th` entry MUST be removed.
@@ -86,19 +91,28 @@ Each delegate sampler MUST be given a chance to participate in the sampling deci
 
 `Conjunction` is a composite sampler which takes two Samplers (delegates) as the arguments. These delegate samplers will be hereby referenced as First and Second. This kind of composition forms conditional chaining of both samplers. 
 
-Upon invocation of its `shouldSample` method, the Conjunction sampler MUST invoke `shouldSample` method on the First sampler, passing the same arguments as received, and examine the received sampling Decision. Upon receiving `DROP` or `RECORD_ONLY` decision it MUST return the SamplingResult from the First sampler, and it MUST NOT proceed with querying the Second sampler. If the sampling decision from the First sampler is `RECORD_AND_SAMPLE`, the Conjunction sampler MUST invoke `shouldSample` method on the Second sampler, effectively passing the `Tracestate` received from the First sampler as the parent trace state.
+Upon invocation of its `shouldSample` method, the Conjunction sampler MUST invoke `shouldSample` method on the First sampler, passing the same arguments as received, and examine the received sampling Decision.
+Upon receiving `DROP` or `RECORD_ONLY` decision it MUST return the `SamplingResult` (which includes a set of `Attributes` and `Tracestate` in addition to the sampling Decision) from the First sampler, and it MUST NOT proceed with querying the Second sampler.
+If the sampling decision from the First sampler is `RECORD_AND_SAMPLE`, the Conjunction sampler MUST invoke `shouldSample` method on the Second sampler, effectively passing the `Tracestate` received from the First sampler as the parent trace state.
 
 If the sampling Decision from the Second sampler is `RECORD_AND_SAMPLE`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
 
 - The sampling Decision is `RECORD_AND_SAMPLE`.
-- The set of span Attributes to be added to the `Span` is the union of the sets of Attributes as provided by both samplers.
+- The set of span `Attributes` to be added to the `Span` is the union of the sets of `Attributes` as provided by both samplers.
 - The `Tracestate` to be used with the new `Span` is as provided by the Second sampler, with special handling of the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry.
-If the First sampler did not provide `th` entry in the returned `Tracestate`, or if the value of the corresponding `THRESHOLD` is not `0`, then the `th` entry MUST be removed from the resulting `Tracestate`.
+If both First and Second samplers provided `th` entry in the returned `Tracestate`, the resulting `Tracestate` MUST contain `th` entry with the `THRESHOLD` being maximum of the `THRESHOLD`s provided by the First and Second samplers.
+Otherwise, the `th` entry MUST be removed.
 
-If the sampling Decision from the Second sampler is `DROP` or `RECORD_ONLY`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
+If the sampling Decision from the Second sampler is `RECORD_ONLY`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
+
+- The sampling Decision is `RECORD_ONLY`.
+- The set of span `Attributes` to be added to the `Span` is the set of `Attributes` returned by the First sampler.
+- The `Tracestate` to be used with the new `Span` is the `Tracestate` provided by the Second sampler, but with the `th` entry removed.
+
+If the sampling Decision from the Second sampler is `DROP`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
 
 - The sampling Decision is `DROP`.
-- The set of span Attributes to be added to the `Span` is empty.
+- The set of span `Attributes` to be added to the `Span` is empty.
 - The `Tracestate` to be used with the new `Span` is the `Tracestate` provided by the Second sampler, but with the `th` entry removed.
 
 The `Conjunction` sampler can be useful in a special case where the user wants to keep a group of traces, for example belonging to an end user session, together - meaning to make the same sampling decisions for all traces belonging to the group, as much as possible.
@@ -106,13 +120,13 @@ One way of achieving this behavior for consistent probability samplers is to giv
 
 ### RuleBased
 
-`RuleBased` is a composite sampler which performs `Span` categorization (e.g. when sampling decision depends on Span attributes) and sampling.
+`RuleBased` is a composite sampler which performs `Span` categorization (e.g. when sampling decision depends on `Span` attributes) and sampling.
 The Spans can be grouped into separate categories, and each category can use a different Sampler.
 Categorization of Spans is aided by `Predicates`.
 
 #### Predicate
 
-The Predicates represent logical expressions which can access Span Attributes (or anything else available when the sampling decision is to be made), and perform tests on the accessible values.
+The Predicates represent logical expressions which can access `Span` `Attributes` (or anything else available when the sampling decision is to be made), and perform tests on the accessible values.
 For example, one can test if the target URL for a SERVER span matches a given pattern.
 `Predicate` interface allows users to create custom categories based on information that is available at the time of making the sampling decision.
 
@@ -124,11 +138,11 @@ This is a routine/function/method for `Predicate`, which returns `true` if a giv
 
 The arguments represent the values that are made available for `ShouldSample`.
 
-- `Context` with parent Span.
-- `TraceId` of the Span to be created.
-- Name of the Span to be created.
-- Initial set of Attributes of the Span to be created.
-- Collection of links that will be associated with the Span to be created.
+- `Context` with parent `Span`.
+- `TraceId` of the `Span` to be created.
+- Name of the `Span` to be created.
+- Initial set of `Attributes` of the `Span` to be created.
+- Collection of links that will be associated with the `Span` to be created.
 
 #### Required Arguments for RuleBased
 
@@ -154,7 +168,7 @@ S1 = RuleBased(ROOT, {
  })
 ```
 
-Note: technically, `ROOT` is not a Span Kind, but is a special token matching all Spans with invalid parent context (i.e. the ROOT spans, regardless of their kind).
+Note: technically, `ROOT` is not a `SpanKind`, but is a special token matching all Spans with invalid parent context (i.e. the ROOT spans, regardless of their kind).
 
 In the next step, we can build the sampler to handle non-root spans as well:
 
@@ -220,36 +234,36 @@ A principle of operation for Approach Two is that `ShouldSample` is invoked only
 To make this approach possible, all Consistent Probability Samplers which participate in the samplers composition need to implement the following API, in addition to the standard Sampler API. We will use the term _Composable Sampler_ to denote Consistent Probability Samplers which provide the new API and conform to the rules described here.
 The composite samplers in Approach Two are Composable Samplers as well.
 
-#### GetSamplingAdvice
+#### GetSamplingIntent
 
 This is a routine/function/method for all Composable Samplers. Its purpose is to query the sampler about the activities it would perform had it been asked to make a sampling decision for a given span, however, without constructing the actual sampling Decision.
 
-#### Required Arguments for GetSamplingAdvice:
+#### Required Arguments for GetSamplingIntent:
 
 The arguments are the same as for [`ShouldSample`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#shouldsample) except for the `TraceId`.
 
-- `Context` with parent Span.
-- Name of the Span to be created.
+- `Context` with parent `Span`.
+- Name of the `Span` to be created.
 - `SpanKind` of the `Span` to be created.
-- Initial set of Attributes of the Span to be created.
-- Collection of links that will be associated with the Span to be created.
+- Initial set of `Attributes` of the `Span` to be created.
+- Collection of links that will be associated with the `Span` to be created.
 
 #### Return value:
 
-The return value is a structure (`SamplingAdvice`) with the following elements:
+The return value is a structure (`SamplingIntent`) with the following elements:
 
 - The THRESHOLD value represented as a 14-character hexadecimal string, with value of `null` representing non-probabilistic `DROP` decision,
-- A function (`GetAttributes`) that provides a set of Attributes to be added to the Span in case of positive final sampling decision,
-- A function (`UpdateTraceState`) that given an input `Tracestate` and sampling Decision provides a `Tracestate` to be associated with the Span. The samplers SHOULD NOT add or modify the `th` value for the `ot` key within these functions.
+- A function (`GetAttributes`) that provides a set of `Attributes` to be added to the `Span` in case of positive final sampling decision,
+- A function (`UpdateTraceState`) that given an input `Tracestate` and sampling Decision provides a `Tracestate` to be associated with the `Span`. The samplers SHOULD NOT add or modify the `th` value for the `ot` key within these functions.
 
 #### Constructing `SamplingResult`
 
 The process of constructing the final `SamplingResult` in response to a call to `ShouldSample` on the root sampler of the composite samplers tree consists of the following steps.
 
-- The sampler gets its own `SamplingAdvice`, it is a recursive process as described below (unless the sampler is a leaf),
+- The sampler gets its own `SamplingIntent`, it is a recursive process as described below (unless the sampler is a leaf),
 - The sampler compares the received THRESHOLD value with the trace Randomness value to arrive at the final sampling `Decision`,
-- In case of a positive sampling decision the sampler calls the received `GetAttributes` function to determine the set of Attributes to be added to the Span, in most cases it will be a recursive step,
-- The sampler calls the received `UpdateTraceState` function passing the parent `Tracestate` and the final sampling `Decision` to get the new `Tracestate` to be associated with the Span - again, in most cases this is a recursive step,
+- In case of a positive sampling decision the sampler calls the received `GetAttributes` function to determine the set of `Attributes` to be added to the `Span`, in most cases it will be a recursive step,
+- The sampler calls the received `UpdateTraceState` function passing the parent `Tracestate` and the final sampling `Decision` to get the new `Tracestate` to be associated with the `Span` - again, in most cases this is a recursive step,
 - The sampler modifies (or removes) the `th` value for the `ot` key in the `Tracestate` according to the final sampling `Decision` and the THRESHOLD used in the second step above. 
 
 ### ConsistentRuleBased
@@ -261,21 +275,21 @@ This composite sampler re-uses the concept of Predicates from Approach One.
 - `SpanKind`
 - list of pairs (`Predicate`, `ComposableSampler`)
 
-For calculating the `SamplingAdvice`, if the `Span` kind matches the specified kind, the sampler goes through the list in the provided order and calls `SpanMatches` on `Predicate`s passing the same arguments as received. If a call returns `true`, the result is as returned by `GetSamplingAdvice` called on the corresponding `ComposableSampler`. If the `SpanKind` does not match, or none of the calls to `SpanMatches` yield `true`, the result is obtained by calling `GetSamplingAdvice` on `ConsistentAlwaysOffSampler`.
+For calculating the `SamplingIntent`, if the `Span` kind matches the specified kind, the sampler goes through the list in the provided order and calls `SpanMatches` on `Predicate`s passing the same arguments as received. If a call returns `true`, the result is as returned by `GetSamplingIntent` called on the corresponding `ComposableSampler`. If the `SpanKind` does not match, or none of the calls to `SpanMatches` yield `true`, the result is obtained by calling `GetSamplingIntent` on `ConsistentAlwaysOffSampler`.
 
 ### ConsistentAnyOf
 
 `ConsistentAnyOf` is a composite sampler which takes a non-empty list of ComposableSamplers (delegates) as the argument. The intention is to make a positive sampling decision if __any of__ the delegates would make a positive decision.
 
-Upon invocation of its `GetSamplingAdvice` function, it MUST go through the whole list and invoke `GetSamplingAdvice` function on each delegate sampler, passing the same arguments as received.
+Upon invocation of its `GetSamplingIntent` function, it MUST go through the whole list and invoke `GetSamplingIntent` function on each delegate sampler, passing the same arguments as received.
 
-`ConsistentAnyOf` sampler MUST return a `SamplingAdvice` which is constructed as follows:
+`ConsistentAnyOf` sampler MUST return a `SamplingIntent` which is constructed as follows:
 
 - If any of the delegates returned a non-`null` threshold value, the resulting threshold is the lexicographical minimum value from the set of those non-`null` values, otherwise `null`.
-- The `GetAttributes` function calculates the union of Attribute sets as returned by the calls to `GetAttributes` function for each delegate (in the declared order) that returned a non-`null` threshold value, with later Attributes clobbering older Attributes with the same key.
+- The `GetAttributes` function calculates the union of `Attribute` sets as returned by the calls to `GetAttributes` function for each delegate (in the declared order) that returned a non-`null` threshold value.
 - The `UpdateTraceState` function makes a chain of calls to the `UpdateTraceState` functions as returned by the delegates, passing the received `Tracestate` as argument to subsequent calls and returning the last value received.
 
-Each delegate sampler MUST be given a chance to participate in calculating the `SamplingAdvice` as described above and MUST see the same argument values. The order of the delegate samplers does not affect the final sampling `Decision`.
+Each delegate sampler MUST be given a chance to participate in calculating the `SamplingIntent` as described above and MUST see the same argument values. The order of the delegate samplers does not affect the final sampling `Decision`.
 
 ### ConsistentRateLimiting
 
@@ -287,13 +301,13 @@ Each delegate sampler MUST be given a chance to participate in calculating the `
 - maximum sampling (throughput) target rate
 
 The sampler SHOULD measure and keep the average rate of incoming spans, and therefore also of the desired ratio between the incoming span rate to the target span rate.
-Upon invocation of its `GetSamplingAdvice` function, the composite sampler MUST get the `SamplingAdvice` from the delegate sampler, passing the same arguments as received.
+Upon invocation of its `GetSamplingIntent` function, the composite sampler MUST get the `SamplingIntent` from the delegate sampler, passing the same arguments as received.
 
-The returned `SamplingAdvice` is constructed as follows.
+The returned `SamplingIntent` is constructed as follows.
 
 - If using the obtained threshold value as the final threshold would entail sampling more spans than the declared target rate, the sampler SHOULD increase the threshold to a value that would meet the target rate. Several algorithms can be used for threshold adjustment, no particular behavior is prescried by the specification though.
-- The `GetAttributes` function returns the union of the set of Attributes returned by calling the delegate's `GetAttributes` and own Attributes.
-- The `UpdateTraceState` function returns the `Tracestate` as returned by calling `UpdateTraceState` from the delegate's `SamplingAdvice`.
+- The `GetAttributes` function returns the union of the set of `Attributes` returned by calling the delegate's `GetAttributes` and own `Attributes`.
+- The `UpdateTraceState` function returns the `Tracestate` as returned by calling `UpdateTraceState` from the delegate's `SamplingIntent`.
 
 When using `ConsistentRateLimiting` in our requirements example as a replacement for `EachOf` and `RateLimiting`, we are left with no use case for any direct equivalent to `EachOf` in Approach Two.
 However, if such a need arises, `ConsistentEachOf` can be easily defined.
@@ -302,7 +316,7 @@ However, if such a need arises, `ConsistentEachOf` can be easily defined.
 
 ### Example - sampling configuration with Approach Two
 
-With the samplers introduced by Approach Two, our example requirements can be coded in a very similar way as with Approach One. However, the work of the samplers configured this way forms a tree of `GetSamplingAdvice` invocations rather than `ShouldSample` invocations as in Approach One.
+With the samplers introduced by Approach Two, our example requirements can be coded in a very similar way as with Approach One. However, the work of the samplers configured this way forms a tree of `GetSamplingIntent` invocations rather than `ShouldSample` invocations as in Approach One.
 
 ```
 S = ConsistentRateLimiting(
@@ -331,7 +345,9 @@ Developers of Composable Samplers should consider that the sampling Decision the
 
 A number of composite samplers are already available as independent contributions
 ([RuleBasedRoutingSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/RuleBasedRoutingSampler.java),
-[LinksBasedSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/LinksBasedSampler.java)).
+[Stratified Sampling](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/trace/stratified-sampling-example),
+LinksBasedSampler [for Java](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/samplers/src/main/java/io/opentelemetry/contrib/sampler/LinksBasedSampler.java)
+and [for DOTNET](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/trace/links-based-sampler)).
 Also, historically, some Span categorization was introduced by [JaegerRemoteSampler](https://www.jaegertracing.io/docs/1.54/sampling/#remote-sampling).
 
 This proposal aims at generalizing these ideas, and at providing a bit more formal specification for the behavior of the composite samplers.
