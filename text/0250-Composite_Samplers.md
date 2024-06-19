@@ -67,26 +67,6 @@ Otherwise, the resulting `Tracestate` MUST contain `th` entry with the `THRESHOL
 
 Each delegate sampler MUST be given a chance to participate in the sampling decision as described above and MUST see the same _parent_ state. The resulting sampling Decision does not depend on the order of the delegate samplers.
 
-### EachOf
-
-`EachOf` is a composite sampler which takes a non-empty list of Samplers (delegates) as the argument. The intention is to make `RECORD_AND_SAMPLE` decision if __each of__ the delegates decides to `RECORD_AND_SAMPLE`.
-
-Upon invocation of its `shouldSample` method, it MUST go through the whole list and invoke `shouldSample` method on each delegate sampler, passing the same arguments as received, and collecting the delegates' sampling Decisions.
-
-`EachOf` sampler MUST return a `SamplingResult` with the following elements.
-
-- If all of the delegate Decisions are `RECORD_AND_SAMPLE`, the composite sampler MUST return `RECORD_AND_SAMPLE` Decision as well.
-If any of the delegate Decisions is `DROP`, the composite sampler MUST return `DROP` Decision.
-Otherwise, if any of the delegate Decisions is `RECORD_ONLY`, the composite sampler MUST return `RECORD_ONLY` Decision.
-- If the resulting sampling Decision is `DROP`, the set of span `Attributes` to be added to the `Span` is empty. Otherwise, it is the union of the sets of `Attributes` as provided by the delegate samplers within their `SamplingResult`s.
-- The `Tracestate` to be used with the new `Span` is obtained by cumulatively applying all the potential modfications of the parent `Tracestate` by the delegate samplers. However, the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry gets special handling as described below.
-
-If the final sampling Decision is `DROP` or `RECORD_ONLY`, the `th` entry MUST be removed.
-If the sampling Decision is `RECORD_AND_SAMPLE`, and there's no `th` entry in any of the `Tracestate` provided by the delegates, the `th` entry MUST be also removed.
-Otherwise, the resulting `Tracestate` MUST contain `th` entry with the `THRESHOLD` value being the maximum of all the `THRESHOLD` values as reported the delegates.
-
-Each delegate sampler MUST be given a chance to participate in the sampling decision as described above and MUST see the same _parent_ state. The resulting sampling Decision does not depend on the order of the delegate samplers.
-
 ### Conjunction
 
 `Conjunction` is a composite sampler which takes two Samplers (delegates) as the arguments. These delegate samplers will be hereby referenced as First and Second. This kind of composition forms conditional chaining of both samplers. 
@@ -188,35 +168,6 @@ Finally, the last step is to put a limit on the stream of exported spans. One of
 S4 = Conjunction(S3, RateLimitingSampler(1000 * 60))
 ```
 
-### Example - sampling configuration 2
-
-Many users are interested in [Consistent Probability Sampling](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#consistent-probability-sampler) (CP), as it gives them a chance to calculate span-based metrics even when sampling is active. The configuration presented above uses the traditional samplers, which do not offer this benefit.
-
-Here is how an equivalent configuration can be put together using [CP samplers](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/tracestate-probability-sampling.md#samplers). In this example, the following implementations are used:
-
-- [ConsistentAlwaysOffSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/consistent-sampling/src/main/java/io/opentelemetry/contrib/sampler/consistent56/ConsistentAlwaysOffSampler.java)
-- [ConsistentAlwaysOnSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/consistent-sampling/src/main/java/io/opentelemetry/contrib/sampler/consistent56/ConsistentAlwaysOnSampler.java)
-- [ConsistentFixedThresholdSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/consistent-sampling/src/main/java/io/opentelemetry/contrib/sampler/consistent56/ConsistentFixedThresholdSampler.java)
-- [ConsistentParentBasedSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/consistent-sampling/src/main/java/io/opentelemetry/contrib/sampler/consistent56/ConsistentParentBasedSampler.java)
-- [ConsistentRateLimitingSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/consistent-sampling/src/main/java/io/opentelemetry/contrib/sampler/consistent56/ConsistentRateLimitingSampler.java)
-
-```
-S = EachOf(
-     AnyOf(
-       ConsistentParentBased(
-         RuleBased(ROOT, {
-             (http.target == /healthcheck) => ConsistentAlwaysOff,
-             (http.target == /checkout) => ConsistentAlwaysOn,
-             true => ConsistentFixedThreshold(0.25)
-         }),
-       RuleBased(CLIENT, {
-         (http.url == /foo) => ConsistentAlwaysOn
-       }
-     ),
-     ConsistentRateLimiting(1000 * 60)
-   )
-```
-
 ### Limitations of composite samplers in Approach One
 
 Not all samplers can participate as components of composite samplers without undesired or unexpected effects. Some samplers require that they _see_ each `Span` being created, even if the span is going to be dropped. Some samplers update the trace state or maintain internal state, and for their correct behavior it it is assumed that their sampling decisions will be honored by the tracer at the face value in all cases. A good example for this are rate limiting samplers which have to keep track of the rate of created spans and/or the rate of positive sampling decisions.
@@ -308,9 +259,6 @@ The returned `SamplingIntent` is constructed as follows.
 - If using the obtained threshold value as the final threshold would entail sampling more spans than the declared target rate, the sampler SHOULD increase the threshold to a value that would meet the target rate. Several algorithms can be used for threshold adjustment, no particular behavior is prescried by the specification though.
 - The `GetAttributes` function returns the union of the set of `Attributes` returned by calling the delegate's `GetAttributes` and own `Attributes`.
 - The `UpdateTraceState` function returns the `Tracestate` as returned by calling `UpdateTraceState` from the delegate's `SamplingIntent`.
-
-When using `ConsistentRateLimiting` in our requirements example as a replacement for `EachOf` and `RateLimiting`, we are left with no use case for any direct equivalent to `EachOf` in Approach Two.
-However, if such a need arises, `ConsistentEachOf` can be easily defined.
 
 ## Summary - Approach Two
 
