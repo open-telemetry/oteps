@@ -5,7 +5,7 @@ It introduces additional _composite samplers_.
 Composite samplers use other samplers (_delegates_ or _children_) to make sampling decisions.
 The composite samplers invoke the delegate samplers, but eventually make the final call.
 
-The new samplers proposed here are mostly compatible with Consistent Probability Samplers. For detailed description of this concept see [probability sampling (OTEP 235)](https://github.com/open-telemetry/oteps/blob/main/text/trace/0235-sampling-threshold-in-trace-state.md).
+Some of the new samplers proposed here have been designed to work with Consistent Probability Samplers. For detailed description of this concept see [probability sampling (OTEP 235)](https://github.com/open-telemetry/oteps/blob/main/text/trace/0235-sampling-threshold-in-trace-state.md).
 Also see Draft PR 3910 [Probability Samplers based on W3C Trace Context Level 2](https://github.com/open-telemetry/opentelemetry-specification/pull/3910).
 
 ## Motivation
@@ -36,9 +36,10 @@ Head-based sampling requirements.
   - however, capture all calls to service `/foo` (even if the trace will be incomplete)
 - in any case, do not exceed 1000 spans/minute
 
-We present two quite different approaches to composite samplers. The first one uses only the current [sampling API](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling). It can be applied to a large variety of samplers, but is not very efficient nor elegant.
+We present two quite different approaches to composite samplers. The first one uses only the current [sampling API](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling).
+It can be applied to a large variety of samplers, but may not work correctly for Consistent Probability Samplers. It is also not very efficient nor elegant.
 
-The second approach is applicable exclusively to Consistent Probability Samplers, but is more efficient and less prone to misconfiguration. It requires additional API to be provided by the delegate samplers.
+The second approach is applicable exclusively to Consistent Probability Samplers, and is more efficient and less prone to misconfiguration. It requires additional API to be provided by the delegate samplers.
 
 __Note__: both approaches call for calculating _unions_ of Attribute sets.
 Whenever such union is constructed, in case of conflicting attribute keys, the attribute definition from the last set that uses that key takes effect. Similarly, whenever modifications of `Tracestate` are performed in sequence, in case of conflicting keys, the last modification erases the previous values.
@@ -59,11 +60,7 @@ Upon invocation of its `shouldSample` method, it MUST go through the whole list 
 If any of the delegate Decisions is `RECORD_AND_SAMPLE`, the composite sampler MUST return `RECORD_AND_SAMPLE` Decision.
 Otherwise, if any of the delegate Decisions is `RECORD_ONLY`, the composite sampler MUST return `RECORD_ONLY` Decision.
 - The set of span `Attributes` to be added to the `Span` is the union of the sets of `Attributes` as provided by those delegate samplers which produced a sampling Decision other than `DROP`.
-- The `Tracestate` to be used with the new `Span` is obtained by cumulatively applying all the potential modifications of the parent `Tracestate` by the delegate samplers. However, the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry gets special handling as described below.
-
-If the final sampling Decision is `DROP` or `RECORD_ONLY`, the `th` entry MUST be removed.
-If the sampling Decision is `RECORD_AND_SAMPLE`, and there's no `th` entry in any of the `Tracestate` provided by the delegates that decided to `RECORD_AND_SAMPLE`, the `th` entry MUST be also removed.
-Otherwise, the resulting `Tracestate` MUST contain `th` entry with the `THRESHOLD` value being the minimum of all the `THRESHOLD` values as reported by those delegates that decided to `RECORD_AND_SAMPLE`.
+- The `Tracestate` to be used with the new `Span` is obtained by cumulatively applying all the potential modifications of the parent `Tracestate` by the delegate samplers.
 
 Each delegate sampler MUST be given a chance to participate in the sampling decision as described above and MUST see the same _parent_ state. The resulting sampling Decision does not depend on the order of the delegate samplers.
 
@@ -79,24 +76,19 @@ If the sampling Decision from the Second sampler is `RECORD_AND_SAMPLE`, the Con
 
 - The sampling Decision is `RECORD_AND_SAMPLE`.
 - The set of span `Attributes` to be added to the `Span` is the union of the sets of `Attributes` as provided by both samplers.
-- The `Tracestate` to be used with the new `Span` is as provided by the Second sampler, with special handling of the `th` sub-key (the sampling rejection `THRESHOLD`) for the `ot` entry.
-If both First and Second samplers provided `th` entry in the returned `Tracestate`, the resulting `Tracestate` MUST contain `th` entry with the `THRESHOLD` being maximum of the `THRESHOLD`s provided by the First and Second samplers.
-Otherwise, the `th` entry MUST be removed.
+- The `Tracestate` to be used with the new `Span` is as provided by the Second sampler.
 
 If the sampling Decision from the Second sampler is `RECORD_ONLY`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
 
 - The sampling Decision is `RECORD_ONLY`.
 - The set of span `Attributes` to be added to the `Span` is the set of `Attributes` returned by the First sampler.
-- The `Tracestate` to be used with the new `Span` is the `Tracestate` provided by the Second sampler, but with the `th` entry removed.
+- The `Tracestate` to be used with the new `Span` is the `Tracestate` provided by the Second sampler.
 
 If the sampling Decision from the Second sampler is `DROP`, the Conjunction sampler MUST return a `SamplingResult` which is constructed as follows:
 
 - The sampling Decision is `DROP`.
 - The set of span `Attributes` to be added to the `Span` is empty.
-- The `Tracestate` to be used with the new `Span` is the `Tracestate` provided by the Second sampler, but with the `th` entry removed.
-
-The `Conjunction` sampler can be useful in a special case where the user wants to keep a group of traces, for example belonging to an end user session, together - meaning to make the same sampling decisions for all traces belonging to the group, as much as possible.
-One way of achieving this behavior for consistent probability samplers is to give all traces belonging to the group the same _randomness_ (represented by `r-value`), based on some criteria shared by all traces belonging to the group. This can be done by a special sampler which would provide the required `r-value` for all `ROOT` spans of the involved traces. When using such a sampler as the First delegate for `Conjunction`, this functionality can be encapsulated in a separate sampler, without making any changes to the current SDK specification.
+- The `Tracestate` to be used with the new `Span` is the `Tracestate` provided by the Second sampler.
 
 ### RuleBased
 
@@ -135,7 +127,7 @@ The order of `Predicate`s is essential. If more than one `Predicate` matches a `
 
 ## Summary - Approach One
 
-### Example - sampling configuration 1
+### Example - sampling configuration
 
 Going back to our example of sampling requirements, we can now configure the head sampler to support this particular case, using an informal notation of samplers and their arguments.
 First, let's express the requirements for the ROOT spans as follows.
@@ -171,8 +163,6 @@ S4 = Conjunction(S3, RateLimitingSampler(1000 * 60))
 ### Limitations of composite samplers in Approach One
 
 Not all samplers can participate as components of composite samplers without undesired or unexpected effects. Some samplers require that they _see_ each `Span` being created, even if the span is going to be dropped. Some samplers update the trace state or maintain internal state, and for their correct behavior it it is assumed that their sampling decisions will be honored by the tracer at the face value in all cases. A good example for this are rate limiting samplers which have to keep track of the rate of created spans and/or the rate of positive sampling decisions.
-
-A special attention is required for CP samplers. The sampling probability they record in trace-state is later used to calculate [_adjusted count_](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/#adjusted-count), which, in turn, is used to calculate span-based metrics. While the composite samplers presented here are compatible with CP samplers, generally, mixing CP samplers with other types of samplers may lead to undefined or sometimes incorrect adjusted counts.
 
 The need to encode and decode the `Tracestate` multiple times affects performance of the composite samplers. This drawback is eliminated in Approach Two.
 
@@ -256,9 +246,11 @@ Upon invocation of its `GetSamplingIntent` function, the composite sampler MUST 
 
 The returned `SamplingIntent` is constructed as follows.
 
-- If using the obtained threshold value as the final threshold would entail sampling more spans than the declared target rate, the sampler SHOULD increase the threshold to a value that would meet the target rate. Several algorithms can be used for threshold adjustment, no particular behavior is prescried by the specification though.
+- If using the obtained threshold value as the final threshold would entail sampling more spans than the declared target rate, the sampler SHOULD increase the threshold to a value that would meet the target rate. Several algorithms can be used for threshold adjustment, no particular behavior is prescribed by the specification though.
 - The `GetAttributes` function returns the union of the set of `Attributes` returned by calling the delegate's `GetAttributes` and own `Attributes`.
 - The `UpdateTraceState` function returns the `Tracestate` as returned by calling `UpdateTraceState` from the delegate's `SamplingIntent`.
+
+TO DO: consider introducing a `ConsistentConjuntion` sampler (similar to `Conjunction` from Approach One) that would generalize the relationship between the delegate and the principal sampler, and remove the explicit delegate from `ConsistentRateLimiting`.
 
 ## Summary - Approach Two
 
@@ -287,7 +279,7 @@ S = ConsistentRateLimiting(
 
 Making sampling decisions with samplers from Approach Two is more efficient than in Approach One, especially if, platform permitting, `null` values can be used for `GetAttributes` and `UpdateTraceState` functions to represent the prevailing trivial cases of _no-new-attributes_ and _no-special-trace-state-keys_. The only limitation of this approach that it operates exclusively within the domain of Composable Samplers (a subset of Consistent Probability Samplers).
 
-Developers of Composable Samplers should consider that the sampling Decision they advise might be different from the final sampling Decision.
+Developers of Composable Samplers should consider that the sampling Decision they declare as their intent might be different from the final sampling Decision.
 
 ## Prior art
 
