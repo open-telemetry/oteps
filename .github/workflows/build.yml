@@ -1,0 +1,36 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  misspell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Misspell Install
+        run: make install-misspell
+
+      - name: Misspell check
+        run: make misspell
+
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Tools
+        run: |
+          make install-markdown-lint
+          make install-markdown-link-check
+
+      - name: Run Tools
+        run: |
+          make markdown-lint
+          # Disabled for the moment because too many requests to github.com
+          # and we receive errors for valid links.
+          # make enforce-markdown-link-check
