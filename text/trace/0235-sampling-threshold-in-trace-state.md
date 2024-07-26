@@ -1,5 +1,7 @@
 # Consistent Probability Sampling with Support for Arbitrary Sampling Rates
 
+**Note this document was revised in [OTEP 261](https://github.com/open-telemetry/oteps/pull/261)**.
+
 ## Abstract
 
 Sampling is an important lever to reduce the costs associated with collecting and processing telemetry data. It enables you to choose a representative set of items from an overall population.
