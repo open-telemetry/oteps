@@ -66,7 +66,7 @@ Each delegate sampler MUST be given a chance to participate in the sampling deci
 
 ### Conjunction
 
-`Conjunction` is a composite sampler which takes two Samplers (delegates) as the arguments. These delegate samplers will be hereby referenced as First and Second. This kind of composition forms conditional chaining of both samplers. 
+`Conjunction` is a composite sampler which takes two Samplers (delegates) as the arguments. These delegate samplers will be hereby referenced as First and Second. This kind of composition forms conditional chaining of both samplers.
 
 Upon invocation of its `shouldSample` method, the Conjunction sampler MUST invoke `shouldSample` method on the First sampler, passing the same arguments as received, and examine the received sampling Decision.
 Upon receiving `DROP` or `RECORD_ONLY` decision it MUST return the `SamplingResult` (which includes a set of `Attributes` and `Tracestate` in addition to the sampling Decision) from the First sampler, and it MUST NOT proceed with querying the Second sampler.
@@ -179,7 +179,7 @@ The composite samplers in Approach Two are Composable Samplers as well.
 
 This is a routine/function/method for all Composable Samplers. Its purpose is to query the sampler about the activities it would perform had it been asked to make a sampling decision for a given span, however, without constructing the actual sampling Decision.
 
-#### Required Arguments for GetSamplingIntent:
+#### Required Arguments for GetSamplingIntent
 
 The arguments are the same as for [`ShouldSample`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#shouldsample) except for the `TraceId`.
 
@@ -189,11 +189,11 @@ The arguments are the same as for [`ShouldSample`](https://github.com/open-telem
 - Initial set of `Attributes` of the `Span` to be created.
 - Collection of links that will be associated with the `Span` to be created.
 
-#### Return value:
+#### Return value
 
 The return value is a structure (`SamplingIntent`) with the following elements:
 
-- The THRESHOLD value represented as a 14-character hexadecimal string, with value of `null` representing non-probabilistic `DROP` decision,
+- The THRESHOLD value represented as a 14-character hexadecimal string, with value of `null` representing non-probabilistic `DROP` decision (implementations MAY use different representation, if it appears more performant or convenient),
 - A function (`GetAttributes`) that provides a set of `Attributes` to be added to the `Span` in case of positive final sampling decision,
 - A function (`UpdateTraceState`) that given an input `Tracestate` and sampling Decision provides a `Tracestate` to be associated with the `Span`. The samplers SHOULD NOT add or modify the `th` value for the `ot` key within these functions.
 
@@ -205,7 +205,7 @@ The process of constructing the final `SamplingResult` in response to a call to 
 - The sampler compares the received THRESHOLD value with the trace Randomness value to arrive at the final sampling `Decision`,
 - In case of a positive sampling decision the sampler calls the received `GetAttributes` function to determine the set of `Attributes` to be added to the `Span`, in most cases it will be a recursive step,
 - The sampler calls the received `UpdateTraceState` function passing the parent `Tracestate` and the final sampling `Decision` to get the new `Tracestate` to be associated with the `Span` - again, in most cases this is a recursive step,
-- The sampler modifies (or removes) the `th` value for the `ot` key in the `Tracestate` according to the final sampling `Decision` and the THRESHOLD used in the second step above. 
+- The sampler modifies (or removes) the `th` value for the `ot` key in the `Tracestate` according to the final sampling `Decision` and the THRESHOLD used in the second step above.
 
 ### ConsistentRuleBased
 
