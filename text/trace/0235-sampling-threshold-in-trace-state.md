@@ -52,6 +52,7 @@ This proposal supports two sources of randomness:
 - **Using TraceID as a source of randomness**: This proposal introduces using the last 56 bits of the `traceid` as the source of randomness. This can be done if the root participant knows that the `traceid` has been generated in a random or pseudo-random manner.
 
 ### Consistent Sampling Decision Approach
+
 Given the above building blocks, let's look at how a participant can make consistent sampling decisions. For this, two values MUST be present in the `SpanContext`:
 
 1. The common source of randomness: the 56-bit `R` value.
