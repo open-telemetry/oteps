@@ -20,7 +20,7 @@ on how trace context can be propagated to subprocesses using environment variabl
 ### Propagation via environment variables
 
 The environment variables `TRACEPARENT` and `TRACESTATE` are used to propagate trace context to
-subprocesses that are spwaned.  Formatting and semantics of their values are according to
+subprocesses that are spawned.  Formatting and semantics of their values are according to
 [W3C's Trace Context Recommendation](https://www.w3.org/TR/trace-context/)'s `traceparent` and
 `tracestate` headers, respectively, with a single modification that `TRACESTATE` does not have
 provisions for being split into multiple environment variables.
@@ -63,7 +63,7 @@ HEXDIGLC = DIGIT / "a" / "b" / "c" / "d" / "e" / "f" ; lowercase hex character
 
 ## Internal details
 
-### Environment variable name case sensitivty
+### Environment variable name case sensitivity
 
 Environment variable names are case-insensitive on Windows, while case sensitive elsewhere.
 For interoperability, implementations _MUST_ use the uppercase `TRACEPARENT` and `TRACESTATE`
@@ -79,7 +79,7 @@ variables is implementation defined.
 Using W3C's Trace Context semantic allows any existing [`TextMap` proapgator](https://opentelemetry.io/docs/specs/otel/context/api-propagators/#textmap-propagator)
 to be used to serialize and deserialize `TRACEPARENT` and `TRACESTATE`.
 
-One potential implementaiton is to provide `Getter` and `Setter` to `TextMap`'s `Extract` and
+One potential implementation is to provide `Getter` and `Setter` to `TextMap`'s `Extract` and
 `Inject`, respectively, that perform appropriate operation on a `Carrier` capable of
 interfacing with the language's environment variable facilities.  However, care should be taken to
 limit their usage to a `TextMap` propagator specificalized for handling tracing context, or limit
@@ -100,16 +100,16 @@ _SHOULD_ provide API to enable this choice.
 ### Limiting unintended propagation
 
 In many language runtimes, the parent process' environment variables are wholly inherited by
-spanwed child processes.  This can lead to unintended and inappropriate proapgation of the parent's
+spawned child processes.  This can lead to unintended and inappropriate proapgation of the parent's
 tracing context.
 
-Implementations that use environemnt variables for proapgation to spawned child processes _SHOULD_
+Implementations that use environment variables for proapgation to spawned child processes _SHOULD_
 limit the injection of these variables to the spawning mechanism itself, and avoid modifying its own
 environment variables as a way to pass them onto its children.
 
 Applications that intend to consume `TRACEPARENT` and `TRACESTATE` _SHOULD_ consider clearing
 their values after extracting the context. This eliminates the possibiilty of unintended
-propagation if environment variable inheritence is not carefully controlled throughout the
+propagation if environment variable inheritance is not carefully controlled throughout the
 application.
 
 ### Configuring subprocess' exporter endpoint
@@ -185,7 +185,7 @@ or some equivalent commandline argument:
 
 ### OTEP 258
 
-[OTEP 258: Environemnt Variable Specification for Context Baggae Propagation](https://github.com/open-telemetry/oteps/pull/258)
+[OTEP 258: Environment Variable Specification for Context Baggae Propagation](https://github.com/open-telemetry/oteps/pull/258)
 addresses the same problem space, and predates this OTEP.  However, OTEP 258 appears to have stalled
 with unaddressed issues.  The author of this OTEP felt that attempts to address said issues, in
 addition to further ambiguities discovered whilst doing so, results in an almost complete rewrite
