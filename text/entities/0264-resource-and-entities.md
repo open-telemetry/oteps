@@ -184,28 +184,29 @@ The Entities WG came up with a rubric to evaluate solutions based on shared
 beliefs and goals for the overall effort.  Let's look at how each item is
 achieved:
 
-**Resource detectors (soon to be entity detectors) need to be composable / disjoint**
+### Resource detectors (soon to be entity detectors) need to be composable / disjoint
+
 Entity detection and Resource Manager now fulfill this need.
 
+### New entities added by extension should not break existing code
 
-**New entities added by extension should not break existing code**
 Users will need to configure a new Entity detector for new entities being modelled.
 
+### Navigational attributes need to exist and can be used to identify an entity but could be augmented with UUID or other aspects. - Having ONLY a UUID for entity identification is not good enough.
 
-**Navigational attributes need to exist and can be used to identify an entity but could be augmented with UUID or other aspects. - Having ONLY a UUID for entity identification is not good enough.**
 Resource will still be composed of identifying and descriptive attributes of Entity, allowing baseline navigational attributes users already expect from resource.
 
+### Collector augmentation / enrichment (resource, e.g.) - Should be extensible and not hard-coded. We need a general algorithm not specific rulesets.
 
-**Collector augmentation / enrichment (resource, e.g.) - Should be extensible and not hard-coded. We need a general algorithm not specific rulesets.**
 Entity concept provides a new "bundle" mechanism to resource for the Collector to augment enrich a group of attributes and better identify conflicts (or identity changes) caused therein.
 
+### Users are expected to provide / prioritize "detectors" and determine which entity is "producing" or most-important for a signal
 
-**Users are expected to provide / prioritize "detectors" and determine which entity is "producing" or most-important for a signal**
 The Resource Manager allows users to configure priority of Entity Detectors.
 
-**For an SDK - ALL telemetry should be associated with the same set of entities (resource labels).**
-Resource Manager is responsible for resolving entities into a cohesive Resource that meets the same demands as Resource today.
+### For an SDK - ALL telemetry should be associated with the same set of entities (resource labels).
 
+Resource Manager is responsible for resolving entities into a cohesive Resource that meets the same demands as Resource today.
 
 ## Open Questions
 
