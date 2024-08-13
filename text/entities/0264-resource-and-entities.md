@@ -8,7 +8,6 @@ current resource specification.
 
 <!-- tocstop -->
 
-
 ## Motivation
 
 This proposal attempts to focus on the following problems within OpenTelemetry to unblock multiple working groups:
@@ -19,8 +18,11 @@ This proposal attempts to focus on the following problems within OpenTelemetry t
 - Fix current Resource merge rules in the specification, which most implementations violate ([oteps#208](https://github.com/open-telemetry/oteps/pull/208), [spec#3382](https://github.com/open-telemetry/opentelemetry-specification/issues/3382), [spec#3710](https://github.com/open-telemetry/opentelemetry-specification/issues/3710)).
 - Allow semantic convention resource modeling to progress ([spec#605](https://github.com/open-telemetry/opentelemetry-specification/issues/605), [spec#559](https://github.com/open-telemetry/opentelemetry-specification/issues/559), etc).
 
-# Approach - Resource Improvements
-Start with outlining Entity detectors and Resource composition.  This has a higher priority for fixing within OpenTelemetry, and needs to be unblocked sooner. Infer our way back to data model and Collector use cases.
+## Design
+
+### Approach - Resource Improvements
+
+Let's focus on outlining Entity detectors and Resource composition.  This has a higher priority for fixing within OpenTelemetry, and needs to be unblocked sooner. Then infer our way back to data model and Collector use cases.
 
 We define the following SDK components:
 
@@ -32,7 +34,7 @@ We define the following SDK components:
   - Providing SDK-internal access to detected Resources for reporting via Log signal on configured LogProviders.
   - *(new) Managing Entity changes during SDK lifetime, specifically dealing with entities that have lifetimes shorter than the SDK*
 
-## Resource Container
+#### Resource Container
 
 The SDK Resource coordinator is responsible for running all configured Resource and Entity Detectors.  There will be some (user-controlled, otel default) priority order to these.
 
@@ -48,7 +50,7 @@ The SDK Resource coordinator is responsible for running all configured Resource 
   - An OOTB "Env Variable Entity Detector" will be specified and provided vs. requiring SDK wide ENV variables for resource detection.
 - *Additionally, Resource Coordinator would be responsible for understanding Entity lifecycle events, for Entities whose lifetimes do not match or exceed the SDK's own lifetime (e.g. browser session).*
 
-## Entity Detector
+#### Entity Detector
 
 The Entity detector in the SDK is responsible for detecting possible entities that could identify the SDK.  For Example, if the SDK is running in a kubernetes pod, it may provide an Entity for that pod.   SDK Entity Detectors are only required to provide identifying attributes, but may provide descriptive attributes to ensure combined Resource contains similar attributes as today's SDK.
 
@@ -61,7 +63,7 @@ trait EntityDetector
 
 Where `Result` is the equivalent of error channel in the language of choice (e.g. in Go this would be `entities, err := e.detectEntities()`).
 
-## Entity Merging and Resource
+#### Entity Merging and Resource
 
 The most important aspect of this design is how Entities will be merged to construct a Resource. We provide a simple algorithm for this behavior:
 
@@ -75,7 +77,7 @@ The most important aspect of this design is how Entities will be merged to const
 
 Any implementation that achieves the same result as this algorithm is acceptable.
 
-## Environment Variable Detector
+#### Environment Variable Detector
 
 An Entity detector will be specified to allow Platform to inject entity identity information into workloads running on that platform.   For Example, the OpenTelemetry Operator could inject information about Kubernetes Deployment + Container into the environment, which SDKs can elect to interact with (through configuration of the Environment Variable Entity Detector).
 
@@ -94,7 +96,7 @@ The minimum requirements of this entity detector are:
 
 The actual design for this ENV variable interaction would follow the approval of this OTEP.
 
-## Interactions with OpenTelemetry Collector
+### Interactions with OpenTelemetry Collector
 
 The OpenTelemetry collector can be updated to optionally  interact with Entity on Resource. A new entity-focused resource detection process can be created which allows add/override behavior at the entity level, rather than individual attribute level.
 
@@ -121,7 +123,7 @@ processor:
 
 The list of detectors is given in priority order (first wins, in event of a tie, outside of override configuration). The processor may need to be updated to allow the override flag to apply to each individual detector.
 
-# Datamodel Changes
+## Datamodel Changes
 
 Given our desired design and algorithms for detecting, merging and manipulating Entities, we need the ability to denote how entity and resource relate. These changes must not break existing usage of Resource, therefore:
 
@@ -131,7 +133,7 @@ Given our desired design and algorithms for detecting, merging and manipulating 
 
 The following changes are made:
 
-## Resource
+### Resource
 
 | Field | Type | Description | Changes |
 | ----- | ---- | ----------- | ------- |
@@ -142,7 +144,7 @@ The following changes are made:
 
 The DataModel would ensure that attributes in Resource are produced from both the identifying and descriptive attributes of Entity.  This does not mean the protocol needs to transmit duplicate data, that design is TBD.
 
-## ResourceEntityRef
+### ResourceEntityRef
 
 The entityref data model, would have the following changes from the original [entity OTEP](https://github.com/open-telemetry/oteps/blob/main/text/entities/0256-entities-data-model.md) to denote references within Resource:
 
@@ -153,7 +155,7 @@ The entityref data model, would have the following changes from the original [en
 | identifying_attributes_keys | repeated string | Attribute Keys that identify the entity.<br/>MUST not change during the lifetime of the entity. The Id must contain at least one attribute.<br/><br/>These keys MUST exists in Resource.attributes.<br/><br/>Follows OpenTelemetry common attribute definition. SHOULD follow OpenTelemetry semantic conventions for attributes.| now a reference |
 | descriptive_attributes_keys | repeated string | Descriptive (non-identifying) attribute keys of the entity.<br/>MAY change over the lifetime of the entity. MAY be empty. These attribute keys are not part of entity's identity.<br/><br/>These keys MUST exist in Resource.attributes.<br/><br/>Follows any value definition in the OpenTelemetry spec - it can be a scalar value, byte array, an array or map of values. Arbitrary deep nesting of values for arrays and maps is allowed.<br/><br/>SHOULD follow OpenTelemetry semantic conventions for attributes.| now a reference |
 
-# How this proposal solves the problems that motivated it
+## How this proposal solves the problems that motivated it
 
 Let's look at some motivating problems from the [Entities Proposal](https://docs.google.com/document/d/1VUdBRInLEhO_0ABAoiLEssB1CQO_IcD5zDnaMEha42w/edit#heading=h.atg5m85uw9w8):
 
@@ -205,11 +207,11 @@ The Resource Manager allows users to configure priority of Entity Detectors.
 Resource Manager is responsible for resolving entities into a cohesive Resource that meets the same demands as Resource today.
 
 
-# Open Questions
+## Open Questions
 
 The following remain open questions:
 
-## How to attach Entity "bundle" information in Resource?
+### How to attach Entity "bundle" information in Resource?
 
 The protocol today requires a raw grab bag of Attributes on Resource. We cannot break this going forward.  However, Entities represent a new mechanism of "bundling" attributes on Resource and interacting with these bundles.  We do not want this to bloat the protocol, nor do we want it to cause oddities.
 
@@ -222,34 +224,34 @@ Going forward, we have set of options:
 
 The third option prevents generic code from interacting with Resource and Entity without understanding the model of each.  The first keeps all usage of entity simple at the expense of duplicating information and the middle is awkward to interact with from an OTLP usage perspective. The fourth is violates our stability policy for OTLP.
 
-## How to deal with Resource/Entities whose lifecycle does not match the SDK?
+### How to deal with Resource/Entities whose lifecycle does not match the SDK?
 
 This proposal motivates a Resource Coordinator in the SDK whose job could include managing changes in entity lifetimes, but does not account for how these changes would be broadcast across TracerProvider, LogProvider, MeterProvider, etc.  That would be addressed in a follow on OTEP.
 
-## How to deal with Prometheus Compatibility for non-SDK telemetry?
+### How to deal with Prometheus Compatibility for non-SDK telemetry?
 
 Today, Prometheus compatibility relies on two key attributes in Resource: service.name and service.instance.id. These are not guaranteed to exist outside of OpenTelemetry SDK generation. While this question is not fully answered, we believe outlining identity in all resources within OpenTelemetry allows us to define a solution in the future while preserving compatibility with what works today.
 
-## Should entities have a domain?
+### Should entities have a domain?
 
 Is it worth having a `domain` in addition to type for entity?  We could force each entity to exist in one domain and leverage domain generically in resource management.  Entity Detectors would be responsible for an entire domain, selecting only ONE to apply a resource. Domains could be layered, e.g. a Cloud-specific domain may layer on top of a Kubernetes domain, where "GKE cluster entity" identifies *which* kubernetes cluster a kuberntes infra entity is part of.  This layer would be done naively, via automatic join of participating entities or explicit relationships derived from GKE specific hooks.
 
 It's unclear if this is needed initially, and we believe this could be layered in later.
 
-## Should resources have only one associated entity?
+### Should resources have only one associated entity?
 
 Given the problems leading to the Entities working group, and the needs of existing Resource users today, we think it is infeasible and unscalable to limit resource to only one entity.  This would place restrictions on modeling Entities that would require OpenTelemetry to be the sole source of entity definitions and hurt building an open and extensible ecosystem.  Additionally it would need careful definition of solutions for the following problems/rubrics:
 
 - New entities added by extension should not break existing code
 - Collector augmentation / enrichment (resource, e.g.) - Should be extensible and not hard-coded. We need a general algorithm not specific rulesets.
 
-## What identity should entities use (LID, UUID / GUID, or other)?
+### What identity should entities use (LID, UUID / GUID, or other)?
 
 One of the largest questions in the first entities' OTEP was how to identify an entity.  This was an attempt to unify the need for Navigational attributes with the notion that only identifying attributes of Entity would show up in Resource going forward. This restriction is no longer necessary in this proposal and we should reconsider how to model identity for an Entity.  
 
 This can be done in follow up design / OTEPs.
 
-## What happens if existing Resource translation in the collector remove resource attributes an Entity relies on?
+### What happens if existing Resource translation in the collector remove resource attributes an Entity relies on?
 
 While we expect the collector to be the first component to start engaging with Entities in an architecture, this could lead to data model violations.  We have a few options to deal with this issue:
 
@@ -257,11 +259,11 @@ While we expect the collector to be the first component to start engaging with E
 - Specify that missing attribute keys are acceptable for descriptive attribtues.
 - Specify that missing attribute keys denote that entities are unusable for that batch of telemetry, and treat the content as malformed.
 
-# Trade-offs and mitigations
+## Trade-offs and mitigations
 
 The design proposed here attempts to balance non-breaking (backwards and forwards compatible) changes with the need to improve problematic issues in the Specification.  Given the inability of most SDKs to implement the current Resource merge specification, breaking this should have little effect on actual users.  Instead, the proposed merge specification should allow implementations to match current behavior and expectation, while evolving for users who engage with the new model.
 
-# Prior art and alternatives
+## Prior art and alternatives
 
 Previously, we have a few unaccepted oteps, e.g. ([OTEP 208](https://github.com/open-telemetry/oteps/pull/208)).  Additionally, there are some alternatives that were considered in the Entities WG and rejected.
 
@@ -271,6 +273,6 @@ Below is a brief discussion of some design decisions:
 - **Embed fully Entity in Resource.** This was rejected because it makes it easy/trivial for Resource attributes and Entities to diverge.  This would prevent the backwards/forwards compatibility goals and also require all participating OTLP users to leverage entities. Entity should be an opt-in / additional feature that may or may not be engaged with, depending on user need.
 - **Re-using resource detectoin as-is** This was reject as not having a viable compatibility path forward.  Creating a new set of components that can preserve existing behavior while allowing users to adopt the new functionality means that users have better control of when they see / change system behavior, and adoption is more obvious across the ecosystem.
 
-# Future Posibilities
+## Future Posibilities
 
 This proposal opens the door for addressing issues where an Entity's lifetime does not match an SDK's lifetime, in addition to providing a data model where mutable (descriptive) attributes can be changed over the lifetime of a resource without affecting its idnetity.  We expect a follow-on OTEP which directly handles this issue.
