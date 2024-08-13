@@ -255,11 +255,11 @@ While we expect the collector to be the first component to start engaging with E
 
 - Consider this a bug and warn users not to do it.
 - Specify that missing attribute keys are acceptable for descriptive attribtues.
-- Specify that missing attribute keys denote that entities are unsuable for that batch of telemetry, and treat the content as malformed.
+- Specify that missing attribute keys denote that entities are unusable for that batch of telemetry, and treat the content as malformed.
 
 # Trade-offs and mitigations
 
-The design proposed here attempts to balance non-breaking (backwards and forwards compatible) changes with the need to improve problematic issues in the Specification.  Given the inability of most SDKs to implement the current Resource merge specification, breaking this should have little effect on actual users.  Instead, the proposed merge specification should allow impelmentation to match current behavior and expectation, while evolving for users who engage with the new model.
+The design proposed here attempts to balance non-breaking (backwards and forwards compatible) changes with the need to improve problematic issues in the Specification.  Given the inability of most SDKs to implement the current Resource merge specification, breaking this should have little effect on actual users.  Instead, the proposed merge specification should allow implementations to match current behavior and expectation, while evolving for users who engage with the new model.
 
 # Prior art and alternatives
 
