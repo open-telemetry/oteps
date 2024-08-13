@@ -46,7 +46,7 @@ The SDK Resource coordinator is responsible for running all configured Resource 
   - Resource detectors otherwise follow existing merge semantics.
     - The Specification merge rules will be updated to account for violations prevalent in ALL implementation of resource detection.
     - Specifically: This means the rules around merging Resource across schema-url will be dropped.  Instead only conflicting attributes will be dropped.
-     - SchemaURL on Resource will need to be deprecated with entity-specific schema-url replacing it.  Additionally, as no Resource semantic conventions have ever stabilized, SchemaURL usage on Resource cannot be in stable components of OpenTelemetry.  Given prevalent violation of implementations around Resource merge specification, we suspect impact of this deprecation to be minimal.
+    - SchemaURL on Resource will need to be deprecated with entity-specific schema-url replacing it.  Additionally, as no Resource semantic conventions have ever stabilized, SchemaURL usage on Resource cannot be in stable components of OpenTelemetry.  Given prevalent violation of implementations around Resource merge specification, we suspect impact of this deprecation to be minimal.
   - An OOTB "Env Variable Entity Detector" will be specified and provided vs. requiring SDK wide ENV variables for resource detection.
 - *Additionally, Resource Coordinator would be responsible for understanding Entity lifecycle events, for Entities whose lifetimes do not match or exceed the SDK's own lifetime (e.g. browser session).*
 
@@ -150,7 +150,7 @@ The entityref data model, would have the following changes from the original [en
 
 | Field | Type | Description | Changes |
 | ----- | ---- | ----------- | ------- |
-| schema_url | string | The Schema URL, if known. This is the identifier of the Schema that the entity data  is recorded in. To learn more about Schema URL see https://opentelemetry.io/docs/specs/otel/schemas/#schema-url | added |
+| schema_url | string | The Schema URL, if known. This is the identifier of the Schema that the entity data  is recorded in. To learn more about Schema URL ([see docs](https://opentelemetry.io/docs/specs/otel/schemas/#schema-url)) | added |
 | type | string | Defines the type of the entity. MUST not change during the lifetime of the entity. For example: "service" or "host". This field is required and MUST not be empty for valid entities. | unchanged |
 | identifying_attributes_keys | repeated string | Attribute Keys that identify the entity.<br/>MUST not change during the lifetime of the entity. The Id must contain at least one attribute.<br/><br/>These keys MUST exists in Resource.attributes.<br/><br/>Follows OpenTelemetry common attribute definition. SHOULD follow OpenTelemetry semantic conventions for attributes.| now a reference |
 | descriptive_attributes_keys | repeated string | Descriptive (non-identifying) attribute keys of the entity.<br/>MAY change over the lifetime of the entity. MAY be empty. These attribute keys are not part of entity's identity.<br/><br/>These keys MUST exist in Resource.attributes.<br/><br/>Follows any value definition in the OpenTelemetry spec - it can be a scalar value, byte array, an array or map of values. Arbitrary deep nesting of values for arrays and maps is allowed.<br/><br/>SHOULD follow OpenTelemetry semantic conventions for attributes.| now a reference |
@@ -159,22 +159,22 @@ The entityref data model, would have the following changes from the original [en
 
 Let's look at some motivating problems from the [Entities Proposal](https://docs.google.com/document/d/1VUdBRInLEhO_0ABAoiLEssB1CQO_IcD5zDnaMEha42w/edit#heading=h.atg5m85uw9w8):
 
-**Problem 1: Commingling of Entities**
+### Problem 1: Commingling of Entities
 
 We embrace the need for commingling entities in Resource and allow downstream users to interact with the individual entities rather than erasing these details.
 
-**Problem 2: Lack of Precise Identity**
+### Problem 2: Lack of Precise Identity
 
 Identity is now clearly delineated from description via the Entity portion of Resource. When Entity is used for Resource, only identifying attributes need to be interacted with to create resource identity.
 
-**Problem 3: Lack of Mutable Attributes**
+### Problem 3: Lack of Mutable Attributes
 
 This proposal offers two solutions going forward to this:
 
 - Descriptive attributes may be mutated without violating Resource identity
 - Entities whose lifetimes do not match SDK may be attached/removed from Resource.
 
-**Problem 4: Metric Cardinality Problem**
+### Problem 4: Metric Cardinality Problem
 
 Via solution to (2) we can leverage an identity synthesized from identifying attributes on Entity.  By directly modeling entity lifetimes, we guarantee that identity changes in Resource ONLY occur when source of telemetry changes.  This solves unintended metric cardinality problems (while leaving those that are necessary to deal with, e.g. collecting metrics from phones or browser instances where intrinsic cardinality is high).
 
@@ -192,11 +192,11 @@ Entity detection and Resource Manager now fulfill this need.
 
 Users will need to configure a new Entity detector for new entities being modelled.
 
-### Navigational attributes need to exist and can be used to identify an entity but could be augmented with UUID or other aspects. - Having ONLY a UUID for entity identification is not good enough.
+### Navigational attributes need to exist and can be used to identify an entity but could be augmented with UUID or other aspects. - Having ONLY a UUID for entity identification is not good enough
 
 Resource will still be composed of identifying and descriptive attributes of Entity, allowing baseline navigational attributes users already expect from resource.
 
-### Collector augmentation / enrichment (resource, e.g.) - Should be extensible and not hard-coded. We need a general algorithm not specific rulesets.
+### Collector augmentation / enrichment (resource, e.g.) - Should be extensible and not hard-coded. We need a general algorithm not specific rulesets
 
 Entity concept provides a new "bundle" mechanism to resource for the Collector to augment enrich a group of attributes and better identify conflicts (or identity changes) caused therein.
 
@@ -204,7 +204,7 @@ Entity concept provides a new "bundle" mechanism to resource for the Collector t
 
 The Resource Manager allows users to configure priority of Entity Detectors.
 
-### For an SDK - ALL telemetry should be associated with the same set of entities (resource labels).
+### For an SDK - ALL telemetry should be associated with the same set of entities (resource labels)
 
 Resource Manager is responsible for resolving entities into a cohesive Resource that meets the same demands as Resource today.
 
