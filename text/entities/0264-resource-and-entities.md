@@ -92,7 +92,7 @@ The minimum requirements of this entity detector are:
 
 - ENV variable can specify multiple entities (resource attribute bundles)
 - ENV variable can be easily appended or leverages by multiple participating systems, if needed.
-- Entities discovered via ENV variable can participate in Resource Manager generically, i.e. resolving conflicting definitions.
+- Entities discovered via ENV variable can participate in Resource Coordinator generically, i.e. resolving conflicting definitions.
 
 The actual design for this ENV variable interaction would follow the approval of this OTEP.
 
@@ -231,7 +231,7 @@ This proposal motivates a Resource Coordinator in the SDK whose job could includ
 
 ### How to deal with Prometheus Compatibility for non-SDK telemetry?
 
-Today, Prometheus compatibility relies on two key attributes in Resource: `service.name` and `service.instance.id`. These are not guaranteed to exist outside of OpenTelemetry SDK generation. While this question is not fully answered, we believe outlining identity in all resources within OpenTelemetry allows us to define a solution in the future while preserving compatibility with what works today.
+Today, [Prometheus compatibility](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/compatibility/prometheus_and_openmetrics.md) relies on two key attributes in Resource: `service.name` and `service.instance.id`. These are not guaranteed to exist outside of OpenTelemetry SDK generation. While this question is not fully answered, we believe outlining identity in all resources within OpenTelemetry allows us to define a solution in the future while preserving compatibility with what works today.
 
 A quick proposal of what this might look like:
 
