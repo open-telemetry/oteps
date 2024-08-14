@@ -34,7 +34,7 @@ We define the following SDK components:
   - Providing SDK-internal access to detected Resources for reporting via Log signal on configured LogProviders.
   - *(new) Managing Entity changes during SDK lifetime, specifically dealing with entities that have lifetimes shorter than the SDK*
 
-#### Resource Container
+#### Resource Coordinator
 
 The SDK Resource coordinator is responsible for running all configured Resource and Entity Detectors.  There will be some (user-controlled, otel default) priority order to these.
 
