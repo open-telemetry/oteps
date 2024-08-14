@@ -127,7 +127,7 @@ The list of detectors is given in priority order (first wins, in event of a tie,
 
 Given our desired design and algorithms for detecting, merging and manipulating Entities, we need the ability to denote how entity and resource relate. These changes must not break existing usage of Resource, therefore:
 
-- The Entity model must be *layered on top of* the Resource model.  A system does not need to ineract with entities for correct behavior.
+- The Entity model must be *layered on top of* the Resource model.  A system does not need to interact with entities for correct behavior.
 - Existing key usage of Resource must remain when using Entities, specifically navigationality (see: [OpenTelemetry Resources: Principles and Characteristics](https://docs.google.com/document/d/1Xd1JP7eNhRpdz1RIBLeA1_4UYPRJaouloAYqldCeNSc/edit))
 - Downstream components should be able to engage with the Entity model in Resource.
 
