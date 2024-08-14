@@ -36,9 +36,9 @@ We define the following SDK components:
 
 #### Resource Coordinator
 
-The SDK Resource coordinator is responsible for running all configured Resource and Entity Detectors.  There will be some (user-controlled, otel default) priority order to these.
+The SDK Resource Coordinator is responsible for running all configured Resource and Entity Detectors.  There will be some (user-controlled, otel default) priority order to these.
 
-- The resource coordinator will detect conflicts in Entity of the same type being discovered and choose one to use.
+- The Resource Coordinator will detect conflicts in Entity of the same type being discovered and choose one to use.
 - When using Entity Detectors and Resource detectors together, the following merge rules will be used:
   - Entity merging will occur first resulting in an "Entity Merged" Resource.
     - Entities of different types will be merged into the resulting Resource.
