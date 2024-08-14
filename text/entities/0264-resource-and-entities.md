@@ -231,7 +231,12 @@ This proposal motivates a Resource Coordinator in the SDK whose job could includ
 
 ### How to deal with Prometheus Compatibility for non-SDK telemetry?
 
-Today, Prometheus compatibility relies on two key attributes in Resource: service.name and service.instance.id. These are not guaranteed to exist outside of OpenTelemetry SDK generation. While this question is not fully answered, we believe outlining identity in all resources within OpenTelemetry allows us to define a solution in the future while preserving compatibility with what works today.
+Today, Prometheus compatibility relies on two key attributes in Resource: `service.name` and `service.instance.id`. These are not guaranteed to exist outside of OpenTelemetry SDK generation. While this question is not fully answered, we believe outlining identity in all resources within OpenTelemetry allows us to define a solution in the future while preserving compatibility with what works today.
+
+A quick proposal of what this might look like:
+
+- `target_info` metric generation is updated to exclude any keys which are contained in `descriptive_attributes_keys` of an entity.
+- For each entity which has non-empty descriptive_attributes_keys, generate an info metric: `<entity_type>_entity_info` (naming TBD), which has all identifying and descriptive keys. This should play nicely with the planned improvements to [info-typed metrics](https://github.com/prometheus/proposals/blob/main/proposals/2024-04-10-native-support-for-info-metrics-metadata.md#goals).
 
 ### Should entities have a domain?
 
