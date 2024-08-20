@@ -45,8 +45,8 @@ The SDK Resource Coordinator is responsible for running all configured Resource 
     - Entities of the same type will have one rejected and one accepted, based on priority.
   - Resource detectors otherwise follow existing merge semantics.
     - The Specification merge rules will be updated to account for violations prevalent in ALL implementation of resource detection.
-    - Specifically: This means the rules around merging Resource across schema-url will be dropped.  Instead only conflicting attributes will be dropped.
-    - SchemaURL on Resource will need to be deprecated with entity-specific schema-url replacing it.  Additionally, as no Resource semantic conventions have ever stabilized, SchemaURL usage on Resource cannot be in stable components of OpenTelemetry.  Given prevalent violation of implementations around Resource merge specification, we suspect impact of this deprecation to be minimal.
+    - Specifically: This means the [rules around merging Resource across schema-url will be dropped](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/sdk.md#merge).  Instead only conflicting attributes will be dropped.
+    - SchemaURL on Resource will need to be deprecated with entity-specific schema-url replacing it. SDKs will no longer fill out SchemaURL on Resource. Additionally, as no (non-service) Resource semantic conventions have ever stabilized, SchemaURL usage on Resource cannot be in stable components of OpenTelemetry.  Given prevalent concerns of implementations around Resource merge specification, we suspect impact of this deprecation to be minimal.
   - An OOTB "Env Variable Entity Detector" will be specified and provided vs. requiring SDK wide ENV variables for resource detection.
 - *Additionally, Resource Coordinator would be responsible for understanding Entity lifecycle events, for Entities whose lifetimes do not match or exceed the SDK's own lifetime (e.g. browser session).*
 
@@ -90,9 +90,10 @@ set OTEL_DETECTED_ENTITIES=k8s.deployment[k8s.deployment.name=my-program],k8s.po
 
 The minimum requirements of this entity detector are:
 
-- ENV variable can specify multiple entities (resource attribute bundles)
-- ENV variable can be easily appended or leverages by multiple participating systems, if needed.
-- Entities discovered via ENV variable can participate in Resource Coordinator generically, i.e. resolving conflicting definitions.
+- ENV variable(s) can specify multiple entities (resource attribute bundles)
+- ENV variable(s) can be easily appended or leverages by multiple participating systems, if needed.
+- Entities discovered via ENV variable(s) can participate in Resource Coordinator generically, i.e. resolving conflicting definitions.
+- ENV variable(s) have a priority that can be influenced by platform entity providers (e.g. prepending vs. appending)
 
 The actual design for this ENV variable interaction would follow the approval of this OTEP.
 
@@ -110,7 +111,7 @@ processors:
     override: false
 ```
 
-The future entity-based detector would look almost exactly the same, but interact with the entity model of resource:
+The future entity-based detector would look exactly the same, but interact with the entity model of resource:
 
 ```yaml
 processor:
@@ -122,6 +123,10 @@ processor:
 ```
 
 The list of detectors is given in priority order (first wins, in event of a tie, outside of override configuration). The processor may need to be updated to allow the override flag to apply to each individual detector.
+
+The rules for attributes would follow entity merging rules, as defined for the SDK resource manager.
+
+Note: While this proposals shows a new processor replcing the `resourcedetection` processor, the details of whether to modify-in-place the existing `resourcedetection` processor or create a new one would be determined as a follow up to this design.
 
 ## Datamodel Changes
 
