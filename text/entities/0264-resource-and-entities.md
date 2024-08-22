@@ -287,3 +287,42 @@ Below is a brief discussion of some design decisions:
 ## Future Posibilities
 
 This proposal opens the door for addressing issues where an Entity's lifetime does not match an SDK's lifetime, in addition to providing a data model where mutable (descriptive) attributes can be changed over the lifetime of a resource without affecting its idnetity.  We expect a follow-on OTEP which directly handles this issue.
+
+## Use Cases
+
+Below are a set of use cases to help motivate this design.
+
+### SDK and Collector - Entity coordination
+
+Let's consider the interaction of resource, entity in the presence of an SDK
+and a Collector:
+
+```mermaid
+flowchart LR
+    A["`**SDK**`"] -->|OTLP| B["`**Collector**`"]
+    A -.- D((Resource Coordinator))
+    B -.- C((Resource Processor))
+    C -. Detects .-> E{{"`k8s.pod
+    *schema: 1.26.0*
+    `"}}
+    C -. Detects .-> F{{k8s.deployment}}
+    D -. Detects .-> G{{"`k8s.pod
+    *schema: 1.25.0*
+    `"}}
+    D -. Detects .-> H{{service}}
+```
+
+Here, an SDK is communicating with a Collector.  The SDK and the collector
+are both participating in resource detection through the use of entities,
+however the installed versions of software are leverage different standard
+versions between the collector and the SDK.
+
+Ideally, we'd like a solution where:
+
+- The user can ensure only attributes related to previously undiscovered,
+  but relevant, entities can be added in Resource (specifically, `k8s.deployment`).
+- The user can address issues where schema version `1.26.0` and `1.25.0` may
+  have different attributes for the same entity.
+- We have default rules and merging that requires the least amount of
+  configuration or customization for users to acheive their desired
+  attributes in resource.
