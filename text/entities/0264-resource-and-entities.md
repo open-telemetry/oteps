@@ -4,6 +4,8 @@ This is a proposal to address Resource and Entity data model interactions,
 including a path forward to address immediate friction and issues in the
 current resource specification.
 
+It is an expansion on the [previous entity proposal](0256-entities-data-model.md).
+
 <!-- toc -->
 
 <!-- tocstop -->
