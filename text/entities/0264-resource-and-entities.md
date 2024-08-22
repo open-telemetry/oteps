@@ -68,7 +68,7 @@ Where `Result` is the equivalent of error channel in the language of choice (e.g
 The most important aspect of this design is how Entities will be merged to construct a Resource. We provide a simple algorithm for this behavior:
 
 - Construct a set of detected entities, E
-- All entity detectors are sorted by priority
+- All entity detectors are sorted by priority (highest first)
 - For each entity detector
   - For each entity detected
     - If the entity exists in E, ignore it
