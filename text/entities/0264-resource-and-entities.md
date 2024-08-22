@@ -47,7 +47,7 @@ The SDK Resource Coordinator is responsible for running all configured Resource 
     - The Specification merge rules will be updated to account for violations prevalent in ALL implementation of resource detection.
     - Specifically: This means the [rules around merging Resource across schema-url will be dropped](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/sdk.md#merge).  Instead only conflicting attributes will be dropped.
     - SchemaURL on Resource will need to be deprecated with entity-specific schema-url replacing it. SDKs will no longer fill out SchemaURL on Resource. Additionally, as no (non-service) Resource semantic conventions have ever stabilized, SchemaURL usage on Resource cannot be in stable components of OpenTelemetry.  Given prevalent concerns of implementations around Resource merge specification, we suspect impact of this deprecation to be minimal.
-  - An OOTB "Env Variable Entity Detector" will be specified and provided vs. requiring SDK wide ENV variables for resource detection.
+  - An OOTB ["Env Variable Entity Detector"](#environment-variable-detector) will be specified and provided vs. requiring SDK wide ENV variables for resource detection.
 - *Additionally, Resource Coordinator would be responsible for understanding Entity lifecycle events, for Entities whose lifetimes do not match or exceed the SDK's own lifetime (e.g. browser session).*
 
 #### Entity Detector
