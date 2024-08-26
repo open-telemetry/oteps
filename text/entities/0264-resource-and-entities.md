@@ -294,24 +294,128 @@ This proposal opens the door for addressing issues where an Entity's lifetime do
 
 Below are a set of use cases to help motivate this design.
 
-### SDK and Collector - Entity coordination
+### SDK - Multiple Detectors of the same Entity type
+
+TODO - Describe
+
+### SDK and Collector - Simple coordination
 
 Let's consider the interaction of resource, entity in the presence of an SDK
 and a Collector:
 
 ```mermaid
 flowchart LR
-    A["`**SDK**`"] -->|OTLP| B["`**Collector**`"]
-    A -.- D((Resource Coordinator))
-    B -.- C((Resource Processor))
-    C -. Detects .-> E{{"`k8s.pod
+    SDK["`**SDK**`"] -->|OTLP| COLLECTOR["`**Collector**`"]
+    COLLECTOR -->|OTLP| BACKEND["`**Backend**`"]
+    SDK -.- RC((Resource Coordinator))
+    COLLECTOR -.- RP((Resource Processor))
+    RP -. Detects .-> EC2{{aws.ec2}}
+    RP -. Detects .-> HOST{{host}}
+    RC -. Detects .-> PROCESS{{process}}
+    RC -. Detects .-> SERVICE{{service}}
+```
+
+Here, an SDK is running on Amazon EC2. it is configured with resource detection
+that find a `process` and `service` entity.  The SDK is sending data to an
+OpenTelemetry Collector that has a resource processor configured to detect
+the `ec2` and `host` entities.
+
+The resulting OTLP from the collector would contain a resource with all
+of the entities (`process`, `service`, `ec2`, and `host`).  This is because
+the entities are all disjoint.
+
+*Note: this matches today's behavior of existing resource detection and OpenTelmetry collector where all attributes wind up on resource.*
+
+### SDK and Collector - Entity coordination with descriptive attributes
+
+Let's consider the interaction of resource, entity where both the SDK and the Collector detect an entity:
+
+```mermaid
+flowchart LR
+    SDK["`**SDK**`"] -->|OTLP| COLLECTOR["`**Collector**`"]
+    COLLECTOR -->|OTLP| BACKEND["`**Backend**`"]
+    SDK -.- RC((Resource Coordinator))
+    COLLECTOR -.- RP((Resource Processor))
+    RP -. Detects .-> HOST2{{host}}
+    RC -. Detects .-> HOST{{host}}
+    RC -. Detects .-> SERVICE{{service}}
+```
+
+Here, and SDK is running on a machine (physical or virtual).  The SDK is
+configured to detect the host it is running on.  The collector is also running
+on a machine (physical or virtual).  Both the SDK and the Collector detect
+a `host` entity (with the same identity).
+
+The behavior would be as follows:
+
+- By default, the collector would append any missing descriptive attributes
+  from its `host` entity to the `host` entity and resource.
+- If the collector's processor is configured to `override: true`, then the
+  host entity from the SDK would be dropped in favor of the collector's `host`
+  entity.  All identifying+descriptive attributes from the original entity +
+  resource would be removed and those detected in the collector would replace it.
+
+This allows the collector to enrich or enhance resource attributes without altering the *identity* of the source.
+
+### SDK and Collector - Entity coordination with conflicts
+
+Let's consider the interaction of resource, entity where there is an identity conflict between the SDK and the Collector:
+
+```mermaid
+flowchart LR
+    SDK["`**SDK**`"] -->|OTLP| COLLECTOR["`**Collector**`"]
+    COLLECTOR -->|OTLP| BACKEND["`**Backend**`"]
+    SDK -.- RC((Resource Coordinator))
+    COLLECTOR -.- RP((Resource Processor))
+    RP -. Detects .-> HOST2{{host 2}}
+    RC -. Detects .-> HOST{{host 1}}
+    RC -. Detects .-> SERVICE{{service}}
+```
+
+Here, and SDK is running on a machine (physical or virtual).  The SDK is
+configured to detect the host it is running on.  The collector is also running
+on a machine (physical or virtual).  Both the SDK and the Collector detect
+a `host` entity.  However, the `host` entity has a *different identity* between
+the SDK and Collector.
+
+The behavior would be as follows:
+
+- The default would *drop* the entity detected by the collector, as the
+  entity identity does not match.  This would mean, e.g. descriptive host
+  attributes from the collector are **not** added to the Resource in OTLP.
+- If the collector's processor is configured to `override: true`, then the
+  host entity from the SDK would be dropped in favor of the collector's `host`
+  entity.  All identifying+descriptive attributes from the original entity +
+  resource would be removed and those detected in the collector would replace it.
+
+The default behavior is useful when the SDK and Collector are run on different
+machines.  Unlike today's resource detection, this could prevent `host`
+descriptive attributes that were not detected by the SDK from being added to the
+resource.
+
+The `override` behavior could also ensure that attributes which should be
+detected and reported together are replaced together.  Today, it's possible the
+collector may detect and override some, but not all attributes from the SDK.
+
+### SDK and Collector - Entity coordination across versions
+
+Let's look at SDK + collector coordination where semantic version differences
+can occur between components within the system.
+
+```mermaid
+flowchart LR
+    SDK["`**SDK**`"] -->|OTLP| COLLECTOR["`**Collector**`"]
+    COLLECTOR -->|OTLP| BACKEND["`**Backend**`"]
+    SDK -.- RC((Resource Coordinator))
+    COLLECTOR -.- RP((Resource Processor))
+    RP -. Detects .-> POD{{"`k8s.pod
     *schema: 1.26.0*
     `"}}
-    C -. Detects .-> F{{k8s.deployment}}
-    D -. Detects .-> G{{"`k8s.pod
+    RP -. Detects .-> DEPLOYMENT{{k8s.deployment}}
+    RC -. Detects .-> POD2{{"`k8s.pod
     *schema: 1.25.0*
     `"}}
-    D -. Detects .-> H{{service}}
+    RC -. Detects .-> SERVICE{{service}}
 ```
 
 Here, an SDK is communicating with a Collector.  The SDK and the collector
