@@ -296,7 +296,35 @@ Below are a set of use cases to help motivate this design.
 
 ### SDK - Multiple Detectors of the same Entity type
 
-TODO - Describe
+Let's consider the interaction of the SDK in the presence of multiple registered
+entity detectors:
+
+```mermaid
+flowchart LR
+    SDK["`**SDK**`"] -->|OTLP| BACKEND["`**Backend**`"]
+    SDK -.- RC((Resource Coordinator))
+    RC -.- OTEL_DETECTOR((OpenTelemetry Default Resource Detection))
+    RC -.- GCP_DETECTOR((Google Cloud Specific Resource Detection))
+    GCP_DETECTOR -. Detects .-> GCE{{gcp.gce}}
+    GCP_DETECTOR -. Detects .-> GCPHOST{{host (gcp)}}
+    OTEL_DETECTOR -. Detects .-> HOST{{host (generic)}}
+    OTEL_DETECTOR -. Detects .-> PROCESS{{process}}
+    OTEL_DETECTOR -. Detects .-> SERVICE{{service}}
+```
+
+Here, there is a services running on the Google Compute Engine. The user
+has configured a Google Cloud specific set of entity detectors.  Both the
+built in OpenTelemetry detection and the configured Google Cloud detection
+discover a `host` entity.
+
+The following outcome would occur:
+
+- The resulting resource would have all of the following entities: `host`, `process`, `service` and `gcp.gce`
+- The user-configured resource detector would take priority over built in: the `host` defined from the Google Cloud detection would "win" and be included in resource.
+  - This means `host.id` e.g. could be the id discovered for GCE VMs.  Similarly for other cloud provider detection, like Amazon EC2 where VMs are given a unique ID by the Cloud Provider, rather than a generic machinne ID, e.g.
+  - This matches existing behavior/expectations today for AWS, GCP, etc. on what `host.id` would mean.
+- Users would be able to configure which host wins, by swapping the priority order of "default" vs. cloud-specific detection.
+
 
 ### SDK and Collector - Simple coordination
 
