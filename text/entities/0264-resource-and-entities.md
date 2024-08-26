@@ -306,8 +306,8 @@ flowchart LR
     RC -.- OTEL_DETECTOR((OpenTelemetry Default Resource Detection))
     RC -.- GCP_DETECTOR((Google Cloud Specific Resource Detection))
     GCP_DETECTOR -. Detects .-> GCE{{gcp.gce}}
-    GCP_DETECTOR -. Detects .-> GCPHOST{{host (gcp)}}
-    OTEL_DETECTOR -. Detects .-> HOST{{host (generic)}}
+    GCP_DETECTOR -. Detects .-> GCPHOST{{"host (gcp)"}}
+    OTEL_DETECTOR -. Detects .-> HOST{{"host (generic)"}}
     OTEL_DETECTOR -. Detects .-> PROCESS{{process}}
     OTEL_DETECTOR -. Detects .-> SERVICE{{service}}
 ```
