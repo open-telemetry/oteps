@@ -1,0 +1,60 @@
+# Event basics
+
+## Motivation
+
+The introduction of Events has been contentious, so we want to write down and agree on a few basics.
+
+### What are events?
+
+Events are a type of log which has a required event name and a specific structure which is implied by that event name.
+
+The event name and its implied structure make events much more suitable for observability compared to traditional logs.
+
+Because of this, the OpenTelemetry project wants to encourage the transition from traditional logs to events.
+
+### OTLP
+
+Since events are a type of log, they share the same OTLP data structure and OTLP pipeline.
+
+### API
+
+OpenTelemetry should have an Event API. This will help to promote the distinction between events and traditional logs,
+and encourage the use of events over traditional logs.
+
+### Interoperability with traditional logs
+
+It should be possible to send events from the Event API to a traditional logging library (e.g. Log4j).
+This allows users to integrate events from the Event API into an existing (non-OpenTelemetry) log stream.
+
+Note: If a user chooses to send events from the Event API to a traditional logging library, and they have
+also chosen to send the logs from their traditional logging library to the OpenTelemetry Logging SDK, then they should
+avoid sending events from the Event API directly to the OpenTelemetry Logging SDK since that would lead to duplicate
+capture of events that were sent from the Event API.
+
+It should be possible to bypass the Event API entirely and emit Events directly via an existing language-specific logging libraries.
+This helps reinforce the idea that events are just a specific type of log.
+
+Note: Because of this, generic event processors should be implemented as Log SDK processors.
+
+### SDK
+
+The Event SDK needs to support two destinations for events:
+
+* OpenTelemetry Logging SDK
+* Language-specific logging libraries
+
+## Trade-offs and mitigations
+
+TODO
+
+## Prior art and alternatives
+
+TODO
+
+## Open questions
+
+TODO
+
+## Future possibilities
+
+TODO
