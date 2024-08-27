@@ -42,9 +42,7 @@ The SDK Resource Coordinator is responsible for running all configured Resource 
 
 - The Resource Coordinator will detect conflicts in Entity of the same type being discovered and choose one to use.
 - When using Entity Detectors and Resource detectors together, the following merge rules will be used:
-  - Entity merging will occur first resulting in an "Entity Merged" Resource.
-    - Entities of different types will be merged into the resulting Resource.
-    - Entities of the same type will have one rejected and one accepted, based on priority.
+  - Entity merging will occur first resulting in an "Entity Merged" Resource (See [algorithm here](#entity-merging-and-resource)).
   - Resource detectors otherwise follow existing merge semantics.
     - The Specification merge rules will be updated to account for violations prevalent in ALL implementation of resource detection.
     - Specifically: This means the [rules around merging Resource across schema-url will be dropped](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/sdk.md#merge).  Instead only conflicting attributes will be dropped.
@@ -67,15 +65,21 @@ Where `Result` is the equivalent of error channel in the language of choice (e.g
 
 #### Entity Merging and Resource
 
-The most important aspect of this design is how Entities will be merged to construct a Resource. We provide a simple algorithm for this behavior:
+The most important aspect of this design is how Entities will be merged to construct a Resource. 
 
-- Construct a set of detected entities, E
-- All entity detectors are sorted by priority (highest first)
-- For each entity detector
-  - For each entity detected
-    - If the entity exists in E, ignore it
-    - Otherwise, add the entity to E
-- Construct a Resource from the set E.
+We provide a simple algorithm for this behavior:
+
+- Construct a set of detected entities, `E`
+  - All entity detectors are sorted by priority (highest first)
+  - For each entity detector `D`, detect entities
+    - For each entity detected, `d'`
+      - If an entity `e'` exists in `E` with same entity type as `d'`, do one of the following:
+        - If the entity identiy and schema_url are the same, merge the descriptive attributes of `d'` into `e'`.
+        - If the entity identity is the same, but schema_url is different: drop the new entity `d'`
+          *Note: We could offer configuration in this case*
+        - If the entity identity is different: drop the new entity `d'`.
+      - Otherwise, add the entity `d'` to set `E`
+- Construct a Resource from the set `E`.
 
 Any implementation that achieves the same result as this algorithm is acceptable.
 
