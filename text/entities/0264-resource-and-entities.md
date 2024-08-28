@@ -74,7 +74,10 @@ We provide a simple algorithm for this behavior:
   - For each entity detector `D`, detect entities
     - For each entity detected, `d'`
       - If an entity `e'` exists in `E` with same entity type as `d'`, do one of the following:
-        - If the entity identiy and schema_url are the same, merge the descriptive attributes of `d'` into `e'`.
+        - If the entity identiy and schema_url are the same, merge the descriptive attributes of `d'` into `e'`:
+          - For each descriptive attribute `da'` in `d'`
+            - If `da'.key` does not exist in `e'`, then add `da'` to `ei`
+            - otherwise, ignore.
         - If the entity identity is the same, but schema_url is different: drop the new entity `d'`
           *Note: We could offer configuration in this case*
         - If the entity identity is different: drop the new entity `d'`.
