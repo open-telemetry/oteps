@@ -467,3 +467,185 @@ Ideally, we'd like a solution where:
 - We have default rules and merging that requires the least amount of
   configuration or customization for users to acheive their desired
   attributes in resource.
+
+## Collection of Resource detectors and attributes used
+
+- Collector
+  - [system](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/internal/system/metadata.yaml)
+    - host.arch
+    - host.name
+    - host.id
+    - host.ip
+    - host.mac
+    - host.cpu.vendor.id
+    - host.cpu.family
+    - host.cpu.model.id
+    - host.cpu.model.name
+    - host.cpu.stepping
+    - host.cpu.cache.l2.size
+    - os.description
+    - os.type
+  - [docker](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/internal/docker/metadata.yaml)
+    - host.name
+    - os.type
+  - [heroku](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/internal/heroku/metadata.yaml)
+    - cloud.provider
+    - heroku.app.id
+    - heroku.dyno.id
+    - heroku.release.commit
+    - heroku.release.creation_timestamp
+    - service.instance.id
+    - service.name
+    - service.version
+  - [gcp](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/internal/gcp/metadata.yaml)
+    - gke
+      - cloud.provider
+      - cloud.platform
+      - cloud.account.id
+      - cloud.region
+      - cloud.availability_zone
+      - k8s.cluster.name
+      - host.id
+      - host.name
+    - gce
+      - cloud.provider
+      - cloud.platform
+      - cloud.account.id
+      - cloud.region
+      - cloud.availability_zone
+      - host.id
+      - host.name
+      - host.type
+      - (optional) gcp.gce.instance.hostname
+      - (optional) gcp.gce.instance.name
+  - AWS 
+    - [ec2](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/internal/aws/ec2/metadata.yaml)
+      - cloud.provider
+      - cloud.platform
+      - cloud.account.id
+      - cloud.region
+      - cloud.availability_zone
+      - host.id
+      - host.image.id
+      - host.name
+      - host.type
+    - [ecs](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/internal/aws/ecs/metadata.yaml)
+      - cloud.provider
+      - cloud.platform
+      - cloud.account.id
+      - cloud.region
+      - cloud.availability_zone
+      - aws.ecs.cluster.arn
+      - aws.ecs.task.arn
+      - aws.ecs.task.family
+      - aws.ecs.task.id
+      - aws.ecs.task.revision
+      - aws.ecs.launchtype (V4 only)
+      - aws.log.group.names (V4 only)
+      - aws.log.group.arns (V4 only)
+      - aws.log.stream.names (V4 only)
+      - aws.log.stream.arns (V4 only)
+    - [elastic_beanstalk](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/internal/aws/elasticbeanstalk/metadata.yaml)
+      - cloud.provider
+      - cloud.platform
+      - deployment.environment
+      - service.instance.id
+      - service.version
+    - [eks]
+      - cloud.provider
+      - cloud.platform
+      - k8s.cluster.name
+    - [lambda]
+      - cloud.provider
+      - cloud.platform
+      - cloud.region
+      - faas.name
+      - faas.version
+      - faas.instance
+      - faas.max_memory
+      - aws.log.group.names
+      - aws.log.stream.names
+  - [Azure]
+    - cloud.provider
+    - cloud.platform
+    - cloud.region
+    - cloud.account.id
+    - host.id
+    - host.name
+    - azure.vm.name
+    - azure.vm.size
+    - azure.vm.scaleset.name
+    - azure.resourcegroup.name
+  - Azure [aks]
+    - cloud.provider
+    - cloud.platform
+    - k8s.cluster.name
+  - Consul
+    - cloud.region
+    - host.id
+    - host.name
+    - *exploded consul metadata*
+  - k8s Node
+    - k8s.node.uid
+  - Openshift
+    - cloud.provider
+    - cloud.platform
+    - cloud.region
+    - k8s.cluster.name
+- Java Resource Detection
+  - SDK-Default
+    - service.name
+    - telemetry.sdk.version
+    - telemetry.sdk.language
+    - telemetry.sdk.name
+  - [process](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/691de74a4b0539c1329222aefb962c232028032b/instrumentation/resources/library/src/main/java/io/opentelemetry/instrumentation/resources/ProcessResource.java#L60)
+    - process.pid
+    - process.command_line
+    - process.command_args
+    - process.executable.path
+  - [host](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/resources/library/src/main/java/io/opentelemetry/instrumentation/resources/HostResource.java#L31)
+    - host.name
+    - host.arch
+  - [container](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/resources/library/src/main/java/io/opentelemetry/instrumentation/resources/ContainerResource.java)
+    - container.id
+  - [os](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/resources/library/src/main/java/io/opentelemetry/instrumentation/resources/OsResource.java)
+    - os.type
+  - [AWS](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/aws-resources)
+    - EC2
+      - host.id
+      - cloud.availability_zone
+      - host.type
+      - host.image.id
+      - cloud.account.id
+      - cloud.region
+      - host.name
+    - ECS
+      - cloud.provider
+      - cloud.platform
+      - aws.log.group.names
+      - aws.log.stream.names
+    - EKS
+      - cloud.provider
+      - cloud.platform
+      - k8s.cluster.name
+      - container.id
+    - Lambda
+      - cloud.platform
+      - cloud.region
+      - faas.name
+      - faas.version
+  - [GCP](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/gcp-resources)
+    - cloud.provider
+    - cloud.platform
+    - cloud.account.id
+    - cloud.availability_zone
+    - cloud.region
+    - host.id
+    - host.name
+    - host.type
+    - k8s.pod.name
+    - k8s.namespace.name
+    - k8s.container.name
+    - k8s.cluster.name
+    - faas.name
+    - faas.instance
