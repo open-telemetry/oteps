@@ -675,6 +675,9 @@ Ideally, we'd like a solution where:
   - k8s.node.name
   - k8s.container.name
 
+
+### Implications
+
 Some initial thoughts on implications:
 
 AWS, Azure, GCP, Heroku, etc. all provide the following "bundles" of resource:
@@ -707,4 +710,39 @@ The OTEL operator for k8s provides the following via ENV variables:
 - `service.*`
 
 
+### What could this mean for chosing entities that belong on resource?
 
+Let's look at an example of a container running in kubernetes, specifically EKS.
+
+If the OTEL operator, the SDK and the collector are all used, the following
+attributes will wind up on resource:
+
+- `service.*` - from SDK and otel operator
+- `sdk.*` - from SDK
+- `process.*` - from SDK
+- `host.*` - Note: from system detector on collector
+- `container.*` - from EKS detector on SDK
+- `k8s.namespace.*` - from otel operator
+- `k8s.node.*` - from otel operator
+- `k8s.pod.*` - from otel operator
+- `k8s.container.*` - from otel operator
+- `k8s.cluster.*` - from EKS detector on SDK or collector
+- `cloud.*` - from EKS detector on SDK or collector
+
+A simple litmus test derived from this for when to include an entity on
+Resource would be: "Any entity relevant to the produced telemetry should be
+included".
+
+However, this can be refined.  Resources today provide a [few key features](https://docs.google.com/document/d/1Xd1JP7eNhRpdz1RIBLeA1_4UYPRJaouloAYqldCeNSc/edit):
+
+- They provide identity - Uniquely identifying the origin of the data.
+- They provide "navigationality" - allowing users to find the source of the data within their o11y and infrastructure tools.
+- They allow aggregation / slicing of data on interesting domains.
+
+A litmus test for what entities to include on resource should be as follows:
+
+- Is the entity the source/origin of the data?
+- Does the entity help navigate to the source of the data? (e.g. `k8s.cluster.*` helping find a `k8s.container.*`)
+- Do want to easily slice/aggregate on an axis provided by the entity? (e.g. quickly filtering all CPU container usage metrics across a cluster to find overloaded nodes).
+
+If the answer to any question is yes, then include the entity on resource.
