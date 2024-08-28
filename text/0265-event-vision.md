@@ -36,6 +36,11 @@ This helps reinforce the idea that events are just a specific type of log.
 
 Note: Because of this, generic event processors should be implemented as Log SDK processors.
 
+OpenTelemetry will recommend that
+[instrumentation libraries](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library)
+use the Event API over emitting event via a traditional logging library in order to give users a simple and consistent
+onboarding story that doesn't involve mixing the two approaches.
+
 ### SDK
 
 The Event SDK needs to support two destinations for events:
@@ -57,4 +62,4 @@ TODO
 
 ## Future possibilities
 
-TODO
+The Event API will probably need an `IsEnabled` function based on severity level, scope name, and event name.
