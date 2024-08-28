@@ -38,8 +38,15 @@ Note: Because of this, generic event processors should be implemented as Log SDK
 
 OpenTelemetry will recommend that
 [instrumentation libraries](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library)
-use the Event API over emitting event via a traditional logging library in order to give users a simple and consistent
+use the Event API over emitting events via a traditional logging library in order to give users a simple and consistent
 onboarding story that doesn't involve mixing the two approaches.
+
+OpenTelemetry will recommend that application developers also use the Event API over emitting events via a traditional
+logging library since it avoid accidentally emitting (non-event) traditional logs.
+
+Also, recommending the Event API over emitting events via a traditional logging library makes for a clearer overall
+OpenTelemetry API story - with first class user facing APIs for traces, metrics, and events,
+all suitable for using directly in native instrumentation.
 
 ### SDK
 
