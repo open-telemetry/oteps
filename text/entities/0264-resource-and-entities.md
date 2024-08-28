@@ -649,6 +649,23 @@ Ideally, we'd like a solution where:
     - k8s.cluster.name
     - faas.name
     - faas.instance
+  - Go
+    - [container](https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/container.go)
+      - container.id
+    - [host](https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/host_id.go)
+      - host.id
+    - [os](https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/os.go)
+      - os.name
+    - [process](https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/process.go)
+      - process.pid
+      - process.executable.name
+      - process.executable.path
+      - process.command_line
+      - process.command_args
+      - process.owner
+    - [builtin](https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/builtin.go)
+      - service.instance.id
+      - service.name      
 - [OTEL operator](https://github.com/open-telemetry/opentelemetry-operator/blob/a1e8f927909b81eb368c0483940e0b90d7fdb057/pkg/instrumentation/sdk_test.go#L752) injected ENV variables
   - service.instance.id
   - service.name
