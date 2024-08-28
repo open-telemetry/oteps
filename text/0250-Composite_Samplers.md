@@ -227,7 +227,7 @@ Upon invocation of its `GetSamplingIntent` function, it MUST go through the whol
 `ConsistentAnyOf` sampler MUST return a `SamplingIntent` which is constructed as follows:
 
 - If any of the delegates returned a non-`null` threshold value, the resulting threshold is the lexicographical minimum value from the set of those non-`null` values, otherwise `null`.
-- The `GetAttributes` function calculates the union of `Attribute` sets as returned by the calls to `GetAttributes` function for each delegate (in the declared order) that returned a non-`null` threshold value.
+- The `GetAttributes` function calculates the union of `Attribute` sets as returned by the calls to `GetAttributes` function for each delegate, in the declared order.
 - The `UpdateTraceState` function makes a chain of calls to the `UpdateTraceState` functions as returned by the delegates, passing the received `Tracestate` as argument to subsequent calls and returning the last value received.
 
 Each delegate sampler MUST be given a chance to participate in calculating the `SamplingIntent` as described above and MUST see the same argument values. The order of the delegate samplers does not affect the final sampling `Decision`.
