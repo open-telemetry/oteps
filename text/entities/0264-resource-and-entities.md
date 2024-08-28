@@ -649,3 +649,45 @@ Ideally, we'd like a solution where:
     - k8s.cluster.name
     - faas.name
     - faas.instance
+- [OTEL operator](https://github.com/open-telemetry/opentelemetry-operator/blob/a1e8f927909b81eb368c0483940e0b90d7fdb057/pkg/instrumentation/sdk_test.go#L752) injected ENV variables
+  - service.instance.id
+  - service.name
+  - service.version
+  - k8s.namespace.name
+  - k8s.pod.name
+  - k8s.node.name
+  - k8s.container.name
+
+Some initial thoughts on implications:
+
+AWS, Azure, GCP, Heroku, etc. all provide the following "bundles" of resource:
+
+- `cloud.*`
+- `faas.*`, when relevant
+- `host.*`, when relevant
+- `k8s.cluster.*`, when relevant
+- `service.*` when relevant
+- `container.*` for a subset of k8s providers
+
+"system" detection provides the following:
+
+- `host.*`
+- `os.*`
+- `process.*` for SDKs
+- `container.*` for Docker images
+
+SDK specific detection provides the following:
+
+- `sdk.*`
+- `service.*`
+
+The OTEL operator for k8s provides the following via ENV variables:
+
+- `k8s.namespace.*`
+- `k8s.node.*`
+- `k8s.pod.*`
+- `k8s.container.*`
+- `service.*`
+
+
+
