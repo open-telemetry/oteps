@@ -70,3 +70,5 @@ TODO
 ## Future possibilities
 
 The Event API will probably need an `IsEnabled` function based on severity level, scope name, and event name.
+
+Ergonomic improvements to make it more attractive from the perspective of being a replacement for traditional logging APIs.
