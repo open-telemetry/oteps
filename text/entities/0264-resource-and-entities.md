@@ -560,11 +560,11 @@ Ideally, we'd like a solution where:
       - deployment.environment
       - service.instance.id
       - service.version
-    - [eks]
+    - eks
       - cloud.provider
       - cloud.platform
       - k8s.cluster.name
-    - [lambda]
+    - lambda
       - cloud.provider
       - cloud.platform
       - cloud.region
@@ -574,7 +574,7 @@ Ideally, we'd like a solution where:
       - faas.max_memory
       - aws.log.group.names
       - aws.log.stream.names
-  - [Azure]
+  - Azure
     - cloud.provider
     - cloud.platform
     - cloud.region
@@ -585,7 +585,7 @@ Ideally, we'd like a solution where:
     - azure.vm.size
     - azure.vm.scaleset.name
     - azure.resourcegroup.name
-  - Azure [aks]
+  - Azure aks
     - cloud.provider
     - cloud.platform
     - k8s.cluster.name
