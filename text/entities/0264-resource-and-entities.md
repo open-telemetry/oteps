@@ -65,7 +65,7 @@ Where `Result` is the equivalent of error channel in the language of choice (e.g
 
 #### Entity Merging and Resource
 
-The most important aspect of this design is how Entities will be merged to construct a Resource. 
+The most important aspect of this design is how Entities will be merged to construct a Resource.
 
 We provide a simple algorithm for this behavior:
 
@@ -341,7 +341,6 @@ The following outcome would occur:
   - This matches existing behavior/expectations today for AWS, GCP, etc. on what `host.id` would mean.
 - Users would be able to configure which host wins, by swapping the priority order of "default" vs. cloud-specific detection.
 
-
 ### SDK and Collector - Simple coordination
 
 Let's consider the interaction of resource, entity in the presence of an SDK
@@ -527,7 +526,7 @@ Ideally, we'd like a solution where:
       - host.type
       - (optional) gcp.gce.instance.hostname
       - (optional) gcp.gce.instance.name
-  - AWS 
+  - AWS
     - [ec2](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/internal/aws/ec2/metadata.yaml)
       - cloud.provider
       - cloud.platform
@@ -674,7 +673,7 @@ Ideally, we'd like a solution where:
       - process.owner
     - [builtin](https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/builtin.go)
       - service.instance.id
-      - service.name      
+      - service.name
 - [OTEL operator](https://github.com/open-telemetry/opentelemetry-operator/blob/a1e8f927909b81eb368c0483940e0b90d7fdb057/pkg/instrumentation/sdk_test.go#L752) injected ENV variables
   - service.instance.id
   - service.name
@@ -683,7 +682,6 @@ Ideally, we'd like a solution where:
   - k8s.pod.name
   - k8s.node.name
   - k8s.container.name
-
 
 ### Implications
 
@@ -717,7 +715,6 @@ The OTEL operator for k8s provides the following via ENV variables:
 - `k8s.pod.*`
 - `k8s.container.*`
 - `service.*`
-
 
 ### What could this mean for chosing entities that belong on resource?
 
