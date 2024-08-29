@@ -279,6 +279,15 @@ While we expect the collector to be the first component to start engaging with E
 - Specify that missing attribute keys are acceptable for descriptive attribtues.
 - Specify that missing attribute keys denote that entities are unusable for that batch of telemetry, and treat the content as malformed.
 
+### What about advanced entity interaction in the Collector?
+
+On problem that motivated this design is the issue of "local resource detection" vs. "remote signal collection" in the OpenTelemetry collector.  That is, I have a process running on a machine writing to an OpenTelemetry
+collector running on a different machine.  The current `resourcedetectoinprocessor` in the collector appends attributes to resource based on discovering *where the collector is running*.  However,
+as the collector could determine that telemetry has come from a different machine, it could also avoid adding resource attributes that are not relevant to incoming data.
+
+Today, `resourcedetectionprocessor` is naive, as is the algorithm proposed in this OTEP.  We believe that a more sophisticated solution could be created where the collector would know not to join entities onto a
+resource based on more advanced knowledge of the communication protocol used to obtain the data (e.g. using the ip address of the sender on an OTLP server).
+
 ## Trade-offs and mitigations
 
 The design proposed here attempts to balance non-breaking (backwards and forwards compatible) changes with the need to improve problematic issues in the Specification.  Given the inability of most SDKs to implement the current Resource merge specification, breaking this should have little effect on actual users.  Instead, the proposed merge specification should allow implementations to match current behavior and expectation, while evolving for users who engage with the new model.
