@@ -8,9 +8,9 @@ The introduction of Events has been contentious, so we want to write down and ag
 
 Events are a type of log which has a required event name and a specific structure which is implied by that event name.
 
-The event name and its implied structure make events much more suitable for observability compared to traditional logs.
+The event name and its implied structure make events much more suitable for observability compared to generic logs.
 
-Because of this, the OpenTelemetry project wants to encourage the transition from traditional logs to events.
+Because of this, the OpenTelemetry project wants to encourage the transition from generic logs to events.
 
 ### OTLP
 
@@ -18,16 +18,16 @@ Since events are a type of log, they share the same OTLP data structure and OTLP
 
 ### API
 
-OpenTelemetry should have an Event API. This will help to promote the distinction between events and traditional logs,
-and encourage the use of events over traditional logs.
+OpenTelemetry should have an Event API. This will help to promote the distinction between events and generic logs,
+and encourage the use of events over generic logs.
 
-### Interoperability with traditional logs
+### Interoperability with generic logging libraries
 
-It should be possible to send events from the Event API to a traditional logging library (e.g. Log4j).
+It should be possible to send events from the Event API to a generic logging library (e.g. Log4j).
 This allows users to integrate events from the Event API into an existing (non-OpenTelemetry) log stream.
 
-Note: If a user chooses to send events from the Event API to a traditional logging library, and they have
-also chosen to send the logs from their traditional logging library to the OpenTelemetry Logging SDK, then they should
+Note: If a user chooses to send events from the Event API to a generic logging library, and they have
+also chosen to send the logs from their generic logging library to the OpenTelemetry Logging SDK, then they should
 avoid sending events from the Event API directly to the OpenTelemetry Logging SDK since that would lead to duplicate
 capture of events that were sent from the Event API.
 
@@ -38,13 +38,13 @@ Note: Because of this, generic event processors should be implemented as Log SDK
 
 OpenTelemetry will recommend that
 [instrumentation libraries](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library)
-use the Event API over emitting events via a traditional logging library in order to give users a simple and consistent
+use the Event API over emitting events via a generic logging library in order to give users a simple and consistent
 onboarding story that doesn't involve mixing the two approaches.
 
-OpenTelemetry will recommend that application developers also use the Event API over emitting events via a traditional
-logging library since it avoid accidentally emitting (non-event) traditional logs.
+OpenTelemetry will recommend that application developers also use the Event API over emitting events via a generic
+logging library since it avoid accidentally emitting logs which lack an event name or are unstructured.
 
-Also, recommending the Event API over emitting events via a traditional logging library makes for a clearer overall
+Also, recommending the Event API over emitting events via a generic logging library makes for a clearer overall
 OpenTelemetry API story - with first class user facing APIs for traces, metrics, and events,
 all suitable for using directly in native instrumentation.
 
@@ -71,4 +71,4 @@ TODO
 
 The Event API will probably need an `IsEnabled` function based on severity level, scope name, and event name.
 
-Ergonomic improvements to make it more attractive from the perspective of being a replacement for traditional logging APIs.
+Ergonomic improvements to make it more attractive from the perspective of being a replacement for generic logging APIs.
