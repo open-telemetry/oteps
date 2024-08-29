@@ -474,7 +474,7 @@ Ideally, we'd like a solution where:
 - The user can address issues where schema version `1.26.0` and `1.25.0` may
   have different attributes for the same entity.
 - We have default rules and merging that requires the least amount of
-  configuration or customization for users to acheive their desired
+  configuration or customization for users to achieve their desired
   attributes in resource.
 
 ## Collection of Resource detectors and attributes used
