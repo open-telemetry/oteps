@@ -1,4 +1,4 @@
-# Move OTEPS to the Specification repository.
+# Move OTEPS to the Specification repository
 
 Let's move OTEP documentation and PRs back into the github.com/open-telemetry/opentelemetry-specification repository.
 
