@@ -21,7 +21,7 @@ Originally, OTEPs were kept as a separate repository to keep disjoint/disruptive
 As OpenTelemetry is stabilizing, the need for OTEPs to live outside the specification is growing less, and we face challenges like:
 
 - Keeping OTEP tooling up to date
-- Advertising the repositories existence 
+- Advertising the repositories existence
   - New contributors to OpenTelemetry often can't find recorded decision that exist in OTEPs.
   - Getting reviews from folks used to checking the Specification repository, but not the less-frequently-worked-on OTEP repository.
 
@@ -38,7 +38,7 @@ The following changes would occur:
   - `0000-template.md` -> `oteps/0000-template.md`
 - Update the specification `Makefile` to include linting, spell checking, link checking and TOC-ing the oteps directory.
 - A one-time cleanup of OTEP markdown upon import to the specification repository.
-- Close existing OTEP PRs and ask folks to reopen against the specificaiton repository.
+- Close existing OTEP PRs and ask folks to reopen against the specification repository.
 - New labels within the specification repository to tag OTEPs, including automation to set these on PR open.
 - Updating contributing guidelines to include a section about OTEPs.
 
