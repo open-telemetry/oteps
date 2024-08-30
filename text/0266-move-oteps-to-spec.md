@@ -41,6 +41,8 @@ The following changes would occur:
 - Close existing OTEP PRs and ask folks to reopen against the specification repository.
 - New labels within the specification repository to tag OTEPs, including automation to set these on PR open.
 - Updating contributing guidelines to include a section about OTEPs.
+- Add `oteps/README.md` file outlining that OTEPS are not normative and part of enhancement proposal process.
+- Add disclaimer to the header of every OTEP that the contents are not normative and part of the enhancement proposal process.
 
 ## Trade-offs and mitigations
 
