@@ -281,6 +281,10 @@ Making sampling decisions with samplers from Approach Two is more efficient than
 
 Developers of Composable Samplers should consider that the sampling Decision they declare as their intent might be different from the final sampling Decision.
 
+### Prototyping
+
+A prototype implementation of ComposableSamplers for Java is available for review at [PR 1443](https://github.com/open-telemetry/opentelemetry-java-contrib/pull/1443).
+
 ## Prior art
 
 A number of composite samplers are already available as independent contributions
