@@ -48,6 +48,13 @@ Also, recommending the Event API over emitting events via a generic logging libr
 OpenTelemetry API story - with first class user facing APIs for traces, metrics, and events,
 all suitable for using directly in native instrumentation.
 
+### Relationship to Span Events
+
+Events are intended to replace Span Events in the long-term.
+Span Events will be deprecated to signal that users should prefer Events.
+
+Interoperability between Events and Span Events will be defined in the short-term.
+
 ### SDK
 
 The Event SDK needs to support two destinations for events:
@@ -65,10 +72,18 @@ TODO
 
 ## Open questions
 
-TODO
+How do Event bodies interop with generic logging libraries?
+
+How do Event bodies interop with Span Events?
 
 ## Future possibilities
 
 The Event API will probably need an `IsEnabled` function based on severity level, scope name, and event name.
 
 Ergonomic improvements to make it more attractive from the perspective of being a replacement for generic logging APIs.
+
+Capturing raw metric events as opposed to aggregating and emitting them as OpenTelemetry Metric data
+(e.g. https://github.com/open-telemetry/opentelemetry-specification/issues/617).
+
+Capturing raw span events as opposed to aggregating and emitting them as OpenTelemetry Span data
+(e.g. a [streaming SDK](https://github.com/search?q=repo%3Aopen-telemetry%2Fopentelemetry-specification+%22streaming+sdk%22&type=issues)).
