@@ -83,7 +83,7 @@ The Event API will probably need an `IsEnabled` function based on severity level
 Ergonomic improvements to make it more attractive from the perspective of being a replacement for generic logging APIs.
 
 Capturing raw metric events as opposed to aggregating and emitting them as OpenTelemetry Metric data
-(e.g. https://github.com/open-telemetry/opentelemetry-specification/issues/617).
+(e.g. [opentelemetry-specification/617](https://github.com/open-telemetry/opentelemetry-specification/issues/617)).
 
 Capturing raw span events as opposed to aggregating and emitting them as OpenTelemetry Span data
 (e.g. a [streaming SDK](https://github.com/search?q=repo%3Aopen-telemetry%2Fopentelemetry-specification+%22streaming+sdk%22&type=issues)).
