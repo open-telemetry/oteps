@@ -87,3 +87,5 @@ Capturing raw metric events as opposed to aggregating and emitting them as OpenT
 
 Capturing raw span events as opposed to aggregating and emitting them as OpenTelemetry Span data
 (e.g. a [streaming SDK](https://github.com/search?q=repo%3Aopen-telemetry%2Fopentelemetry-specification+%22streaming+sdk%22&type=issues)).
+
+Capturing events and computing metrics from them.
