@@ -91,7 +91,7 @@ The SDK Resource Coordinator is responsible for running all configured Resource 
   - Resource detectors otherwise follow existing merge semantics.
     - The Specification merge rules will be updated to account for violations prevalent in ALL implementation of resource detection.
     - Specifically: This means the [rules around merging Resource across schema-url will be dropped](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/sdk.md#merge).  Instead only conflicting attributes will be dropped.
-    - SchemaURL on Resource will need to be deprecated with entity-specific schema-url replacing it. SDKs will no longer fill out SchemaURL on Resource. Additionally, as no (non-service) Resource semantic conventions have ever stabilized, SchemaURL usage on Resource cannot be in stable components of OpenTelemetry.  Given prevalent concerns of implementations around Resource merge specification, we suspect impact of this deprecation to be minimal.
+    - SchemaURL on Resource will be deprecated with entity-specific schema-url replacing it. SDKs will only fill out SchemaURL on Resource when SchemaURL matches across all entities discovered. Additionally, only existing stable resource attributes can be used in Resource SchemaURL in stable OpenTelemetry components (Specifially `service.*` and `sdk.*` are the only stabilized resource convnetions). Given prevalent concerns of implementations around Resource merge specification, we suspect impact of this deprecation to be minimal, and existing usage was within the "experimental" phase of semantic conventions.
   - An OOTB ["Env Variable Entity Detector"](#environment-variable-detector) will be specified and provided vs. requiring SDK wide ENV variables for resource detection.
 - *Additionally, Resource Coordinator would be responsible for understanding Entity lifecycle events, for Entities whose lifetimes do not match or exceed the SDK's own lifetime (e.g. browser session).*
 
@@ -128,6 +128,9 @@ We provide a simple algorithm for this behavior:
         - If the entity identity is different: drop the new entity `d'`.
       - Otherwise, add the entity `d'` to set `E`
 - Construct a Resource from the set `E`.
+  - If all entities within `E` have the same `schema_url`, se the resource's
+    `schema_url` to match.
+  - Otherwise, leave the Resource `schema_url` blank.
 
 Any implementation that achieves the same result as this algorithm is acceptable.
 
