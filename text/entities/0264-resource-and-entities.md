@@ -108,6 +108,8 @@ trait EntityDetector
 
 Where `Result` is the equivalent of error channel in the language of choice (e.g. in Go this would be `entities, err := e.detectEntities()`).
 
+An Entity Detector MUST NOT provide two entities of the same entity type (e.g. two `host` or two `service` entities).
+
 #### Entity Merging and Resource
 
 The most important aspect of this design is how Entities will be merged to construct a Resource.
