@@ -138,7 +138,9 @@ Any implementation that achieves the same result as this algorithm is acceptable
 
 #### Environment Variable Detector
 
-An Entity detector will be specified to allow Platform to inject entity identity information into workloads running on that platform.   For Example, the OpenTelemetry Operator could inject information about Kubernetes Deployment + Container into the environment, which SDKs can elect to interact with (through configuration of the Environment Variable Entity Detector).
+An Entity detector will be specified to allow Platform to inject entity identity information into workloads running on that platform. For Example, the OpenTelemetry Operator could inject information about Kubernetes Deployment + Container into the environment, which SDKs can elect to interact with (through configuration of the Environment Variable Entity Detector). Here, Platform means an environment that can run workloads that would provide identity of those workloads, e.g. Kubernetes, Spark, Cloud environments, etc.
+
+See [#3966](https://github.com/open-telemetry/opentelemetry-specification/issues/3966) for context on this issue.
 
 While details of ENV variables will be subject to change, it would look something like the following:
 
