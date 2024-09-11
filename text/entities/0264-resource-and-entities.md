@@ -187,7 +187,7 @@ The list of detectors is given in priority order (first wins, in event of a tie,
 
 The rules for attributes would follow entity merging rules, as defined for the SDK resource manager.
 
-Note: While this proposals shows a new processor replcing the `resourcedetection` processor, the details of whether to modify-in-place the existing `resourcedetection` processor or create a new one would be determined as a follow up to this design.
+Note: While this proposals shows a new processor replacing the `resourcedetection` processor, the details of whether to modify-in-place the existing `resourcedetection` processor or create a new one would be determined as a follow up to this design. Ideally, we don't want users to need new configuration for resource in the otel collector.
 
 ## Datamodel Changes
 
