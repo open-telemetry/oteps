@@ -61,7 +61,7 @@ This refers to the existing OpenTelemetry Log SDK.
 ## Future possibilities
 
 * The Log API may need an `IsEnabled` function based on severity level, scope name, and event name.
-* Ergonomic improvements to make it more attractive as a replacement for generic logging APIs.
+* Ergonomic improvements.
 * Capturing raw metric events as opposed to aggregating and emitting them as OpenTelemetry Metric data
   (e.g. [opentelemetry-specification/617](https://github.com/open-telemetry/opentelemetry-specification/issues/617)).
 * Capturing raw span events as opposed to aggregating and emitting them as OpenTelemetry Span data
