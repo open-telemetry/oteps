@@ -24,7 +24,7 @@ It should be possible to send OpenTelemetry Logs from the OpenTelemetry Log API 
 This allows users to integrate OpenTelemetry Logs into an existing (non-OpenTelemetry) log stream.
 
 It should also be possible to bypass the OpenTelemetry Log API entirely and emit OpenTelemetry Logs (including Events)
-directly via existing language-specific logging libraries.
+directly via existing language-specific logging libraries, if that library has the capability to do so.
 
 OpenTelemetry will recommend that
 [instrumentation libraries](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library)
