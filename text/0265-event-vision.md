@@ -31,7 +31,7 @@ OpenTelemetry will recommend that
 use the OpenTelemetry Log API to emit OpenTelemetry Events rather than using other logging libraries to emit OpenTelemetry Events. This recommendation aims to provide users with a simple and consistent
 onboarding experience that avoids mixing approaches.
 
-OpenTelemetry will also recommend that application developers use the OpenTelemetry Log API to emit OpenTelemetry Events instead of using a generic
+OpenTelemetry will also recommend that application developers use the OpenTelemetry Log API to emit OpenTelemetry Events instead of using another
 logging library, as this helps prevent accidentally emitting logs that lack an event name or are unstructured.
 
 Recommending the OpenTelemetry Log API for emitting OpenTelemetry Events, rather than using other logging libraries, contributes to a clearer overall
