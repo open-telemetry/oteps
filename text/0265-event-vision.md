@@ -57,13 +57,9 @@ This refers to the existing OpenTelemetry Log SDK.
   OpenTelemetry Logs have two places to put structure (attributes and body), while often logging libraries only have one layer of structure,
   which makes it non-obvious how to do a two-way mapping between them in this case.
 * How do event bodies interoperate with Span Events?
-
-## Future possibilities
-
-* The Log API may need an `IsEnabled` function based on severity level, scope name, and event name.
-* Ergonomic improvements.
-* Emitting raw metric events as opposed to aggregating and emitting them as OpenTelemetry Metric data
+* Should the Log API have an `IsEnabled` function based on severity level, scope name, and event name?
+* What kind of ergonomic improvements to the API make sense now that the OpenTelemetry Log API is user-facing?
+* How do OpenTelemetry Events relate to raw metric events?
   (e.g. [opentelemetry-specification/617](https://github.com/open-telemetry/opentelemetry-specification/issues/617)).
-* Emitting raw span events as opposed to aggregating and emitting them as OpenTelemetry Span data
+* How do OpenTelemetry Events relate to raw span events?
   (e.g. a [streaming SDK](https://github.com/search?q=repo%3Aopen-telemetry%2Fopentelemetry-specification+%22streaming+sdk%22&type=issues)).
-* Capturing events and emitting metrics from them.
