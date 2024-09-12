@@ -49,14 +49,6 @@ Interoperability between Events and Span Events will be defined in the short ter
 
 This refers to the existing OpenTelemetry Log SDK.
 
-## Trade-offs and mitigations
-
-TODO
-
-## Prior art and alternatives
-
-TODO
-
 ## Open questions
 
 * How to support routing logs from the Log API to a language-specific logging library
