@@ -54,6 +54,8 @@ This refers to the existing OpenTelemetry Log SDK.
 * How to support routing logs from the Log API to a language-specific logging library
   while simultaneously routing logs from the language-specific logging library to an OpenTelemetry Logging Exporter?
 * How do log bodies interoperate with generic logging libraries?
+  OpenTelemetry Logs have two places to put structure (attributes and body), while often logging libraries only have one layer of structure,
+  which makes it non-obvious how to do a two-way mapping between them in this case.
 * How do event bodies interoperate with Span Events?
 
 ## Future possibilities
