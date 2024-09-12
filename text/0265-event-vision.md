@@ -67,7 +67,8 @@ The state of this OTEP represents the option that we think will be the least con
   which makes it non-obvious how to do a two-way mapping between them in this case.
 * How do event bodies interoperate with Span Events?
 * Should the Log API have an `IsEnabled` function based on severity level, scope name, and event name?
-* What kind of ergonomic improvements to the API make sense now that the OpenTelemetry Log API is user-facing?
+* What kind of capabilities should the OpenTelemetry Log API have now that it is user-facing?
+* What kind of ergonomic improvements make sense now that the OpenTelemetry Log API is user-facing?
 * How do OpenTelemetry Events relate to raw metric events?
   (e.g. [opentelemetry-specification/617](https://github.com/open-telemetry/opentelemetry-specification/issues/617)).
 * How do OpenTelemetry Events relate to raw span events?
