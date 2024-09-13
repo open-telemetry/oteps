@@ -68,7 +68,9 @@ The state of this OTEP represents the option that we think will be the least con
 * How do event bodies interoperate with Span Events?
 * Should the Logs API have an `Enabled` function based on severity level and event name?
 * What kind of capabilities should the OpenTelemetry Logs API have now that it is user-facing?
+  (Keeping in mind the bundle size constraints of browsers and possibly other client environments.)
 * What kind of ergonomic improvements make sense now that the OpenTelemetry Logs API is user-facing?
+  (Keeping in mind the bundle size constraints of browsers and possibly other client environments.)
 * How do OpenTelemetry Events relate to raw metric events?
   (e.g. [opentelemetry-specification/617](https://github.com/open-telemetry/opentelemetry-specification/issues/617)).
 * How do OpenTelemetry Events relate to raw span events?
