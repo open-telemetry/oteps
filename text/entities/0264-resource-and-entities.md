@@ -97,7 +97,7 @@ The SDK Resource Coordinator is responsible for running all configured Resource 
 
 #### Entity Detector
 
-The Entity detector in the SDK is responsible for detecting possible entities that could identify the SDK.  For Example, if the SDK is running in a kubernetes pod, it may provide an Entity for that pod.   SDK Entity Detectors are only required to provide identifying attributes, but may provide descriptive attributes to ensure combined Resource contains similar attributes as today's SDK.
+The Entity detector in the SDK is responsible for detecting possible entities that could identify the SDK (called "associated entities"). For Example, if the SDK is running in a kubernetes pod, it may provide an Entity for that pod. SDK Entity Detectors are only required to provide identifying attributes, but may provide descriptive attributes to ensure combined Resource contains similar attributes as today's SDK.
 
 An Entity Detector would have an API similar to:
 
@@ -264,7 +264,12 @@ Resource will still be composed of identifying and descriptive attributes of Ent
 
 ### Collector augmentation / enrichment (resource, e.g.) - Should be extensible and not hard-coded. We need a general algorithm not specific rulesets
 
-Entity concept provides a new "bundle" mechanism to resource for the Collector to augment enrich a group of attributes and better identify conflicts (or identity changes) caused therein.
+The concept of "Entity" is a new definition for Resource.  Where previously, resource was a collection of attributes and users would interact with each
+individually, now there is a "bundle" of attributes called an Entity.  Entities have an identity and descriptions, and the collector is able to
+identify conflicts against the set of attributes that make up an Entity.
+
+The merge rules defined here give precedent for the collector to generically interact with "type", "identifying attributes" and "descriptive attributes"
+rather than hard-coded rules that have to understand the nuance of when `host.id` influences `host.name`, e.g.
 
 ### Users are expected to provide / prioritize "detectors" and determine which entity is "producing" or most-important for a signal
 
