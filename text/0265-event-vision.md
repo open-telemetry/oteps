@@ -73,3 +73,4 @@ The state of this OTEP represents the option that we think will be the least con
   (e.g. [opentelemetry-specification/617](https://github.com/open-telemetry/opentelemetry-specification/issues/617)).
 * How do OpenTelemetry Events relate to raw span events?
   (e.g. a [streaming SDK](https://github.com/search?q=repo%3Aopen-telemetry%2Fopentelemetry-specification+%22streaming+sdk%22&type=issues)).
+* Should event name be captured as an attribute or as a top-level field?
