@@ -11,7 +11,7 @@ It is an expansion on the [previous entity proposal](0256-entities-data-model.md
 - [Motivation](#motivation)
 - [Design](#design)
   * [Approach - Resource Improvements](#approach---resource-improvements)
-    + [Resource Coordinator](#resource-coordinator)
+    + [Resource Provider](#resource-coordinator)
     + [Entity Detector](#entity-detector)
     + [Entity Merging and Resource](#entity-merging-and-resource)
     + [Environment Variable Detector](#environment-variable-detector)
@@ -75,17 +75,17 @@ We define the following SDK components:
 
 - **Resource Detectors (legacy)**:  We preserve existing resource detectors.  They have the same behavior and interfaces as today.
 - **Entity Detectors (new)**: Detecting an entity that is relevant to the current instance of the SDK.  For example, this would detect a service entity for the current SDK, or its process. Every entity must have some relation to the current SDK.
-- **Resource Coordinator (new)**: A component responsible for taking Resource and Entity detectors and doing the following:
+- **Resource Provider (new)**: A component responsible for taking Resource and Entity detectors and doing the following:
   - Constructing a Resource for the SDK from detectors.
   - Dealing with conflicts between detectors.
   - Providing SDK-internal access to detected Resources for reporting via Log signal on configured LogProviders.
   - *(new) Managing Entity changes during SDK lifetime, specifically dealing with entities that have lifetimes shorter than the SDK*
 
-#### Resource Coordinator
+#### Resource Provider
 
-The SDK Resource Coordinator is responsible for running all configured Resource and Entity Detectors.  There will be some (user-controlled, otel default) priority order to these.
+The SDK Resource Provider is responsible for running all configured Resource and Entity Detectors.  There will be some (user-controlled, otel default) priority order to these.
 
-- The Resource Coordinator will detect conflicts in Entity of the same type being discovered and choose one to use.
+- The Resource Provider will detect conflicts in Entity of the same type being discovered and choose one to use.
 - When using Entity Detectors and Resource detectors together, the following merge rules will be used:
   - Entity merging will occur first resulting in an "Entity Merged" Resource (See [algorithm here](#entity-merging-and-resource)).
   - Resource detectors otherwise follow existing merge semantics.
@@ -93,7 +93,7 @@ The SDK Resource Coordinator is responsible for running all configured Resource 
     - Specifically: This means the [rules around merging Resource across schema-url will be dropped](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/sdk.md#merge).  Instead only conflicting attributes will be dropped.
     - SchemaURL on Resource will be deprecated with entity-specific schema-url replacing it. SDKs will only fill out SchemaURL on Resource when SchemaURL matches across all entities discovered. Additionally, only existing stable resource attributes can be used in Resource SchemaURL in stable OpenTelemetry components (Specifially `service.*` and `sdk.*` are the only stabilized resource convnetions). Given prevalent concerns of implementations around Resource merge specification, we suspect impact of this deprecation to be minimal, and existing usage was within the "experimental" phase of semantic conventions.
   - An OOTB ["Env Variable Entity Detector"](#environment-variable-detector) will be specified and provided vs. requiring SDK wide ENV variables for resource detection.
-- *Additionally, Resource Coordinator would be responsible for understanding Entity lifecycle events, for Entities whose lifetimes do not match or exceed the SDK's own lifetime (e.g. browser session).*
+- *Additionally, Resource Provider would be responsible for understanding Entity lifecycle events, for Entities whose lifetimes do not match or exceed the SDK's own lifetime (e.g. browser session).*
 
 #### Entity Detector
 
@@ -153,7 +153,7 @@ The minimum requirements of this entity detector are:
 
 - ENV variable(s) can specify multiple entities (resource attribute bundles)
 - ENV variable(s) can be easily appended or leverages by multiple participating systems, if needed.
-- Entities discovered via ENV variable(s) can participate in Resource Coordinator generically, i.e. resolving conflicting definitions.
+- Entities discovered via ENV variable(s) can participate in Resource Provider generically, i.e. resolving conflicting definitions.
 - ENV variable(s) have a priority that can be influenced by platform entity providers (e.g. prepending vs. appending)
 
 The actual design for this ENV variable interaction would follow the approval of this OTEP.
@@ -185,7 +185,7 @@ processor:
 
 The list of detectors is given in priority order (first wins, in event of a tie, outside of override configuration). The processor may need to be updated to allow the override flag to apply to each individual detector.
 
-The rules for attributes would follow entity merging rules, as defined for the SDK resource manager.
+The rules for attributes would follow entity merging rules, as defined for the SDK resource proivder.
 
 Note: While this proposals shows a new processor replacing the `resourcedetection` processor, the details of whether to modify-in-place the existing `resourcedetection` processor or create a new one would be determined as a follow up to this design. Ideally, we don't want users to need new configuration for resource in the otel collector.
 
@@ -298,7 +298,7 @@ The third option prevents generic code from interacting with Resource and Entity
 
 ### How to deal with Resource/Entities whose lifecycle does not match the SDK?
 
-This proposal motivates a Resource Coordinator in the SDK whose job could include managing changes in entity lifetimes, but does not account for how these changes would be broadcast across TracerProvider, LogProvider, MeterProvider, etc.  That would be addressed in a follow on OTEP.
+This proposal motivates a Resource Provider in the SDK whose job could include managing changes in entity lifetimes, but does not account for how these changes would be broadcast across TracerProvider, LogProvider, MeterProvider, etc.  That would be addressed in a follow on OTEP.
 
 ### How to deal with Prometheus Compatibility for non-SDK telemetry?
 
@@ -375,7 +375,7 @@ entity detectors:
 ```mermaid
 flowchart LR
     SDK["`**SDK**`"] -->|OTLP| BACKEND["`**Backend**`"]
-    SDK -.- RC((Resource Coordinator))
+    SDK -.- RC((Resource Provider))
     RC -.- OTEL_DETECTOR((OpenTelemetry Default Resource Detection))
     RC -.- GCP_DETECTOR((Google Cloud Specific Resource Detection))
     GCP_DETECTOR -. Detects .-> GCE{{gcp.gce}}
@@ -407,7 +407,7 @@ and a Collector:
 flowchart LR
     SDK["`**SDK**`"] -->|OTLP| COLLECTOR["`**Collector**`"]
     COLLECTOR -->|OTLP| BACKEND["`**Backend**`"]
-    SDK -.- RC((Resource Coordinator))
+    SDK -.- RC((Resource Provider))
     COLLECTOR -.- RP((Resource Processor))
     RP -. Detects .-> EC2{{aws.ec2}}
     RP -. Detects .-> HOST{{host}}
@@ -434,7 +434,7 @@ Let's consider the interaction of resource, entity where both the SDK and the Co
 flowchart LR
     SDK["`**SDK**`"] -->|OTLP| COLLECTOR["`**Collector**`"]
     COLLECTOR -->|OTLP| BACKEND["`**Backend**`"]
-    SDK -.- RC((Resource Coordinator))
+    SDK -.- RC((Resource Provider))
     COLLECTOR -.- RP((Resource Processor))
     RP -. Detects .-> HOST2{{host}}
     RC -. Detects .-> HOST{{host}}
@@ -465,7 +465,7 @@ Let's consider the interaction of resource, entity where there is an identity co
 flowchart LR
     SDK["`**SDK**`"] -->|OTLP| COLLECTOR["`**Collector**`"]
     COLLECTOR -->|OTLP| BACKEND["`**Backend**`"]
-    SDK -.- RC((Resource Coordinator))
+    SDK -.- RC((Resource Provider))
     COLLECTOR -.- RP((Resource Processor))
     RP -. Detects .-> HOST2{{host 2}}
     RC -. Detects .-> HOST{{host 1}}
@@ -506,7 +506,7 @@ can occur between components within the system.
 flowchart LR
     SDK["`**SDK**`"] -->|OTLP| COLLECTOR["`**Collector**`"]
     COLLECTOR -->|OTLP| BACKEND["`**Backend**`"]
-    SDK -.- RC((Resource Coordinator))
+    SDK -.- RC((Resource Provider))
     COLLECTOR -.- RP((Resource Processor))
     RP -. Detects .-> POD{{"`k8s.pod
     *schema: 1.26.0*
