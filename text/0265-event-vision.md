@@ -74,3 +74,4 @@ The state of this OTEP represents the option that we think will be the least con
 * How do OpenTelemetry Events relate to raw span events?
   (e.g. a [streaming SDK](https://github.com/search?q=repo%3Aopen-telemetry%2Fopentelemetry-specification+%22streaming+sdk%22&type=issues)).
 * Should event name be captured as an attribute or as a top-level field?
+* How will Event / Span Event interoperability work in the presence of sampling (e.g. since Span Events are sampled along with Spans)?
