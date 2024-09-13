@@ -66,7 +66,7 @@ The state of this OTEP represents the option that we think will be the least con
   OpenTelemetry Logs have two places to put structure (attributes and body), while often logging libraries only have one layer of structure,
   which makes it non-obvious how to do a two-way mapping between them in this case.
 * How do event bodies interoperate with Span Events?
-* Should the Logs API have an `IsEnabled` function based on severity level, scope name, and event name?
+* Should the Logs API have an `Enabled` function based on severity level and event name?
 * What kind of capabilities should the OpenTelemetry Logs API have now that it is user-facing?
 * What kind of ergonomic improvements make sense now that the OpenTelemetry Logs API is user-facing?
 * How do OpenTelemetry Events relate to raw metric events?
