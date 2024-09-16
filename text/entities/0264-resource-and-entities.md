@@ -338,8 +338,8 @@ While we expect the collector to be the first component to start engaging with E
 
 ### What about advanced entity interaction in the Collector?
 
-On problem that motivated this design is the issue of "local resource detection" vs. "remote signal collection" in the OpenTelemetry collector.  That is, I have a process running on a machine writing to an OpenTelemetry
-collector running on a different machine.  The current `resourcedetectoinprocessor` in the collector appends attributes to resource based on discovering *where the collector is running*.  However,
+One problem that motivated this design is the issue of "local resource detection" vs. "remote signal collection" in the OpenTelemetry collector.  That is, I have a process running on a machine writing to an OpenTelemetry
+collector running on a different machine.  The current `resourcedetectionprocessor` in the collector appends attributes to resource based on discovering *where the collector is running*.  However,
 as the collector could determine that telemetry has come from a different machine, it could also avoid adding resource attributes that are not relevant to incoming data.
 
 Today, `resourcedetectionprocessor` is naive, as is the algorithm proposed in this OTEP.  We believe that a more sophisticated solution could be created where the collector would know not to join entities onto a
@@ -357,11 +357,11 @@ Below is a brief discussion of some design decisions:
 
 - **Only associating one entity with a Resource.**  This was rejected, as too high a friction point in evolving semantic conventions and allowing independent systems to coordinate identity + entities within the OpenTelemetry ecosystem.  Eventually, this would force OpenTelemetry to model all possibly entities in the world and understand their interaction or otherwise prevent non-OpenTelemetry instrumentation from interacting with OpenTelemetry entities.
 - **Embed fully Entity in Resource.** This was rejected because it makes it easy/trivial for Resource attributes and Entities to diverge.  This would prevent the backwards/forwards compatibility goals and also require all participating OTLP users to leverage entities. Entity should be an opt-in / additional feature that may or may not be engaged with, depending on user need.
-- **Re-using resource detectoin as-is** This was reject as not having a viable compatibility path forward.  Creating a new set of components that can preserve existing behavior while allowing users to adopt the new functionality means that users have better control of when they see / change system behavior, and adoption is more obvious across the ecosystem.
+- **Re-using resource detection as-is** This was rejected as not having a viable compatibility path forward.  Creating a new set of components that can preserve existing behavior while allowing users to adopt the new functionality means that users have better control of when they see / change system behavior, and adoption is more obvious across the ecosystem.
 
 ## Future Posibilities
 
-This proposal opens the door for addressing issues where an Entity's lifetime does not match an SDK's lifetime, in addition to providing a data model where mutable (descriptive) attributes can be changed over the lifetime of a resource without affecting its idnetity.  We expect a follow-on OTEP which directly handles this issue.
+This proposal opens the door for addressing issues where an Entity's lifetime does not match an SDK's lifetime, in addition to providing a data model where mutable (descriptive) attributes can be changed over the lifetime of a resource without affecting its identity.  We expect a follow-on OTEP which directly handles this issue.
 
 ## Use Cases
 
@@ -385,7 +385,7 @@ flowchart LR
     OTEL_DETECTOR -. Detects .-> SERVICE{{service}}
 ```
 
-Here, there is a services running on the Google Compute Engine. The user
+Here, there is a service running on Google Compute Engine. The user
 has configured a Google Cloud specific set of entity detectors.  Both the
 built in OpenTelemetry detection and the configured Google Cloud detection
 discover a `host` entity.
@@ -394,7 +394,7 @@ The following outcome would occur:
 
 - The resulting resource would have all of the following entities: `host`, `process`, `service` and `gcp.gce`
 - The user-configured resource detector would take priority over built in: the `host` defined from the Google Cloud detection would "win" and be included in resource.
-  - This means `host.id` e.g. could be the id discovered for GCE VMs.  Similarly for other cloud provider detection, like Amazon EC2 where VMs are given a unique ID by the Cloud Provider, rather than a generic machinne ID, e.g.
+  - This means `host.id` e.g. could be the id discovered for GCE VMs.  Similarly for other cloud provider detection, like Amazon EC2 where VMs are given a unique ID by the Cloud Provider, rather than a generic machine ID, e.g.
   - This matches existing behavior/expectations today for AWS, GCP, etc. on what `host.id` would mean.
 - Users would be able to configure which host wins, by swapping the priority order of "default" vs. cloud-specific detection.
 
@@ -416,7 +416,7 @@ flowchart LR
 ```
 
 Here, an SDK is running on Amazon EC2. it is configured with resource detection
-that find a `process` and `service` entity.  The SDK is sending data to an
+that finds a `process` and `service` entity.  The SDK is sending data to an
 OpenTelemetry Collector that has a resource processor configured to detect
 the `ec2` and `host` entities.
 
@@ -441,7 +441,7 @@ flowchart LR
     RC -. Detects .-> SERVICE{{service}}
 ```
 
-Here, and SDK is running on a machine (physical or virtual).  The SDK is
+Here, an SDK is running on a machine (physical or virtual).  The SDK is
 configured to detect the host it is running on.  The collector is also running
 on a machine (physical or virtual).  Both the SDK and the Collector detect
 a `host` entity (with the same identity).
