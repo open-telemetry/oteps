@@ -221,6 +221,19 @@ The entityref data model, would have the following changes from the original [en
 | identifying_attributes_keys | repeated string | Attribute Keys that identify the entity.<br/>MUST not change during the lifetime of the entity. The Id must contain at least one attribute.<br/><br/>These keys MUST exists in Resource.attributes.<br/><br/>Follows OpenTelemetry common attribute definition. SHOULD follow OpenTelemetry semantic conventions for attributes.| now a reference |
 | descriptive_attributes_keys | repeated string | Descriptive (non-identifying) attribute keys of the entity.<br/>MAY change over the lifetime of the entity. MAY be empty. These attribute keys are not part of entity's identity.<br/><br/>These keys MUST exist in Resource.attributes.<br/><br/>Follows any value definition in the OpenTelemetry spec - it can be a scalar value, byte array, an array or map of values. Arbitrary deep nesting of values for arrays and maps is allowed.<br/><br/>SHOULD follow OpenTelemetry semantic conventions for attributes.| now a reference |
 
+### Resource Identity
+
+OpenTelemetry resource identity will be modified as follows:
+
+- When `entities` is empty on resource, then its identity is the collection
+  of all `attributes` (both key and values).
+- When `entities` is non-empty on resource, then its identity is the collection
+  of all `attributes` where the key is found in `entities.identify_attribute_keys`.
+
+When grouping or mixing OTLP data, you can detect if two resources are the same
+using its identity and merge descriptive attributes (if applicable) using the
+entity merge algorithm (described above) which will be formalized in the data model.
+
 ## How this proposal solves the problems that motivated it
 
 Let's look at some motivating problems from the [Entities Proposal](https://docs.google.com/document/d/1VUdBRInLEhO_0ABAoiLEssB1CQO_IcD5zDnaMEha42w/edit#heading=h.atg5m85uw9w8):
