@@ -100,8 +100,6 @@ Defining the specification for Environment Variables as carriers will have a
 wide impact to the industry in enabling better observability to systems outside
 of the normal HTTP microservice architecture.
 
-[w3c-parent]: https://www.w3.org/TR/trace-context/#traceparent-header
-[w3c-state]: https://www.w3.org/TR/trace-context/#tracestate-header
 [w3c-bag]: https://www.w3.org/TR/baggage/#header-name
 [bag-api]: https://opentelemetry.io/docs/specs/otel/baggage/api/
 
@@ -152,25 +150,20 @@ this [documentation][cpython-doc] was added to clarify the behavior.
 
 ### Allowed characters
 
-The characters allowed in keys by the `TextMapPropagator` are also allowed as
-environment variable keys on UNIX and Windows.
-
-These are:
-
-> "!" / "#" / "$" / "%" / "&" / "'" / "*"
-> / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
-> / DIGIT / ALPHA
-
 To ensure compatibility, specification for Environment Variables SHOULD adhere
 to the current specification for `TextMapPropagator` where key/value pairs MUST
 only consist of US-ASCII characters that make up valid HTTP header fields as
 per RFC 7230.
 
+Environment variable keys, SHOULD NOT conflict with common known environment variables like those described in [IEEE Std 1003.1-2017][std1003].
+
 One key note is that windows disallows the use of the `=` character in
-environment variables. See [MS Env Vars][ms-env] for more information.
+environment variable names. See [MS Env Vars][ms-env] for more information.
 
 There is also a limit on how many characters an environment variable can
 support which is 32,767 characters.
+
+[std1003]: https://pubs.opengroup.org/onlinepubs/9799919799/
 
 [ms-env]: https://learn.microsoft.com/en-us/windows/win32/procthread/environment-variables
 
