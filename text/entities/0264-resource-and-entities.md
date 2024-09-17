@@ -349,6 +349,21 @@ resource based on more advanced knowledge of the communication protocol used to 
 
 The design proposed here attempts to balance non-breaking (backwards and forwards compatible) changes with the need to improve problematic issues in the Specification.  Given the inability of most SDKs to implement the current Resource merge specification, breaking this should have little effect on actual users.  Instead, the proposed merge specification should allow implementations to match current behavior and expectation, while evolving for users who engage with the new model.
 
+### Why don't we download schema url contents?
+
+OpenTelemetry needs to work in environments that have no/limited access to the external internet. We entertained, and
+dismissed merging solutions that *require* access to the contents of `schema_url` to work. While the core algorithm
+*cannot require* this access, we *should* be able to provide improved processing and algorithms that may leverage this data.
+
+For example:
+
+- Within an SDK, we can registry entity schema information with `EntityDetector`.
+- The OpenTelemetry Collector can allow registered `schema_url` via configuraton
+  or (optionally) download schema on demand.
+
+This design does not prevent these solutions, but provides the baseline/fallback
+where `schema_url` is not accessible and entities must still be usable.
+
 ## Prior art and alternatives
 
 Previously, we have a few unaccepted oteps, e.g. ([OTEP 208](https://github.com/open-telemetry/oteps/pull/208)).  Additionally, there are some alternatives that were considered in the Entities WG and rejected.
