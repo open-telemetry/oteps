@@ -319,10 +319,21 @@ This proposal motivates a Resource Provider in the SDK whose job could include m
 
 Today, [Prometheus compatibility](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/compatibility/prometheus_and_openmetrics.md) relies on two key attributes in Resource: `service.name` and `service.instance.id`. These are not guaranteed to exist outside of OpenTelemetry SDK generation. While this question is not fully answered, we believe outlining identity in all resources within OpenTelemetry allows us to define a solution in the future while preserving compatibility with what works today.
 
+Here's a list of requirements for the solution:
+
+- Existing prometheus/OpenTelemetry users should be able to migrate from where they are today.
+- Prometheus should have a set of identifying attributes for their up and coming `info()` function and info metric features.
+- (desired) OpenTelemetry should be able to create unique `job`/`instance` labels between all metrics sent to prometheus for any "info" metric join.
+
 A quick proposal of what this might look like:
 
 - `target_info` metric generation is updated to exclude any keys which are contained in `descriptive_attributes_keys` of an entity.
 - For each entity which has non-empty descriptive_attributes_keys, generate an info metric: `<entity_type>_entity_info` (naming TBD), which has all identifying and descriptive keys. This should play nicely with the planned improvements to [info-typed metrics](https://github.com/prometheus/proposals/blob/main/proposals/2024-04-10-native-support-for-info-metrics-metadata.md#goals).
+
+Another option (that would break compatibility):
+
+- `job`/`instance` are synthesized using a consistent hashing algorithm and identifying attributes of entity on resource.
+- Each entity type is written as an info metric called `<entity_type>_entity-info`.
 
 ### Should entities have a domain?
 
