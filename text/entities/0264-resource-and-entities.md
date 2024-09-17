@@ -130,7 +130,7 @@ We provide a simple algorithm for this behavior:
         - If the entity identity is different: drop the new entity `d'`.
       - Otherwise, add the entity `d'` to set `E`
 - Construct a Resource from the set `E`.
-  - If all entities within `E` have the same `schema_url`, se the resource's
+  - If all entities within `E` have the same `schema_url`, set the resource's
     `schema_url` to match.
   - Otherwise, leave the Resource `schema_url` blank.
 
