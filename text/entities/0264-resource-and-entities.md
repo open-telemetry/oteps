@@ -814,7 +814,7 @@ The OTEL operator for k8s provides the following via ENV variables:
 - `k8s.container.*`
 - `service.*`
 
-### What could this mean for chosing entities that belong on resource?
+### What could this mean for choosing entities that belong on resource?
 
 Let's look at an example of a container running in kubernetes, specifically EKS.
 
