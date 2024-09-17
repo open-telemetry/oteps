@@ -373,7 +373,7 @@ dismissed merging solutions that *require* access to the contents of `schema_url
 For example:
 
 - Within an SDK, we can registry entity schema information with `EntityDetector`.
-- The OpenTelemetry Collector can allow registered `schema_url` via configuraton
+- The OpenTelemetry Collector can allow registered `schema_url` via configuration
   or (optionally) download schema on demand.
 
 This design does not prevent these solutions, but provides the baseline/fallback
