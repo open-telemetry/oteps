@@ -16,14 +16,14 @@ Since OpenTelemetry Events are a type of OpenTelemetry Log, they share the same 
 
 ### API
 
-OpenTelemetry should provide a (user-facing) Logs API that includes the capability to emit OpenTelemetry Events.
+OpenTelemetry SHOULD provide a (user-facing) Logs API that includes the capability to emit OpenTelemetry Events.
 
 ### Interoperability with other logging libraries
 
-It should be possible to send OpenTelemetry Logs from the OpenTelemetry Logs API to other logging libraries (e.g., Log4j).
+OpenTelemetry SHOULD provide a way to send OpenTelemetry Logs from the OpenTelemetry Logs API to other logging libraries (e.g., Log4j).
 This allows users to integrate OpenTelemetry Logs into an existing (non-OpenTelemetry) log stream.
 
-It should also be possible to bypass the OpenTelemetry Logs API entirely and emit OpenTelemetry Logs (including Events)
+OpenTelemetry SHOULD provide a way to bypass the OpenTelemetry Logs API entirely and emit OpenTelemetry Logs (including Events)
 directly via existing language-specific logging libraries, if that library has the capability to do so.
 
 OpenTelemetry will recommend that
