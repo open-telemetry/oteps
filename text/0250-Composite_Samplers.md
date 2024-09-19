@@ -283,7 +283,7 @@ Developers of Composable Samplers should consider that the sampling Decision the
 
 ### Prototyping
 
-A prototype implementation of ComposableSamplers for Java is available for review at [PR 1443](https://github.com/open-telemetry/opentelemetry-java-contrib/pull/1443).
+A prototype implementation of ComposableSamplers for Java is available, see [ConsistentSampler](https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/consistent-sampling/src/main/java/io/opentelemetry/contrib/sampler/consistent56/ConsistentSampler.java) and its subclasses.
 
 ## Prior art
 
