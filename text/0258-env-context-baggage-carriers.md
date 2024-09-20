@@ -7,10 +7,12 @@ processes.
 ## Table of Contents
 
 * [Motivation](#motivation)
-* [Explanation](#explanation)
-* [Internal Details](#internal-details)
-  * [UNIX](#unix)
-  * [Windows](#windows)
+* [Design](#design)
+  * [Example Context](#example-context)
+    * [Distributed Tracing in OpenTofu Prototype Example](#distributed-tracing-in-opentofu-prototype-example)
+* [Core Specification Changes](#core-specification-changes)
+  * [UNIX](#unix-limitations)
+  * [Windows](#windows-limitations)
   * [Allowed Characters](#allowed-characters)
 * [Trade-offs and Mitigations](#trade-offs-and-mitigations)
   * [Case-sensitivity](#case-sensitivity)
@@ -36,7 +38,7 @@ communicate across bounds by leveraging HTTP communications such as:
 * Batch
 * CI/CD systems
 
-Adding abritrary Text Map Propagation through environment variable carries into
+Adding arbitrary Text Map Propagation through environment variable carries into
 the OpenTelemetry Specification will enable distributed tracing within the
 above listed systems.
 
@@ -161,9 +163,7 @@ Defining the specification for Environment Variables as carriers for context
 will enable SDK's and other tools to implement getters and settings of context
 in a standard, observable way. Therefore, current OpenTelemetry language
 maintainers will need to develop language specific implementations that adhere
-to the specification. 
-
-**IMPORTANT**
+to the specification.
 
 Two implementations already exist within OpenTelemetry for environment
 variables through the TextMap Propagator:
