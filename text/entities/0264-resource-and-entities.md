@@ -230,7 +230,7 @@ OpenTelemetry resource identity will be modified as follows:
 - When `entities` is empty on resource, then its identity is the collection
   of all `attributes` (both key and values).
 - When `entities` is non-empty on resource, then its identity is the collection
-  of all `attributes` where the key is found in `entities.identify_attribute_keys`.
+  of all `attributes` where the key is not found in `entities.descriptive_attributes_keys`.
 
 When grouping or mixing OTLP data, you can detect if two resources are the same
 using its identity and merge descriptive attributes (if applicable) using the
