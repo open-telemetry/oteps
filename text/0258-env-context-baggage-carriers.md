@@ -24,39 +24,64 @@ processes.
 
 The motivation for defining the specification for context and baggage
 propagation by using environment variables as carriers stems from a long open
-issue on the OpenTelemetry Specification repository, [issue #740](https://github.com/open-telemetry/opentelemetry-specification/issues/740#issue-665588273).
+issue on the OpenTelemetry Specification repository, [issue #740][issue-740].
+This issue has been open for such a long time that multiple groups have gone
+forward in implementing their own solutions to the problem using `TRACE_PARENT`
+and `TRACESTATE` environment variables.
 
-The original issue identifies several use cases of systems that do not
-communicate across bounds by leveraging HTTP communications like, ETL, batch,
-and CI/CD systems, that need to benefit from context and baggage propagation.
-Defining a specification for this will enable better observability of these
-systems by enabling distributed tracing. There has already been a significant
-amount of [Prior Art](#prior-art) built within the industry and within
-OpenTelemetry to accomplish the immediate needs, however, OpenTelemetry at this
-time does not clearly define the specification for this form of propagation.
+[Issue #740][issue-740] identifies several use cases of systems that do not
+communicate across bounds by leveraging HTTP communications such as:
+
+* ETL
+* Batch
+* CI/CD systems
+
+Adding abritrary Text Map Propagation through environment variable carries into
+the OpenTelemetry Specification will enable distributed tracing within the
+above listed systems.
+
+There has already been a significant amount of [Prior Art](#prior-art) built
+within the industry and **within OpenTelemetry** to accomplish the immediate needs,
+however, OpenTelemetry at this time does not clearly define the specification
+for this form of propagation.
 
 Notably, as we define semantic conventions within the [CI/CD Working Group][cicd-wg],
 we'll need the specification defined for the industry to be able to adopt
 native tracing wtihin CI/CD systems.
 
 [cicd-wg]: https://github.com/open-telemetry/community/blob/main/projects/ci-cd.md
+[issue-740]: https://github.com/open-telemetry/opentelemetry-specification/issues/740#issue-665588273
 
-## Explanation
+## Design
 
-To propagate context and baggage between parent, and child processes
-in systems where HTTP communication does not occur, a specification for
-Environmental Variables can be used.
+To propagate context and baggage between parent, sibling, and child processes
+in systems where HTTP communication does not occur between processes, a
+specification using key-vaulue pairs injected into the environment can be read
+and produced by an arbitrary TextMapPropagator.
 
-Consider the following diagram:
+### Example Context
+
+Consider the following diagram in the context of process forking:
+
+> Note: The diagram simply an example and simplification of process forking.
+> There are other ways to spawn processes which are more performant like
+> exec().
+
+<!-- TODO: Maybe change diagram to not show fork. -->
 
 ![Environment Variable Context Propagation](./img/0258-env-context-parent-child-process.png)
 
-In this diagram, a parent process is forked to spawn a child process,
+In the above diagram, a parent process is forked to spawn a child process,
 inheriting the environment variables from the original parent. The environment
 variables defined here, `TRACEPARENT`, `TRACESTATE`, and `BAGGAGE` are used to
 propagate context to the child process such that it can be tied to the parent.
 Without `TRACEPARENT`, a tracing backend would not be able to connect the child
 process spans to the parent span, forming an end-to-end trace.
+
+> Note: While the below exclusively references the W3C Specification, this
+> proposal is not exclusive to W3C and is instead focused on the mechanism of
+> Text Map Propagation with a potential set of well-known environment variable
+> names.
 
 `traceparent` (lowercase), originates in the [W3C Specification][w3c-parent]
 and includes the following fields:
@@ -66,6 +91,12 @@ and includes the following fields:
 * `parent-id`
 * `trace-flags`
 
+This could be set in the environment as follows:
+
+```bash
+export TRACEPARENT=version=2HEXDIGLC,trace-id=32HEXDIGLC,parent-id=16HEXDIGLC,trace-flags=2HEXDIGLC
+```
+
 `tracestate` (lowercase), originates in the [W3C Specification][w2c-state] and
 can include any opaque value in a key-value pair structure. Its goal is to
 provide additional vendor-specific trace information.
@@ -73,6 +104,12 @@ provide additional vendor-specific trace information.
 `baggage` (lowercase), also is defined in the [W3C Specification][w3c-bag] and
 is a set of key-value pairs to propagate context between signals. In
 OpenTelemetry, baggage is propagated through the [Baggage API][bag-api].
+
+[w3c-parent]: https://www.w3.org/TR/trace-context-2/#traceparent-header-field-values
+[w3c-state]: https://www.w3.org/TR/trace-context-2/#tracestate-header
+[w3c-bag]: https://www.w3.org/TR/baggage/#baggage-http-header-format
+
+#### Distributed Tracing in OpenTofu Prototype Example
 
 Consider this real world example OpenTofu Controller Deployment.
 
@@ -103,22 +140,49 @@ of the normal HTTP microservice architecture.
 [w3c-bag]: https://www.w3.org/TR/baggage/#header-name
 [bag-api]: https://opentelemetry.io/docs/specs/otel/baggage/api/
 
-## Internal details
+## Core Specification Changes
+
+The OpenTelemetry Specification should be updated with the definitions for
+extending context propagation into the environment through Text Map
+propagators.
+
+This update should include:
+
+* A common set of environment variables like `TRACEPARENT`, `TRACESTATE`, and
+  `BAGGAGE` that can be used to propagate context between processes.
+* A specification for allowed environment names and values due to operating
+  system limitations.
+* A specification for how implementers can inject and extract context from the
+  environment through a TextMapPropagator.
+* A specification for how processes should update environment variables before
+  spawning new processes.
 
 Defining the specification for Environment Variables as carriers for context
 will enable SDK's and other tools to implement getters and settings of context
 in a standard, observable way. Therefore, current OpenTelemetry language
 maintainers will need to develop language specific implementations that adhere
-to the specification. Of course the specification itself will have to be
-defined, and a decision made on whether or not to adhere to the W3C
-specification or not will need to be made.
+to the specification. 
 
-Due to the current programming conventions, prior art, and information below,
-it is recommended to leverage upper-cased environment variables for the
-carrier. `TextMapPropagator` will be the means of propagation for environment
-variables.
+**IMPORTANT**
 
-### UNIX
+Two implementations already exist within OpenTelemetry for environment
+variables through the TextMap Propagator:
+
+* [Python SDK][python-env] - This implementation uses environment dictionary as
+  the carrier in Python for invoking process to invoked process context
+  propagation. This pull request does not appear to have been merged.
+* [Swift SDK][swift-env] - This implementation uses `TRACEPARENT` and
+  `TRACESTATE` environment variables alongside the w3cPropagator to inject and
+  extract context.
+
+Due to programming conventions, operating system limitations, prior art, and
+information below, it is recommended to leverage upper-cased environment
+variables for the carrier that align with context propagator specifications.
+
+[python-env]: https://github.com/Div95/opentelemetry-python/tree/feature/env_propagator/propagator/opentelemetry-propagator-env
+[swift-env]: https://github.com/open-telemetry/opentelemetry-swift/blob/main/Sources/OpenTelemetrySdk/Trace/Propagation/EnvironmentContextPropagator.swift
+
+### UNIX Limitations
 
 UNIX system utilities use upper-case for environment variables and lower-case
 are reserved for applications. Using upper-case will prevent conflicts with
@@ -136,7 +200,7 @@ the standard utilities.
 
 Source: [The Open Group, The Single UNIX® Specification, Version 2, Environment Variables](https://pubs.opengroup.org/onlinepubs/7908799/xbd/envvar.html)
 
-### Windows
+### Windows Limitations
 
 Windows is case-insensitive with environment variables. Despite this, the
 recommendation to be upper-cased across OS.
@@ -155,7 +219,8 @@ to the current specification for `TextMapPropagator` where key/value pairs MUST
 only consist of US-ASCII characters that make up valid HTTP header fields as
 per RFC 7230.
 
-Environment variable keys, SHOULD NOT conflict with common known environment variables like those described in [IEEE Std 1003.1-2017][std1003].
+Environment variable keys, SHOULD NOT conflict with common known environment
+variables like those described in [IEEE Std 1003.1-2017][std1003].
 
 One key note is that windows disallows the use of the `=` character in
 environment variable names. See [MS Env Vars][ms-env] for more information.
