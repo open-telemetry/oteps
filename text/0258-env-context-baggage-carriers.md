@@ -28,7 +28,7 @@ The motivation for defining the specification for context and baggage
 propagation by using environment variables as carriers stems from a long open
 issue on the OpenTelemetry Specification repository, [issue #740][issue-740].
 This issue has been open for such a long time that multiple groups have gone
-forward in implementing their own solutions to the problem using `TRACE_PARENT`
+forward in implementing their own solutions to the problem using `TRACEPARENT`
 and `TRACESTATE` environment variables.
 
 [Issue #740][issue-740] identifies several use cases of systems that do not
