@@ -158,6 +158,11 @@ satisfy this requirement).
 
 SDKs MAY permit users to opt-out of UTF-8 validation for performance reasons.
 
+Optional UTF-8 validation MUST be applied before the attribute
+transformation rule stated for invalid UTF-8 strings.  This means
+UTF-8 validation prevents downgrading to a `bytes_value` encoding
+for string attributes.
+
 #### No byte-slice valued attribute API
 
 As a caveat, the OpenTelemetry project has previously debated and
