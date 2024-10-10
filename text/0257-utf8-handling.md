@@ -124,12 +124,46 @@ different protocol buffer implementation would likely be the first to
 observe the invalid UTF-8, and by that time, a large batch of
 telemetry could fail as a result.
 
-### No byte-slice valued attribute API
+### Responsibility to the SDK user
+
+The existing specification [dictates a safety mechanism for exporting
+invalid string-valued attributes safely][SAFETY], however it only
+applies to attribute strings:
+
+[SAFETY]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/attribute-type-mapping.md#string-values
+
+```
+## String Values
+String values which are valid UTF-8 sequences SHOULD be converted to AnyValue's string_value field.
+
+String values which are not valid Unicode sequences SHOULD be converted to AnyValue's bytes_value with the bytes representing the string in the original order and format of the source string.
+```
+
+To satisfy the existing error-handling requirements, the OpenTelemetry
+SDK specifications will be modified for all signals with an opt-out
+validation feature.
+
+#### Proposed Collector behavior change
+
+The SDK SHOULD in its default configuration validate all string-valued
+telemetry data fields.  Each run of invalid UTF-8 (i.e., any invalid
+UTF-8 sequences) will be replaced by a single Unicode replacement
+character, `�` (U+FFFD).  The exact behavior of this correction is
+undefined.  When possible, SDKs SHOULD use a built-in library for this
+repair (for example, [Golang's
+`strings.ToValidUTF8()`](https://pkg.go.dev/strings#ToValidUTF8) or
+[Rust's
+`String::to_utf8_lossy()`](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy)
+satisfy this requirement).
+
+#### No byte-slice valued attribute API
 
 As a caveat, the OpenTelemetry project has previously debated and
-rejected the potential to support a byte-slice typed attribute.  This
-potential feature was rejected because it allows API users a way to
-record a possibly uninterpretable sequence of bytes.  Users with
+rejected the potential to support a byte-slice typed attribute in
+OpenTelemetry APIs.
+
+This potential feature was rejected because it allows API users a way
+to record a possibly uninterpretable sequence of bytes.  Users with
 invalid UTF-8 are left with a few options, for example:
 
 - Base64-encode the invalid data wrapped in human-readable syntax
@@ -146,8 +180,8 @@ be lost, therefore it seems better for Collector pipelines to
 explicitly handle UTF-8 validation, rather than leave it to the
 protocol buffer library.
 
-OpenTelemetry Collector SHOULD support automatic UTF-8 validation to
-protect users.  There are several places this could be done:
+OpenTelemetry Collector should support automatic UTF-8 validation to
+protect users, however there are several places this could be done:
 
 1. Following a receiver, with data coming from an external source,
 2. Following a mutating processor, with data modified by potentially
@@ -155,14 +189,20 @@ protect users.  There are several places this could be done:
 3. Prior to an exporter, with data coming from either an external
    source and/or modified by potentially untrustworhty code.
 
-Each of these approaches will take significant effort and cost the
-user at runtime, therefore:
+Each of these approaches will take significant effort and vary in cost
+at runtime.
 
-- UTF-8 validation SHOULD be enabled by default
+#### Proposed Collector behavior change
+
+To reduce the cost of UTF-8 validation to a minimum, we propose:
+
+- UTF-8 validation SHOULD be enabled by default for all Receiver components
 - Users SHOULD be able to opt out of UTF-8 validation
 - A `receiverhelper` library SHOULD offer a function to correct
   invalid UTF-8 in-place, with two configurable outcomes (1) reject
-  individual items containing invalid UTF-8, (2) repair invalid UTF-8.
+  individual items containing invalid UTF-8, meaning to count them as
+  rejected spans/points/logs, and (2) repair invalid UTF-8 as specified
+  for SDKs above.
 
 When an OpenTelemetry collector receives telemetry data in any
 protocol, in cases where the underlying RPC or protocol buffer
