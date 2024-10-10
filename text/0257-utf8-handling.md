@@ -15,7 +15,7 @@ rely on OpenTelemetry software/systems.
 OpenTelemetry has existing [error handling
 guidelines](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/error-handling.md)
 which dictate the project's general posture towards handling.  Users
-expect telemety libraries to be harmless and safe to use, so that they
+expect telemetry libraries to be harmless and safe to use, so that they
 can confidently instrument their application without unnecessary risk.
 
 > The API and SDK SHOULD provide safe defaults for missing or invalid arguments.
