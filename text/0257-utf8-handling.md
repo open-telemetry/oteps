@@ -156,6 +156,8 @@ repair (for example, [Golang's
 `String::from_utf8_lossy()`](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy)
 satisfy this requirement).
 
+SDKs MAY permit users to opt-out of UTF-8 validation for performance reasons.
+
 #### No byte-slice valued attribute API
 
 As a caveat, the OpenTelemetry project has previously debated and
@@ -180,7 +182,7 @@ be lost, therefore it seems better for Collector pipelines to
 explicitly handle UTF-8 validation, rather than leave it to the
 protocol buffer library.
 
-OpenTelemetry Collector should support automatic UTF-8 validation to
+The OpenTelemetry Collector should support automatic UTF-8 validation to
 protect users, however there are several places this could be done:
 
 1. Following a receiver, with data coming from an external source,
@@ -197,7 +199,7 @@ at runtime.
 To reduce the cost of UTF-8 validation to a minimum, we propose:
 
 - UTF-8 validation SHOULD be enabled by default for all Receiver components
-- Users SHOULD be able to opt out of UTF-8 validation
+- Users SHOULD be able to opt-out of UTF-8 validation
 - A `receiverhelper` library SHOULD offer a function to correct
   invalid UTF-8 in-place, with two configurable outcomes (1) reject
   individual items containing invalid UTF-8, meaning to count them as
