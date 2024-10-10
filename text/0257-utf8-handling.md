@@ -153,7 +153,7 @@ undefined.  When possible, SDKs SHOULD use a built-in library for this
 repair (for example, [Golang's
 `strings.ToValidUTF8()`](https://pkg.go.dev/strings#ToValidUTF8) or
 [Rust's
-`String::to_utf8_lossy()`](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy)
+`String::from_utf8_lossy()`](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy)
 satisfy this requirement).
 
 #### No byte-slice valued attribute API
