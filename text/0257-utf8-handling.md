@@ -48,11 +48,6 @@ of telemetry caused by string-valued fields that are not well-formed.
 A number of options are available, all of which are better than doing
 nothing about this problem.
 
-This document also proposes to extend the OpenTelemetry API to support
-byte-slice valued attributes.  Otherwise, users have no good
-alterntives to handling this kind of data, which is often how invalid
-UTF-8 arises.
-
 ## Internal details
 
 Text handling is such a key aspect of programming languages that
@@ -129,45 +124,17 @@ diferent protocol buffer implementation would likely be the first to
 observe the invalid UTF-8, and by that time, a large batch of
 telemetry could fail as a result.
 
-### Responsibility to the API user
+### No byte-slice valued attribute API
 
-When a user uses a telemetry SDK to gain observability into their
-application, it can lead to quite the opposite result when invalid
-UTF-8 causes loss of telemetry.  When a user turns to a telemetry
-system to obseve their system and makes a UTF-8 mistake, the
-consequent total loss of telemetry is a definite bad outcome.  While
-the above discussion addresses attempts to correct a problem,
-OpenTelemetry has not given the API user what they want in this
-situation.
+As a caveat, the OpenTelemetry project has previously debated and
+rejected the potential to support a byte-slice typed attribute.  This
+potential feature was rejected because it allows API users a way to
+record a possibly uninterpretable sequence of bytes.  Users with
+invalid UTF-8 are left with a few options, for example:
 
-#### Byte-slice valued attribute API
-
-The OpenTelemetry API specification does not permit the use of
-byte-slice valued attributes.  This is one reason why invalid UTF-8
-arises, because OpenTelemetry users have not been given an
-alternative.
-
-When faced with a desire to record invalid UTF-8 in a stream of
-telemetry, users have no good options.  They can use a base64
-encoding, but they will have to do so manually, and with extra code,
-and they are likely to learn this only after first making the mistake
-of using a string-value to encode bytes data.  When users see
-corrupted telemetry data containing � characters, they will return to
-OpenTelemetry with a request: how should they report bytes data?
-
-Ironically, in a prototype Collector processor to repair invalid
-UTF-8, we have used the Zap Logger's `zap.Binary([]byte)` field
-constructor to report the invalid data, and this is something an
-OpenTelemetry API user cannot do.
-
-This OTEP proposes to add an attribute-value type for byte slices, to
-represent an array of bytes with unknown encoding.  Examples data
-values where this attribute could be useful:
-
-- checksum values (e.g., a sha256 checksum represented as 32 bytes)
-- hash values (e.g., a 56-bit hash value represented as 7 bytes)
-- register contents (e.g., a memory region ... 64 bytes)
-- invalid UTF-8 (e.g., data lost because of UTF-8 validation).
+- Base64-encode the invalid data wrapped in human-readable syntax 
+  (e.g., `base64:WNhbHF1ZWVuY29hY2hod`).
+- Transmute the byte slice to an integer slice, which is supported.
 
 ### Responsibility to the Collector user
 
@@ -188,25 +155,33 @@ protect users.  There are several places this could be done:
 3. Prior to an exporter, with data coming from either an external
    source and/or modified by potentially untrustworhty code.
 
-Depending on user preferences, any of these outcomes might be best.
-Every mutating processor could force the pipeline to re-check for
-validity, in the strictest of configurations.
+Each of these approaches will take significant effort and cost the
+user at runtime, therefore:
 
-#### New collector component Capabilities for UTF-8 strictness
+- UTF-8 validation SHOULD be enabled by default
+- Users SHOULD be able to opt out of UTF-8 validation
+- A `receiverhelper` library SHOULD offer a function to correct
+  invalid UTF-8 in-place, with two configurable outcomes (1) reject 
+  individual items containing invalid UTF-8, (2) repair invalid UTF-8.
 
-Each collector component that strongly requires valid UTF-8 will
-declare so in an Capabilities field, and this will cause the Collector
-to re-validate UTF-8 before invoking that component.  By default,
-exporters will require valid UTF-8.
-
-Provided that no processors are strict about UTF-8 validation, UTF-8
-validation will happen only once per pipeline segment.  This means
-UTF-8 validation can be deferred until after sampling and filtering
-operations have finsihed.  Each pipeline segment will have at least
-one UTF-8 validation step, which will either automatically correct the
-problem (default) or reject the individual item of data (optional).
+When an OpenTelemetry collector receives telemetry data in any
+protocol, in cases where the underlying RPC or protocol buffer
+libraries does not guarantee valid UTF-8, the `receiverhelper` library
+SHOULD be called to optionally validate UTF-8 according to the
+confiuration described above.
 
 ### Alternatives considered
+
+#### Exhaustive validation
+
+The Collector behavior proposed above only validates data after it is
+received, not after it is modified by a processor.  We consider the
+risk of a malfunctioning processor to be acceptable.  If this happens,
+it will be considered a bug in the Collector component.  In other
+words, the Collector SHOULD NOT perform internal data validation and
+it SHOULD perform external data validation.
+
+#### Permissive trasnport
 
 We observe that some protocol buffer implementations are permissive
 with respect to invalid UTF-8, while others are strict.  It can be
