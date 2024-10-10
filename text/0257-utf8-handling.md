@@ -120,7 +120,7 @@ Given these out-of-the-box configurations, it would be possible for a
 Rust SDK to send invald UTF-8 to an OpenTelemetry Collector's OTLP
 receiver.  That collector could forward to another OpenTelemtry
 Collector over OTLP successfully, but a non-OTLP exporter using a
-diferent protocol buffer implementation would likely be the first to
+different protocol buffer implementation would likely be the first to
 observe the invalid UTF-8, and by that time, a large batch of
 telemetry could fail as a result.
 
@@ -132,7 +132,7 @@ potential feature was rejected because it allows API users a way to
 record a possibly uninterpretable sequence of bytes.  Users with
 invalid UTF-8 are left with a few options, for example:
 
-- Base64-encode the invalid data wrapped in human-readable syntax 
+- Base64-encode the invalid data wrapped in human-readable syntax
   (e.g., `base64:WNhbHF1ZWVuY29hY2hod`).
 - Transmute the byte slice to an integer slice, which is supported.
 
@@ -149,9 +149,9 @@ protocol buffer library.
 OpenTelemetry Collector SHOULD support automatic UTF-8 validation to
 protect users.  There are several places this could be done:
 
-1. Following a receiver, with data coming from an external source, 
+1. Following a receiver, with data coming from an external source,
 2. Following a mutating processor, with data modified by potentially
-   untrustworthy code, 
+   untrustworthy code,
 3. Prior to an exporter, with data coming from either an external
    source and/or modified by potentially untrustworhty code.
 
@@ -161,7 +161,7 @@ user at runtime, therefore:
 - UTF-8 validation SHOULD be enabled by default
 - Users SHOULD be able to opt out of UTF-8 validation
 - A `receiverhelper` library SHOULD offer a function to correct
-  invalid UTF-8 in-place, with two configurable outcomes (1) reject 
+  invalid UTF-8 in-place, with two configurable outcomes (1) reject
   individual items containing invalid UTF-8, (2) repair invalid UTF-8.
 
 When an OpenTelemetry collector receives telemetry data in any
@@ -181,7 +181,7 @@ it will be considered a bug in the Collector component.  In other
 words, the Collector SHOULD NOT perform internal data validation and
 it SHOULD perform external data validation.
 
-#### Permissive trasnport
+#### Permissive transport
 
 We observe that some protocol buffer implementations are permissive
 with respect to invalid UTF-8, while others are strict.  It can be
