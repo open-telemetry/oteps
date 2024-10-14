@@ -1,7 +1,7 @@
 # Environment Variable Specification for Context and Baggage Propagation
 
 This is a proposal to add Environment Variables to the OpenTelemetry
-specification as a carrier for context and baggage propagation between
+specification as carriers for context and baggage propagation between
 processes.
 
 ## Table of Contents
@@ -25,20 +25,19 @@ processes.
 ## Motivation
 
 The motivation for defining the specification for context and baggage
-propagation by using environment variables as carriers stems from a long open
-issue on the OpenTelemetry Specification repository, [issue #740][issue-740].
-This issue has been open for such a long time that multiple groups have gone
-forward in implementing their own solutions to the problem using `TRACEPARENT`
-and `TRACESTATE` environment variables.
+propagation by using environment variables as carriers stems from the long open
+[issue #740][issue-740] on the OpenTelemetry Specification repository. This
+issue has been open for such a long time that multiple implementations now
+exist using `TRACE_PARENT` and `TRACESTATE` environment variables.
 
-[Issue #740][issue-740] identifies several use cases of systems that do not
-communicate across bounds by leveraging HTTP communications such as:
+[Issue #740][issue-740] identifies several use cases in systems that do not
+communicate across bounds by leveraging network communications such as:
 
 * ETL
 * Batch
 * CI/CD systems
 
-Adding arbitrary Text Map Propagation through environment variable carries into
+Adding arbitrary [Text Map propagation][tmp] through environment variable carries into
 the OpenTelemetry Specification will enable distributed tracing within the
 above listed systems.
 
@@ -53,11 +52,12 @@ native tracing wtihin CI/CD systems.
 
 [cicd-wg]: https://github.com/open-telemetry/community/blob/main/projects/ci-cd.md
 [issue-740]: https://github.com/open-telemetry/opentelemetry-specification/issues/740#issue-665588273
+[tmp]: https://opentelemetry.io/docs/specs/otel/context/api-propagators/#textmap-propagator
 
 ## Design
 
 To propagate context and baggage between parent, sibling, and child processes
-in systems where HTTP communication does not occur between processes, a
+in systems where network communication does not occur between processes, a
 specification using key-vaulue pairs injected into the environment can be read
 and produced by an arbitrary TextMapPropagator.
 
@@ -85,8 +85,12 @@ process spans to the parent span, forming an end-to-end trace.
 > Text Map Propagation with a potential set of well-known environment variable
 > names.
 
-`traceparent` (lowercase), originates in the [W3C Specification][w3c-parent]
-and includes the following fields:
+Given the above example referencing the W3C Specification, the following is an
+elaboration on the mapping to headers defined by W3C.
+
+The `traceparent` (lowercase) header originates in the [W3C
+Trace-Context][w3c-parent] specification and includes the following valid
+fields:
 
 * `version`
 * `trace-id`
@@ -99,12 +103,12 @@ This could be set in the environment as follows:
 export TRACEPARENT=version=2HEXDIGLC,trace-id=32HEXDIGLC,parent-id=16HEXDIGLC,trace-flags=2HEXDIGLC
 ```
 
-`tracestate` (lowercase), originates in the [W3C Specification][w2c-state] and
-can include any opaque value in a key-value pair structure. Its goal is to
-provide additional vendor-specific trace information.
+The `tracestate` (lowercase) header originates in [W3C
+Trace-State][w3c-state] and can include any opaque value in a key-value pair
+structure. Its goal is to provide additional vendor-specific trace information.
 
-`baggage` (lowercase), also is defined in the [W3C Specification][w3c-bag] and
-is a set of key-value pairs to propagate context between signals. In
+The `baggage` (lowercase) header originates in [W3C Baggage][w3c-bag]
+and is a set of key-value pairs to propagate context between signals. In
 OpenTelemetry, baggage is propagated through the [Baggage API][bag-api].
 
 [w3c-parent]: https://www.w3.org/TR/trace-context-2/#traceparent-header-field-values
@@ -132,7 +136,7 @@ Additionally, the `init` span is able to pass baggage to the `plan` and `apply`
 spans. One example of this is module version and repository information. This
 information is only determined and known during the `init` process. Subsequent
 processes only know about the module by name. With `BAGGAGE` the rest of the
-proccesses are able to understand a key piece of information which allows
+processes are able to understand a key piece of information which allows
 errors to be tied back to original module version and source code.
 
 Defining the specification for Environment Variables as carriers will have a
@@ -141,6 +145,12 @@ of the normal HTTP microservice architecture.
 
 [w3c-bag]: https://www.w3.org/TR/baggage/#header-name
 [bag-api]: https://opentelemetry.io/docs/specs/otel/baggage/api/
+
+The above prototype example came from the resources mentioned in [this
+comment][otcom] on the [OpenTofu Tracing RFC][otrfc].
+
+[otcom]: https://github.com/opentofu/opentofu/pull/2028#issuecomment-2411588695
+[otrfc]: https://github.com/opentofu/opentofu/pull/2028
 
 ## Core Specification Changes
 
@@ -188,15 +198,15 @@ UNIX system utilities use upper-case for environment variables and lower-case
 are reserved for applications. Using upper-case will prevent conflicts with
 internal application variables.
 
-Environment variable names used by the utilities in the XCU specification
-consist solely of upper-case letters, digits and the "_" (underscore) from the
-characters defined in Portable Character Set. Other characters may be permitted
-by an implementation; applications must tolerate the presence of such names.
-Upper- and lower-case letters retain their unique identities and are not folded
-together. The name space of environment variable names containing lower-case
-letters is reserved for applications. Applications can define any environment
-variables with names from this name space without modifying the behaviour of
-the standard utilities.
+Environment variable names used by the utilities in the Shell and Utilities
+(XCU) specification consist solely of upper-case letters, digits and the "_"
+(underscore) from the characters defined in Portable Character Set. Other
+characters may be permitted by an implementation; applications must tolerate
+the presence of such names. Upper- and lower-case letters retain their unique
+identities and are not folded together. The name space of environment variable
+names containing lower-case letters is reserved for applications. Applications
+can define any environment variables with names from this name space without
+modifying the behaviour of the standard utilities.
 
 Source: [The Open Group, The Single UNIX® Specification, Version 2, Environment Variables](https://pubs.opengroup.org/onlinepubs/7908799/xbd/envvar.html)
 
@@ -291,4 +301,6 @@ The author has no open questions at this point.
 
 ## Future possibilities
 
-1. Enabling distributed tracing in systems that do not communicate over HTTP.
+1. Enabling distributed tracing in systems that do not communicate over network
+   protocols that allow trace context being propagated through headers,
+   metadata, or other means.
