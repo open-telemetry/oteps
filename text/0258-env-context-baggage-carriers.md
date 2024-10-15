@@ -164,7 +164,10 @@ propagators.
 This update should include:
 
 * A common set of environment variables like `TRACEPARENT`, `TRACESTATE`, and
-  `BAGGAGE` that can be used to propagate context between processes.
+  `BAGGAGE` that can be used to propagate context between processes. These
+  environment variables names should be overridable for legacy support reasons
+  (like using B3), but the default standard should align with the W3C
+  specification.
 * A specification for allowed environment names and values due to operating
   system limitations.
 * A specification for how implementers can inject and extract context from the
