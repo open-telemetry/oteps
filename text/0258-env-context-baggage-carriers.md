@@ -28,7 +28,7 @@ The motivation for defining the specification for context and baggage
 propagation by using environment variables as carriers stems from the long open
 [issue #740][issue-740] on the OpenTelemetry Specification repository. This
 issue has been open for such a long time that multiple implementations now
-exist using `TRACE_PARENT` and `TRACESTATE` environment variables.
+exist using `TRACEPARENT` and `TRACESTATE` environment variables.
 
 [Issue #740][issue-740] identifies several use cases in systems that do not
 communicate across bounds by leveraging network communications such as:
@@ -43,8 +43,8 @@ above listed systems.
 
 There has already been a significant amount of [Prior Art](#prior-art) built
 within the industry and **within OpenTelemetry** to accomplish the immediate needs,
-however, OpenTelemetry at this time does not clearly define the specification
-for this form of propagation.
+however, OpenTelemetry at this time does not define the specification for this
+form of propagation.
 
 Notably, as we define semantic conventions within the [CI/CD Working Group][cicd-wg],
 we'll need the specification defined for the industry to be able to adopt
@@ -65,7 +65,7 @@ and produced by an arbitrary TextMapPropagator.
 
 Consider the following diagram in the context of process forking:
 
-> Note: The diagram simply an example and simplification of process forking.
+> Note: The diagram is simply an example and simplification of process forking.
 > There are other ways to spawn processes which are more performant like
 > exec().
 
@@ -100,8 +100,11 @@ fields:
 This could be set in the environment as follows:
 
 ```bash
-export TRACEPARENT=version=2HEXDIGLC,trace-id=32HEXDIGLC,parent-id=16HEXDIGLC,trace-flags=2HEXDIGLC
+export TRACEPARENT=00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
 ```
+
+> Note: The value of TRACEPARENT is a combination of the above field values as
+> unsigned integer values serialized as ASCII strings, delimited by `-`.
 
 The `tracestate` (lowercase) header originates in [W3C
 Trace-State][w3c-state] and can include any opaque value in a key-value pair
@@ -123,9 +126,9 @@ Consider this real world example OpenTofu Controller Deployment.
 
 In this model, the OpenTofu Controller is the start of the trace, containing
 the actual trace_id and generating the root span. The OpenTofu controller
-deploys a runner which has it's own environment and processes to run OpenTofu
+deploys a runner which has its own environment and processes to run OpenTofu
 commands. If one was to trace these processes without a carrier mechanism, then
-they would all show up as unrelated root spans as separate traces. However, by
+they would all show up as unrelated root spans in separate traces. However, by
 leveraging environment variables as carriers, each span is able to be tied back
 to the root span, creating a single trace as shown in the image of a real
 OpenTofu trace below.
@@ -170,7 +173,7 @@ This update should include:
   spawning new processes.
 
 Defining the specification for Environment Variables as carriers for context
-will enable SDK's and other tools to implement getters and settings of context
+will enable SDK's and other tools to implement getters and setters of context
 in a standard, observable way. Therefore, current OpenTelemetry language
 maintainers will need to develop language specific implementations that adhere
 to the specification.
@@ -182,7 +185,7 @@ variables through the TextMap Propagator:
   the carrier in Python for invoking process to invoked process context
   propagation. This pull request does not appear to have been merged.
 * [Swift SDK][swift-env] - This implementation uses `TRACEPARENT` and
-  `TRACESTATE` environment variables alongside the w3cPropagator to inject and
+  `TRACESTATE` environment variables alongside the W3C Propagator to inject and
   extract context.
 
 Due to programming conventions, operating system limitations, prior art, and
