@@ -69,8 +69,6 @@ Consider the following diagram in the context of process forking:
 > There are other ways to spawn processes which are more performant like
 > exec().
 
-<!-- TODO: Maybe change diagram to not show fork. -->
-
 ![Environment Variable Context Propagation](./img/0258-env-context-parent-child-process.png)
 
 In the above diagram, a parent process is forked to spawn a child process,
@@ -80,13 +78,14 @@ propagate context to the child process such that it can be tied to the parent.
 Without `TRACEPARENT`, a tracing backend would not be able to connect the child
 process spans to the parent span, forming an end-to-end trace.
 
-> Note: While the below exclusively references the W3C Specification, this
-> proposal is not exclusive to W3C and is instead focused on the mechanism of
-> Text Map Propagation with a potential set of well-known environment variable
-> names.
+> Note: While the below exclusively follows the W3C Specification translated
+> into environment variables, this proposal is not exclusive to W3C and is
+> instead focused on the mechanism of Text Map Propagation with a potential set
+> of well-known environment variable names. See the [Core Specification
+> Changes](#core-specification-changes) section for more information.
 
-Given the above example referencing the W3C Specification, the following is an
-elaboration on the mapping to headers defined by W3C.
+Given the above example aligning with the W3C Specification, the following is
+an contextual mapping of environment variables to headers defined by W3C.
 
 The `traceparent` (lowercase) header is defined in the [W3C
 Trace-Context][w3c-parent] specification and includes the following valid
