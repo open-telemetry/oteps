@@ -88,7 +88,7 @@ process spans to the parent span, forming an end-to-end trace.
 Given the above example referencing the W3C Specification, the following is an
 elaboration on the mapping to headers defined by W3C.
 
-The `traceparent` (lowercase) header originates in the [W3C
+The `traceparent` (lowercase) header is defined in the [W3C
 Trace-Context][w3c-parent] specification and includes the following valid
 fields:
 
@@ -106,11 +106,11 @@ export TRACEPARENT=00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
 > Note: The value of TRACEPARENT is a combination of the above field values as
 > unsigned integer values serialized as ASCII strings, delimited by `-`.
 
-The `tracestate` (lowercase) header originates in [W3C
+The `tracestate` (lowercase) header is defined in [W3C
 Trace-State][w3c-state] and can include any opaque value in a key-value pair
 structure. Its goal is to provide additional vendor-specific trace information.
 
-The `baggage` (lowercase) header originates in [W3C Baggage][w3c-bag]
+The `baggage` (lowercase) header is defined in [W3C Baggage][w3c-bag]
 and is a set of key-value pairs to propagate context between signals. In
 OpenTelemetry, baggage is propagated through the [Baggage API][bag-api].
 
