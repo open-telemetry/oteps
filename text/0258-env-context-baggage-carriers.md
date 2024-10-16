@@ -48,7 +48,7 @@ form of propagation.
 
 Notably, as we define semantic conventions within the [CI/CD Working Group][cicd-wg],
 we'll need the specification defined for the industry to be able to adopt
-native tracing wtihin CI/CD systems.
+native tracing within CI/CD systems.
 
 [cicd-wg]: https://github.com/open-telemetry/community/blob/main/projects/ci-cd.md
 [issue-740]: https://github.com/open-telemetry/opentelemetry-specification/issues/740#issue-665588273
@@ -58,7 +58,7 @@ native tracing wtihin CI/CD systems.
 
 To propagate context and baggage between parent, sibling, and child processes
 in systems where network communication does not occur between processes, a
-specification using key-vaulue pairs injected into the environment can be read
+specification using key-value pairs injected into the environment can be read
 and produced by an arbitrary TextMapPropagator.
 
 ### Example Context
@@ -85,7 +85,7 @@ process spans to the parent span, forming an end-to-end trace.
 > Changes](#core-specification-changes) section for more information.
 
 Given the above example aligning with the W3C Specification, the following is
-an contextual mapping of environment variables to headers defined by W3C.
+a contextual mapping of environment variables to headers defined by W3C.
 
 The `traceparent` (lowercase) header is defined in the [W3C
 Trace-Context][w3c-parent] specification and includes the following valid
@@ -207,18 +207,18 @@ Environment variable names used by the utilities in the Shell and Utilities
 (XCU) specification consist solely of upper-case letters, digits and the "_"
 (underscore) from the characters defined in Portable Character Set. Other
 characters may be permitted by an implementation; applications must tolerate
-the presence of such names. Upper- and lower-case letters retain their unique
-identities and are not folded together. The name space of environment variable
-names containing lower-case letters is reserved for applications. Applications
-can define any environment variables with names from this name space without
-modifying the behaviour of the standard utilities.
+the presence of such names. Upper-case and lower-case letters retain their
+unique identities and are not folded together. The name space of environment
+variable names containing lower-case letters is reserved for applications.
+Applications can define any environment variables with names from this name
+space without modifying the behaviour of the standard utilities.
 
 Source: [The Open Group, The Single UNIX® Specification, Version 2, Environment Variables](https://pubs.opengroup.org/onlinepubs/7908799/xbd/envvar.html)
 
 ### Windows Limitations
 
 Windows is case-insensitive with environment variables. Despite this, the
-recommendation to be upper-cased across OS.
+recommendation is to use upper-case names across OS.
 
 Some languages already do this. This [CPython issue][cpython] discusses how
 Python automatically upper-cases environment variables. The issue was merged and
@@ -254,8 +254,7 @@ support which is 32,767 characters.
 On Windows, because environment variable keys are case insensitive, there is a
 chance that automatically instrumented context propagation variables could
 conflict with existing application environment variables. It will be important
-to denote this behavior and identify document how languages mitigate this
-issue.
+to denote this behavior and document how languages mitigate this issue.
 
 ### Security
 
