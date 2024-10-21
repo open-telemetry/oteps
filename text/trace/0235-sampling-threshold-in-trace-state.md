@@ -79,7 +79,7 @@ where -> indicates a parent to child relationship.
 - `C` uses a parent-based sampler. This means that C indirectly follows the same rejection threshold as its parent B.
 
 When the sampling decision for `A` is to *keep* the span, its outgoing traceparent will have the `sampled` flag SET and the `th` in its outgoing tracestate will be set to `0xc0_0000_0000_0000`.
-When the sampling decision for `A` is to *drop* the span, its outgoing traceparent will have the `sampled` flag UNSET but the `th` in its outgoing tracestate will still be set to `0xc0_0000_0000_0000`.
+When the sampling decision for `A` is to *drop* the span, its outgoing traceparent will have the `sampled` flag UNSET and `th` in its outgoing tracestate will be removed.
 When the sampling decision for `B` is to *keep* the span, its outgoing traceparent will have the `sampled` flag SET and the `th` in its outgoing tracestate will be set to `0x80_0000_0000_0000`.
 C (being a parent based sampler) samples a span purely based on its parent (B in this case), it will use the sampled flag to make the decision. Its outgoing `th` value will continue to reflect what it got from B (`0x80_0000_0000_0000`), and this is useful to understand its adjusted count.
 
