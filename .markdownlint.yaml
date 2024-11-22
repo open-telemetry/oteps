@@ -6,5 +6,6 @@
   "ul-style": false,  # MD004
   "line-length": false,  # MD013
   "no-inline-html": false,  # MD033
-  "fenced-code-language": false  # MD040
+  "fenced-code-language": false,  # MD040
+  "first-line-h1": false # MD041
 }
