@@ -1,3 +1,8 @@
+> [!WARNING]
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 # A Dynamic Configuration Service for the SDK
 
 This proposal is a request to develop a prototype to configure metric collection periods. Per-metric and tracing configuration is also intended to be added, with details left for a later iteration.

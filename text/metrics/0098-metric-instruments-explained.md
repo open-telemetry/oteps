@@ -1,3 +1,8 @@
+> [!WARNING]
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 # Explain the metric instruments
 
 Propose and explain final names for the standard metric instruments theorized in [OTEP 88][otep-88] and address related confusion.

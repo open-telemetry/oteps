@@ -1,3 +1,8 @@
+> [!WARNING]
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 # Versioning and stability for OpenTelemetry clients
 
 OpenTelemetry is a large project with strict compatibility requirements. This proposal defines the stability guarantees offered by the OpenTelemetry clients, along with a versioning and lifecycle proposal which defines how we meet those requirements.

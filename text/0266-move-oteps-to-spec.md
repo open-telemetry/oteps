@@ -1,3 +1,8 @@
+> [!WARNING]
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 # Move OTEPS to the Specification repository
 
 Let's move OTEP documentation and PRs back into the github.com/open-telemetry/opentelemetry-specification repository.

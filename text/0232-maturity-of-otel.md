@@ -1,3 +1,8 @@
+> [!WARNING]
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 # Definition of maturity levels to be uniformly used by OpenTelemetry SIGs
 
 On 08 Mar 2023, the OpenTelemetry GC and TC held an OpenTelemetry Leadership summit, discussing various topics. One of the themes we discussed was establishing standard rules for describing the maturity of the OpenTelemetry project. This OTEP summarizes what was discussed there and is intended to have the wider community provide feedback.
