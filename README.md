@@ -3,6 +3,11 @@
 [![Slack chat][slack-image]][slack-url]
 [![Build Status][circleci-image]][circleci-url]
 
+> [!WARNING]  
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 ## Evolving OpenTelemetry at the speed of Markdown
 
 OpenTelemetry uses an "OTEP" (similar to a RFC) process for proposing changes to the [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification).
