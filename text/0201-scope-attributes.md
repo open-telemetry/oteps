@@ -1,3 +1,8 @@
+> [!WARNING]
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 # Introduce Scope Attributes
 
 This OTEP adds attributes to the Scope of a telemetry emitter (e.g. Tracer, Meter, LogEmitter).

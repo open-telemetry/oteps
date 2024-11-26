@@ -1,3 +1,8 @@
+> [!WARNING]
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 # OpenTelemetry Configuration
 
 A new configuration interface is proposed here in the form of a configuration model, which can be expressed as a file, and validated through a published schema.

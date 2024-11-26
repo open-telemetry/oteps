@@ -1,3 +1,8 @@
+> [!WARNING]
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 # Error Flagging with Status Codes
 
 This proposal reduces the number of status codes to three, adds a new field to identify status codes set by application developers and operators, and adds a mapping of semantic conventions to status codes. This clarifies how error reporting should work in OpenTelemetry.

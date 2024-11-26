@@ -1,3 +1,8 @@
+> [!WARNING]
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 # (Open) Telemetry Without Manual Instrumentation
 
 _Cross-language requirements for automated approaches to extracting portable telemetry data with zero source code modification._

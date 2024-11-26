@@ -1,3 +1,8 @@
+> [!WARNING]
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 # A Proposal For SDK Support for Configurable Batching and Aggregations (Basic Views)
 
 Add support to the default SDK for the ability to configure Metric Aggregations.

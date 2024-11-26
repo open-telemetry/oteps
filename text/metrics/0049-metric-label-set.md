@@ -1,3 +1,8 @@
+> [!WARNING]
+> OTEPs have been moved to the [Specification](https://github.com/open-telemetry/opentelemetry-specification/tree/main/oteps/)
+> repository. This repository has been preserved for reference purposes.
+> Please otherwise refer to the Specification.
+
 # Metric `LabelSet` specification
 
 Introduce a first-class `LabelSet` API type as a handle on a pre-defined set of labels for the Metrics API.
